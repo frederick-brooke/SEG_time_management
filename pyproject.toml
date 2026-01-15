@@ -1,6 +1,9 @@
 # Ruff configuration for Band V marking criteria compliance
 # Only includes rules that directly map to marking requirements
 
+[project]
+requires-python = ">=3.12"
+
 [format]
 exclude = []
 skip-magic-trailing-comma = true
