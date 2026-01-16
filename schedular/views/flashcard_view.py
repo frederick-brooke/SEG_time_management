@@ -5,6 +5,11 @@ from django.utils import timezone
 from .models import Flashcard
 
 def flashcard_create(request):
+    """
+    Docstring for flashcard_create
+    
+    :param request: Description
+    """
     if request.method == "POST":
         deck = get_object_or_404(Deck, id=deck_id)
     
