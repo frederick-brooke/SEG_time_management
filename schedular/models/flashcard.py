@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Model
 
-class flashcard(models.Model):
+class Flashcard(models.Model):
     deck = models.ForeignKey(Deck, on_delete=models.CASCADE)
     front_content = models.CharField(max_length=500)
     back_content = models.CharField(max_length=500)

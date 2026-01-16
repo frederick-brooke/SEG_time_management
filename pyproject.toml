@@ -9,7 +9,7 @@ exclude = []
 skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
-exclude = []
+exclude = ["schedular/migrations/*", "scheduler/*"]
 select = [
     "PLR0915", # V.4: Too many statements (max 15 lines)
     "PLR1702", # V.4: Too many nested blocks (max 1 level)
@@ -33,4 +33,5 @@ max-nested-blocks = 1
 # Test files can have longer functions (max 25 lines per V.5)
 "**/tests/*.py" = ["PLR0915", "D"]
 "**/test_*.py" = ["PLR0915", "D"]
-"tests.py" = ["PLR0915", "D"]
+"*/test/**.py" = ["PLR0915", "D"]
+"*/tests/**" = ["PLR1702"]
