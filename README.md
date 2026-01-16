@@ -2,6 +2,7 @@
 # Team Members
 The members of the team are:
 - Sakar Rai
+- Karim He
 
 # Reference list
 
