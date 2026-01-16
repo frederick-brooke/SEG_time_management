@@ -2,11 +2,8 @@
 # Team Members
 The members of the team are:
 - Sakar Rai
-<<<<<<< HEAD
 - Karim He
-=======
 - Extreme Limbu
->>>>>>> 63d2473 (Readme added name)
 
 # Reference list
 
