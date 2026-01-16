@@ -3,8 +3,8 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.shortcuts import redirect, render
 from django.views import View
-from recipes.forms import LogInForm
-from recipes.views.decorators import LoginProhibitedMixin
+from schedular.forms import LogInForm
+from schedular.views.decorators import LoginProhibitedMixin
 
 
 class LogInView(LoginProhibitedMixin, View):

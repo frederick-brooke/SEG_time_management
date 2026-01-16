@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
-from recipes.models import User
-from recipes.forms import PasswordForm
+from schedular.models import User
+from schedular.forms import PasswordForm
 
 class PasswordFormTestCase(TestCase):
 

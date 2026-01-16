@@ -2,9 +2,9 @@
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
-from recipes.forms import SignUpForm
-from recipes.models import User
-from recipes.tests.helpers import LogInTester
+from schedular.forms import SignUpForm
+from schedular.models import User
+from schedular.tests.helpers import LogInTester
 
 class SignUpViewTestCase(TestCase, LogInTester):
     """Tests of the sign up view."""

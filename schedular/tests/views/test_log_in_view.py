@@ -2,9 +2,9 @@
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
-from recipes.forms import LogInForm
-from recipes.models import User
-from recipes.tests.helpers import LogInTester, MenuTesterMixin, reverse_with_next
+from schedular.forms import LogInForm
+from schedular.models import User
+from schedular.tests.helpers import LogInTester, MenuTesterMixin, reverse_with_next
 
 class LogInViewTestCase(TestCase, LogInTester, MenuTesterMixin):
     """Tests of the log in view."""

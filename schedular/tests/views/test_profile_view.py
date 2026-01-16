@@ -2,9 +2,9 @@
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
-from recipes.forms import UserForm
-from recipes.models import User
-from recipes.tests.helpers import reverse_with_next
+from schedular.forms import UserForm
+from schedular.models import User
+from schedular.tests.helpers import reverse_with_next
 
 class ProfileViewTest(TestCase):
     """Test suite for the profile view."""

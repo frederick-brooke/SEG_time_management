@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.validators import RegexValidator
-from recipes.models import User
+from schedular.models import User
 
 class UserForm(forms.ModelForm):
     """

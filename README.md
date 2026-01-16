@@ -1,5 +1,36 @@
 # SEG_time_management
+# Team Members
+The members of the team are:
+- Sakar Rai
 
+# Reference list
+
+# Deployment location
+
+# Installation instructions
+
+Install all required packages:
+
+```
+$ pip3 install -r requirements.txt
+```
+
+Migrate the database:
+
+```
+$ python3 manage.py migrate
+```
+
+Seed the development database with:
+
+```
+$ python3 manage.py seed
+```
+
+Run all tests with:
+```
+$ python3 manage.py test
+```
 
 
 **Ruff Formatter / linter**

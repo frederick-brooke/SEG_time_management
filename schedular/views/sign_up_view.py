@@ -2,8 +2,8 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.views.generic.edit import FormView
 from django.urls import reverse
-from recipes.forms import SignUpForm
-from recipes.views.decorators import LoginProhibitedMixin
+from schedular.forms import SignUpForm
+from schedular.views.decorators import LoginProhibitedMixin
 
 
 class SignUpView(LoginProhibitedMixin, FormView):

@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import UpdateView
 from django.urls import reverse
-from recipes.forms import UserForm
+from schedular.forms import UserForm
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):

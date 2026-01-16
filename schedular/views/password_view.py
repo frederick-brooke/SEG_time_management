@@ -3,7 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.urls import reverse
-from recipes.forms import PasswordForm
+from schedular.forms import PasswordForm
 
 
 class PasswordView(LoginRequiredMixin, FormView):
