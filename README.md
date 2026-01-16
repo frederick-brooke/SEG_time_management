@@ -3,6 +3,7 @@
 The members of the team are:
 - Sakar Rai
 - Karim He
+- Sadhna Arun
 
 # Reference list
 
