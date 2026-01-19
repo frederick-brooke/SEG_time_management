@@ -9,7 +9,13 @@ exclude = []
 skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
-exclude = ["scheduler/migrations/*", "scheduler/*"]
+exclude = [
+    "*/scheduler/migrations/*", 
+    "*/scheduler/management/*", 
+    "*/scheduler/tests/*",
+    "frontend/*"
+]
+
 select = [
     "PLR0915", # V.4: Too many statements (max 15 lines)
     "PLR1702", # V.4: Too many nested blocks (max 1 level)
@@ -17,8 +23,9 @@ select = [
     "ERA",     # III.7: Commented-out code detection
     "D101",    # III.7: Missing docstring in public class
     "D102",    # III.7: Missing docstring in public method
-    "D103",    # III.7: Missing docstring in public function
+    "D103"    # III.7: Missing docstring in public function
 ]
+
 ignore = []
 preview = true
 
