@@ -1,29 +1,10 @@
-from django.contrib.auth import get_user_model
-
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 from scheduler.models import Commitment
 from scheduler.serializers.commitment import CommitmentSerializer
-
-User = get_user_model()
-
-
-def get_dev_user():
-    """
-    Temporary dev shortcut:
-    - ensures there is at least 1 user
-    - avoids crashing if the DB has no users yet
-    """
-    dev_user = User.objects.first()
-    if dev_user is None:
-        # Create a simple dev user if none exist
-        dev_user = User.objects.create_user(
-            username="devuser",
-            password="devpassword123",
-        )
-    return dev_user
 
 
 @api_view(["GET"])
@@ -32,36 +13,34 @@ def health(request):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def commitments(request):
     """
-    GET  /api/commitments/  -> list commitments
-    POST /api/commitments/  -> create commitment (owned by dev user for now)
+    GET  /api/commitments/  -> list commitments for logged-in user
+    POST /api/commitments/  -> create commitment for logged-in user
     """
-    dev_user = get_dev_user()
-
     if request.method == "GET":
-        qs = Commitment.objects.filter(user=dev_user).order_by("start_time")
+        qs = Commitment.objects.filter(user=request.user).order_by("start_time")
         serializer = CommitmentSerializer(qs, many=True)
         return Response(serializer.data)
 
     # POST
     serializer = CommitmentSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save(user=dev_user)
+    serializer.save(user=request.user)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET", "PUT", "DELETE"])
+@permission_classes([IsAuthenticated])
 def commitment_detail(request, commitment_id: int):
     """
-    GET    /api/commitments/<id>/ -> get one (dev user only)
-    PUT    /api/commitments/<id>/ -> update one (dev user only)
-    DELETE /api/commitments/<id>/ -> delete one (dev user only)
+    GET    /api/commitments/<id>/ -> get one (owned by logged-in user)
+    PUT    /api/commitments/<id>/ -> update one (owned by logged-in user)
+    DELETE /api/commitments/<id>/ -> delete one (owned by logged-in user)
     """
-    dev_user = get_dev_user()
-
     try:
-        obj = Commitment.objects.get(id=commitment_id, user=dev_user)
+        obj = Commitment.objects.get(id=commitment_id, user=request.user)
     except Commitment.DoesNotExist:
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -72,7 +51,7 @@ def commitment_detail(request, commitment_id: int):
     if request.method == "PUT":
         serializer = CommitmentSerializer(obj, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=dev_user)  # keep ownership consistent
+        serializer.save(user=request.user)  # keep ownership correct
         return Response(serializer.data)
 
     # DELETE
