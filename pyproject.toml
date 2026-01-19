@@ -9,7 +9,7 @@ exclude = []
 skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
-exclude = ["schedular/migrations/*", "scheduler/*"]
+exclude = ["scheduler/migrations/*", "scheduler/*"]
 select = [
     "PLR0915", # V.4: Too many statements (max 15 lines)
     "PLR1702", # V.4: Too many nested blocks (max 1 level)
