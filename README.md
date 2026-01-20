@@ -5,6 +5,8 @@ The members of the team are:
 - Karim He
 - Sadhna Arun
 - Extreme Limbu
+- Alisha Kazmi
+- Aarushi Singh
 
 # Reference list
 
