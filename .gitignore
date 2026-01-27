@@ -356,3 +356,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django,windows,linux,macos,react
+/generated/prisma
