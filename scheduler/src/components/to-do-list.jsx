@@ -160,6 +160,15 @@ export function ToDoList() {
     setTasks(updatedTasks);
   };
 
+  // Handler: Sort tasks
+  const handleSort = () => {
+    const priorityMap = { "High": 3, "Medium": 2, "Low": 1 };
+    const sortedByPriority = [...tasks].sort((a, b) => {
+      return priorityMap[b.priority] - priorityMap[a.priority];
+    });
+    setTasks(sortedByPriority);
+  }
+
   // ==================== RENDER ====================
 
   return (
@@ -173,7 +182,7 @@ export function ToDoList() {
 
         {/* Action Buttons */}
         <CardAction className="flex gap-2">
-          <Button>Sort</Button>
+          <Button onClick={handleSort}>Sort</Button>
 
           {/* Create/Edit Task Dialog */}
           <Dialog
