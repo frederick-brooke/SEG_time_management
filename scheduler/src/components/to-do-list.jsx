@@ -48,6 +48,7 @@ export function ToDoList() {
   const [newTaskDescription, setNewTaskDescription] = React.useState("");
   const [newTaskPriority, setNewTaskPriority] = React.useState("!");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [newTaskSubtasks, setNewTaskSubtasks] = React.useState("");
   const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
 
   // View task state
@@ -98,9 +99,11 @@ export function ToDoList() {
               : "High",
         description: newTaskDescription,
         completed: false,
-      };
+        subtasks: newTaskSubtasks.split(",").map(s => s.trim()).filter(s => s !== ""),
+    };
       setTasks([...tasks, newTask]);
     }
+    setNewTaskSubtasks("");
 
     // Reset form fields and close dialog
     setNewTaskName("");
@@ -225,6 +228,17 @@ export function ToDoList() {
                 </div>
 
                 {/* Task Priority */}
+
+                <div className="grid gap-2">
+                  <Label htmlFor="subtasks">Subtasks (comma separated)</Label>
+                  <Input
+                    id="subtasks"
+                    placeholder="e.g. Research, Edit"
+                    value={newTaskSubtasks}
+                    onChange={(e) => setNewTaskSubtasks(e.target.value)}
+                  />
+                </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="task-priority">Task Priority</Label>
                   <ToggleGroup
