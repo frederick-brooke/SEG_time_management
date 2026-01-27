@@ -1,102 +1,137 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useAuth } from "@/context/AuthContext"
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  // State to store what user types
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  
-  // Get the login function from AuthContext
-  const { login } = useAuth()
+  const router = useRouter();
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault()  // Prevent page refresh
-    setError('')  // Clear any previous errors
-    setIsLoading(true)  // Show loading state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-    // Call the login function from AuthContext
-    const result = await login(email, password)
-    
-    if (!result.success) {
-      setError(result.error || 'Invalid email or password')
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    // NextAuth login via Credentials provider
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false, // so we can show errors nicely
+    });
+
+    setIsLoading(false);
+
+    if (!res?.ok) {
+      setError("Invalid email or password");
+      return;
     }
-    
-    setIsLoading(false)
+
+    router.push("/"); // or /dashboard
+  }
+
+  async function handleGoogle() {
+    // Starts Google OAuth (for now it's sign-in; later Prisma will do real linking)
+    await signIn("google", { callbackUrl: "/" });
+  }
+
+  async function handleRegister() {
+    setError("");
+    setIsLoading(true);
+
+    const r = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    setIsLoading(false);
+
+    if (!r.ok) {
+      const data = await r.json().catch(() => ({}));
+      setError(data.error || "Registration failed");
+      return;
+    }
+
+    // auto login after register
+    const res = await signIn("credentials", { email, password, redirect: false });
+    if (res?.ok) router.push("/");
+    else setError("Registered, but login failed. Try signing in.");
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-        {/* Header */}
+      <div className="max-w-md w-full space-y-6 bg-white p-8 rounded-lg shadow-md">
         <div>
-          <h2 className="text-3xl font-bold text-center text-gray-900">
-            Sign in to your account
-          </h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900">Sign in</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your credentials to access your account
+            Email/password is the main login. Google is for Calendar.
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {error}
           </div>
         )}
 
-        {/* Login Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
-            </div>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="you@example.com"
+            />
           </div>
 
-          {/* Submit Button */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="••••••••"
+            />
+          </div>
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md disabled:opacity-50"
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? "Signing in..." : "Sign in"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleRegister}
+            disabled={isLoading}
+            className="w-full py-2 px-4 border border-gray-300 rounded-md"
+          >
+            Create account (register)
           </button>
         </form>
+
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleGoogle}
+            className="w-full py-2 px-4 border rounded-md flex items-center justify-center gap-2"
+          >
+            Connect Google Calendar
+          </button>
+        </div>
       </div>
     </div>
-  )
+  );
 }

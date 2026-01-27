@@ -4,20 +4,29 @@ import { users, googleAccounts } from "@/lib/memoryStore";
 import { verifyPassword } from "@/lib/password";
 
 export const authOptions = {
-  pages: {
-    signIn: "/signin",
-  },
+  pages: { signIn: "/login" },
 
-  session: { strategy: "jwt" }, // no DB → JWT sessions
+  session: { strategy: "jwt" },
 
   providers: [
     Credentials({
       name: "Email & Password",
+
+      // IMPORTANT: tells NextAuth what fields exist
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+
       async authorize(credentials) {
-        const user = users.find(u => u.email === credentials.email);
+        const email = credentials?.email;
+        const password = credentials?.password;
+        if (!email || !password) return null;
+
+        const user = users.find((u) => u.email === email);
         if (!user) return null;
 
-        const ok = await verifyPassword(credentials.password, user.passwordHash);
+        const ok = await verifyPassword(password, user.passwordHash);
         if (!ok) return null;
 
         return { id: user.id, email: user.email };
@@ -40,6 +49,7 @@ export const authOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
+      // TEMP (no DB): store google tokens in memory
       if (account?.provider === "google") {
         googleAccounts.push({
           userId: user.id,
@@ -51,9 +61,7 @@ export const authOptions = {
     },
 
     async session({ session, token }) {
-      const connected = googleAccounts.some(
-        a => a.userId === token.sub
-      );
+      const connected = googleAccounts.some((a) => a.userId === token.sub);
       session.user.id = token.sub;
       session.user.googleConnected = connected;
       return session;
