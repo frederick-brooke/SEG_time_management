@@ -360,4 +360,6 @@ $RECYCLE.BIN/
 .env.production
 .env.development
 
+!.env.local.example
+
 cookies.txt
