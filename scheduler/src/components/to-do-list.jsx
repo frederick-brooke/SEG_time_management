@@ -75,6 +75,7 @@ export function ToDoList() {
               ...task,
               name: newTaskName,
               description: newTaskDescription,
+              subtasks: newTaskSubtasks.split(",").map(s => s.trim()).filter(s => s !== ""),
               priority:
                 newTaskPriority === "!"
                   ? "Low"
@@ -119,6 +120,7 @@ export function ToDoList() {
       setEditingTaskId(taskId);
       setNewTaskName(taskToEdit.name);
       setNewTaskDescription(taskToEdit.description);
+      setNewTaskSubtasks(taskToEdit.subtasks?.join(", " || ""))
       // Convert priority from words back to symbols
       setNewTaskPriority(
         taskToEdit.priority === "Low"
@@ -227,7 +229,7 @@ export function ToDoList() {
                   />
                 </div>
 
-                {/* Task Priority */}
+                 {/* Task Priority */}
 
                 <div className="grid gap-2">
                   <Label htmlFor="subtasks">Subtasks (comma separated)</Label>
@@ -238,6 +240,8 @@ export function ToDoList() {
                     onChange={(e) => setNewTaskSubtasks(e.target.value)}
                   />
                 </div>
+
+                {/* Task Priority */}
 
                 <div className="grid gap-2">
                   <Label htmlFor="task-priority">Task Priority</Label>
@@ -399,6 +403,20 @@ export function ToDoList() {
                   </span>
                 </p>
               </div>
+            </div>
+
+              {/* Subtasks */}
+            <div>
+              <Label className="text-sm font-medium">Subtasks</Label>
+              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
+                {viewTask?.subtasks?.length > 0 ?(
+                  viewTask.subtasks.map((sub, index) => (
+                    <li key={index}>{sub}</li>
+                  ))
+                ) : (
+                    <li>No subtasks</li>
+                )}
+              </ul>
             </div>
 
             <DialogFooter>
