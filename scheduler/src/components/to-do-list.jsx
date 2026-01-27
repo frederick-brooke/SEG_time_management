@@ -20,122 +20,179 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/src/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/src/components/ui/alert-dialog";
 import { Button } from "@/src/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/src/components/ui/toggle-group";
 
 export const description = "An interactive area chart";
 
-const handleSort = () => {
-  console.log("Sorting tasks...");
-};
-
-const handleCreateTask = () => {
-  console.log("Creating a new task...");
-};
-
-const taskColumns = [
-  {
-    id: "drag",
-    // Drag handle column
-  },
-  {
-    id: "taskName",
-    header: "Task",
-    // Display task name
-  },
-  {
-    id: "priority",
-    header: "Priority",
-    // Display priority badge
-  },
-  {
-    id: "actions",
-    // Edit, Delete, View buttons
-  },
-];
-
-const handleEditTask = (taskId) => {
-  console.log("Edit task:", taskId);
-};
-
-const handleDeleteTask = (taskId) => {
-  const updatedTasks = tasks.filter((task) => task.id !== taskId);
-  setTasks(updatedTasks);
-};
-
-const handleViewTask = (task) => {
-  console.log("View task:", task);
-};
-
+// Main To-Do List Component
 export function ToDoList() {
-  const [tasks, setTasks] = React.useState([
-    {
-      id: 1,
-      name: "Complete project proposal",
-      priority: "High",
-      description: "Write a detailed proposal for the new client project",
-    },
-    {
-      id: 2,
-      name: "Review code changes",
-      priority: "Medium",
-      description: "Review the pull requests from the team",
-    },
-  ]);
+  // ==================== STATE MANAGEMENT ====================
 
+  // Task data
+  const [tasks, setTasks] = React.useState([]);
+
+  // Create/Edit task form state
   const [newTaskName, setNewTaskName] = React.useState("");
   const [newTaskDescription, setNewTaskDescription] = React.useState("");
   const [newTaskPriority, setNewTaskPriority] = React.useState("!");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
 
-  const handleSubmitTask = (e) => {
+  // View task state
+  const [viewTask, setViewTask] = React.useState(null);
+
+  // Delete task state
+  const [taskToDelete, setTaskToDelete] = React.useState(null);
+
+  // ==================== HANDLER FUNCTIONS ====================
+
+  // Handler: Create or update a task
+  const handleSubmitTask = () => {
+    // Validate that task name is not empty
     if (!newTaskName.trim()) {
       alert("Please enter a task name.");
       return;
     }
 
-    const newTask = {
-      id: tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1,
-      name: newTaskName,
-      priority:
-        newTaskPriority === "!"
-          ? "Low"
-          : newTaskPriority === "!!"
-            ? "Medium"
-            : "High",
-      description: newTaskDescription,
-    };
+    if (editingTaskId !== null) {
+      // EDIT MODE: Update existing task
+      const updatedTasks = tasks.map((task) =>
+        task.id === editingTaskId
+          ? {
+              ...task,
+              name: newTaskName,
+              description: newTaskDescription,
+              priority:
+                newTaskPriority === "!"
+                  ? "Low"
+                  : newTaskPriority === "!!"
+                    ? "Medium"
+                    : "High",
+            }
+          : task,
+      );
+      setTasks(updatedTasks);
+      setEditingTaskId(null);
+    } else {
+      // CREATE MODE: Add new task
+      const newTask = {
+        id: tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1,
+        name: newTaskName,
+        priority:
+          newTaskPriority === "!"
+            ? "Low"
+            : newTaskPriority === "!!"
+              ? "Medium"
+              : "High",
+        description: newTaskDescription,
+      };
+      setTasks([...tasks, newTask]);
+    }
 
-    setTasks([...tasks, newTask]);
-
+    // Reset form fields and close dialog
     setNewTaskName("");
     setNewTaskDescription("");
     setNewTaskPriority("!");
-
     setIsDialogOpen(false);
   };
+
+  // Handler: Open edit dialog with task data
+  const handleEditTask = (taskId) => {
+    const taskToEdit = tasks.find((task) => task.id === taskId);
+    if (taskToEdit) {
+      setEditingTaskId(taskId);
+      setNewTaskName(taskToEdit.name);
+      setNewTaskDescription(taskToEdit.description);
+      // Convert priority from words back to symbols
+      setNewTaskPriority(
+        taskToEdit.priority === "Low"
+          ? "!"
+          : taskToEdit.priority === "Medium"
+            ? "!!"
+            : "!!!",
+      );
+      setIsDialogOpen(true);
+    }
+  };
+
+  // Handler: View task details
+  const handleViewTask = (task) => {
+    setViewTask(task);
+  };
+
+  // Handler: Confirm and delete a task
+  const confirmDeleteTask = () => {
+    if (taskToDelete !== null) {
+      const updatedTasks = tasks.filter((task) => task.id !== taskToDelete);
+      setTasks(updatedTasks);
+      setTaskToDelete(null);
+    }
+  };
+
+  // Handler: Cancel delete action
+  const cancelDelete = () => {
+    setTaskToDelete(null);
+  };
+
+  // ==================== RENDER ====================
+
   return (
     <Card className="@container/card">
+      {/* ========== CARD HEADER ========== */}
       <CardHeader>
         <CardTitle>TO DO LIST</CardTitle>
         <CardDescription>
           <span>Get ahead of your tasks!</span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
+
+        {/* Action Buttons */}
         <CardAction className="flex gap-2">
-          <Button onClick={handleSort}>Sort</Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Button>Sort</Button>
+
+          {/* Create/Edit Task Dialog */}
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              // Reset form when dialog closes
+              if (!open) {
+                setEditingTaskId(null);
+                setNewTaskName("");
+                setNewTaskDescription("");
+                setNewTaskPriority("!");
+              }
+            }}
+          >
             <DialogTrigger asChild>
-              <Button onClick={handleCreateTask}>New</Button>
+              <Button>New</Button>
             </DialogTrigger>
+
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
+                <DialogTitle>
+                  {editingTaskId !== null ? "Edit Task" : "Create New Task"}
+                </DialogTitle>
                 <DialogDescription>
-                  Add a new task to your list
+                  {editingTaskId !== null
+                    ? "Update the task details below"
+                    : "Add a new task to your list"}
                 </DialogDescription>
               </DialogHeader>
+
+              {/* Task Form */}
               <div className="grid gap-4 py-4">
+                {/* Task Name */}
                 <div className="grid gap-2">
                   <Label htmlFor="task-name">Task Name</Label>
                   <Input
@@ -145,6 +202,8 @@ export function ToDoList() {
                     onChange={(e) => setNewTaskName(e.target.value)}
                   />
                 </div>
+
+                {/* Task Description */}
                 <div className="grid gap-2">
                   <Label htmlFor="task-description">Task Description</Label>
                   <Input
@@ -154,6 +213,8 @@ export function ToDoList() {
                     onChange={(e) => setNewTaskDescription(e.target.value)}
                   />
                 </div>
+
+                {/* Task Priority */}
                 <div className="grid gap-2">
                   <Label htmlFor="task-priority">Task Priority</Label>
                   <ToggleGroup
@@ -162,76 +223,150 @@ export function ToDoList() {
                     value={newTaskPriority}
                     onValueChange={(value) => setNewTaskPriority(value)}
                   >
-                    <ToggleGroupItem value="!" aria-label="Toggle !">
+                    <ToggleGroupItem value="!" aria-label="Low Priority">
                       !
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="!!" aria-label="Toggle !!">
+                    <ToggleGroupItem value="!!" aria-label="Medium Priority">
                       !!
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="!!!" aria-label="Toggle !!!">
+                    <ToggleGroupItem value="!!!" aria-label="High Priority">
                       !!!
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>
               </div>
+
+              {/* Submit Button */}
               <DialogFooter>
                 <Button type="button" onClick={handleSubmitTask}>
-                  Create Task
+                  {editingTaskId !== null ? "Update Task" : "Create Task"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardAction>
       </CardHeader>
-      <CardContent className="px-4">
-        <div className="space-y-2">
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              {/* Left side: Drag handle + Task info */}
-              <div className="flex items-center gap-3 flex-1">
-                {/* Drag Handle Placeholder */}
-                <Button variant="ghost" size="icon" className="cursor-grab">
-                  <span className="text-muted-foreground">⋮⋮</span>
-                </Button>
 
-                <div className="flex items-center gap-2 flex-1">
-                  <span>{task.name}</span>
-                  <span className="text-xs px-2 py-1 rounded bg-muted">
-                    {task.priority}
-                  </span>
+      {/* ========== CARD CONTENT: TASK LIST ========== */}
+      <CardContent className="px-4">
+        {tasks.length === 0 ? (
+          /* Empty State */
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No tasks yet. Click "New" to create your first task!</p>
+          </div>
+        ) : (
+          /* Task List */
+          <div className="space-y-2">
+            {tasks.map((task) => (
+              <div
+                key={task.id}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
+                {/* Left Side: Drag Handle + Task Info */}
+                <div className="flex items-center gap-3 flex-1">
+                  {/* Drag Handle (placeholder - not functional yet) */}
+                  <Button variant="ghost" size="icon" className="cursor-grab">
+                    <span className="text-muted-foreground">⋮⋮</span>
+                  </Button>
+
+                  {/* Task Name and Priority */}
+                  <div className="flex items-center gap-2 flex-1">
+                    <span>{task.name}</span>
+                    <span className="text-xs px-2 py-1 rounded bg-muted">
+                      {task.priority}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Side: Action Buttons */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleViewTask(task)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditTask(task.id)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTaskToDelete(task.id)}
+                  >
+                    Delete
+                  </Button>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              {/* Right side: Action buttons */}
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleViewTask(task)}
-                >
-                  View
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEditTask(task.id)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteTask(task.id)}
-                >
-                  Delete
-                </Button>
+        {/* ========== DELETE CONFIRMATION DIALOG ========== */}
+        <AlertDialog
+          open={taskToDelete !== null}
+          onOpenChange={(open) => !open && cancelDelete()}
+        >
+          <AlertDialogContent className="sm:max-w-sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this task. This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={cancelDelete}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteTask}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* ========== VIEW TASK DIALOG ========== */}
+        <Dialog
+          open={viewTask !== null}
+          onOpenChange={(open) => !open && setViewTask(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{viewTask?.name}</DialogTitle>
+              <DialogDescription>Task Details</DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Description */}
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {viewTask?.description || "No description provided"}
+                </p>
+              </div>
+
+              {/* Priority */}
+              <div>
+                <Label className="text-sm font-medium">Priority</Label>
+                <p className="text-sm mt-1">
+                  <span className="text-xs px-2 py-1 rounded bg-muted">
+                    {viewTask?.priority}
+                  </span>
+                </p>
               </div>
             </div>
-          ))}
-        </div>
+
+            <DialogFooter>
+              <Button onClick={() => setViewTask(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
