@@ -32,6 +32,7 @@ import {
 } from "@/src/components/ui/alert-dialog";
 import { Button } from "@/src/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/src/components/ui/toggle-group";
+import { Checkbox } from "@/src/components/ui/checkbox";
 
 export const description = "An interactive area chart";
 
@@ -96,6 +97,7 @@ export function ToDoList() {
               ? "Medium"
               : "High",
         description: newTaskDescription,
+        completed: false,
       };
       setTasks([...tasks, newTask]);
     }
@@ -143,6 +145,14 @@ export function ToDoList() {
   // Handler: Cancel delete action
   const cancelDelete = () => {
     setTaskToDelete(null);
+  };
+
+  // Handler: Toggle task completion
+  const handleToggleComplete = (taskId) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task,
+    );
+    setTasks(updatedTasks);
   };
 
   // ==================== RENDER ====================
@@ -269,12 +279,27 @@ export function ToDoList() {
                     <span className="text-muted-foreground">⋮⋮</span>
                   </Button>
 
-                  {/* Task Name and Priority */}
-                  <div className="flex items-center gap-2 flex-1">
-                    <span>{task.name}</span>
-                    <span className="text-xs px-2 py-1 rounded bg-muted">
-                      {task.priority}
-                    </span>
+                  {/* Checkbox + Task Name and Priority */}
+                  <div className="flex items-center gap-3 flex-1">
+                    <Checkbox
+                      id={`task-${task.id}`}
+                      checked={task.completed}
+                      onCheckedChange={() => handleToggleComplete(task.id)}
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <span
+                        className={
+                          task.completed
+                            ? "line-through text-muted-foreground"
+                            : ""
+                        }
+                      >
+                        {task.name}
+                      </span>
+                      <span className="text-xs px-2 py-1 rounded bg-muted">
+                        {task.priority}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
