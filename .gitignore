@@ -360,7 +360,6 @@ $RECYCLE.BIN/
 .env.production
 .env.development
 
-# allow example files
-!.env*.example
+!.env.local.example
 
 cookies.txt
