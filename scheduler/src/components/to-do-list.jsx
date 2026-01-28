@@ -33,6 +33,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/src/components/ui/toggle-group";
 import { Checkbox } from "@/src/components/ui/checkbox";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 export const description = "An interactive area chart";
 
@@ -75,11 +76,14 @@ export function ToDoList() {
               ...task,
               name: newTaskName,
               description: newTaskDescription,
-              subtasks: newTaskSubtasks.split(",").map(s => s.trim()).filter(s => s !== ""),
+              subtasks: newTaskSubtasks
+                .split(",")
+                .map((s) => s.trim())
+                .filter((s) => s !== ""),
               priority:
-                newTaskPriority === "!"
+                newTaskPriority === "Low"
                   ? "Low"
-                  : newTaskPriority === "!!"
+                  : newTaskPriority === "Medium"
                     ? "Medium"
                     : "High",
             }
@@ -93,15 +97,18 @@ export function ToDoList() {
         id: tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1,
         name: newTaskName,
         priority:
-          newTaskPriority === "!"
+          newTaskPriority === "Low"
             ? "Low"
-            : newTaskPriority === "!!"
+            : newTaskPriority === "Medium"
               ? "Medium"
               : "High",
         description: newTaskDescription,
-        completed: false,
-        subtasks: newTaskSubtasks.split(",").map(s => s.trim()).filter(s => s !== ""),
-    };
+        status: "todo",
+        subtasks: newTaskSubtasks
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== ""),
+      };
       setTasks([...tasks, newTask]);
     }
     setNewTaskSubtasks("");
@@ -109,7 +116,7 @@ export function ToDoList() {
     // Reset form fields and close dialog
     setNewTaskName("");
     setNewTaskDescription("");
-    setNewTaskPriority("!");
+    setNewTaskPriority("Low");
     setIsDialogOpen(false);
   };
 
@@ -120,14 +127,14 @@ export function ToDoList() {
       setEditingTaskId(taskId);
       setNewTaskName(taskToEdit.name);
       setNewTaskDescription(taskToEdit.description);
-      setNewTaskSubtasks(taskToEdit.subtasks?.join(", " || ""))
+      setNewTaskSubtasks(taskToEdit.subtasks?.join(", " || ""));
       // Convert priority from words back to symbols
       setNewTaskPriority(
         taskToEdit.priority === "Low"
-          ? "!"
+          ? "Low"
           : taskToEdit.priority === "Medium"
-            ? "!!"
-            : "!!!",
+            ? "Medium"
+            : "High",
       );
       setIsDialogOpen(true);
     }
@@ -154,20 +161,124 @@ export function ToDoList() {
 
   // Handler: Toggle task completion
   const handleToggleComplete = (taskId) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task,
-    );
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        let nextStatus;
+        if (task.status === "todo") {
+          nextStatus = "in-progress";
+        } else if (task.status === "in-progress") {
+          nextStatus = "completed";
+        } else if (task.status === "completed") {
+          nextStatus = "in-progress";
+        }
+        return { ...task, status: nextStatus };
+      }
+      return task;
+    });
     setTasks(updatedTasks);
   };
 
   // Handler: Sort tasks
   const handleSort = () => {
-    const priorityMap = { "High": 3, "Medium": 2, "Low": 1 };
+    const priorityMap = { High: 3, Medium: 2, Low: 1 };
     const sortedByPriority = [...tasks].sort((a, b) => {
       return priorityMap[b.priority] - priorityMap[a.priority];
     });
     setTasks(sortedByPriority);
-  }
+  };
+
+  // Filter tasks by status
+  const todoTasks = tasks.filter((task) => task.status === "todo");
+  const inProgressTasks = tasks.filter((task) => task.status === "in-progress");
+  const completedTasks = tasks.filter((task) => task.status === "completed");
+
+  const renderTaskColumn = (title, taskList, status) => (
+    <div className="flex-1 min-w-[300px] rounded-lg border bg-muted/20 p-4">
+      {/* column header*/}
+      <div className="mb-4">
+        <h3 className="font-semibold text-lg">{title}</h3>
+        <p className="text-sm text-muted-foreground">
+          {taskList.length} {taskList.length === 1 ? "task" : "tasks"}
+        </p>
+      </div>
+      {/* Task List */}
+      <div className="space-y-2">
+        {taskList.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No tasks here
+          </div>
+        ) : (
+          taskList.map((task) => (
+            <div
+              key={task.id}
+              className="flex items-center gap-2 rounded-lg border p-2.5 bg-card shadow-sm hover:shadow-md transition-shadow"
+            >
+              {/* Left Side: Drag Handle + Checkbox + Task Info */}
+              <div className="flex items-center gap-3 flex-1">
+                {/* Drag Handle */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ch-8 w-8 cursor-grab shrink-0"
+                >
+                  <span className="text-muted-foreground text-sm">⋮⋮</span>
+                </Button>
+
+                {/* Checkbox + Task Name and Priority */}
+                <div className="flex items-center gap-3 flex-1">
+                  <Checkbox
+                    id={"task-${task.id}"}
+                    checked={task.status === "completed"}
+                    onCheckedChange={() => handleToggleComplete(task.id)}
+                    className="shrink-0 h-3 w-3"
+                  />
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span
+                      className={`text-sm truncate ${
+                        task.status === "completed"
+                          ? "line-through text-muted-foreground"
+                          : ""
+                      }`}
+                    >
+                      {task.name}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: Action Buttons */}
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2"
+                  onClick={() => handleViewTask(task)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2"
+                  onClick={() => handleEditTask(task.id)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2"
+                  onClick={() => setTaskToDelete(task.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
 
   // ==================== RENDER ====================
 
@@ -238,7 +349,7 @@ export function ToDoList() {
                   />
                 </div>
 
-                 {/* Task Priority */}
+                {/* Task Priority */}
 
                 <div className="grid gap-2">
                   <Label htmlFor="subtasks">Subtasks (comma separated)</Label>
@@ -260,14 +371,17 @@ export function ToDoList() {
                     value={newTaskPriority}
                     onValueChange={(value) => setNewTaskPriority(value)}
                   >
-                    <ToggleGroupItem value="!" aria-label="Low Priority">
-                      !
+                    <ToggleGroupItem value="Low" aria-label="Low Priority">
+                      Low
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="!!" aria-label="Medium Priority">
-                      !!
+                    <ToggleGroupItem
+                      value="Medium"
+                      aria-label="Medium Priority"
+                    >
+                      Medium
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="!!!" aria-label="High Priority">
-                      !!!
+                    <ToggleGroupItem value="High" aria-label="High Priority">
+                      High
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>
@@ -292,70 +406,11 @@ export function ToDoList() {
             <p>No tasks yet. Click "New" to create your first task!</p>
           </div>
         ) : (
-          /* Task List */
-          <div className="space-y-2">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                {/* Left Side: Drag Handle + Task Info */}
-                <div className="flex items-center gap-3 flex-1">
-                  {/* Drag Handle (placeholder - not functional yet) */}
-                  <Button variant="ghost" size="icon" className="cursor-grab">
-                    <span className="text-muted-foreground">⋮⋮</span>
-                  </Button>
-
-                  {/* Checkbox + Task Name and Priority */}
-                  <div className="flex items-center gap-3 flex-1">
-                    <Checkbox
-                      id={`task-${task.id}`}
-                      checked={task.completed}
-                      onCheckedChange={() => handleToggleComplete(task.id)}
-                    />
-                    <div className="flex items-center gap-2 flex-1">
-                      <span
-                        className={
-                          task.completed
-                            ? "line-through text-muted-foreground"
-                            : ""
-                        }
-                      >
-                        {task.name}
-                      </span>
-                      <span className="text-xs px-2 py-1 rounded bg-muted">
-                        {task.priority}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Side: Action Buttons */}
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleViewTask(task)}
-                  >
-                    View
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditTask(task.id)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setTaskToDelete(task.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
+          /* Three Column Layout */
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {renderTaskColumn("To Do", todoTasks, "todo")}
+            {renderTaskColumn("In Progress", inProgressTasks, "in-progress")}
+            {renderTaskColumn("Completed", completedTasks, "completed")}
           </div>
         )}
 
@@ -405,7 +460,9 @@ export function ToDoList() {
 
               {/* Priority */}
               <div>
-                <Label className="text-sm font-medium">Priority</Label>
+                <Label className="text-sm font-medium space-y-4 py-4">
+                  Priority
+                </Label>
                 <p className="text-sm mt-1">
                   <span className="text-xs px-2 py-1 rounded bg-muted">
                     {viewTask?.priority}
@@ -414,16 +471,16 @@ export function ToDoList() {
               </div>
             </div>
 
-              {/* Subtasks */}
+            {/* Subtasks */}
             <div>
               <Label className="text-sm font-medium">Subtasks</Label>
               <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
-                {viewTask?.subtasks?.length > 0 ?(
+                {viewTask?.subtasks?.length > 0 ? (
                   viewTask.subtasks.map((sub, index) => (
                     <li key={index}>{sub}</li>
                   ))
                 ) : (
-                    <li>No subtasks</li>
+                  <li>No subtasks</li>
                 )}
               </ul>
             </div>
