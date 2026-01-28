@@ -40,4 +40,20 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Lock files (optional - some teams commit these, some don't)
+# Uncomment if you want to ignore them:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
 /src/generated/prisma
