@@ -1,7 +1,7 @@
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { users, googleAccounts } from "@/lib/memoryStore";
-import { verifyPassword } from "@/lib/password";
+import { users, googleAccounts } from "lib/memoryStore";
+import { verifyPassword } from "lib/password";
 
 export const authOptions = {
   pages: { signIn: "/login" },
