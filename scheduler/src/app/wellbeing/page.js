@@ -30,8 +30,6 @@ export default function WellbeingPage(){
             </div>
 
             <div className={styles['exercise-icon']}>
-                    <  ExerciseIcon />
-
             </div>
 
             <div className={styles['title']}>

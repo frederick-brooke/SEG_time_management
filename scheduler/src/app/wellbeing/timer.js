@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import styles from "./wellbeing.module.css"
+import { ReceiptTurkishLiraIcon } from "lucide-react";
+import { resume } from "react-dom/server";
 
 export default function Timer() {
     const saveTimerState = (state) => {
@@ -15,7 +17,7 @@ export default function Timer() {
     };
 
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
-    const [time, setTime] = useState("");
+    const [time, setTime] = useState("00:00:00");
 
     // Stores the countdown values
     const [hours, setHours] = useState(0);
@@ -27,11 +29,12 @@ export default function Timer() {
     const [isRunning, setIsRunning] = useState(false);
     const [hasStarted, setHasStarted] = useState(false);
 
+    const remainingMsRef = useRef(0);
 
     const startTimer = (durationMs) => {
-        let remainingMs = durationMs
+        remainingMsRef.current = durationMs
 
-        const endTime = Date.now() + remainingMs;
+        const endTime = Date.now() + durationMs;
 
         setIsRunning(true);
         setHasStarted(true);
@@ -42,38 +45,26 @@ export default function Timer() {
 
         saveTimerState({
             endTime,
-            remainingMs,
+            remainingMs: durationMs,
             isRunning: true,
         });
 
         // Run every second
         intervalRef.current = setInterval(() => {
             // Stop when countdown reaches zero
-            if (remainingMs <= 0) {
+            remainingMsRef.current -= 1000;
+
+            if(remainingMsRef.current <= 0){
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
-                setHours(0);
-                setMinutes(0);
-                setSeconds(0);
-
-                saveTimerState({
-                    endTime: null,
-                    remainingMs: 0,
-                    isRunning: false,
-                });
-                return;
+                remainingMsRef.current = 0;
             }
-            // Calculate remaining hours
-            setHours(Math.floor(remainingMs / (1000 * 60 * 60)));
 
-            // Calculate remaining minutes
-            setMinutes(Math.floor((remainingMs / (1000 * 60)) % 60));
-
-            // Calculate remaining seconds
-            setSeconds(Math.floor((remainingMs / 1000) % 60));
-
-            // Subtract one second
-            remainingMs -= 1000;
+            const ms = remainingMsRef.current;     //time in miliseconds
+            
+            setHours(Math.floor(ms / 3600000));
+            setMinutes(Math.floor((ms / 60000) % 60));
+            setSeconds(Math.floor((ms / 1000) % 60));
         }, 1000);
     }
 
@@ -99,18 +90,21 @@ export default function Timer() {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
 
-        const remainingMs =
-            hours * 3600000 + minutes * 60000 + seconds * 1000;
-
         saveTimerState({
             endTime: null,
-            remainingMs,
+            remainingMs: remainingMsRef.current,
             isRunning: false,
         });
 
         setIsRunning(false);
     }
 
+    const resume_timer = () => {
+        if(remainingMsRef.current <= 0) return;
+        startTimer(remainingMsRef.current);
+    }
+
+    //resume logic
     useEffect(() =>{
         const state = loadTimerState();
         if(!state) return;
@@ -123,6 +117,8 @@ export default function Timer() {
                 startTimer(msLeft);
             }
         } else if (!isRunning && remainingMs > 0) {
+            remainingMsRef.current = remainingMs;
+
             setHours(Math.floor(remainingMs / 3600000));
             setMinutes(Math.floor((remainingMs / 60000) % 60));
             setSeconds(Math.floor((remainingMs / 1000) % 60));
@@ -132,13 +128,20 @@ export default function Timer() {
     
     return (
         <div className="time_wrapper">
-            <TimeInput time={time} setTime={setTime} startTimer={startTimer} isRunning={isRunning} stop_timer={stop_timer} hours={hours} minutes={minutes} seconds={seconds} pause_timer={pause_timer} hasStarted={hasStarted}/>
+            <TimeInput time={time} setTime={setTime} startTimer={startTimer} isRunning={isRunning} stop_timer={stop_timer} hours={hours} minutes={minutes} seconds={seconds} pause_timer={pause_timer} hasStarted={hasStarted} resume_timer={resume_timer}/>
         </div>
     );
 }
 
-function TimeInput({ time, setTime, startTimer, isRunning, stop_timer, hours, minutes, seconds, pause_timer, hasStarted}) {
+function TimeInput({ time, setTime, startTimer, isRunning, stop_timer, hours, minutes, seconds, pause_timer, hasStarted, resume_timer}) {
     const format = (n) => String(n).padStart(2, "0");
+
+    useEffect(() => {
+        if (!hasStarted) {
+            setTime("00:00:00");
+        }
+    }, [hasStarted]);
+
 
     const submitTime = async () => {
         const [h, m, s] = time.split(":").map(Number);
@@ -180,7 +183,7 @@ function TimeInput({ time, setTime, startTimer, isRunning, stop_timer, hours, mi
                 <div className={styles["timer-control"]}>
                     {!hasStarted && <button onClick={submitTime}> Start</button>}
                     {isRunning && <button onClick={pause_timer}> Pause</button>}
-                    {(hasStarted && !isRunning) && <button onClick={submitTime}> Resume </button> }
+                    {(hasStarted && !isRunning) && <button onClick={resume_timer}> Resume </button> }
                 </div>
                 <div className={styles["timer-stop"]}>
                     {hasStarted && <button onClick={stop_timer}> Stop</button>}

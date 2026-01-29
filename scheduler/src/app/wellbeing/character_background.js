@@ -9,7 +9,7 @@ export default function LoadCharacter() {
     return (
         <div className={styles["character-container"]}>
             <div className={styles["character-image"]}>
-                <img src= {character_img} alt="Character Template Picture"></img>
+                <img src= {character_img} alt=""></img>
             </div>
         </div>        
     );
