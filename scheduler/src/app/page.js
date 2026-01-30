@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function Home() {
@@ -42,30 +44,31 @@ export default function Home() {
           )}
         </div>
 
-        <div className="mt-6 flex flex-col gap-3">
-          {!loggedIn ? (
+        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+          {status === "loading" ? (
+            <p className="text-zinc-400">Loading...</p>
+          ) : !session ? (
+            /* SIGN IN BUTTON */
             <button
-              onClick={() => signIn()} // uses your authOptions.pages.signIn (/login)
-              className="w-full rounded-lg bg-black px-4 py-2 text-white"
+              onClick={() => signIn("google")}
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black text-white px-8 transition-colors hover:bg-[#383838] dark:bg-white dark:text-black dark:hover:bg-[#ccc] md:w-auto"
             >
-              Go to Login
+              Sign in with Google
             </button>
           ) : (
+            /* SIGNED IN ACTIONS */
             <>
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full rounded-lg bg-zinc-200 px-4 py-2"
+              <Link
+                href="/calendar"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black text-white px-8 transition-colors hover:bg-[#383838] dark:bg-white dark:text-black dark:hover:bg-[#ccc] md:w-auto"
               >
-                Logout
-              </button>
-
+                Go to Calendar
+              </Link>
               <button
-                onClick={() =>
-                  signIn("google", { callbackUrl: "/" }) // starts Google OAuth
-                }
-                className="w-full rounded-lg border px-4 py-2"
+                onClick={() => signOut()}
+                className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-8 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-auto"
               >
-                Connect Google Calendar
+                Sign out
               </button>
             </>
           )}
