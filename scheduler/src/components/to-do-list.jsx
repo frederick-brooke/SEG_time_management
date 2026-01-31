@@ -48,6 +48,7 @@ export function ToDoList() {
   const [newTaskName, setNewTaskName] = React.useState("");
   const [newTaskDescription, setNewTaskDescription] = React.useState("");
   const [newTaskPriority, setNewTaskPriority] = React.useState("!");
+  const [newTaskDueDate, setNewTaskDueDate] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [newTaskSubtasks, setNewTaskSubtasks] = React.useState("");
   const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
@@ -86,6 +87,7 @@ export function ToDoList() {
                   : newTaskPriority === "Medium"
                     ? "Medium"
                     : "High",
+              dueDate: newTaskDueDate || null,
             }
           : task,
       );
@@ -108,6 +110,7 @@ export function ToDoList() {
           .split(",")
           .map((s) => s.trim())
           .filter((s) => s !== ""),
+        dueDate: newTaskDueDate || null,
       };
       setTasks([...tasks, newTask]);
     }
@@ -117,6 +120,7 @@ export function ToDoList() {
     setNewTaskName("");
     setNewTaskDescription("");
     setNewTaskPriority("Low");
+    setNewTaskDueDate("");
     setIsDialogOpen(false);
   };
 
@@ -136,6 +140,7 @@ export function ToDoList() {
             ? "Medium"
             : "High",
       );
+      setNewTaskDueDate(taskToEdit.dueDate || "");
       setIsDialogOpen(true);
     }
   };
@@ -306,6 +311,7 @@ export function ToDoList() {
                 setNewTaskName("");
                 setNewTaskDescription("");
                 setNewTaskPriority("!");
+                setNewTaskDueDate("");
               }
             }}
           >
@@ -349,7 +355,18 @@ export function ToDoList() {
                   />
                 </div>
 
-                {/* Task Priority */}
+                {/* Task Due Date */}
+                <div className="grid gap-2">
+                  <Label htmlFor="task-due-date">Due Date</Label>
+                  <Input
+                    id="task-due-date"
+                    type="date"
+                    value={newTaskDueDate}
+                    onChange={(e) => setNewTaskDueDate(e.target.value)}
+                  />
+                </div>
+
+                {/* Task Subtasks */}
 
                 <div className="grid gap-2">
                   <Label htmlFor="subtasks">Subtasks (comma separated)</Label>
