@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import styles from "./wellbeing.module.css"
+import styles from "./timer.module.css"
 
 //main reusable frontend timer component 
 export default function Timer() {

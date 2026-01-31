@@ -16,6 +16,12 @@ module.exports = async () => {
   config.transformIgnorePatterns = [
     '/node_modules/(?!(jose|openid-client|next-auth|@fullcalendar|preact|@panva)/)',
   ];
+
+  testEnvironment: "jsdom";
+
+  moduleNameMapper = {
+    "\\.module\\.css$": "identity-obj-proxy",
+  };
   
   return config;
 };

@@ -1,12 +1,10 @@
-import Timer from "./timer";
-import QuoteBlock from "./quote_block";
-import BreathTrack from "./breath_tracker";
+import Timer from "../../components/wellbeing/timer";
+import QuoteBlock from "../../components/wellbeing/quote_block";
+import BreathTrack from "../../components/wellbeing/breath_tracker";
 import ViewButtons from "./view_buttons";
-import ExerciseIcon from "./exercise_icon";
-import LoadCharacter from "./character_background";
+import LoadCharacter from "../../components/wellbeing/character_background";
 
 import styles from "./wellbeing.module.css"
-import CurvedLabel from "./curved_label";
 
 export default function WellbeingPage(){
     return (
@@ -27,9 +25,6 @@ export default function WellbeingPage(){
 
             <div className={styles['view-buttons']}>
                 < ViewButtons />
-            </div>
-
-            <div className={styles['exercise-icon']}>
             </div>
 
             <div className={styles['title']}>

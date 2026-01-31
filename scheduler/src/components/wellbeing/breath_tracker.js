@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import styles from "./wellbeing.module.css"
+import styles from "./breath_tracker.module.css"
 //Breathing tracker component
 export default function BreathTrack() {
     //based on the 4-7-8 breathing technique
