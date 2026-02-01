@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import styles from "./timer.module.css"
 
 //main reusable frontend timer component 
-export default function Timer() {
+export default function Timer({onTick}) {
     const saveTimerState = (state) => {
         //Saves the paused time within web browser for local persistance when refresh
         localStorage.setItem("wellbeing_timer", JSON.stringify(state));
@@ -59,6 +59,8 @@ export default function Timer() {
                 intervalRef.current = null;
                 remainingMsRef.current = 0;
             }
+
+            onTick?.(remainingMsRef.current);
 
             const ms = remainingMsRef.current;     //current remaining time in miliseconds
             //updaes the new time
