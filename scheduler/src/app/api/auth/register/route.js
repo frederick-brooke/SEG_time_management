@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { users } from "@/lib/memoryStore";
-import { hashPassword } from "@/lib/password";
+import { users } from "lib/memoryStore";
+import { hashPassword } from "lib/password";
 
 export async function POST(req) {
   const { username, email, password } = await req.json();

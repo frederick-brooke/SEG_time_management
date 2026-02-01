@@ -1,0 +1,21 @@
+.corner {
+    position: absolute;   /* absolute inside .text */
+    left: 10px;          /* tweak manually */
+    bottom: -40%;             /* vertical center of text box */
+    transform: translateY(-50%) scaleX(-1);
+    width: 20px;
+    z-index: 1;
+}
+
+.text {
+    position: absolute;   /* absolutely position relative to container */
+    bottom: 75%;          /* adjust manually to hover above character */
+    left: 50%;            /* center horizontally */
+    transform: translateX(-50%);  /* true horizontal centering */
+
+    font-size: 12px;
+    background: #ffffff;
+    padding: 1em;
+    color: black;
+    z-index: 2;
+}
