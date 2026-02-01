@@ -42,6 +42,7 @@
 
 .toggle-btn.active .toggle-icon{
     left: calc(100% - 60px - 20px);
+    background: rgb(72, 0, 126);
 }
 
 .toggle-text{

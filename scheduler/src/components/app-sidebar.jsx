@@ -17,6 +17,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconHeart,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/src/components/nav-documents"
@@ -65,6 +66,11 @@ const data = {
       url: "#",
       icon: IconUsers,
     },
+    {
+      title: "My Focus",
+      url: "/wellbeing",
+      icon: IconHeart,
+    }
   ],
   navClouds: [
     {
