@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,13 +26,13 @@ export default function LoginPage() {
     });
 
     setIsLoading(false);
-
+    
     if (!res?.ok) {
       setError("Invalid email or password");
       return;
     }
 
-    router.push("/"); // or /dashboard
+    router.push("dashboard");
   }
 
   async function handleGoogle() {
@@ -112,14 +113,14 @@ export default function LoginPage() {
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
 
-          <button
-            type="button"
-            onClick={handleRegister}
-            disabled={isLoading}
-            className="w-full py-2 px-4 border border-gray-300 rounded-md"
-          >
-            Create account (register)
-          </button>
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              Sign up
+            </Link>
+          </p>
+        </div>
         </form>
 
         <div className="pt-2">
