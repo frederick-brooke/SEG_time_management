@@ -8,11 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-<<<<<<< HEAD
-} from "@/src/components/ui/dropdown-menu"
-=======
-} from "@/components/ui/dropdown-menu"
->>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
+} from "components/ui/dropdown-menu"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -21,11 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-<<<<<<< HEAD
-} from "@/src/components/ui/sidebar"
-=======
-} from "@/components/ui/sidebar"
->>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
+} from "components/ui/sidebar"
 
 export function NavDocuments({
   items

@@ -1,10 +1,10 @@
 "use client";
-import { AppSidebar } from "@/components/app-sidebar";
-import { ToDoList } from "@/components/to-do-list";
-import { DataTable } from "@/components/data-table";
-import { SectionCards } from "@/components/section-cards";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "components/app-sidebar";
+import { ToDoList } from "components/to-do-list";
+import { DataTable } from "components/data-table";
+import { SectionCards } from "components/section-cards";
+import { SiteHeader } from "components/site-header";
+import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
 
 import { useSession, signIn, signOut } from "next-auth/react";
 
