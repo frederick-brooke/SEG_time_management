@@ -3,11 +3,11 @@ import { users } from "@/lib/memoryStore";
 import { hashPassword } from "@/lib/password";
 
 export async function POST(req) {
-  const { email, password } = await req.json();
+  const { username, email, password } = await req.json();
 
-  if (!email || !password) {
+  if (!email || !password || !username) {
     return NextResponse.json(
-      { error: "Email and password required" },
+      { error: "Username, email and password required" },
       { status: 400 }
     );
   }
@@ -18,7 +18,12 @@ export async function POST(req) {
   }
 
   const passwordHash = await hashPassword(password);
-  users.push({ id: crypto.randomUUID(), email, passwordHash });
+  users.push({ 
+    id: crypto.randomUUID(), 
+    username,  // ← Add username
+    email, 
+    passwordHash 
+  });
 
   return NextResponse.json({ ok: true });
 }

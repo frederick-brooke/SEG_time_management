@@ -1,10 +1,10 @@
 "use client";
-import { AppSidebar } from "@/src/components/app-sidebar";
-import { ToDoList } from "@/src/components/to-do-list";
-import { DataTable } from "@/src/components/data-table";
-import { SectionCards } from "@/src/components/section-cards";
-import { SiteHeader } from "@/src/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import { ToDoList } from "@/components/to-do-list";
+import { DataTable } from "@/components/data-table";
+import { SectionCards } from "@/components/section-cards";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import data from "./data.json";
 
