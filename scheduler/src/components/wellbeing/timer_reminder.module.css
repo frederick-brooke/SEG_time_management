@@ -1,0 +1,78 @@
+.reminders-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px; 
+    width: 300px;
+}
+
+.toggle-btn {
+    position: relative;
+    background: rgb(126, 125, 125);
+    border-radius: 40%;
+    height: 90px;
+    width: 200px;
+
+    cursor: pointer;
+}
+
+.toggle-icon{
+    position: absolute;
+    height: 60px;
+    width: 60px;
+    background-color: white;
+    border-radius: 50%;
+    box-shadow: 0 0 6px black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 50px;
+    color: #999;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    transition: all 0.4s ease;
+    z-index: 2;
+}
+
+.active{
+    background: rgb(72, 0, 126);
+}
+
+.toggle-btn.active .toggle-icon{
+    left: calc(100% - 60px - 20px);
+}
+
+.toggle-text{
+    position: absolute;
+    color: aliceblue;
+    top: 50%; /* Center vertically */
+    transform: translateY(-50%); /* Center vertically */
+}
+
+.toggle-text.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.toggle-text.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.toggle-btn:first-child {
+    left: 90px; /* Position Break text: 60px icon + 20px left + 10px gap */
+}
+
+.toggle-btn:last-child {
+    left: 20px; /* Position Focus text near left edge */
+}
+
+.toggle-btn.active ~ .toggle-text:first-child {
+    opacity: 0; /* Hide Break when active */
+}
+
+.toggle-btn.active ~ .toggle-text:last-child {
+    opacity: 1; /* Show Focus when active */
+}
