@@ -1,6 +1,12 @@
+<<<<<<< HEAD
+import { Button } from "@/src/components/ui/button"
+import { Separator } from "@/src/components/ui/separator"
+import { SidebarTrigger } from "@/src/components/ui/sidebar"
+=======
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 
 export function SiteHeader() {
   return (
