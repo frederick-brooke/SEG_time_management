@@ -2,7 +2,11 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
+<<<<<<< HEAD
 import { cn } from "@/src/lib/utils"
+=======
+import { cn } from "@/lib/utils"
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = {

@@ -2,7 +2,11 @@
 
 import * as React from "react"
 
+<<<<<<< HEAD
 import { cn } from "@/src/lib/utils"
+=======
+import { cn } from "@/lib/utils"
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 
 function Table({
   className,

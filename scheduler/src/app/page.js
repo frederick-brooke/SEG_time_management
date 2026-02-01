@@ -1,13 +1,29 @@
-"use client";
+'use client'
 
+import { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Image from "next/image";
+import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
-export default function Home() {
-  const { data: session, status } = useSession();
+export default function HomePage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
 
-  const loading = status === "loading";
-  const loggedIn = !!session?.user;
+  useEffect(() => {
+    if (status === 'loading') return // Still checking auth status
 
+    if (session) {
+      // User is logged in → go to dashboard
+      router.push('/dashboard')
+    } else {
+      // User is NOT logged in → go to login
+      router.push('/login')
+    }
+  }, [session, status, router])
+
+  // Show loading while checking auth and redirecting
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center px-6">
       <main className="w-full max-w-xl rounded-2xl bg-white p-8 shadow">
@@ -76,5 +92,5 @@ export default function Home() {
         </p>
       </main>
     </div>
-  );
+  )
 }
