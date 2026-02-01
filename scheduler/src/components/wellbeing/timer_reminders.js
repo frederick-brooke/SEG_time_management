@@ -6,6 +6,9 @@ import Timer from "./timer";
 
 export default function Reminders() {
     const [active, setActive] = useState(false);
+    // Stores the raw time string from the input (HH:MM or HH:MM:SS)
+    const [timeLeft, setTimeLeft] = useState(null);
+
     //loading saved state
     useEffect( () => {
         const saved_focus_state = localStorage.getItem("reminder-toggle");
@@ -21,6 +24,7 @@ export default function Reminders() {
     }, [active]);   
 
     //separate timer to the main timer that counts in miliseconds and aligns with the main timer's pause/stop
+
 
     return (
         <div className="reminders-container">
