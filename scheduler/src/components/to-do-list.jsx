@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
+<<<<<<< HEAD
+import { Input } from "@/src/components/ui/input";
+import { Label } from "@/src/components/ui/label";
+=======
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 import {
   Card,
   CardAction,
@@ -10,7 +15,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+<<<<<<< HEAD
+} from "@/src/components/ui/card";
+=======
 } from "@/components/ui/card";
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 import {
   Dialog,
   DialogContent,
@@ -19,7 +28,11 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+<<<<<<< HEAD
+} from "@/src/components/ui/dialog";
+=======
 } from "@/components/ui/dialog";
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,10 +42,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+<<<<<<< HEAD
+} from "@/src/components/ui/alert-dialog";
+import { Button } from "@/src/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/src/components/ui/toggle-group";
+import { Checkbox } from "@/src/components/ui/checkbox";
+=======
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
 export const description = "An interactive area chart";

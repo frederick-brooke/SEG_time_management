@@ -12,7 +12,11 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
+<<<<<<< HEAD
+} from "@/src/components/ui/avatar"
+=======
 } from "@/components/ui/avatar"
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,13 +25,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+<<<<<<< HEAD
+} from "@/src/components/ui/dropdown-menu"
+=======
 } from "@/components/ui/dropdown-menu"
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
+<<<<<<< HEAD
+} from "@/src/components/ui/sidebar"
+=======
 } from "@/components/ui/sidebar"
+>>>>>>> bf2471fab6b94f783dfc67c4c7eae67a9a95203e
 
 export function NavUser({
   user
