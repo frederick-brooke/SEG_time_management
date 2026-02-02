@@ -11,6 +11,23 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
     const [timeLeft, setTimeLeft] = useState(null);
 
+    const openFocusButtons = document.querySelectorAll('[data-modal-target]');
+    const closeFocusButtons = document.querySelectorAll('[data-close-button]');
+
+    openFocusButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = document.querySelector(button.CDATA_SECTION_NODE.modalTarget)
+            OpenModal(modal);
+        })
+    })
+
+    closeFocusButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const modal = button.closest('.modal-wrapper');
+            CloseModal(modal);
+        })
+    })
+
     //loading saved state
     useEffect( () => {
         const saved_focus_state = localStorage.getItem("reminder-toggle");
@@ -39,9 +56,11 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
                 onClick={() => {
                     if(enabled){
                         setEnabled(false);
+                        setActive(false);
                     }
                     else{
                         enableReminder();
+                        setActive(true);
                     }}
             }>
             
@@ -51,8 +70,40 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
             </div>
 
             {/* popup asking for what time */}
-            <Button variant="outline" size="icon"> IconSettings </Button>
+            <Button data-modal-target="modal-wrapper" variant="outline" size="icon"> 
+                <IconSettings/>
+            </Button>
+
+            <TimeSettingsModal/>
+
 
         </div>
-        );
+    );
+}
+
+function TimeSettingsModal() {
+    return(
+        <div className= {styles["modal-wrapper"]}>
+            <div className= {styles["modal-header"]}>
+                <div className="modal-title"> Focus Time </div>
+                <Button data-close-button variant="outline" size="icon" className={styles["close-btn"]}>&times;</Button>
+            </div>
+
+            <div className="modal-body">
+
+            </div>
+
+            <div className={styles["overlay"]}></div>
+        </div>
+    );
+}
+
+function OpenModal(modal){
+    if(modal == null) return;
+    modal.classList.add('active');
+}
+
+function CloseModal(modal){
+    if(modal == null) return;
+    modal.classList.remove('active');
 }
