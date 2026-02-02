@@ -4,15 +4,31 @@ import { ToDoList } from "components/to-do-list";
 import { SectionCards } from "components/section-cards";
 import { SiteHeader } from "components/site-header";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
-
 import { useSession, signIn, signOut } from "next-auth/react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
 
   if (status === "loading") return <p className="p-4">Loading session...</p>;
 
-const googleConnected = !!session?.user?.googleConnected;
+  const googleConnected = !!session?.user?.googleConnected;
+
+  const handleLinkGoogle = async () => {
+    await signIn("google", { 
+      callbackUrl: "/dashboard",
+      redirect: true
+    });
+  };
 
   return (
     <SidebarProvider
@@ -36,36 +52,22 @@ const googleConnected = !!session?.user?.googleConnected;
               <div className="flex gap-2 mt-2">
               {!googleConnected && (
                 <button
-                  onClick={async () => {
-                    const result = await signIn("google", {
-                      redirect: false, 
-                      callbackUrl: "/dashboard",
-                    });
-
-                    if (result?.error) {
-                      alert(
-                        "Could not link Google account. Make sure you signed up with email first."
-                      );
-                    } else {
-                      alert("Google account linked successfully!");
-                      window.location.reload();
-                    }
-                  }}
-                  className="rounded bg-blue-500 px-4 py-2 text-white"
+                  onClick={handleLinkGoogle}
+                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition"
                 >
-                  Connect Google
+                  Connect Google Calendar
                 </button>
               )}
               <button
-                onClick={() => signOut()}
-                className="rounded bg-gray-300 px-4 py-2"
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400 transition"
               >
                 Sign out
               </button>
             </div>
             </div>
           ) : (
-            <p>Please sign in with your email/password on the login page.</p>
+            <p>Redirecting to login...</p>
           )}
         </div>
 

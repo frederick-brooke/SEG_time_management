@@ -1,19 +1,18 @@
-import type { AuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
+import { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 
-export const authOptions: AuthOptions = {
-  pages: {
-    signIn: "/login",
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: "jwt",
   },
-
-  session: { strategy: "jwt" },
-
   providers: [
-    Credentials({
-      name: "Email & Password",
+    CredentialsProvider({
+      name: "Email",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
@@ -29,74 +28,100 @@ export const authOptions: AuthOptions = {
 
         const isValid = await verifyPassword(
           credentials.password,
-          user.passwordHash
+          user.passwordHash || ""
         );
+
         if (!isValid) return null;
 
-        return { id: user.id, email: user.email };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.username,
+        };
       },
     }),
-
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope:
-            "openid email profile https://www.googleapis.com/auth/calendar.readonly",
+          scope: "openid email profile https://www.googleapis.com/auth/calendar.readonly",
           access_type: "offline",
           prompt: "consent",
         },
       },
     }),
   ],
-
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google") {
-        if (!user?.id) return false;
-      }
-      return true;
+    async signIn({ account }) {
+      return true; 
     },
 
-    async jwt({ token, account }) {
+    async jwt({ token, user, account }) {
+      // If we are in the Google Auth Flow
       if (account?.provider === "google") {
-        await prisma.account.upsert({
-          where: {
-            provider_providerAccountId: {
-              provider: "google",
-              providerAccountId: account.providerAccountId,
-            },
-          },
-          update: {
-            accessToken: account.access_token,
-            refreshToken: account.refresh_token,
-            expiresAt: account.expires_at,
-          },
-          create: {
-            provider: "google",
-            providerAccountId: account.providerAccountId,
-            accessToken: account.access_token,
-            refreshToken: account.refresh_token,
-            expiresAt: account.expires_at,
-            userId: token.sub!,
-          },
-        });
+        
+        // If token.sub exists, the user is logged in and trying to link account
+        if (token.sub) {
+            await prisma.account.upsert({
+                where: {
+                    provider_providerAccountId: {
+                        provider: "google",
+                        providerAccountId: account.providerAccountId
+                    }
+                },
+                update: {
+                    access_token: account.access_token,
+                    refresh_token: account.refresh_token,
+                    expires_at: account.expires_at,
+                    scope: account.scope,
+                    token_type: account.token_type,
+                    id_token: account.id_token,
+                    // Add this:
+                    refresh_token_expires_in: account.refresh_token_expires_in as number,
+                },
+                create: {
+                    userId: token.sub, 
+                    type: account.type,
+                    provider: "google",
+                    providerAccountId: account.providerAccountId,
+                    access_token: account.access_token,
+                    refresh_token: account.refresh_token,
+                    expires_at: account.expires_at,
+                    scope: account.scope,
+                    token_type: account.token_type,
+                    id_token: account.id_token,
+                    // Add this:
+                    refresh_token_expires_in: account.refresh_token_expires_in as number,
+                }
+            });
+        }
+      } 
+      // If this is a normal Email/Password login
+      else if (user) {
+        token.id = user.id;
+        token.email = user.email;
       }
+
       return token;
     },
 
     async session({ session, token }) {
-      const googleLinked = await prisma.account.findFirst({
-        where: {
-          userId: token.sub!,
-          provider: "google",
-        },
-      });
-
-      session.user.id = token.sub!;
-      session.user.googleConnected = !!googleLinked;
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+        
+        // Check if Google is linked
+        const googleAccount = await prisma.account.findFirst({
+            where: { userId: token.sub, provider: "google" }
+        });
+        
+        session.user.googleConnected = !!googleAccount;
+      }
       return session;
     },
+  },
+  pages: {
+    signIn: "/login",
+    error: "/login",
   },
 };

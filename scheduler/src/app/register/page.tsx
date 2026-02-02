@@ -36,20 +36,25 @@ export default function RegisterPage() {
       body: JSON.stringify({ username, email, password }),
     });
 
-    setIsLoading(false);
-
     if (!res.ok) {
+      setIsLoading(false);
       const data = await res.json().catch(() => ({}));
       setError(data.error || 'Registration failed');
       return;
     }
 
     // Auto-login
-    const loginResult = await signIn('credentials', { email, password, redirect: false });
+    const loginResult = await signIn('credentials', { 
+        email, 
+        password, 
+        redirect: false 
+    });
+
     if (loginResult?.ok) {
-      router.push('/dashboard');
+        window.location.href = '/dashboard'; 
     } else {
-      setError('Account created, but login failed. Please try signing in.');
+        setIsLoading(false);
+        setError('Account created, but login failed. Please try signing in manually.');
     }
   };
 
