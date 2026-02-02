@@ -1,24 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Timer from "@/components/wellbeing/timer";
 import Reminders from "@/components/wellbeing/timer_reminders";
+import Modal from "@/components/ui/modal";
 
 export default function TimerController() {
     const [reminderAtTime, setReminderAtTime] = useState(null); //when the 
     const [reminderOn, setReminderOn] = useState(false);
-    const [showModal, setShowModal] = useState(false);
+    const [showReminderModal, setShowReminderModal] = useState(false);
+
+    const reminder_fired_ref = useRef(false);
 
     const handleTick = (remainingMs) => {
         if (
             reminderOn &&
             reminderAtTime !== null &&
-            remainingMs <= reminderAtTime
+            remainingMs <= reminderAtTime &&
+            !reminder_fired_ref.current
         ) {
             setReminderOn(false); // fire once
-            setShowModal(true);
-            console.log("🔔 Reminder triggered");
+            setShowReminderModal(true);
+            reminder_fired_ref.current = true;  //show once only
         }
+    };
+
+    const close_modal = () => {
+        setShowReminderModal(false);
+    }
+
+    const enable_reminder = (timeMs) => {
+        reminder_fired_ref.current = false; // reset for next run
+        setReminderAtTime(timeMs);
+        setReminderOn(true);
     };
 
     return (
@@ -28,15 +42,16 @@ export default function TimerController() {
             <Reminders
                 enabled={reminderOn}
                 setEnabled={setReminderOn}
-                setReminderAtTime={setReminderAtTime}
+                setReminderAtTime={enable_reminder}
             />
 
-            {showModal && (
-                <div className="modal">
-                    <p>Time to take a break 🌿</p>
-                    <button onClick={() => setShowModal(false)}>Close</button>
-                </div>
-            )}
+            <Modal
+                open={showReminderModal}
+                onClose={close_modal}
+                title="Break time "
+            >
+                <p>Time to take a break</p>
+            </Modal>
         </>
     );
 }

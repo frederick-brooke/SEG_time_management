@@ -7,13 +7,15 @@ import { Button } from "@/components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
 
 import { createPortal } from "react-dom";
+import Modal from "@/components/ui/modal";
+
 
 export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
     const [active, setActive] = useState(false);
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
     const [timeLeft, setTimeLeft] = useState(null);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     //loading saved state
     useEffect( () => {
@@ -56,20 +58,36 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
             
                 <div className={styles["toggle-icon"]}>
                     {active ? "🔒" : "🔓"}
+                    {/* change the icon back whenver it resets automatically */}
                 </div>
             </div>
 
             {/* popup asking for what time */}
-            <Button variant="outline" size="icon" onClick={() => setIsModalOpen(true)}> 
+            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}> 
                 <IconSettings/>
             </Button>
 
-            {isModalOpen && (
-                <TimeSettingsModal onClose={() => setIsModalOpen(false)} />
-            )}
+            <Modal
+                open={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                title="Focus Time"
+            >
+                <p>Select time here for Focus Time</p>
+
+                <button
+                onClick={() => {
+                    setReminderAtTime(10_000);
+                    setEnabled(true);
+                    setIsSettingsOpen(false);
+                }}
+                >
+                </button>
+            </Modal>
         </div>
     );
 }
+
+
 
 function TimeSettingsModal({ onClose }) {
   const [portalRoot, setPortalRoot] = useState(null);
