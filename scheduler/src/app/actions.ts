@@ -1,9 +1,8 @@
-'use server'; // Defines this file as a server-side module | i.e, code that runs on the server only
+'use server';
 
-import prisma from '../../lib/prisma';
+import prisma from "lib/prisma";
 import { revalidatePath } from 'next/cache';
 
-// READ actions
 export async function getUsers() {
     try {
         const users = await prisma.user.findMany({
@@ -34,18 +33,17 @@ export async function getUserByEmail(email: string) {
     }
 }
 
-// CREATE actions
 
-export async function createUser(email: string, user_name: string, fname: string, lname: string) {
-    if(! (email && user_name && fname && lname)) {
+export async function createUser(email: string, username: string, fname: string, lname: string) {
+    if(! (email && username && fname && lname)) {
         throw new Error("All fields are  required to create a user.");
     }
     try {
         const newUser = await prisma.user.create({
-            data: { email, user_name, fname, lname },
+            data: { email, username, fname, lname },
         });
 
-        revalidatePath('/'); // Revalidate the relevant path (refreshes page to show changes immediately)
+        revalidatePath('/');
         return newUser;
 
     } catch (error) {
