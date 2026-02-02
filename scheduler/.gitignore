@@ -30,9 +30,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-
 # vercel
 .vercel
 
@@ -57,3 +54,17 @@ Thumbs.db
 # yarn.lock
 # pnpm-lock.yaml
 /src/generated/prisma
+
+# Lock files (optional - some teams commit these, some don't)
+# Uncomment if you want to ignore them:
+# yarn.lock
+# pnpm-lock.yaml
+
+
+# env files (can opt-in for committing if needed)
+.env*
+
+!.env.local.example
+!.env.example
+
+cookies.txt

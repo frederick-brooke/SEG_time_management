@@ -21,6 +21,8 @@ const geistMono = GeistMono({
 export const metadata = {
   title: "Scheduler",
   description: "Time management app",
+  title: "Scheduler",
+  description: "Time management app",
 };
 
 export default function RootLayout({ children }) {

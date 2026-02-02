@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
+import { Input } from "components/ui/input";
+import { Label } from "components/ui/label";
 import {
   Card,
   CardAction,
@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/src/components/ui/card";
+} from "components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "@/src/components/ui/dialog";
+} from "components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,10 +29,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/src/components/ui/alert-dialog";
-import { Button } from "@/src/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/src/components/ui/toggle-group";
-import { Checkbox } from "@/src/components/ui/checkbox";
+} from "components/ui/alert-dialog";
+import { Button } from "components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "components/ui/toggle-group";
+import { Checkbox } from "components/ui/checkbox";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
 export const description = "An interactive area chart";
