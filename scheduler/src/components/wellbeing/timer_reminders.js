@@ -6,27 +6,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
 
+import { createPortal } from "react-dom";
+
 export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
     const [active, setActive] = useState(false);
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
     const [timeLeft, setTimeLeft] = useState(null);
 
-    const openFocusButtons = document.querySelectorAll('[data-modal-target]');
-    const closeFocusButtons = document.querySelectorAll('[data-close-button]');
-
-    openFocusButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const modal = document.querySelector(button.CDATA_SECTION_NODE.modalTarget)
-            OpenModal(modal);
-        })
-    })
-
-    closeFocusButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const modal = button.closest('.modal-wrapper');
-            CloseModal(modal);
-        })
-    })
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     //loading saved state
     useEffect( () => {
@@ -43,9 +30,12 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
     }, [active]);   
 
     const enableReminder = () => {
-        setReminderAtTime(10_000); // 10 seconds fixed right now
+        setReminderAtTime(10_000); // 10 seconds fixed right now    
+        //change it such that the time gets taken from TimeSettingsModal 
         setEnabled(true);
     };
+
+    //duplicate for a custom reminder
 
     //separate timer to the main timer that counts in miliseconds and aligns with the main timer's pause/stop
 
@@ -70,40 +60,55 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
             </div>
 
             {/* popup asking for what time */}
-            <Button data-modal-target="modal-wrapper" variant="outline" size="icon"> 
+            <Button variant="outline" size="icon" onClick={() => setIsModalOpen(true)}> 
                 <IconSettings/>
             </Button>
 
-            <TimeSettingsModal/>
-
-
+            {isModalOpen && (
+                <TimeSettingsModal onClose={() => setIsModalOpen(false)} />
+            )}
         </div>
     );
 }
 
-function TimeSettingsModal() {
-    return(
-        <div className= {styles["modal-wrapper"]}>
-            <div className= {styles["modal-header"]}>
-                <div className="modal-title"> Focus Time </div>
-                <Button data-close-button variant="outline" size="icon" className={styles["close-btn"]}>&times;</Button>
-            </div>
+function TimeSettingsModal({ onClose }) {
+  const [portalRoot, setPortalRoot] = useState(null);
 
-            <div className="modal-body">
+  useEffect(() => {
+    setPortalRoot(document.getElementById("modal-root"));
+  }, []);
 
-            </div>
+  if (!portalRoot) return null;
 
-            <div className={styles["overlay"]}></div>
+  return createPortal(
+    <>
+      <div className={styles.overlay} onClick={onClose} />
+
+      <div className={styles["modal-wrapper"]}>
+        <div className={styles["modal-header"]}>
+          <div className={styles["modal-title"]}>Focus Time</div>
+
+          <button
+            className={styles["close-btn"]}
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
         </div>
-    );
-}
 
-function OpenModal(modal){
-    if(modal == null) return;
-    modal.classList.add('active');
-}
+        <div className={styles["modal-body"]}>
+            Select Time here for 'Focus Time'
 
-function CloseModal(modal){
-    if(modal == null) return;
-    modal.classList.remove('active');
+            {/* Include the timer input component from timer.js 
+                when user selects a time via the settings, and then then
+                if the Focus button gets toggled then next time the main
+                timer starts it will track how long till the time finishes
+                then it shows the popup
+            */}
+        </div>
+      </div>
+    </>,
+    portalRoot
+  );
 }

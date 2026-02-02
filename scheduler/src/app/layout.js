@@ -27,7 +27,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <div id="modal-root"></div>
+        </Providers>
       </body>
     </html>
   );

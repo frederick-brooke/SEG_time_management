@@ -17,6 +17,9 @@ export default function PagesLayout({ children }) {
       <SidebarInset className="bg-muted/40 p-6">
         <SiteHeader/>
         {children}
+
+        {/* Apply the overlay for every modal that appears */}
+        <div id="modal-root"></div>
       </SidebarInset>
     </SidebarProvider>
   );
