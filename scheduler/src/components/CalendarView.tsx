@@ -6,7 +6,6 @@ import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-// Import your EventForm
 import EventForm from './EventForm';
 
 const locales = { 'en-US': enUS };
@@ -16,9 +15,8 @@ export default function CalendarView({ events }: { events: any[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
 
-  // This function runs when a user clicks/drags on the calendar
+  // When user clicks/drags on the calendar, event modal opens
   const handleSelectSlot = ({ start }: { start: Date }) => {
-    // Format the date for the EventForm input (YYYY-MM-DD)
     const dateStr = format(start, 'yyyy-MM-dd');
     setSelectedDate(dateStr);
     setIsModalOpen(true);
@@ -31,12 +29,12 @@ export default function CalendarView({ events }: { events: any[] }) {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        selectable={true} // Crucial: allows clicking days
-        onSelectSlot={handleSelectSlot} // Trigger the modal
+        selectable={true}
+        onSelectSlot={handleSelectSlot}
         style={{ height: 500 }}
       />
 
-      {/* The Modal integration */}
+      {/* Modal integration */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md relative">
@@ -49,7 +47,7 @@ export default function CalendarView({ events }: { events: any[] }) {
 
             <h3 className="text-xl font-bold mb-4">Add Event for {selectedDate}</h3>
             
-            {/* Passing the props that EventForm expects */}
+            {/* Pass the values EventForm expects */}
             <EventForm 
               defaultDate={selectedDate} 
               onSuccess={() => setIsModalOpen(false)} 
