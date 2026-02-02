@@ -43,6 +43,7 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true, // <--- THIS FIXES THE REDIRECT LOOP
       authorization: {
         params: {
           scope: "openid email profile https://www.googleapis.com/auth/calendar.readonly",
@@ -63,6 +64,22 @@ export const authOptions: NextAuthOptions = {
         
         // If token.sub exists, the user is logged in and trying to link account
         if (token.sub) {
+            // 1. CHECK FOR DUPLICATES MANUALLY
+            const existingAccount = await prisma.account.findUnique({
+                where: {
+                    provider_providerAccountId: {
+                        provider: "google",
+                        providerAccountId: account.providerAccountId
+                    }
+                }
+            });
+
+            // If the account exists BUT belongs to a different user, throw an error
+            if (existingAccount && existingAccount.userId !== token.sub) {
+                throw new Error("GoogleAccountTaken"); // Redirects to dashboard with error
+            }
+
+            // 2. UPSERT (Update or Create)
             await prisma.account.upsert({
                 where: {
                     provider_providerAccountId: {
@@ -77,7 +94,6 @@ export const authOptions: NextAuthOptions = {
                     scope: account.scope,
                     token_type: account.token_type,
                     id_token: account.id_token,
-                    // Add this:
                     refresh_token_expires_in: account.refresh_token_expires_in as number,
                 },
                 create: {
@@ -91,7 +107,6 @@ export const authOptions: NextAuthOptions = {
                     scope: account.scope,
                     token_type: account.token_type,
                     id_token: account.id_token,
-                    // Add this:
                     refresh_token_expires_in: account.refresh_token_expires_in as number,
                 }
             });
@@ -110,7 +125,6 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token.sub) {
         session.user.id = token.sub;
         
-        // Check if Google is linked
         const googleAccount = await prisma.account.findFirst({
             where: { userId: token.sub, provider: "google" }
         });
@@ -122,6 +136,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "/dashboard", // Redirects errors to the dashboard
   },
 };
