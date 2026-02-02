@@ -1,7 +1,6 @@
-"use client";
+'use client';
 import { AppSidebar } from "components/app-sidebar";
 import { ToDoList } from "components/to-do-list";
-import { DataTable } from "components/data-table";
 import { SectionCards } from "components/section-cards";
 import { SiteHeader } from "components/site-header";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
@@ -13,7 +12,7 @@ export default function Page() {
 
   if (status === "loading") return <p className="p-4">Loading session...</p>;
 
-  const googleConnected = !!session?.accessToken;
+const googleConnected = !!session?.user?.googleConnected;
 
   return (
     <SidebarProvider
@@ -35,29 +34,38 @@ export default function Page() {
               </p>
 
               <div className="flex gap-2 mt-2">
-                {!googleConnected && (
-                  <button
-                    onClick={() => signIn("google")}
-                    className="rounded bg-blue-500 px-4 py-2 text-white"
-                  >
-                    Connect Google
-                  </button>
-                )}
+              {!googleConnected && (
                 <button
-                  onClick={() => signOut()}
-                  className="rounded bg-gray-300 px-4 py-2"
+                  onClick={async () => {
+                    const result = await signIn("google", {
+                      redirect: false, 
+                      callbackUrl: "/dashboard",
+                    });
+
+                    if (result?.error) {
+                      alert(
+                        "Could not link Google account. Make sure you signed up with email first."
+                      );
+                    } else {
+                      alert("Google account linked successfully!");
+                      window.location.reload();
+                    }
+                  }}
+                  className="rounded bg-blue-500 px-4 py-2 text-white"
                 >
-                  Sign out
+                  Connect Google
                 </button>
-              </div>
+              )}
+              <button
+                onClick={() => signOut()}
+                className="rounded bg-gray-300 px-4 py-2"
+              >
+                Sign out
+              </button>
+            </div>
             </div>
           ) : (
-            <button
-              onClick={() => signIn("google")}
-              className="rounded bg-black px-4 py-2 text-white"
-            >
-              Sign in with Google
-            </button>
+            <p>Please sign in with your email/password on the login page.</p>
           )}
         </div>
 
