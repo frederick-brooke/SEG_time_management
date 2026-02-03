@@ -86,11 +86,11 @@ export function ToDoList() {
                 newTaskPriority === "Low"
                   ? "Low"
                   : newTaskPriority === "Medium"
-                    ? "Medium"
-                    : "High",
+                  ? "Medium"
+                  : "High",
               dueDate: newTaskDueDate || null,
             }
-          : task,
+          : task
       );
       setTasks(updatedTasks);
       setEditingTaskId(null);
@@ -103,8 +103,8 @@ export function ToDoList() {
           newTaskPriority === "Low"
             ? "Low"
             : newTaskPriority === "Medium"
-              ? "Medium"
-              : "High",
+            ? "Medium"
+            : "High",
         description: newTaskDescription,
         status: "todo",
         subtasks: newTaskSubtasks
@@ -138,8 +138,8 @@ export function ToDoList() {
         taskToEdit.priority === "Low"
           ? "Low"
           : taskToEdit.priority === "Medium"
-            ? "Medium"
-            : "High",
+          ? "Medium"
+          : "High"
       );
       setNewTaskDueDate(taskToEdit.dueDate || "");
       setIsDialogOpen(true);
@@ -204,10 +204,10 @@ export function ToDoList() {
   // Filter tasks by status and due date
   const overdueTasks = tasks.filter((task) => isOverdue(task));
   const todoTasks = tasks.filter(
-    (task) => task.status === "todo" && !isOverdue(task),
+    (task) => task.status === "todo" && !isOverdue(task)
   );
   const inProgressTasks = tasks.filter(
-    (task) => task.status === "in-progress" && !isOverdue(task),
+    (task) => task.status === "in-progress" && !isOverdue(task)
   );
   const completedTasks = tasks.filter((task) => task.status === "completed");
 
@@ -272,7 +272,7 @@ export function ToDoList() {
                   {task.dueDate && (
                     <span className="text-xs text-muted-foreground">
                       Due:{" "}
-                      {new Date(task.dueDate).toLocalDateString("en-US", {
+                      {new Date(task.dueDate).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                       })}
