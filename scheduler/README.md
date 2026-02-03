@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Explination on MonogoDB and Prisma
+
+Prisma is the ORM that we will use to interact with our mongoDB instance. 
+
+First, go to monogoDB -> login -> create .env -> create DATABASE_URL in .env* -> add ip to allowed ip's -> test connection 
+
+*make sure to add the database name **management-app** in the url or else error will occur
+
+Prisma works with TypeScript files natively. All methods to access the database should be writted in **'./src/app/actions.ts'**, this ensures all database actions are handled on the backend even if the method is called by the user/frontend (security reasons)
+
+
