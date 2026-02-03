@@ -201,6 +201,20 @@ export function ToDoList() {
     return dueDate < today;
   };
 
+  // Helper: Colour code priorities on tasks
+  const getPriorityStyle = (priority) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
+      case "Medium":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+      case "Low":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
   // Filter tasks by status and due date
   const overdueTasks = tasks.filter((task) => isOverdue(task));
   const todoTasks = tasks.filter(
@@ -269,16 +283,22 @@ export function ToDoList() {
                   >
                     {task.name}
                   </span>
-                  {task.dueDate && (
-                    <span className="text-xs text-muted-foreground">
-                      Due:{" "}
-                      {new Date(task.dueDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  )}
+                  <span
+                    className={
+                      `text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}
+                  >
+                    {task.priority}
+                  </span>
                 </div>
+                {task.dueDate && (
+                  <span className="text-xs text-muted-foreground">
+                    Due:{" "}
+                    {new Date(task.dueDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -512,7 +532,10 @@ export function ToDoList() {
             <div>
               <Label className="text-sm font-medium">Priority</Label>
               <p className="text-sm mt-1">
-                <span className="text-xs px-2 py-1 rounded bg-muted">
+                <span
+                  className={
+                    `text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(viewTask?.priority)}`}
+                >
                   {viewTask?.priority}
                 </span>
               </p>
