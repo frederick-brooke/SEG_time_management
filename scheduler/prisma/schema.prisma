@@ -71,6 +71,7 @@ model Event {
   start       DateTime
   end         DateTime
   allDay      Boolean  @default(false)
+  category    String   @default("Personal") 
   createdAt   DateTime @default(now())
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
