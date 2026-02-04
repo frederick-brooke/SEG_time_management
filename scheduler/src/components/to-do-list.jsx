@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Input } from "components/ui/input";
 import { Label } from "components/ui/label";
+import { Progress } from "components/ui/progress";
 import {
   Card,
   CardAction,
@@ -215,6 +216,12 @@ export function ToDoList() {
     }
   };
 
+  // Progress bar logic
+  const totalTasks = tasks.length;
+  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const progressPercentage = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+
   // Filter tasks by status and due date
   const overdueTasks = tasks.filter((task) => isOverdue(task));
   const todoTasks = tasks.filter(
@@ -348,6 +355,15 @@ export function ToDoList() {
         <CardDescription>
           <span>Get ahead of your tasks!</span>
         </CardDescription>
+
+        {/* Progress Bar */}
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Task Completion</span>
+            <span className="font-medium text-foreground">{progressPercentage}%</span>
+          </div>
+          <Progress value={progressPercentage} className="h-2" />
+        </div>
 
         {/* Action Buttons */}
         <CardAction className="flex gap-2">
