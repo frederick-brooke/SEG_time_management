@@ -9,6 +9,9 @@ import { IconSettings } from "@tabler/icons-react";
 import { createPortal } from "react-dom";
 import Modal from "components/ui/modal";
 
+import TimePicker from "./time_picker";
+import TimerButtons from "./timer_button";
+
 
 export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
     const [active, setActive] = useState(false);
@@ -31,6 +34,8 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
         localStorage.setItem("reminder-toggle", JSON.stringify(active));
     }, [active]);   
 
+    
+
     const enableReminder = () => {
         setReminderAtTime(10_000); // 10 seconds fixed right now    
         //change it such that the time gets taken from TimeSettingsModal 
@@ -43,7 +48,6 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
 
     return (
         <div className="reminders-container">
-
             <div className={`${styles["toggle-btn"]} ${enabled ? styles["active"] : ""}`}
                 onClick={() => {
                     if(enabled){
@@ -73,13 +77,25 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
                 title="Focus Time"
             >
                 <p>Select time here for Focus Time</p>
+                {/* Submit time below */}
+                
+
+                <TimerButtons
+                    hasStarted={false}
+                    isRunning={false}
+                    onStart={() => {
+                        setReminderAtTime(toMs(focusTime));
+                        setEnabled(true);
+                        setIsSettingsOpen(false);
+                    }}
+                    />
 
                 <button
-                onClick={() => {
-                    setReminderAtTime(10_000);
-                    setEnabled(true);
-                    setIsSettingsOpen(false);
-                }}
+                    onClick={() => {
+                        setReminderAtTime(10_000);
+                        setEnabled(true);
+                        setIsSettingsOpen(false);
+                    }}
                 >
                 </button>
             </Modal>

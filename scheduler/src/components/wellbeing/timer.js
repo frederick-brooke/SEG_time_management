@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import styles from "./timer.module.css"
+import TimePicker from "./time_picker";
+import TimerButtons from "./timer_button";
 
 //main reusable frontend timer component 
 export default function Timer({onTick}) {
@@ -90,7 +92,6 @@ export default function Timer({onTick}) {
         //early exit if there is no timer currently running
         if (!intervalRef.current) return;
 
-        clearInterval(intervalRef.current);     //clear interval to stop the countdown
         intervalRef.current = null;
         //save pause state to local storage for persistance
         saveTimerState({
@@ -139,14 +140,12 @@ export default function Timer({onTick}) {
 }
 //Component for time input display and control buttons
 function TimeInput({ time, setTime, startTimer, isRunning, stop_timer, hours, minutes, seconds, pause_timer, hasStarted, resume_timer}) {
-    const format = (n) => String(n).padStart(2, "0");   //helper function to format numbers as two-digit strings
-
     useEffect(() => {   //reset the time input when timer hasn't started
         if (!hasStarted) {
             setTime("00:00:00");    //default time at the start
         }
     }, [hasStarted]);
-
+    
     //function to submit the time and start it via the API
     const submitTime = async () => {
         const [h, m, s] = time.split(":").map(Number);  //parse hours, minutes and seconds from the time string
@@ -170,32 +169,23 @@ function TimeInput({ time, setTime, startTimer, isRunning, stop_timer, hours, mi
     return (
         //jsx representation of the entire timer component
         <div className={styles["timer"]}>
-            <div className={styles["time-text"]}>
-                {!hasStarted ? (
-                    //Display thbe time input if the timer hasn't started
-                    <input
-                        type="time"
-                        step="1"
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                    />
-                ) 
-                :   //display the countdown when the timer has started
-                ( <div className={styles["time-text"]}> 
-                        {format(hours)}:{format(minutes)}:{format(seconds)}
-                    </div>
-                )}
-            </div>            
+            <TimePicker
+                value={time}
+                onChange={setTime}
+                showCountdown={hasStarted}
+                hours={hours}
+                minutes={minutes}
+                seconds={seconds}
+            />        
                 
             <div className={styles["timer-buttons"]}>
-                <div className={styles["timer-control"]}>
-                    {!hasStarted && <button onClick={submitTime}> Start</button>}
-                    {isRunning && <button onClick={pause_timer}> Pause</button>}
-                    {(hasStarted && !isRunning) && <button onClick={resume_timer}> Resume </button> }
-                </div>
-                <div className={styles["timer-stop"]}>
-                    {hasStarted && <button onClick={stop_timer}> Stop</button>}
-                </div>               
+                <TimerButtons
+                    hasStarted={false}
+                    isRunning={false}
+                    onStart={() => {
+                        
+                    }}
+                />            
             </div>            
         </div>
     );
