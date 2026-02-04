@@ -1,9 +1,9 @@
-import { SiteHeader } from "@/components/site-header";
-import { AppSidebar } from "@/src/components/app-sidebar";
+import { SiteHeader } from "components/site-header";
+import { AppSidebar } from "components/app-sidebar";
 import {
   SidebarProvider,
   SidebarInset,
-} from "@/src/components/ui/sidebar";
+} from "components/ui/sidebar";
 
 export default function PagesLayout({ children }) {
   return (

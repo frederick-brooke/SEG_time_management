@@ -3,11 +3,11 @@
 import styles from "./timer_reminder.module.css";
 import { useState, useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
 
 import { createPortal } from "react-dom";
-import Modal from "@/components/ui/modal";
+import Modal from "components/ui/modal";
 
 
 export default function Reminders({enabled, setEnabled, setReminderAtTime}) {

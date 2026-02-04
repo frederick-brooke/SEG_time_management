@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Timer from "@/components/wellbeing/timer";
-import Reminders from "@/components/wellbeing/timer_reminders";
-import Modal from "@/components/ui/modal";
+import Timer from "components/wellbeing/timer";
+import Reminders from "components/wellbeing/timer_reminders";
+import Modal from "components/ui/modal";
 
 export default function TimerController() {
     const [reminderAtTime, setReminderAtTime] = useState(null); //when the 
