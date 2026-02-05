@@ -9,7 +9,6 @@ import { IconSettings } from "@tabler/icons-react";
 import { createPortal } from "react-dom";
 import Modal from "components/ui/modal";
 
-import TimePicker from "./time_picker";
 import TimerButtons from "./timer_button";
 
 

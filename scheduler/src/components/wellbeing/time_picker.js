@@ -32,6 +32,6 @@ export default function TimePicker({
                         {format(hours)}:{format(minutes)}:{format(seconds)}
                     </div>
                 )}
-            </div>    
+        </div>    
     );
 }
