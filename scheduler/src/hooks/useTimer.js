@@ -1,16 +1,25 @@
+"use client";
+
 import { useEffect, useState, useRef } from "react";
 
-export function useTimer({ onTick } = {}) {
-    const intervalRef = useRef(null);   //for clearing the leftover time 
+export function useTimer( {storageKey, onTick} = {}) {
+    const saveTimerState = (state) => {
+        //Saves the paused time within web browser for local persistance when refresh
+        localStorage.setItem(storageKey, JSON.stringify(state));
+    };
 
-    // Stores the raw time string from the input (HH:MM or HH:MM:SS)
-    const [time, setTime] = useState("00:00:00");
+    //loads timer state from local storage, for static access
+    const loadTimerState = () => {
+        const stored = localStorage.getItem(storageKey);
+        return stored ? JSON.parse(stored) : null;  //if JSON exists then parse it
+    };
 
     // Stores the countdown values
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(0);
     const [seconds, setSeconds] = useState(0);
 
+    const intervalRef = useRef(null);   //for clearing the leftover time 
 
     const [isRunning, setIsRunning] = useState(false);  //tracks if timer is currently running
     const [hasStarted, setHasStarted] = useState(false);    //tracks if timer has been started at least once before
@@ -56,7 +65,7 @@ export function useTimer({ onTick } = {}) {
         }, 1000);
     }
     //function for stopping and resetting the timer
-    const stop_timer = () => {
+    const stopTimer = () => {
         if(intervalRef.current){    //clear the interval if it already exists
             clearInterval(intervalRef.current);
             intervalRef.current = null;
@@ -64,18 +73,18 @@ export function useTimer({ onTick } = {}) {
         //resets all timer states
         setHours(0);
         setMinutes(0);
-        setSeconds(0);
-        setTime(""); 
+        setSeconds(0); 
 
-        localStorage.removeItem("wellbeing_timer"); //remove timer state from local storage
+        localStorage.removeItem(storageKey); //remove timer state from local storage
         setIsRunning(false);    //reset all of the running states
         setHasStarted(false);
     }
     //function for pausing the running timer
-    const pause_timer = () => {
+    const pauseTimer = () => {
         //early exit if there is no timer currently running
         if (!intervalRef.current) return;
 
+        clearInterval(intervalRef.current);     //clear interval to stop the countdown
         intervalRef.current = null;
         //save pause state to local storage for persistance
         saveTimerState({
@@ -87,10 +96,16 @@ export function useTimer({ onTick } = {}) {
         setIsRunning(false);
     }
     //function for resuming the paused timer
-    const resume_timer = () => {
+    const resumeTimer = () => {
         if(remainingMsRef.current <= 0) return; //exit if no timer exists
         startTimer(remainingMsRef.current);     //restart timer with remaining time
     }
+    //new second values to the 
+    const updateDisplay = (ms) => {
+        setHours(Math.floor(ms / 3600000));
+        setMinutes(Math.floor((ms / 60000) % 60));
+        setSeconds(Math.floor((ms / 1000) % 60));
+    };
 
     const restoreFromState = (state) => {
         const {endTime, remainingMs, isRunning} = state;    //break up the saved state
@@ -105,10 +120,27 @@ export function useTimer({ onTick } = {}) {
             //if timer was paused when saved then restore the displayed values
             remainingMsRef.current = remainingMs;
             //update the displayed time values
-            setHours(Math.floor(remainingMs / 3600000));
-            setMinutes(Math.floor((remainingMs / 60000) % 60));
-            setSeconds(Math.floor((remainingMs / 1000) % 60));
+            setHasStarted(true);
+            updateDisplay;
             setIsRunning(false);    //set as paused
         }
+    }
+
+    //resume logic to restore timer state on component mount
+    useEffect(() =>{
+        const state = loadTimerState();     //exit if no saved state
+        if(!state) return;
+
+        if (state) restoreFromState(state);        
+    }, []);
+
+    return {
+        time: { hours, minutes, seconds },
+        isRunning,
+        hasStarted,
+        startTimer,
+        pauseTimer,
+        resumeTimer,
+        stopTimer,
     };
 }

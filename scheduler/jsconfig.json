@@ -10,5 +10,5 @@
       "hooks/*": ["src/hooks/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "**/*.js", "**/*.jsx"]
 }
