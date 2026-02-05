@@ -9,12 +9,14 @@ import { IconSettings } from "@tabler/icons-react";
 import { createPortal } from "react-dom";
 import Modal from "components/ui/modal";
 
+import TimerReminder from "./timer_reminder";
+
 export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
     const [active, setActive] = useState(false);
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
     const [timeLeft, setTimeLeft] = useState(null);
 
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     //loading saved state
     useEffect( () => {
@@ -35,7 +37,6 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
         //change it such that the time gets taken from TimeSettingsModal 
         setEnabled(true);
     };
-
     //duplicate for a custom reminder
 
     //separate timer to the main timer that counts in miliseconds and aligns with the main timer's pause/stop
@@ -73,20 +74,17 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
             >
                 <p>Select time here for Focus Time</p>
 
-                <button
-                onClick={() => {
-                    setReminderAtTime(10_000);
+                <TimerReminder
+                    onConfirm={(durationMs) => {
+                    setReminderAtTime(durationMs);
                     setEnabled(true);
                     setIsSettingsOpen(false);
-                }}
-                >
-                </button>
+                    }}
+                />
             </Modal>
         </div>
     );
 }
-
-
 
 function TimeSettingsModal({ onClose }) {
   const [portalRoot, setPortalRoot] = useState(null);

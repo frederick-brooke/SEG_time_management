@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Timer from "components/wellbeing/timer";
-import Reminders from "components/wellbeing/timer_reminders";
+import Reminders from "components/wellbeing/reminders";
 import Modal from "components/ui/modal";
 
 export default function TimerController() {
