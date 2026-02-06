@@ -2,14 +2,115 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
+import { addDays, addWeeks, addMonths } from "date-fns";
+
+function expandRecurringEvents(events: any[]) {
+  const allEvents: any[] = [];
+  const dayMap: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+
+  events.forEach((e) => {
+    if (!e.recurrence) {
+      allEvents.push(e);
+      return;
+    }
+
+    const { type, until, days } = e.recurrence;
+    const start = new Date(e.start);
+    const end = new Date(e.end);
+    const untilDate = new Date(until);
+
+    if (type === "daily") {
+      let currentStart = new Date(start);
+      let currentEnd = new Date(end);
+
+      while (currentStart <= untilDate) {
+        allEvents.push({
+          ...e,
+          start: new Date(currentStart),
+          end: new Date(currentEnd),
+        });
+
+        currentStart = addDays(currentStart, 1);
+        currentEnd = addDays(currentEnd, 1);
+      }
+    }
+
+    if (type === "weekly" && Array.isArray(days)) {
+      let cursor = new Date(start);
+
+      while (cursor <= untilDate) {
+        for (const day of days) {
+          const targetDay = dayMap[day];
+          const occurrence = new Date(cursor);
+          occurrence.setDate(
+            occurrence.getDate() + ((targetDay - occurrence.getDay() + 7) % 7),
+          );
+          if (occurrence < start || occurrence > untilDate) continue;
+
+          const duration = end.getTime() - start.getTime();
+
+          allEvents.push({
+            ...e,
+            start: new Date(occurrence),
+            end: new Date(occurrence.getTime() + duration),
+          });
+        }
+
+        cursor = addWeeks(cursor, 1);
+      }
+    }
+    if (type === "monthly") {
+      let currentStart = new Date(start);
+      let currentEnd = new Date(end);
+
+      while (currentStart <= untilDate) {
+        allEvents.push({
+          ...e,
+          start: new Date(currentStart),
+          end: new Date(currentEnd),
+        });
+
+        currentStart = addMonths(currentStart, 1);
+        currentEnd = addMonths(currentEnd, 1);
+      }
+    }
+  });
+
+  return allEvents;
+}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+  const {
+    title,
+    description,
+    start,
+    end,
+    allDay,
+    category,
+    recurrenceType,
+    recurrenceDays,
+    recurrenceUntil,
+  } = await req.json();
 
-  const { title, description, start, end, allDay, category } = await req.json();
+  const recurrence =
+    recurrenceType !== "none"
+      ? {
+          type: recurrenceType,
+          until: recurrenceUntil,
+          days: recurrenceType === "weekly" ? recurrenceDays : null,
+        }
+      : null;
 
   const localEvent = await prisma.event.create({
     data: {
@@ -20,30 +121,9 @@ export async function POST(req: NextRequest) {
       allDay: allDay || false,
       category: category || "Personal",
       userId: session.user.id,
+      recurrence,
     },
   });
-
-  const calendar = await getGoogleCalendarClient(session.user.id);
-  if (calendar) {
-    try {
-      const gEvent = await calendar.events.insert({
-        calendarId: "primary",
-        requestBody: {
-          summary: title,
-          description: description,
-          start: { dateTime: new Date(start).toISOString() },
-          end: { dateTime: new Date(end).toISOString() },
-        },
-      });
-
-      await prisma.event.update({
-        where: { id: localEvent.id },
-        data: { googleEventId: gEvent.data.id },
-      });
-    } catch (err) {
-      console.error("Google Sync Failed:", err);
-    }
-  }
 
   return NextResponse.json(localEvent, { status: 201 });
 }
@@ -57,31 +137,9 @@ export async function GET(req: NextRequest) {
     where: { userId: session.user.id },
   });
 
-  let googleEvents = [];
-  const calendar = await getGoogleCalendarClient(session.user.id);
-  if (calendar) {
-    try {
-      const response = await calendar.events.list({
-        calendarId: "primary",
-        timeMin: new Date().toISOString(),
-        maxResults: 10,
-        singleEvents: true,
-        orderBy: "startTime",
-      });
-      googleEvents = response.data.items.map((ge) => ({
-        id: ge.id,
-        title: ge.summary,
-        start: ge.start.dateTime || ge.start.date,
-        end: ge.end.dateTime || ge.end.date,
-        category: "Google",
-        isGoogleEvent: true,
-      }));
-    } catch (err) {
-      console.error("Fetch Google Failed:", err);
-    }
-  }
+  const expandedEvents = expandRecurringEvents(localEvents);
 
-  return NextResponse.json([...localEvents, ...googleEvents]);
+  return NextResponse.json(expandedEvents);
 }
 
 export async function DELETE(req: NextRequest) {
