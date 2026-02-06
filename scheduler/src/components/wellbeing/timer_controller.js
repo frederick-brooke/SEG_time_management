@@ -39,11 +39,7 @@ export default function TimerController() {
         <>
             <Timer onTick={handleTick} />
 
-            <Reminders
-                enabled={reminderOn}
-                setEnabled={setReminderOn}
-                setReminderAtTime={enable_reminder}
-            />
+            
 
             <Modal
                 open={showReminderModal}

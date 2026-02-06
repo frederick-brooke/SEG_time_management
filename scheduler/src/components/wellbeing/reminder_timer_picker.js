@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTimer } from "hooks/useTimer";
 
-export default function TimerReminder({ onConfirm, onRunningChange, onTick }){
+export default function ReminderPicker({ onConfirm, onRunningChange, onTick }){
     const [timeInput, setTimeInput] = useState("00:05:00");
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
     
