@@ -5,15 +5,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { revalidatePath } from "next/cache";
 
-// ✅ NEW: Specific function for the /profile page
 export async function getMyProfile() {
   const session = await getServerSession(authOptions);
   
-  // If no session or email, we can't find the profile
+  // LOG 1: Check who is logged in
+  console.log("🔍 getMyProfile called for:", session?.user?.email);
+
   if (!session?.user?.email) return null;
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email }, // Search by EMAIL, not username
+    where: { email: session.user.email },
     select: {
       id: true,
       username: true,
@@ -25,15 +26,19 @@ export async function getMyProfile() {
       createdAt: true,
       tasks: {
         select: { completed: true }
-      },
-      // For "My Profile", we don't strictly need friend request status relative to ourselves,
-      // but we can keep the structure consistent if you like.
+      }
     }
   });
 
-  if (!user) return null;
+  if (!user) {
+    console.log("❌ User not found in DB!");
+    return null;
+  }
 
-  // Calculate Stats
+  // LOG 2: Check what we found in the DB
+  console.log(`✅ Found user: ${user.username}, Bio: ${user.bio}`);
+  console.log(`📊 Task Count: ${user.tasks.length}`);
+
   const completedTasks = user.tasks.filter(t => t.completed).length;
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -41,7 +46,7 @@ export async function getMyProfile() {
   return {
     ...user,
     stats: { completedTasks, totalTasks, completionRate },
-    friendStatus: "ME" // It's your own profile
+    friendStatus: "ME"
   };
 }
 
@@ -100,17 +105,30 @@ export async function getProfile(username: string) {
 
 export async function updateProfile(formData: FormData) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) throw new Error("Unauthorized");
+  
+  if (!session?.user?.email) {
+    console.log("⛔ Unauthorized update attempt");
+    throw new Error("Unauthorized");
+  }
+
+  const newBio = formData.get("bio") as string;
+  const newFname = formData.get("fname") as string;
+  const newLname = formData.get("lname") as string;
+
+  // LOG 3: Check what is being saved
+  console.log(`📝 Updating profile for ${session.user.email}`);
+  console.log(`   - New Bio: "${newBio}"`);
 
   await prisma.user.update({
     where: { email: session.user.email },
     data: {
-      fname: formData.get("fname") as string,
-      lname: formData.get("lname") as string,
-      bio: formData.get("bio") as string,
+      fname: newFname,
+      lname: newLname,
+      bio: newBio,
     },
   });
 
+  console.log("✅ Database update successful");
   revalidatePath("/profile");
 }
 
