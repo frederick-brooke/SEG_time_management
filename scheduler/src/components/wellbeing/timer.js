@@ -4,6 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import styles from "./timer.module.css"
 import { useTimer } from "hooks/useTimer";
 
+import Reminders from "./timer_reminder";
+
+
 //main reusable frontend timer component 
 export default function Timer({storageKey, onTick}) {
     storageKey = "wellbeing_timer"; //temporary
@@ -15,12 +18,32 @@ export default function Timer({storageKey, onTick}) {
         time: { hours, minutes, seconds}, 
         isRunning, 
         hasStarted, 
-        startTimer, pauseTimer, resumeTimer, stopTimer
+        startTimer, pauseTimer, resumeTimer, stopTimer, remainingMs,
     } = useTimer({storageKey, onTick});
-    
+
+    const [reminderOffsetMs, setReminderOffsetMs] = useState(null);
+
+    useEffect(() => {
+        if(
+            reminderOffsetMs !== null && remainingMs <= reminderOffsetMs
+        ){
+            fireReminder();
+            setReminderOffsetMs(null);
+        }
+    }, [remainingMs]);
+
+    const reminderCountdown = reminderOffsetMs !== null ? remainingMs - reminderOffsetMs : null;
+
     return (
         <div className="time_wrapper">
             <TimeInput timeInput={timeInput} setTimeInput={setTimeInput} startTimer={startTimer} isRunning={isRunning} stopTimer={stopTimer} hours={hours} minutes={minutes} seconds={seconds} pauseTimer={pauseTimer} hasStarted={hasStarted} resumeTimer={resumeTimer}/>
+        
+            {reminderCountdown !== null && (
+                <div>
+                    Reminder in {formatMs(reminderCountdown)}
+                </div>
+            )}
+
         </div>
     );
 }

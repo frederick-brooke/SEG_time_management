@@ -6,17 +6,25 @@ import { useState, useEffect } from "react";
 import { Button } from "components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
 
-import { createPortal } from "react-dom";
 import Modal from "components/ui/modal";
 
 import TimerReminder from "./timer_reminder";
 
-export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
+export default function Reminders({isRunning, remainingMs, setReminderOffsetMs}) {
     const [active, setActive] = useState(false);
-    // Stores the raw time string from the input (HH:MM or HH:MM:SS)
-    const [timeLeft, setTimeLeft] = useState(null);
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    const [durationMs, setDurationMs] = useState(null);
+
+    const format = (n) => String(n).padStart(2, "0");   //helper function to format numbers as two-digit strings
+
+    const totalSeconds = durationMs ? Math.floor(durationMs / 1000) : 0;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const [enabled, setEnabled] = useState(false); // actual reminder enabled
 
     //loading saved state
     useEffect( () => {
@@ -24,6 +32,7 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
 
         if(saved_focus_state !== null) {
             setActive(JSON.parse(saved_focus_state));
+            setEnabled(JSON.parse(saved_focus_state))
         }
     }, []);
 
@@ -32,8 +41,8 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
         localStorage.setItem("reminder-toggle", JSON.stringify(active));
     }, [active]);   
 
-    const enableReminder = () => {
-        setReminderAtTime(10_000); // 10 seconds fixed right now    
+    const enableReminder = (durationMs) => {
+        setReminderAtTime(durationMs); // 10 seconds fixed right now    
         //change it such that the time gets taken from TimeSettingsModal 
         setEnabled(true);
     };
@@ -43,87 +52,57 @@ export default function Reminders({enabled, setEnabled, setReminderAtTime}) {
 
     return (
         <div className="reminders-container">
-
-            <div className={`${styles["toggle-btn"]} ${enabled ? styles["active"] : ""}`}
+            {/* Toggle button */}
+            <div
+                className={`${styles["toggle-btn"]} ${enabled ? styles["active"] : ""}`}
                 onClick={() => {
-                    if(enabled){
-                        setEnabled(false);
-                        setActive(false);
-                    }
-                    else{
-                        enableReminder();
-                        setActive(true);
-                    }}
-            }>
-            
+                if (enabled) {
+                    setEnabled(false);
+                    setActive(false);
+                } else {
+                    setIsSettingsOpen(true); // open modal to set time before enabling
+                }
+                }}
+            >
                 <div className={styles["toggle-icon"]}>
-                    {active ? "🔒" : "🔓"}
-                    {/* change the icon back whenver it resets automatically */}
+                {active ? "🔒" : "🔓"}
                 </div>
             </div>
 
-            {/* popup asking for what time */}
-            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}> 
-                <IconSettings/>
+            {/* Settings button */}
+            <Button
+                variant="outline"
+                size="icon"
+                disabled={!isRunning}
+                onClick={() => setIsSettingsOpen(true)}
+            >
+                <IconSettings />
             </Button>
 
+            {/* Modal */}
             <Modal
                 open={isSettingsOpen}
                 onClose={() => setIsSettingsOpen(false)}
                 title="Focus Time"
             >
+                {!isRunning && <span>Start the timer to set a reminder</span>}
                 <p>Select time here for Focus Time</p>
 
                 <TimerReminder
-                    onConfirm={(durationMs) => {
-                    setReminderAtTime(durationMs);
-                    setEnabled(true);
+                onConfirm={(ms) => {
+                    enableReminder(ms);
+                    setActive(true);
                     setIsSettingsOpen(false);
-                    }}
+                }}
+                onRunningChange={() => {}}
                 />
+
+                {enabled && durationMs !== null && (
+                <div className={styles["time-text"]}>
+                    {format(hours)}:{format(minutes)}:{format(seconds)}
+                </div>
+                )}
             </Modal>
         </div>
     );
-}
-
-function TimeSettingsModal({ onClose }) {
-  const [portalRoot, setPortalRoot] = useState(null);
-
-  useEffect(() => {
-    setPortalRoot(document.getElementById("modal-root"));
-  }, []);
-
-  if (!portalRoot) return null;
-
-  return createPortal(
-    <>
-      <div className={styles.overlay} onClick={onClose} />
-
-      <div className={styles["modal-wrapper"]}>
-        <div className={styles["modal-header"]}>
-          <div className={styles["modal-title"]}>Focus Time</div>
-
-          <button
-            className={styles["close-btn"]}
-            onClick={onClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className={styles["modal-body"]}>
-            Select Time here for 'Focus Time'
-
-            {/* Include the timer input component from timer.js 
-                when user selects a time via the settings, and then then
-                if the Focus button gets toggled then next time the main
-                timer starts it will track how long till the time finishes
-                then it shows the popup
-            */}
-        </div>
-      </div>
-    </>,
-    portalRoot
-  );
 }

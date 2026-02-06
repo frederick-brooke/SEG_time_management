@@ -142,5 +142,6 @@ export function useTimer( {storageKey, onTick} = {}) {
         pauseTimer,
         resumeTimer,
         stopTimer,
+        remainingMs: remainingMsRef.current,
     };
 }
