@@ -83,3 +83,40 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json([...localEvents, ...googleEvents]);
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 });
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id, userId: session.user.id },
+    });
+
+    if (!event) return NextResponse.json({ message: "Event not found" }, { status: 404 });
+
+    if (event.googleEventId) {
+      const calendar = await getGoogleCalendarClient(session.user.id);
+      if (calendar) {
+        await calendar.events.delete({
+          calendarId: "primary",
+          eventId: event.googleEventId,
+        });
+      }
+    }
+
+    await prisma.event.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Deleted successfully" });
+  } catch (error) {
+    console.error("Delete Error:", error);
+    return NextResponse.json({ message: "Failed to delete" }, { status: 500 });
+  }
+}

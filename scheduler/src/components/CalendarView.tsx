@@ -200,6 +200,7 @@ export default function CalendarView({
                   userId={userId}
                   initialEvent={selectedEvent}
                   initialStartDate={selectedDate}
+                  existingEvents={events}
                   onSuccess={() => {
                     closeModal();
                     refreshEvents();

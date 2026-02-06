@@ -9,7 +9,17 @@ const CATEGORIES = [
   { label: "Lab", color: "#8b5cf6" },              // Violet
 ];
 
-export default function EventForm({ userId, initialStartDate, initialEvent, onSuccess }: any) {
+const isOverlapping = (s1: Date, e1: Date, s2: Date, e2: Date) => {
+  return s1 < e2 && s2 < e1;
+};
+
+export default function EventForm({ 
+  userId, 
+  initialStartDate, 
+  initialEvent, 
+  onSuccess, 
+  existingEvents = [] 
+}: any) {
   const formatDate = (d: Date) => d.toISOString().split("T")[0];
   const formatTime = (d: Date) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -19,11 +29,14 @@ export default function EventForm({ userId, initialStartDate, initialEvent, onSu
   const [title, setTitle] = useState(initialEvent?.title || "");
   const [description, setDescription] = useState(initialEvent?.description || "");
   const [category, setCategory] = useState(initialEvent?.category || "Lecture");
-  
+
   const [startDate, setStartDate] = useState(initialEvent ? formatDate(new Date(initialEvent.start)) : initialStartDate || formatDate(now));
   const [startTime, setStartTime] = useState(initialEvent ? formatTime(new Date(initialEvent.start)) : formatTime(now));
   const [endDate, setEndDate] = useState(initialEvent ? formatDate(new Date(initialEvent.end)) : initialStartDate || formatDate(now));
   const [endTime, setEndTime] = useState(initialEvent ? formatTime(new Date(initialEvent.end)) : formatTime(oneHourLater));
+
+  const [showConflictWarning, setShowConflictWarning] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +55,21 @@ export default function EventForm({ userId, initialStartDate, initialEvent, onSu
       userId,
     };
 
+    const conflict = existingEvents.find((ev: any) => {
+      if (initialEvent && ev.id === initialEvent.id) return false;
+      return isOverlapping(start, end, new Date(ev.start), new Date(ev.end));
+    });
+
+    if (conflict && !showConflictWarning) {
+      setPendingPayload(payload);
+      setShowConflictWarning(true);
+      return;
+    }
+
+    await saveEvent(payload);
+  };
+
+  const saveEvent = async (payload: any) => {
     const res = await fetch("/api/calendar/events", {
       method: initialEvent ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -50,6 +78,36 @@ export default function EventForm({ userId, initialStartDate, initialEvent, onSu
 
     if (res.ok) onSuccess();
   };
+
+  // UI for the Warning Step
+  if (showConflictWarning) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 px-4 animate-in fade-in zoom-in duration-200">
+        <div className="bg-amber-100 p-4 rounded-full mb-4">
+          <span className="text-3xl text-amber-600">⚠️</span>
+        </div>
+        <h4 className="text-xl font-bold text-gray-800 mb-2">Schedule Conflict</h4>
+        <p className="text-center text-gray-500 mb-8">
+          This event overlaps with another item on your calendar. Proceed anyway?
+        </p>
+        
+        <div className="flex flex-col gap-3 w-full">
+          <button
+            onClick={() => saveEvent(pendingPayload)}
+            className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold hover:bg-amber-600 shadow-sm transition-all"
+          >
+            Ignore Warning & Save
+          </button>
+          <button
+            onClick={() => setShowConflictWarning(false)}
+            className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold hover:bg-gray-200 transition-all"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -85,23 +143,23 @@ export default function EventForm({ userId, initialStartDate, initialEvent, onSu
         placeholder="Description (Optional)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        className="border p-2 rounded text-black h-20"
+        className="border p-2 rounded text-black h-20 resize-none"
       />
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-xs font-bold text-gray-400">START</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full border p-2 rounded" />
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full border p-2 rounded mt-1" />
+          <label className="text-xs font-bold text-gray-400 uppercase">Start</label>
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full border p-2 rounded text-sm mt-1" />
+          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full border p-2 rounded text-sm mt-1" />
         </div>
         <div>
-          <label className="text-xs font-bold text-gray-400">END</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full border p-2 rounded" />
-          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full border p-2 rounded mt-1" />
+          <label className="text-xs font-bold text-gray-400 uppercase">End</label>
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full border p-2 rounded text-sm mt-1" />
+          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full border p-2 rounded text-sm mt-1" />
         </div>
       </div>
 
-      <button type="submit" className="bg-blue-600 text-white p-3 rounded font-bold hover:bg-blue-700">
+      <button type="submit" className="bg-blue-600 text-white p-3 rounded-xl font-bold hover:bg-blue-700 mt-2 transition-all">
         {initialEvent ? "Update Event" : "Create Event"}
       </button>
     </form>
