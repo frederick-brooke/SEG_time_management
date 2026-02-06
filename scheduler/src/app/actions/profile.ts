@@ -1,28 +1,33 @@
 'use server'
 
-import prisma from "lib/prisma";
+import { prisma } from "@/src/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { revalidatePath } from "next/cache";
 
-// 1. GET PROFILE (View your own or someone else's)
-export async function getProfile(username: string) {
+// ✅ NEW: Specific function for the /profile page
+export async function getMyProfile() {
   const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.id;
+  
+  // If no session or email, we can't find the profile
+  if (!session?.user?.email) return null;
 
   const user = await prisma.user.findUnique({
-    where: { username },
+    where: { email: session.user.email }, // Search by EMAIL, not username
     select: {
       id: true,
       username: true,
       fname: true,
       lname: true,
+      email: true,
       bio: true,
       pfp: true,
-      tasks: true,
       createdAt: true,
-      sentRequests: { where: { receiverId: currentUserId } },
-      receivedRequests: { where: { senderId: currentUserId } }
+      tasks: {
+        select: { completed: true }
+      },
+      // For "My Profile", we don't strictly need friend request status relative to ourselves,
+      // but we can keep the structure consistent if you like.
     }
   });
 
@@ -33,10 +38,49 @@ export async function getProfile(username: string) {
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Friend Status
+  return {
+    ...user,
+    stats: { completedTasks, totalTasks, completionRate },
+    friendStatus: "ME" // It's your own profile
+  };
+}
+
+// ... Keep your existing getProfile, updateProfile, etc. below ...
+
+// 1. GET PROFILE (View someone else's profile by username)
+export async function getProfile(username: string) {
+  // ... (keep your existing code here for viewing other users) ...
+  const session = await getServerSession(authOptions);
+  const currentUserId = session?.user?.id;
+
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      id: true,
+      username: true,
+      fname: true,
+      lname: true,
+      email: true,
+      bio: true,
+      pfp: true,
+      createdAt: true,
+      tasks: {
+        select: { completed: true }
+      },
+      sentRequests: { where: { receiverId: currentUserId } },
+      receivedRequests: { where: { senderId: currentUserId } }
+    }
+  });
+
+  if (!user) return null;
+
+  const completedTasks = user.tasks.filter(t => t.completed).length;
+  const totalTasks = user.tasks.length;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
   let friendStatus = "NONE"; 
-  const sent = user.receivedRequests[0]; 
-  const received = user.sentRequests[0]; 
+  const sent = user.receivedRequests?.[0]; 
+  const received = user.sentRequests?.[0]; 
 
   if (sent?.status === 'ACCEPTED' || received?.status === 'ACCEPTED') {
     friendStatus = "FRIENDS";
@@ -54,7 +98,6 @@ export async function getProfile(username: string) {
   };
 }
 
-// 2. UPDATE PROFILE
 export async function updateProfile(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) throw new Error("Unauthorized");
@@ -71,29 +114,27 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/profile");
 }
 
-// 3. SEND REQUEST
 export async function sendFriendRequest(targetUserId: string) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
+    // ... keep existing code ...
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new Error("Unauthorized");
+    if (session.user.id === targetUserId) return; 
 
-  if (session.user.id === targetUserId) return; 
-
-  await prisma.friendRequest.create({
-    data: {
-      senderId: session.user.id,
-      receiverId: targetUserId,
-      status: 'PENDING'
-    }
-  });
-  
-  revalidatePath("/profile");
+    await prisma.friendRequest.create({
+        data: {
+        senderId: session.user.id,
+        receiverId: targetUserId,
+        status: 'PENDING'
+        }
+    });
+    revalidatePath("/profile");
 }
 
-// 4. ACCEPT REQUEST
 export async function acceptFriendRequest(requestId: string) {
-  await prisma.friendRequest.update({
-    where: { id: requestId },
-    data: { status: 'ACCEPTED' }
-  });
-  revalidatePath("/profile");
+    // ... keep existing code ...
+    await prisma.friendRequest.update({
+        where: { id: requestId },
+        data: { status: 'ACCEPTED' }
+    });
+    revalidatePath("/profile");
 }
