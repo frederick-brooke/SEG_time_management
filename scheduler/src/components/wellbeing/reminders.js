@@ -1,95 +1,50 @@
 "use client";
 //component containing the toggle and modal view
 import styles from "./timer_reminder.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { Button } from "components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
-
 import Modal from "components/ui/modal";
-
 import ReminderPicker from "./reminder_timer_picker";
 
-export default function Reminders({isRunning, remainingMs, setReminderOffsetMs, reminderFired}) {
-    const [active, setActive] = useState(false);
+import {useReminders} from "hooks/useReminders";
 
+export default function Reminders() {
+    // modals
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isBreakOpen, setIsBreakOpen] = useState(false);
+    const [isCustomReminderOpen, setIsCustomReminderOpen] = useState(false);
 
-    const [durationMs, setDurationMs] = useState(null);
+    const reminder = useReminders({
+        onFire: () => setIsBreakOpen(true),
+    });
 
-    const format = (n) => String(n).padStart(2, "0");   //helper function to format numbers as two-digit strings
-
-    const totalSeconds = durationMs ? Math.floor(durationMs / 1000) : 0;
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const [enabled, setEnabled] = useState(false); // actual reminder enabled
-
-    const hasTimeSelected = durationMs !== null;    //flag for if a timer has been set or not
-
-    //loading saved state
-    useEffect( () => {
-        const saved_focus_state = localStorage.getItem("reminder-toggle");
-
-        if(saved_focus_state !== null) {
-            setActive(JSON.parse(saved_focus_state));
-            setEnabled(JSON.parse(saved_focus_state))
+    const handleToggleClick = () => {
+        if (reminder.durationMs === null) {
+            setIsSettingsOpen(true);
+        } else {
+            reminder.handleToggleClick();
         }
-    }, []);
-
-    //saving state on change
-    useEffect(() => {
-        localStorage.setItem("reminder-toggle", JSON.stringify(active));
-    }, [active]);   
-
-    const enableReminder = (durationMs) => {
-        setReminderOffsetMs(durationMs);        //change it such that the time gets taken from TimeSettingsModal 
-        setEnabled(true);
-        setDurationMs(durationMs);
-        setReminderAt(remainingMs - setReminderOffsetMs); //update time at which 
     };
 
-    useEffect(() => {
-        if (reminderFired) {
-            setEnabled(false);
-            setActive(false);
-        }
-    }, [reminderFired]);
-    
-    //duplicate for a custom reminder
+    //duplicate for a water reminder that can later become customised with the text and icons
+    const waterReminder = useReminders({
+        onFire: () => setIsCustomReminderOpen(true),
+    });
+
+    waterReminderModal();
 
     //separate timer to the main timer that counts in miliseconds and aligns with the main timer's pause/stop
 
     return (
          <div className="reminders-container">
 
-            <div className={`${styles["toggle-btn"]} ${enabled ? styles["active"] : ""} ${durationMs === null ? styles["disabled"] : ""}`}
-                onClick={() => {
-                    if (durationMs === null){
-                        setIsSettingsOpen(true);
-                        return;
-                    }
-                    //if a timer has been selected
-                    if(enabled){
-                        setEnabled(false);
-                        setActive(false);
-                        setReminderOffsetMs(null);
-                        //turn it off
-                    }
-                    else{
-                        
-                        if (durationMs !== null) {
-                            setEnabled(true);
-                            setActive(true);
-                            setReminderOffsetMs(durationMs);
-                        }
-                    }
-                }
-            }>
-        
+            <div className={`${styles["toggle-btn"]} ${reminder.enabled ? styles["active"] : ""}`}
+                onClick={handleToggleClick}
+            >
                 <div className={styles["toggle-icon"]}>
-                    {active ? "🔒" : "🔓"}
+                    {reminder.enabled ? "🔒" : "🔓"}
                     {/* change the icon back whenver it resets automatically */}
                 </div>
             </div>
@@ -99,6 +54,7 @@ export default function Reminders({isRunning, remainingMs, setReminderOffsetMs, 
                 <IconSettings/>
             </Button>
 
+            {/* Reminder setup modal asking for time inputs */}
             <Modal
                 open={isSettingsOpen}
                 onClose={() => setIsSettingsOpen(false)}
@@ -108,19 +64,74 @@ export default function Reminders({isRunning, remainingMs, setReminderOffsetMs, 
 
                 <ReminderPicker
                     onConfirm={(newDurationMs) => {
-                        setActive(true);
                         setIsSettingsOpen(false);
-                        setEnabled(true);
-                        setDurationMs(newDurationMs);
-                        setReminderOffsetMs(newDurationMs);
+                        reminder.setDurationMs(newDurationMs);
+                        reminder.startReminderTimer(newDurationMs);
                     }}
                 />
+            </Modal>
 
-                {enabled && durationMs !== null && (
-                    <div className={styles["time-text"]}>
-                        {format(hours)}:{format(minutes)}:{format(seconds)}
-                    </div>
-                )}
+            {/* Break modal for focus time */}
+            <Modal
+                open={isBreakOpen}
+                onClose={() => setIsBreakOpen(false)}
+                title="Time for a Break"
+            >
+                <p>Your focus session has ended. Take a short break!</p>
+                <Button onClick={() => setIsBreakOpen(false)}>
+                    Got it
+                </Button>
+            </Modal>
+        </div>
+    );
+}
+
+function waterReminderModal() {
+
+    return(
+        <div className="reminders-container">
+
+            <div className={`${styles["toggle-btn"]} ${reminder.enabled ? styles["active"] : ""}`}
+                onClick={handleToggleClick}
+            >
+                <div className={styles["toggle-icon"]}>
+                    {reminder.enabled ? "💧" : "🚰"}
+                    {/* change the icon back whenver it resets automatically */}
+                </div>
+            </div>
+
+            {/* popup asking for what time */}
+            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}> 
+                <IconSettings/>
+            </Button>
+
+            {/* Reminder setup modal asking for time inputs */}
+            <Modal
+                open={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                title="Focus Time"
+            >
+                <p>Select time here for water reminder</p>
+
+                <ReminderPicker
+                    onConfirm={(newDurationMs) => {
+                        setIsSettingsOpen(false);
+                        reminder.setDurationMs(newDurationMs);
+                        reminder.startReminderTimer(newDurationMs);
+                    }}
+                />
+            </Modal>
+
+            {/* Break modal for focus time */}
+            <Modal
+                open={isBreakOpen}
+                onClose={() => setIsBreakOpen(false)}
+                title="Time for a Break"
+            >
+                <p>Your reminder to drink a glass of water!</p>
+                <Button onClick={() => setIsBreakOpen(false)}>
+                    Got it
+                </Button>
             </Modal>
         </div>
     );

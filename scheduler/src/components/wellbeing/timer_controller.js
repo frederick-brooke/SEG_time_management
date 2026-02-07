@@ -39,8 +39,6 @@ export default function TimerController() {
         <>
             <Timer onTick={handleTick} />
 
-            
-
             <Modal
                 open={showReminderModal}
                 onClose={close_modal}
