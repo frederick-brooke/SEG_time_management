@@ -35,6 +35,16 @@ export default function ReminderContainer({
         }
     };
 
+    const formatMs = (ms) => {
+        if (ms == null) return "--:--:--";
+        const total = Math.ceil(ms / 1000);
+        const h = Math.floor(total / 3600);
+        const m = Math.floor((total % 3600) / 60);
+        const s = total % 60;
+        return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
+    };
+
+
     return (
          <div className="reminders-container">
 
@@ -68,6 +78,12 @@ export default function ReminderContainer({
                     }}
                     initialDuration = {reminder.durationMs}
                 />
+
+                {reminder.enabled && reminder.remainingMs != null && (
+                    <div className={styles["time-text"]}>
+                        Time remaining: {formatMs(reminder.remainingMs)}
+                    </div>
+                )}
             </Modal>
 
             {/* Break modal for focus time */}

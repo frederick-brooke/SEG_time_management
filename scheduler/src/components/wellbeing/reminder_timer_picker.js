@@ -23,6 +23,8 @@ export default function ReminderPicker({ onConfirm, initialDuration }){
         onConfirm(durationMs);
     };
 
+    //add a reset button and restart the cache so that users need to submit a reminder time first 
+
     return (
         <div>
             <input

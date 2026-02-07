@@ -17,18 +17,12 @@ export default function WellbeingPage(){
                 <TimerController />
             </div>
 
-            <div className={styles["center-block"]}>
+            <div>
                 <QuoteBlock />
-                <LoadCharacter />
             </div>
 
             <div className={styles["breath-tracker"]}>
                 <BreathTrack />
-            </div>
-
-            <div className={styles["view-buttons"]}>
-                <ViewButtons />
-                
             </div>
 
             <div className={styles["title"]}>

@@ -8,7 +8,10 @@ export function useReminders( {id, onFire} ) {
     const [enabled, setEnabled] = useState(false);
 
     // separate reminder timer
-    const reminderTimeoutRef = useRef(null);
+    const reminderTimeoutRef = useRef(null);    //after how much time the modal fires off
+
+    const [remainingMs, setRemainingMs] = useState(null);
+    const reminderIntervalRef = useRef(null);   //diff between end and new time each second
 
     // clear timer safely
     const clearReminderTimer = () => {
@@ -16,11 +19,24 @@ export function useReminders( {id, onFire} ) {
             clearTimeout(reminderTimeoutRef.current);
             reminderTimeoutRef.current = null;
         }
+
+        if (reminderIntervalRef.current) {
+            clearInterval(reminderIntervalRef.current);
+            reminderIntervalRef.current = null;
+        }
     };
 
     // start reminder timer
     const startReminderTimer = (durationMs) => {
         clearReminderTimer();
+
+        const fireAt = Date.now() + durationMs;
+        setRemainingMs(durationMs);
+
+        reminderIntervalRef.current = setInterval(() => {
+            const left = fireAt - Date.now();
+            setRemainingMs(Math.max(0, left));
+        }, 1000);
 
         reminderTimeoutRef.current = setTimeout(() => {
             setEnabled(false);
@@ -66,6 +82,7 @@ export function useReminders( {id, onFire} ) {
         if (enabled) {
             clearReminderTimer();
             setEnabled(false);
+            setRemainingMs(null);
         } else {
             setEnabled(true);
             startReminderTimer(durationMs);
@@ -78,10 +95,11 @@ export function useReminders( {id, onFire} ) {
     }, []);
 
     return {
-        enabled, durationMs, setDurationMs, startReminderTimer, handleToggleClick,
+        enabled, durationMs, setDurationMs, startReminderTimer, handleToggleClick, remainingMs,
         disable: () => {
             clearReminderTimer();
             setEnabled(false);
+            setRemainingMs(null);
         },
     };
 }
