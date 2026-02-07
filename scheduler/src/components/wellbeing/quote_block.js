@@ -24,14 +24,10 @@ export default function QuoteBlock() {
   if (error) return <p>{error}</p>;   //display the default quote if errorenous
 
   return (
-    <quote-block>
+    <div className={styles["quote-wrapper"]}>
       <div className={styles["text"]}>
-        <svg className ={styles["corner"]} viewBox="0 0 65 62" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M35 3.5L65 6.5V62L0 0L35 3.5Z" fill="white"/>
-        </svg>  
-        <p className="text"> "{quote}"</p>
+        <p> <b>Top Motivational Quotes Today:</b> "{quote}"</p>
       </div>
-
-    </quote-block>
+    </div>
   );
 }

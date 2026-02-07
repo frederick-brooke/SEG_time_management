@@ -8,11 +8,16 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import Modal from "components/ui/modal";
+import WellbeingPage from "../(pages)/wellbeing/page";
+
 export default function Page() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [wellbeingOpen, setWellbeingOpen] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -106,6 +111,18 @@ export default function Page() {
             </div>
           </div>
         </div>
+
+        <button
+          onClick={() => setWellbeingOpen(true)}
+          className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-indigo-700 transition"
+          aria-label="Open wellbeing"
+        >
+          ❤️
+        </button>
+
+        <Modal open={wellbeingOpen} onClose={() => setWellbeingOpen(false)} title="For Your Wellbeing">
+          <WellbeingPage />
+        </Modal>
 
       </SidebarInset>
     </SidebarProvider>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const quote_link = "http://api.forismatic.com/api/1.0/"     
-const max_length = 200;     //quotes longer than 200 characters are rejected
+const max_length = 150;     //quotes longer than 200 characters are rejected
 const max_attempts = 5;     //If more than 5 unsuccessful tries then show default instead
 
 //accesses and returns the random quote from the external API 
