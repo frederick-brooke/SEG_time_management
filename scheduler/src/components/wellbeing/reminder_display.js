@@ -10,6 +10,7 @@ import ReminderPicker from "./reminder_timer_picker";
 import {useReminders} from "hooks/useReminders";
 
 export default function ReminderContainer({
+    id,
     iconOn,
     iconOff,
     settingsTitle,
@@ -22,6 +23,7 @@ export default function ReminderContainer({
     const [isFiredOpen, setIsFiredOpen] = useState(false);
 
     const reminder = useReminders({
+        id,
         onFire: () => setIsFiredOpen(true),
     });
 
@@ -64,6 +66,7 @@ export default function ReminderContainer({
                         reminder.setDurationMs(newDurationMs);
                         reminder.startReminderTimer(newDurationMs);
                     }}
+                    initialDuration = {reminder.durationMs}
                 />
             </Modal>
 

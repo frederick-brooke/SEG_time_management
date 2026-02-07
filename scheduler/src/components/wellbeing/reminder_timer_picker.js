@@ -1,10 +1,19 @@
 "use client";
-
 import { useState } from "react";
-import { useTimer } from "hooks/useTimer";
 
-export default function ReminderPicker({ onConfirm, onRunningChange, onTick }){
-    const [timeInput, setTimeInput] = useState("00:05:00");
+export default function ReminderPicker({ onConfirm, initialDuration }){
+    const calcCurrentTime = (durationMs) => {
+        if (durationMs == null) return "00:05:00";
+
+        const totalSeconds = Math.floor(durationMs / 1000);
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+
+        return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
+    };
+
+    const [timeInput, setTimeInput] = useState(calcCurrentTime(initialDuration));
     // Stores the raw time string from the input (HH:MM or HH:MM:SS)
     
     const submit = () => {
