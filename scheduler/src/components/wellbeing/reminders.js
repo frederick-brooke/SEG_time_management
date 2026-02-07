@@ -10,7 +10,7 @@ import Modal from "components/ui/modal";
 
 import ReminderPicker from "./reminder_timer_picker";
 
-export default function Reminders({isRunning, remainingMs, setReminderOffsetMs}) {
+export default function Reminders({isRunning, remainingMs, setReminderOffsetMs, reminderFired}) {
     const [active, setActive] = useState(false);
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -25,6 +25,8 @@ export default function Reminders({isRunning, remainingMs, setReminderOffsetMs})
     const seconds = totalSeconds % 60;
 
     const [enabled, setEnabled] = useState(false); // actual reminder enabled
+
+    const hasTimeSelected = durationMs !== null;    //flag for if a timer has been set or not
 
     //loading saved state
     useEffect( () => {
@@ -41,16 +43,20 @@ export default function Reminders({isRunning, remainingMs, setReminderOffsetMs})
         localStorage.setItem("reminder-toggle", JSON.stringify(active));
     }, [active]);   
 
-    useEffect(() => {
-  console.log("Reminders mounted");
-  return () => console.log("Reminders unmounted");
-}, []);
-
     const enableReminder = (durationMs) => {
         setReminderOffsetMs(durationMs);        //change it such that the time gets taken from TimeSettingsModal 
         setEnabled(true);
         setDurationMs(durationMs);
+        setReminderAt(remainingMs - setReminderOffsetMs); //update time at which 
     };
+
+    useEffect(() => {
+        if (reminderFired) {
+            setEnabled(false);
+            setActive(false);
+        }
+    }, [reminderFired]);
+    
     //duplicate for a custom reminder
 
     //separate timer to the main timer that counts in miliseconds and aligns with the main timer's pause/stop
@@ -58,31 +64,29 @@ export default function Reminders({isRunning, remainingMs, setReminderOffsetMs})
     return (
          <div className="reminders-container">
 
-            <div className={`${styles["toggle-btn"]} ${enabled ? styles["active"] : ""}`}
+            <div className={`${styles["toggle-btn"]} ${enabled ? styles["active"] : ""} ${durationMs === null ? styles["disabled"] : ""}`}
                 onClick={() => {
+                    if (durationMs === null){
+                        setIsSettingsOpen(true);
+                        return;
+                    }
+                    //if a timer has been selected
                     if(enabled){
                         setEnabled(false);
                         setActive(false);
-                        setDurationMs(null);
                         setReminderOffsetMs(null);
                         //turn it off
                     }
                     else{
-                        // no duration yet → open modal
-                        // turn ON only if time already exists
+                        
                         if (durationMs !== null) {
                             setEnabled(true);
                             setActive(true);
                             setReminderOffsetMs(durationMs);
                         }
-
-                        
                     }
                 }
             }>
-                {!enabled && durationMs === null && (
-                    <span className={styles.hint}>Set a time using ⚙️ first</span>
-                )}  
         
                 <div className={styles["toggle-icon"]}>
                     {active ? "🔒" : "🔓"}
@@ -103,10 +107,12 @@ export default function Reminders({isRunning, remainingMs, setReminderOffsetMs})
                 <p>Select time here for Focus Time</p>
 
                 <ReminderPicker
-                    onConfirm={(durationMs) => {
-                    enableReminder(durationMs);
-                    setActive(true);
-                    setIsSettingsOpen(false);
+                    onConfirm={(newDurationMs) => {
+                        setActive(true);
+                        setIsSettingsOpen(false);
+                        setEnabled(true);
+                        setDurationMs(newDurationMs);
+                        setReminderOffsetMs(newDurationMs);
                     }}
                 />
 

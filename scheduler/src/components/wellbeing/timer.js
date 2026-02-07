@@ -25,17 +25,19 @@ export default function Timer({storageKey, onTick}) {
     } = useTimer({storageKey, onTick});
 
     const [reminderOffsetMs, setReminderOffsetMs] = useState(null);
+    const [reminderFired, setReminderFired] = useState(null);
+
+    const [reminderFireAt, setReminderAt] = useState(null);
 
     useEffect(() => {
         if(
-            reminderOffsetMs !== null && remainingMs <= reminderOffsetMs
+            reminderFireAt !== null && remainingMs <= reminderFireAtMs
         ){
-            fireReminder();
+            setReminderFired(true);
             setReminderOffsetMs(null);
+            console.log("Alert fired");
         }
     }, [remainingMs]);
-
-    const reminderCountdown = reminderOffsetMs !== null ? remainingMs - reminderOffsetMs : null;
 
     return (
         <div className="time_wrapper">
@@ -45,14 +47,8 @@ export default function Timer({storageKey, onTick}) {
                 isRunning={isRunning}
                 remainingMs={remainingMs}
                 setReminderOffsetMs={setReminderOffsetMs}
+                reminderFired={reminderFired}
             />
-
-            {reminderCountdown !== null && (
-                <div>
-                    Reminder in {(reminderCountdown)}
-                </div>
-            )}
-
         </div>
     );
 }
