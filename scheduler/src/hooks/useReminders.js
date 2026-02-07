@@ -30,7 +30,6 @@ export function useReminders( {onFire} ) {
     const handleToggleClick = () => {
         // no time selected → open modal
         if (durationMs === null) {
-            setIsSettingsOpen(true);
             return;
         }
 
