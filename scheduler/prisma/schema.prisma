@@ -72,8 +72,10 @@ model Event {
   end         DateTime
   allDay      Boolean  @default(false)
   category    String   @default("Personal") 
-  googleEventId String?  @unique
+  googleEventId String?  
   createdAt   DateTime @default(now())
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recurrence    Json?  
+  exceptions  DateTime[] @default([])
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

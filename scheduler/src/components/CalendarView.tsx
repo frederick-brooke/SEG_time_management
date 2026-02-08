@@ -30,7 +30,9 @@ export default function CalendarView({
   events: any[];
   userId: string;
 }) {
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState(
+    initialEvents.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }))
+  );
   const [filter, setFilter] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
