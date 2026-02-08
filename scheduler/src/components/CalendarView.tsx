@@ -5,9 +5,6 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import EventForm from "./EventForm";
-import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
-
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -25,7 +22,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   Personal: "#f59e0b",
   Lab: "#8b5cf6",
 };
-const DnDCalendar = withDragAndDrop(Calendar);
 
 export default function CalendarView({
   events: initialEvents,
@@ -106,35 +102,6 @@ export default function CalendarView({
     setSelectedEvent(null);
   };
 
-const moveEvent = async ({ event, start, end }: any) => {
-  const isRecurring = event.recurrence && event.recurrence.type !== "none";
-
-  let payload: any = {
-    id: event.id,
-    start: start.toISOString(),
-    end: end.toISOString(),
-    mode: isRecurring ? "single" : "all",
-    originalDate: isRecurring ? event.start.toISOString() : null,
-  };
-
-  try {
-    const res = await fetch("/api/calendar/events", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
-      refreshEvents();
-    } else {
-      const errorData = await res.json();
-      console.error("Update failed:", errorData.message);
-    }
-  } catch (err) {
-    console.error("Network error:", err);
-  }
-};
-
   return (
     <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative">
       {/* Filter Bar */}
@@ -158,30 +125,27 @@ const moveEvent = async ({ event, start, end }: any) => {
 
       {/* Main Calendar Card */}
       <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
-      <DnDCalendar
-        localizer={localizer}
-        events={filteredEvents}
-        startAccessor="start"
-        endAccessor="end"
-        selectable
-        resizable 
-        onEventDrop={moveEvent}
-        onEventResize={moveEvent}
-        onSelectSlot={({ start }) => {
-          setSelectedEvent(null);
-          setIsEditing(false);
-          setSelectedDate(format(start, "yyyy-MM-dd"));
-          setIsModalOpen(true);
-        }}
-        onSelectEvent={(event) => {
-          setSelectedEvent(event);
-          setIsEditing(false);
-          setIsModalOpen(true);
-        }}
-        eventPropGetter={eventStyleGetter}
-        style={{ height: 600 }}
-        draggableAccessor={() => true}
-      />
+        <Calendar
+          localizer={localizer}
+          events={filteredEvents}
+          startAccessor="start"
+          endAccessor="end"
+          selectable
+          onSelectSlot={({ start }) => {
+            setSelectedEvent(null);
+            setIsEditing(false);
+            setSelectedDate(format(start, "yyyy-MM-dd"));
+            setIsModalOpen(true);
+          }}
+          onSelectEvent={(event) => {
+            setSelectedEvent(event);
+            setIsEditing(false);
+            setIsModalOpen(true);
+          }}
+          eventPropGetter={eventStyleGetter}
+          style={{ height: 600 }}
+          className="rounded-lg"
+        />
       </div>
       {/* Modal Overlay */}
       {isModalOpen && (
