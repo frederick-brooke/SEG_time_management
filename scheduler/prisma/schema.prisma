@@ -78,4 +78,5 @@ model Event {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   recurrence  Json?   
   exceptions  DateTime[]
+  parentId    String?
 }
