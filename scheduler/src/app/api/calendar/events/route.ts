@@ -133,8 +133,44 @@ export async function GET(req: NextRequest) {
   if (!session)
     return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
+  const { searchParams } = new URL(req.url);
+  const query = searchParams.get("q");
+  const category = searchParams.get("category");
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+
+  // Build filter conditions
+  const filters: any = {
+    userId: session.user.id,
+  };
+
+  // Search by text (title or description)
+  if (query) {
+    filters.OR = [
+      { title: { contains: query, mode: "insensitive" } },
+      { description: { contains: query, mode: "insensitive" } },
+    ];
+  }
+
+  // Filter by category
+  if (category && category !== "all") {
+    filters.category = category;
+  }
+
+  // Filter by date range
+  if (startDate || endDate) {
+    filters.start = {};
+    if (startDate) {
+      filters.start.gte = new Date(startDate);
+    }
+    if (endDate) {
+      filters.start.lte = new Date(endDate);
+    }
+  }
+
   const localEvents = await prisma.event.findMany({
-    where: { userId: session.user.id },
+    where: filters,
+    orderBy: { start: "asc" },
   });
 
   const expandedEvents = expandRecurringEvents(localEvents);

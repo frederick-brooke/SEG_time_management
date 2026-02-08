@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
@@ -31,16 +31,31 @@ export default function CalendarView({
   userId: string;
 }) {
   const [events, setEvents] = useState(initialEvents);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const searchRef = useRef<HTMLDivElement>(null);
 
+  // Close search results when clicking outside
   useEffect(() => {
-    refreshEvents();
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Move refreshEvents BEFORE useEffect
   const refreshEvents = async () => {
     const res = await fetch("/api/calendar/events");
     const data = await res.json();
@@ -50,6 +65,58 @@ export default function CalendarView({
       end: new Date(e.end),
     }));
     setEvents(parsedEvents);
+  };
+
+  useEffect(() => {
+    refreshEvents();
+  }, []);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setShowSearchResults(true);
+    
+    // Build query params
+    const params = new URLSearchParams({ q: query });
+    if (filter !== "All") {
+      params.append("category", filter);
+    }
+
+    const res = await fetch(`/api/calendar/events?${params.toString()}`);
+    const data = await res.json();
+    const parsedEvents = data.map((e: any) => ({
+      ...e,
+      start: new Date(e.start),
+      end: new Date(e.end),
+    }));
+    setSearchResults(parsedEvents);
+    setIsSearching(false);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
+  };
+
+  const handleSearchResultClick = (event: any) => {
+    // Navigate calendar to the event's date
+    setCalendarDate(new Date(event.start));
+    
+    // Open the event modal
+    setSelectedEvent(event);
+    setIsEditing(false);
+    setIsModalOpen(true);
+    
+    // Close search results
+    setShowSearchResults(false);
   };
 
   const filteredEvents =
@@ -104,13 +171,141 @@ export default function CalendarView({
 
   return (
     <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative">
+      {/* Search Bar */}
+      <div className="mb-4 relative" ref={searchRef}>
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={() => searchQuery && setShowSearchResults(true)}
+            placeholder="Search events by title or description..."
+            className="w-full px-4 py-3 pl-11 pr-20 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent shadow-sm transition-all"
+          />
+          <svg
+            className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+          {isSearching && (
+            <div className="absolute right-12 top-1/2 -translate-y-1/2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-black"></div>
+            </div>
+          )}
+        </div>
+
+        {/* Search Results Dropdown */}
+        {showSearchResults && searchQuery && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50">
+            {searchResults.length > 0 ? (
+              <div className="p-2">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
+                </div>
+                {searchResults.map((event) => (
+                  <button
+                    key={event.id}
+                    onClick={() => handleSearchResultClick(event)}
+                    className="w-full text-left px-3 py-3 hover:bg-gray-50 rounded-lg transition-colors group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-1 h-full rounded-full flex-shrink-0 mt-1"
+                        style={{
+                          backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
+                          minHeight: "40px",
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-gray-900 truncate group-hover:text-black">
+                            {event.title}
+                          </h4>
+                          <span
+                            className="px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider flex-shrink-0"
+                            style={{
+                              backgroundColor: CATEGORY_COLORS[event.category],
+                            }}
+                          >
+                            {event.category}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 mb-1">
+                          {format(event.start, "PPP")} • {format(event.start, "p")} - {format(event.end, "p")}
+                        </div>
+                        {event.description && (
+                          <p className="text-sm text-gray-500 line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <svg
+                  className="w-12 h-12 mx-auto mb-3 text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="font-medium">No events found</p>
+                <p className="text-sm mt-1">Try a different search term</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Filter Bar */}
       <div className="flex flex-wrap gap-2 mb-6">
         {["All", "Lecture", "Individual Study", "Exam", "Personal", "Lab"].map(
           (cat) => (
             <button
               key={cat}
-              onClick={() => setFilter(cat)}
+              onClick={() => {
+                setFilter(cat);
+                if (searchQuery) {
+                  handleSearch(searchQuery); // Re-search with new filter
+                }
+              }}
               className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm ${
                 filter === cat
                   ? "bg-black text-white border-black scale-105"
@@ -131,6 +326,8 @@ export default function CalendarView({
           startAccessor="start"
           endAccessor="end"
           selectable
+          date={calendarDate}
+          onNavigate={(date) => setCalendarDate(date)}
           onSelectSlot={({ start }) => {
             setSelectedEvent(null);
             setIsEditing(false);
