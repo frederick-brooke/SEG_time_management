@@ -18,12 +18,9 @@ model User {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
   email        String  @unique
   passwordHash String?
-  name          String?   
-  image         String?   
-  emailVerified DateTime? 
-  username     String?   
-  fname        String?   
-  lname        String?   
+  username     String
+  fname        String
+  lname        String
 
   accounts Account[]
   tasks    Task[]
@@ -75,7 +72,7 @@ model Event {
   end         DateTime
   allDay      Boolean  @default(false)
   category    String   @default("Personal") 
-  googleEventId String?  
+  googleEventId String?  @unique
   createdAt   DateTime @default(now())
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)

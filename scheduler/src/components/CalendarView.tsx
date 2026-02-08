@@ -125,9 +125,12 @@ export default function CalendarView({
 
       if (res.ok) {
         refreshEvents();
+      } else {
+        const errorData = await res.json();
+        console.error("Update failed:", errorData.message);
       }
     } catch (err) {
-      console.error("Update failed:", err);
+      console.error("Network error:", err);
     }
   };
 
