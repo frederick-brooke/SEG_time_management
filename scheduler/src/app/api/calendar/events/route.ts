@@ -149,8 +149,8 @@ export async function DELETE(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const mode = searchParams.get("mode");
-  const instanceDate = searchParams.get("date");
+  const mode = searchParams.get("mode"); 
+  const instanceDate = searchParams.get("date"); 
 
   if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 });
 
@@ -196,8 +196,7 @@ export async function DELETE(req: NextRequest) {
 }
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session)
-    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+  if (!session) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
   const { id, start, end, mode, originalDate } = await req.json();
   const userId = (session.user as any).id;
@@ -207,15 +206,12 @@ export async function PATCH(req: NextRequest) {
       await prisma.event.update({
         where: { id, userId },
         data: {
-          exceptions: { push: new Date(originalDate) },
-        },
+          exceptions: { push: new Date(originalDate) }
+        }
       });
 
-      const parentEvent = await prisma.event.findUnique({
-        where: { id, userId },
-      });
-      if (!parentEvent)
-        return NextResponse.json({ message: "Not found" }, { status: 404 });
+      const parentEvent = await prisma.event.findUnique({ where: { id, userId } });
+      if (!parentEvent) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
       const { id: _, googleEventId: __, ...eventData } = parentEvent;
 
@@ -224,17 +220,17 @@ export async function PATCH(req: NextRequest) {
           ...eventData,
           start: new Date(start),
           end: new Date(end),
-          recurrence: { type: "none" },
+          recurrence: { type: "none" }, 
           exceptions: [],
-          parentId: id,
-        },
+          parentId: id 
+        }
       });
       return NextResponse.json(newEvent);
     }
 
     const updatedEvent = await prisma.event.update({
       where: { id, userId },
-      data: { start: new Date(start), end: new Date(end) },
+      data: { start: new Date(start), end: new Date(end) }
     });
 
     return NextResponse.json(updatedEvent);
