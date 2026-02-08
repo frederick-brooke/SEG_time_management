@@ -194,3 +194,48 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ message: "Failed to delete" }, { status: 500 });
   }
 }
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+
+  const { id, start, end, mode, originalDate } = await req.json();
+  const userId = (session.user as any).id;
+
+  try {
+    if (mode === "single" && originalDate) {
+      await prisma.event.update({
+        where: { id, userId },
+        data: {
+          exceptions: { push: new Date(originalDate) }
+        }
+      });
+
+      const parentEvent = await prisma.event.findUnique({ where: { id, userId } });
+      if (!parentEvent) return NextResponse.json({ message: "Not found" }, { status: 404 });
+
+      const { id: _, googleEventId: __, ...eventData } = parentEvent;
+
+      const newEvent = await prisma.event.create({
+        data: {
+          ...eventData,
+          start: new Date(start),
+          end: new Date(end),
+          recurrence: { type: "none" }, 
+          exceptions: [],
+          parentId: id 
+        }
+      });
+      return NextResponse.json(newEvent);
+    }
+
+    const updatedEvent = await prisma.event.update({
+      where: { id, userId },
+      data: { start: new Date(start), end: new Date(end) }
+    });
+
+    return NextResponse.json(updatedEvent);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: "Update failed" }, { status: 500 });
+  }
+}
