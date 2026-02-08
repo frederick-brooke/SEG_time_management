@@ -67,18 +67,32 @@ export default function CalendarView({
     },
   });
 
-  const handleDelete = async () => {
-    if (
-      !selectedEvent ||
-      !confirm("Are you sure you want to delete this event?")
-    )
-      return;
-    const res = await fetch(`/api/calendar/events?id=${selectedEvent.id}`, {
+  const handleDelete = async (mode: "single" | "all" = "all") => {
+    if (!selectedEvent) return;
+
+    const message =
+      mode === "single"
+        ? "Delete only this specific occurrence?"
+        : "Delete the entire recurring series?";
+
+    if (!confirm(message)) return;
+
+    const instanceDate = format(selectedEvent.start, "yyyy-MM-dd");
+    const queryParams = new URLSearchParams({
+      id: selectedEvent.id,
+      mode: mode,
+      date: instanceDate,
+    });
+
+    const res = await fetch(`/api/calendar/events?${queryParams.toString()}`, {
       method: "DELETE",
     });
+
     if (res.ok) {
       setIsModalOpen(false);
       refreshEvents();
+    } else {
+      alert("Failed to delete event");
     }
   };
 
@@ -133,18 +147,16 @@ export default function CalendarView({
           className="rounded-lg"
         />
       </div>
-
       {/* Modal Overlay */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity"
-          style={{ zIndex: 9999 }} // High Z-Index to stay on top of all event blocks
+          style={{ zIndex: 9999 }}
           onClick={closeModal}
         >
-          {/* Modal Content Box */}
           <div
             className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200"
-            onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the form
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={closeModal}
@@ -174,19 +186,43 @@ export default function CalendarView({
                 <p className="text-gray-600 mb-8 whitespace-pre-wrap leading-relaxed">
                   {selectedEvent.description || "No description provided."}
                 </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-colors"
-                  >
-                    Delete
-                  </button>
+
+                <div className="flex flex-col gap-3">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                    >
+                      Edit
+                    </button>
+
+                    {selectedEvent.recurrence?.type &&
+                    selectedEvent.recurrence.type !== "none" ? (
+                      <button
+                        onClick={() => handleDelete("all")}
+                        className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-bold hover:bg-red-700 transition-colors"
+                      >
+                        Delete Series
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleDelete("all")}
+                        className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+
+                  {selectedEvent.recurrence?.type &&
+                    selectedEvent.recurrence.type !== "none" && (
+                      <button
+                        onClick={() => handleDelete("single")}
+                        className="w-full bg-red-50 text-red-600 py-2 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors border border-red-100"
+                      >
+                        Delete Only This Occurrence
+                      </button>
+                    )}
                 </div>
               </div>
             ) : (

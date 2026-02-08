@@ -13,12 +13,12 @@ const isOverlapping = (s1: Date, e1: Date, s2: Date, e2: Date) => {
   return s1 < e2 && s2 < e1;
 };
 
-export default function EventForm({ 
-  userId, 
-  initialStartDate, 
-  initialEvent, 
-  onSuccess, 
-  existingEvents = [] 
+export default function EventForm({
+  userId,
+  initialStartDate,
+  initialEvent,
+  onSuccess,
+  existingEvents = [],
 }: any) {
   const formatDate = (d: Date) => d.toISOString().split("T")[0];
   const formatTime = (d: Date) =>
@@ -59,8 +59,11 @@ export default function EventForm({
   const [recurrenceType, setRecurrenceType] = useState<
     "none" | "daily" | "weekly" | "monthly"
   >(initialEvent?.recurrence?.type || "none");
+  const defaultUntil = new Date();
+  defaultUntil.setMonth(defaultUntil.getMonth() + 1);
+
   const [recurrenceUntil, setRecurrenceUntil] = useState(
-    initialEvent?.recurrence?.until || formatDate(oneHourLater),
+    initialEvent?.recurrence?.until || formatDate(defaultUntil),
   );
   const [recurrenceDays, setRecurrenceDays] = useState<string[]>(
     initialEvent?.recurrence?.days || [],
@@ -72,7 +75,6 @@ export default function EventForm({
       setRecurrenceDays([map[dayIndex]]);
     }
   }, [recurrenceType, startDate]);
-
 
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
@@ -128,11 +130,14 @@ export default function EventForm({
         <div className="bg-amber-100 p-4 rounded-full mb-4">
           <span className="text-3xl text-amber-600">⚠️</span>
         </div>
-        <h4 className="text-xl font-bold text-gray-800 mb-2">Schedule Conflict</h4>
+        <h4 className="text-xl font-bold text-gray-800 mb-2">
+          Schedule Conflict
+        </h4>
         <p className="text-center text-gray-500 mb-8">
-          This event overlaps with another item on your calendar. Proceed anyway?
+          This event overlaps with another item on your calendar. Proceed
+          anyway?
         </p>
-        
+
         <div className="flex flex-col gap-3 w-full">
           <button
             onClick={() => saveEvent(pendingPayload)}
