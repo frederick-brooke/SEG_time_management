@@ -15,21 +15,226 @@
 
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
+# Created by https://www.toptal.com/developers/gitignore/api/python,django,windows,linux,macos,react
+# Edit at https://www.toptal.com/developers/gitignore?templates=python,django,windows,linux,macos,react
+
+# ==================== NEXT.JS / REACT (SCHEDULER FRONTEND) ====================
+
+# Dependencies
+**/node_modules/
+/.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+/coverage
+**/coverage/
+
+# Next.js
+/.next/
+/out/
+**/.next/
+**/out/
+
+# Production
+/build
+**/build/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files (IMPORTANT - prevents committing secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+.env.development
+.env*.local
+!.env.local.example
+!.env.example
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Lock files - UNCOMMENT if you want to ignore them
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==================== DJANGO BACKEND ====================
+
+# Python
+*.log
+*.pot
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Django specific
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+/static
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+
+# Flask stuff
+instance/
+.webassets-cache
+
+# Scrapy stuff
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+#Pipfile.lock
+
+# poetry
+poetry.toml
+#poetry.lock
+
+# pdm
+.pdm.toml
+#pdm.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ruff
+.ruff_cache/
+
+# LSP config files
+pyrightconfig.json
+
+# ==================== OS & EDITOR ====================
 
 ### macOS ###
-# General
 .DS_Store
 .AppleDouble
 .LSOverride
-
-# Icon must end with two \r
 Icon
-
-
-# Thumbnails
 ._*
-
-# Files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
 .Spotlight-V100
@@ -37,16 +242,11 @@ Icon
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
-
-# Directories potentially created on remote AFP share
 .AppleDB
 .AppleDesktop
 Network Trash Folder
 Temporary Items
 .apdisk
-
-### macOS Patch ###
-# iCloud generated files
 *.icloud
 
 ### NextJS ###
@@ -96,31 +296,64 @@ bower_components
 psd
 thumb
 sketch
+### Linux ###
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
 ### Windows ###
-# Windows thumbnail cache files
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
 ehthumbs_vista.db
-
-# Dump file
 *.stackdump
-
-# Folder config file
 [Dd]esktop.ini
-
-# Recycle Bin used on file shares
 $RECYCLE.BIN/
-
-# Windows Installer files
 *.cab
 *.msi
 *.msix
 *.msm
 *.msp
-
-# Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/python,django,windows,linux,macos,react
+### IDE / Editors ###
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime*
+.spyderproject
+.spyproject
+
+# ==================== PROJECT SPECIFIC ====================
+
+# Cookies file
+cookies.txt
+
+# Logs
+/logs
+*.log
+
+# Backup files
+**/*.backup.*
+**/*.back.*
+
+# Design files (optional - uncomment if you don't want to commit these)
+# /psd
+# /thumb
+# /sketch
+
+# ==================== IMPORTANT FILES TO COMMIT ====================
+# Make sure these are NOT in .gitignore:
+# - package.json (all locations)
+# - jsconfig.json
+# - tsconfig.json
+# - next.config.js/ts
+# - tailwind.config.js/ts
+# - postcss.config.js
+# - All source code (.js, .jsx, .ts, .tsx, .py)
+# - README.md
+# - requirements.txt (Python)
+# - .env.example (example env file - safe to commit)
