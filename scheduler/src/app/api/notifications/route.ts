@@ -32,3 +32,37 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
     }
 }
+
+
+// PATCH /api/notifications - Mark a notification as read
+export async function PATCH(req: NextRequest) {
+    try {
+        const session = await getServerSession();
+
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { notificationId } = await req.json();
+
+        const notification = await prisma.notification.findUnique({
+            where: { id: notificationId }
+        });
+
+        // Ensure the notification exists and belongs to the user
+        if (!notification || notification.userId !== session.user.id) {
+            return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+        }
+
+        await prisma.notification.update({
+            where: { id: notificationId },
+            data: { isRead: true }
+        });
+
+        return NextResponse.json({ success: true });
+
+    } catch (err) {
+        console.error(err);
+        return NextResponse.json({ error: 'Failed to mark notifications as read' }, { status: 500 });
+    }
+}
