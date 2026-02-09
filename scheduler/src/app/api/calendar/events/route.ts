@@ -36,12 +36,12 @@ function expandRecurringEvents(events: any[]) {
       } else if (type === "weekly" && Array.isArray(days)) {
         let weekStart = new Date(cursor);
         weekStart.setDate(cursor.getDate() - cursor.getDay());
-        
+
         for (const day of days) {
           let occ = new Date(weekStart);
           occ.setDate(weekStart.getDate() + dayMap[day]);
           occ.setHours(start.getHours(), start.getMinutes(), 0, 0);
-          
+
           if (occ >= start && occ <= untilDate) {
             occurrencesThisPeriod.push(occ);
           }
@@ -49,9 +49,9 @@ function expandRecurringEvents(events: any[]) {
         cursor = addWeeks(cursor, 1);
       }
 
-      occurrencesThisPeriod.forEach(occ => {
-        const isExcluded = exceptions.some(exc => 
-          isSameDay(new Date(exc), occ)
+      occurrencesThisPeriod.forEach((occ) => {
+        const isExcluded = exceptions.some((exc) =>
+          isSameDay(new Date(exc), occ),
         );
 
         if (!isExcluded) {
@@ -63,17 +63,18 @@ function expandRecurringEvents(events: any[]) {
         }
       });
 
-      if (type !== "weekly") continue; 
+      if (type !== "weekly") continue;
     }
   });
   return allEvents;
 }
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const events = await prisma.event.findMany({
-    where: { userId: session.user.id }
+    where: { userId: session.user.id },
   });
 
   const expanded = expandRecurringEvents(events);
@@ -82,22 +83,36 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { id, title, description, start, end, allDay, category, googleEventId, recurrenceType, recurrenceDays, recurrenceUntil } = body;
+  const {
+    id,
+    title,
+    description,
+    start,
+    end,
+    allDay,
+    category,
+    googleEventId,
+    recurrenceType,
+    recurrenceDays,
+    recurrenceUntil,
+  } = body;
 
-  const recurrenceData = recurrenceType && recurrenceType !== "none" 
-    ? {
-        type: recurrenceType,
-        until: recurrenceUntil,
-        days: recurrenceType === "weekly" ? recurrenceDays : null,
-      }
-    : null;
+  const recurrenceData =
+    recurrenceType && recurrenceType !== "none"
+      ? {
+          type: recurrenceType,
+          until: recurrenceUntil,
+          days: recurrenceType === "weekly" ? recurrenceDays : null,
+        }
+      : null;
 
   try {
     const event = await prisma.event.upsert({
-      where: { id: id || "60d5ec1234567890abcdef12" }, 
+      where: { id: id || "60d5ec1234567890abcdef12" },
       update: {
         title,
         description,
@@ -124,20 +139,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(event, { status: 200 });
   } catch (error: any) {
     console.error("POST Error:", error);
-    if (error.code === 'P2002') {
-      return NextResponse.json({ message: "This event or sync ID already exists." }, { status: 409 });
+    if (error.code === "P2002") {
+      return NextResponse.json(
+        { message: "This event or sync ID already exists." },
+        { status: 409 },
+      );
     }
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const mode = searchParams.get("mode"); 
-  const instanceDate = searchParams.get("date"); 
+  const mode = searchParams.get("mode");
+  const instanceDate = searchParams.get("date");
 
   if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 });
 
@@ -146,28 +168,34 @@ export async function DELETE(req: NextRequest) {
       where: { id, userId: session.user.id },
     });
 
-    if (!event) return NextResponse.json({ message: "Event not found" }, { status: 404 });
+    if (!event)
+      return NextResponse.json({ message: "Event not found" }, { status: 404 });
 
     if (event.googleEventId) {
       const calendar = await getGoogleCalendarClient(session.user.id);
       if (calendar) {
         try {
-          await calendar.events.delete({ calendarId: "primary", eventId: event.googleEventId });
-        } catch (e) { 
-          console.error("Google Delete Failed:", e); 
+          await calendar.events.delete({
+            calendarId: "primary",
+            eventId: event.googleEventId,
+          });
+        } catch (e) {
+          console.error("Google Delete Failed:", e);
         }
       }
     }
 
     if (mode === "single" && instanceDate) {
       const dateToExclude = new Date(instanceDate);
-      const existingExceptions = Array.isArray(event.exceptions) ? event.exceptions : [];
-      
+      const existingExceptions = Array.isArray(event.exceptions)
+        ? event.exceptions
+        : [];
+
       await prisma.event.update({
         where: { id },
         data: {
           exceptions: {
-            set: [...existingExceptions, dateToExclude]
+            set: [...existingExceptions, dateToExclude],
           },
         },
       });
@@ -178,6 +206,107 @@ export async function DELETE(req: NextRequest) {
     }
   } catch (error) {
     console.error("Delete Error:", error);
-    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json();
+  const { id, start, end, mode, originalDate } = body;
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id, userId: session.user.id },
+    });
+
+    if (!event)
+      return NextResponse.json({ message: "Event not found" }, { status: 404 });
+
+    let calendar = null;
+    if (event.googleEventId) {
+      calendar = await getGoogleCalendarClient(session.user.id);
+    }
+
+    if (mode === "single" && originalDate) {
+      const dateToExclude = new Date(originalDate);
+
+      const existingExceptions = Array.isArray(event.exceptions)
+        ? event.exceptions
+        : [];
+      await prisma.event.update({
+        where: { id },
+        data: { exceptions: { set: [...existingExceptions, dateToExclude] } },
+      });
+
+      const newStandalone = await prisma.event.create({
+        data: {
+          title: event.title,
+          description: event.description,
+          category: event.category,
+          start: new Date(start),
+          end: new Date(end),
+          userId: session.user.id,
+          recurrence: null,
+        },
+      });
+
+      if (calendar) {
+        try {
+          const instances = await calendar.events.instances({
+            calendarId: "primary",
+            eventId: event.googleEventId,
+            timeMin: dateToExclude.toISOString(),
+            maxResults: 1,
+          });
+
+          const targetInstance = instances.data.items?.[0];
+          if (targetInstance?.id) {
+            await calendar.events.patch({
+              calendarId: "primary",
+              eventId: targetInstance.id,
+              requestBody: {
+                start: { dateTime: new Date(start).toISOString() },
+                end: { dateTime: new Date(end).toISOString() },
+              },
+            });
+          }
+        } catch (e) {
+          console.error("Google instance move failed:", e);
+        }
+      }
+
+      return NextResponse.json(newStandalone);
+    }
+
+    const updatedEvent = await prisma.event.update({
+      where: { id },
+      data: { start: new Date(start), end: new Date(end) },
+    });
+
+    if (calendar && event.googleEventId) {
+      await calendar.events.patch({
+        calendarId: "primary",
+        eventId: event.googleEventId,
+        requestBody: {
+          start: { dateTime: new Date(start).toISOString() },
+          end: { dateTime: new Date(end).toISOString() },
+        },
+      });
+    }
+
+    return NextResponse.json(updatedEvent);
+  } catch (error) {
+    console.error("PATCH Error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
