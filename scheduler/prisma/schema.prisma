@@ -93,11 +93,17 @@ model Task {
   updatedAt   DateTime @updatedAt
 }
 
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
 model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String?  @db.ObjectId
   message   String
-  type      String   // 'info', 'success', 'warning', 'error'
+  type      NotificationType
   isRead    Boolean  @default(false)
   link      String?  
   createdAt DateTime @default(now())

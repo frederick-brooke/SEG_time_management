@@ -66,3 +66,36 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: 'Failed to mark notifications as read' }, { status: 500 });
     }
 }
+
+// POST /api/notifications - Create a new notification (TESTING PURPOSES ONLY, NOT EXPOSED TO CLIENT)
+export async function POST(req: NextRequest) {
+    try {
+        const session = await getServerSession();
+
+        // if (!session?.user?.id) {
+        //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        // }
+
+        const { message, type, link, expiresAt } = await req.json();
+
+        if (!message || !type) {
+            return NextResponse.json({ error: 'Message and type are required' }, { status: 400 });
+        }
+
+        const notification = await prisma.notification.create({
+            data: {
+                userId: session.user.id,
+                message,
+                type,
+                link,
+                expiresAt: expiresAt ? new Date(expiresAt) : null
+            }
+        });
+
+        return NextResponse.json({ notification });
+
+    } catch (err) {
+        console.error(err);
+        return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
+    }
+}
