@@ -342,6 +342,7 @@ export default function CalendarView({
           eventPropGetter={eventStyleGetter}
           style={{ height: 600 }}
           className="rounded-lg"
+          scrollToTime={new Date()}
         />
       </div>
       {/* Modal Overlay */}
