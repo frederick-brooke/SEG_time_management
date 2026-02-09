@@ -7,15 +7,7 @@ import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
 
 function expandRecurringEvents(events: any[]) {
   const allEvents: any[] = [];
-  const dayMap: Record<string, number> = {
-    Sun: 0,
-    Mon: 1,
-    Tue: 2,
-    Wed: 3,
-    Thu: 4,
-    Fri: 5,
-    Sat: 6,
-  };
+  const dayMap = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
   events.forEach((e) => {
     if (!e.recurrence || e.recurrence.type === "none") {
@@ -28,62 +20,52 @@ function expandRecurringEvents(events: any[]) {
     const start = new Date(e.start);
     const end = new Date(e.end);
     const untilDate = new Date(until);
+    const duration = end.getTime() - start.getTime();
 
-    let currentStart = new Date(start);
-    let currentEnd = new Date(end);
+    let cursor = new Date(start);
 
-    if (type === "daily" || type === "monthly") {
-      while (currentStart <= untilDate) {
+    while (cursor <= untilDate) {
+      let occurrencesThisPeriod = [];
+
+      if (type === "daily") {
+        occurrencesThisPeriod.push(new Date(cursor));
+        cursor = addDays(cursor, 1);
+      } else if (type === "monthly") {
+        occurrencesThisPeriod.push(new Date(cursor));
+        cursor = addMonths(cursor, 1);
+      } else if (type === "weekly" && Array.isArray(days)) {
+        let weekStart = new Date(cursor);
+        weekStart.setDate(cursor.getDate() - cursor.getDay());
+
+        for (const day of days) {
+          let occ = new Date(weekStart);
+          occ.setDate(weekStart.getDate() + dayMap[day as keyof typeof dayMap]);
+          occ.setHours(start.getHours(), start.getMinutes(), 0, 0);
+
+          if (occ >= start && occ <= untilDate) {
+            occurrencesThisPeriod.push(occ);
+          }
+        }
+        cursor = addWeeks(cursor, 1);
+      }
+
+      occurrencesThisPeriod.forEach((occ) => {
         const isExcluded = exceptions.some((exc: any) =>
-          isSameDay(new Date(exc), currentStart),
+          isSameDay(new Date(exc), occ),
         );
 
         if (!isExcluded) {
           allEvents.push({
             ...e,
-            start: new Date(currentStart),
-            end: new Date(currentEnd),
+            start: new Date(occ),
+            end: new Date(occ.getTime() + duration),
           });
         }
+      });
 
-        currentStart =
-          type === "daily"
-            ? addDays(currentStart, 1)
-            : addMonths(currentStart, 1);
-        currentEnd =
-          type === "daily" ? addDays(currentEnd, 1) : addMonths(currentEnd, 1);
-      }
-    }
-
-    if (type === "weekly" && Array.isArray(days)) {
-      let cursor = new Date(start);
-      while (cursor <= untilDate) {
-        for (const day of days) {
-          const targetDay = dayMap[day];
-          const occurrence = new Date(cursor);
-          occurrence.setDate(
-            occurrence.getDate() + ((targetDay - occurrence.getDay() + 7) % 7),
-          );
-          if (occurrence < start || occurrence > untilDate) continue;
-
-          const isExcluded = exceptions.some((exc: any) =>
-            isSameDay(new Date(exc), occurrence),
-          );
-
-          if (!isExcluded) {
-            const duration = end.getTime() - start.getTime();
-            allEvents.push({
-              ...e,
-              start: new Date(occurrence),
-              end: new Date(occurrence.getTime() + duration),
-            });
-          }
-        }
-        cursor = addWeeks(cursor, 1);
-      }
+      if (type !== "weekly") continue;
     }
   });
-
   return allEvents;
 }
 
@@ -121,22 +103,25 @@ function buildGoogleRecurrenceRule(recurrence: any): string[] | undefined {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
-    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+  const body = await req.json();
   const {
+    id,
     title,
     description,
     start,
     end,
     allDay,
     category,
+    googleEventId,
     recurrenceType,
     recurrenceDays,
     recurrenceUntil,
-  } = await req.json();
+  } = body;
 
-  const recurrence =
-    recurrenceType !== "none"
+  const recurrenceData =
+    recurrenceType && recurrenceType !== "none"
       ? {
           type: recurrenceType,
           until: recurrenceUntil,
@@ -144,56 +129,78 @@ export async function POST(req: NextRequest) {
         }
       : null;
 
-  // Create event in local database
-  const localEvent = await prisma.event.create({
-    data: {
-      title,
-      description,
-      start: new Date(start),
-      end: new Date(end),
-      allDay: allDay || false,
-      category: category || "Personal",
-      userId: session.user.id,
-      recurrence,
-    },
-  });
-
-  // Sync to Google Calendar
   try {
-    const calendar = await getGoogleCalendarClient((session.user as any).id);
-    if (calendar) {
-      const googleRecurrence = buildGoogleRecurrenceRule(recurrence);
-      
-      const googleEvent = await calendar.events.insert({
-        calendarId: "primary",
-        requestBody: {
-          summary: title,
-          description: description || "",
-          start: allDay
-            ? { date: new Date(start).toISOString().split("T")[0] }
-            : { dateTime: new Date(start).toISOString(), timeZone: "UTC" },
-          end: allDay
-            ? { date: new Date(end).toISOString().split("T")[0] }
-            : { dateTime: new Date(end).toISOString(), timeZone: "UTC" },
-          recurrence: googleRecurrence,
-        },
-      });
+    // Create or update event in local database
+    const event = await prisma.event.upsert({
+      where: { id: id || "new-event-placeholder" },
+      update: {
+        title,
+        description,
+        start: new Date(start),
+        end: new Date(end),
+        allDay,
+        category,
+        recurrence: recurrenceData,
+        ...(googleEventId ? { googleEventId } : {}),
+      },
+      create: {
+        title,
+        description,
+        start: new Date(start),
+        end: new Date(end),
+        allDay: allDay || false,
+        category: category || "Personal",
+        userId: session.user.id,
+        recurrence: recurrenceData,
+        ...(googleEventId ? { googleEventId } : {}),
+      },
+    });
 
-      // Update local event with Google event ID for future reference
-      await prisma.event.update({
-        where: { id: localEvent.id },
-        data: { googleEventId: googleEvent.data.id || null },
-      });
+    // Sync to Google Calendar (only if not already a Google event)
+    if (!googleEventId) {
+      try {
+        const calendar = await getGoogleCalendarClient(session.user.id);
+        if (calendar) {
+          const googleRecurrence = buildGoogleRecurrenceRule(recurrenceData);
 
-      console.log("Event synced to Google Calendar:", googleEvent.data.id);
-    } else {
-      console.log("⚠️ Google Calendar client not available, event saved locally only");
+          const googleEvent = await calendar.events.insert({
+            calendarId: "primary",
+            requestBody: {
+              summary: title,
+              description: description || "",
+              start: allDay
+                ? { date: new Date(start).toISOString().split("T")[0] }
+                : { dateTime: new Date(start).toISOString(), timeZone: "UTC" },
+              end: allDay
+                ? { date: new Date(end).toISOString().split("T")[0] }
+                : { dateTime: new Date(end).toISOString(), timeZone: "UTC" },
+              recurrence: googleRecurrence,
+            },
+          });
+
+          // Update local event with Google event ID
+          await prisma.event.update({
+            where: { id: event.id },
+            data: { googleEventId: googleEvent.data.id || null },
+          });
+
+          console.log("Event synced to Google Calendar:", googleEvent.data.id);
+        } else {
+          console.log("Google Calendar client not available, event saved locally only");
+        }
+      } catch (error) {
+        console.error("Failed to sync event to Google Calendar:", error);
+      }
     }
-  } catch (error) {
-    console.error("Failed to sync event to Google Calendar:", error);
-  }
 
-  return NextResponse.json(localEvent, { status: 201 });
+    return NextResponse.json(event, { status: 201 });
+  } catch (error) {
+    console.error("POST Error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -247,7 +254,7 @@ export async function GET(req: NextRequest) {
   // Fetch Google Calendar events
   let googleEvents: any[] = [];
   try {
-    const calendar = await getGoogleCalendarClient((session.user as any).id);
+    const calendar = await getGoogleCalendarClient(session.user.id);
     if (calendar) {
       const now = new Date();
       const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
@@ -264,6 +271,7 @@ export async function GET(req: NextRequest) {
 
       googleEvents = (response.data.items || [])
         .filter((event) => {
+          // Filter out events that were created locally
           const isLocalEvent = expandedLocalEvents.some(
             (le) => le.googleEventId === event.id
           );
@@ -287,6 +295,7 @@ export async function GET(req: NextRequest) {
           };
         });
 
+      // Apply text search filter to Google events if needed
       if (query) {
         googleEvents = googleEvents.filter((event) => {
           const searchQuery = query.toLowerCase();
@@ -324,10 +333,11 @@ export async function DELETE(req: NextRequest) {
   if (!id) return NextResponse.json({ message: "Missing ID" }, { status: 400 });
 
   try {
+    // Check if this is a Google-only event
     if (id.startsWith("google-")) {
       const googleEventId = id.replace("google-", "");
-      const calendar = await getGoogleCalendarClient((session.user as any).id);
-      
+      const calendar = await getGoogleCalendarClient(session.user.id);
+
       if (calendar) {
         await calendar.events.delete({
           calendarId: "primary",
@@ -345,7 +355,7 @@ export async function DELETE(req: NextRequest) {
 
     // Handle local events
     const event = await prisma.event.findUnique({
-      where: { id, userId: (session.user as any).id },
+      where: { id, userId: session.user.id },
     });
 
     if (!event)
@@ -354,7 +364,7 @@ export async function DELETE(req: NextRequest) {
     // Delete from Google Calendar if it was synced
     if (event.googleEventId) {
       try {
-        const calendar = await getGoogleCalendarClient((session.user as any).id);
+        const calendar = await getGoogleCalendarClient(session.user.id);
         if (calendar) {
           await calendar.events.delete({
             calendarId: "primary",
@@ -363,22 +373,26 @@ export async function DELETE(req: NextRequest) {
           console.log("Deleted synced Google Calendar event:", event.googleEventId);
         }
       } catch (error) {
-        console.error("⚠️ Failed to delete from Google Calendar:", error);
+        console.error("Failed to delete from Google Calendar:", error);
       }
     }
 
     // Handle recurring event instance deletion
     if (mode === "single" && instanceDate) {
-      const dateToExclude = new Date(instanceDate + "T00:00:00Z");
+      const dateToExclude = new Date(instanceDate);
+      const existingExceptions = Array.isArray(event.exceptions)
+        ? event.exceptions
+        : [];
+
       await prisma.event.update({
         where: { id },
         data: {
           exceptions: {
-            push: dateToExclude,
+            set: [...existingExceptions, dateToExclude],
           },
         },
       });
-      return NextResponse.json({ message: "Instance removed from series" });
+      return NextResponse.json({ message: "Instance removed" });
     } else {
       // Delete entire series
       await prisma.event.delete({
@@ -388,6 +402,119 @@ export async function DELETE(req: NextRequest) {
     }
   } catch (error) {
     console.error("Delete Error:", error);
-    return NextResponse.json({ message: "Failed to delete" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json();
+  const { id, start, end, mode, originalDate } = body;
+
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id, userId: session.user.id },
+    });
+
+    if (!event)
+      return NextResponse.json({ message: "Event not found" }, { status: 404 });
+
+    let calendar = null;
+    if (event.googleEventId) {
+      calendar = await getGoogleCalendarClient(session.user.id);
+    }
+
+    // Handle single instance move for recurring events
+    if (mode === "single" && originalDate) {
+      const dateToExclude = new Date(originalDate);
+      const existingExceptions = Array.isArray(event.exceptions)
+        ? event.exceptions
+        : [];
+
+      // Add exception to recurring event
+      await prisma.event.update({
+        where: { id },
+        data: { exceptions: { set: [...existingExceptions, dateToExclude] } },
+      });
+
+      // Create new standalone event for the moved instance
+      const newStandalone = await prisma.event.create({
+        data: {
+          title: event.title,
+          description: event.description,
+          category: event.category,
+          start: new Date(start),
+          end: new Date(end),
+          userId: session.user.id,
+          recurrence: null,
+        },
+      });
+
+      // Try to update Google Calendar instance
+      if (calendar && event.googleEventId) {
+        try {
+          const instances = await calendar.events.instances({
+            calendarId: "primary",
+            eventId: event.googleEventId,
+            timeMin: dateToExclude.toISOString(),
+            maxResults: 1,
+          });
+
+          const targetInstance = instances.data.items?.[0];
+          if (targetInstance?.id) {
+            await calendar.events.patch({
+              calendarId: "primary",
+              eventId: targetInstance.id,
+              requestBody: {
+                start: { dateTime: new Date(start).toISOString() },
+                end: { dateTime: new Date(end).toISOString() },
+              },
+            });
+            console.log("Updated Google Calendar instance");
+          }
+        } catch (e) {
+          console.error("Google instance move failed:", e);
+        }
+      }
+
+      return NextResponse.json(newStandalone);
+    }
+
+    // Update entire event (or single non-recurring event)
+    const updatedEvent = await prisma.event.update({
+      where: { id },
+      data: { start: new Date(start), end: new Date(end) },
+    });
+
+    // Update in Google Calendar
+    if (calendar && event.googleEventId) {
+      try {
+        await calendar.events.patch({
+          calendarId: "primary",
+          eventId: event.googleEventId,
+          requestBody: {
+            start: { dateTime: new Date(start).toISOString() },
+            end: { dateTime: new Date(end).toISOString() },
+          },
+        });
+        console.log("Updated Google Calendar event");
+      } catch (e) {
+        console.error("Failed to update Google Calendar:", e);
+      }
+    }
+
+    return NextResponse.json(updatedEvent);
+  } catch (error) {
+    console.error("PATCH Error:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

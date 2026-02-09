@@ -5,6 +5,8 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import EventForm from "./EventForm";
+import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
+import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({
@@ -23,6 +25,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   Lab: "#8b5cf6",
 };
 
+const DnDCalendar = withDragAndDrop(Calendar);
+
 export default function CalendarView({
   events: initialEvents,
   userId,
@@ -30,10 +34,16 @@ export default function CalendarView({
   events: any[];
   userId: string;
 }) {
-  const [events, setEvents] = useState(initialEvents);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [events, setEvents] = useState(
+    initialEvents.map((e) => ({
+      ...e,
+      start: new Date(e.start),
+      end: new Date(e.end),
+    })),
+  );
   const [filter, setFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -167,6 +177,35 @@ export default function CalendarView({
     setIsModalOpen(false);
     setIsEditing(false);
     setSelectedEvent(null);
+  };
+
+  const moveEvent = async ({ event, start, end }: any) => {
+    const isRecurring = event.recurrence && event.recurrence.type !== "none";
+
+    let payload: any = {
+      id: event.id,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      mode: isRecurring ? "single" : "all",
+      originalDate: isRecurring ? event.start.toISOString() : null,
+    };
+
+    try {
+      const res = await fetch("/api/calendar/events", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        refreshEvents();
+      } else {
+        const errorData = await res.json();
+        console.error("Update failed:", errorData.message);
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+    }
   };
 
   return (
@@ -320,12 +359,15 @@ export default function CalendarView({
 
       {/* Main Calendar Card */}
       <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
-        <Calendar
+        <DnDCalendar
           localizer={localizer}
           events={filteredEvents}
           startAccessor="start"
           endAccessor="end"
           selectable
+          resizable
+          onEventDrop={moveEvent}
+          onEventResize={moveEvent}
           date={calendarDate}
           onNavigate={(date) => setCalendarDate(date)}
           onSelectSlot={({ start }) => {
@@ -341,6 +383,7 @@ export default function CalendarView({
           }}
           eventPropGetter={eventStyleGetter}
           style={{ height: 600 }}
+          draggableAccessor={() => true}
           className="rounded-lg"
           scrollToTime={new Date()}
         />

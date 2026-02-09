@@ -2,11 +2,11 @@
 import { useState, useEffect } from "react";
 
 const CATEGORIES = [
-  { label: "Lecture", color: "#6366f1" }, // Indigo
-  { label: "Individual Study", color: "#10b981" }, // Emerald
-  { label: "Exam", color: "#ef4444" }, // Rose
-  { label: "Personal", color: "#f59e0b" }, // Amber
-  { label: "Lab", color: "#8b5cf6" }, // Violet
+  { label: "Lecture", color: "#6366f1" },
+  { label: "Individual Study", color: "#10b981" },
+  { label: "Exam", color: "#ef4444" },
+  { label: "Personal", color: "#f59e0b" },
+  { label: "Lab", color: "#8b5cf6" },
 ];
 
 const isOverlapping = (s1: Date, e1: Date, s2: Date, e2: Date) => {
@@ -32,42 +32,35 @@ export default function EventForm({
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
 
   const [title, setTitle] = useState(initialEvent?.title || "");
-  const [description, setDescription] = useState(
-    initialEvent?.description || "",
-  );
+  const [description, setDescription] = useState(initialEvent?.description || "");
   const [category, setCategory] = useState(initialEvent?.category || "Lecture");
 
   const [startDate, setStartDate] = useState(
-    initialEvent
-      ? formatDate(new Date(initialEvent.start))
-      : initialStartDate || formatDate(now),
+    initialEvent ? formatDate(new Date(initialEvent.start)) : initialStartDate || formatDate(now)
   );
   const [startTime, setStartTime] = useState(
-    initialEvent ? formatTime(new Date(initialEvent.start)) : formatTime(now),
+    initialEvent ? formatTime(new Date(initialEvent.start)) : formatTime(now)
   );
   const [endDate, setEndDate] = useState(
-    initialEvent
-      ? formatDate(new Date(initialEvent.end))
-      : initialStartDate || formatDate(now),
+    initialEvent ? formatDate(new Date(initialEvent.end)) : initialStartDate || formatDate(now)
   );
   const [endTime, setEndTime] = useState(
-    initialEvent
-      ? formatTime(new Date(initialEvent.end))
-      : formatTime(oneHourLater),
+    initialEvent ? formatTime(new Date(initialEvent.end)) : formatTime(oneHourLater)
   );
 
-  const [recurrenceType, setRecurrenceType] = useState<
-    "none" | "daily" | "weekly" | "monthly"
-  >(initialEvent?.recurrence?.type || "none");
+  const [recurrenceType, setRecurrenceType] = useState<"none" | "daily" | "weekly" | "monthly">(
+    initialEvent?.recurrence?.type || "none"
+  );
   const defaultUntil = new Date();
   defaultUntil.setMonth(defaultUntil.getMonth() + 1);
 
   const [recurrenceUntil, setRecurrenceUntil] = useState(
-    initialEvent?.recurrence?.until || formatDate(defaultUntil),
+    initialEvent?.recurrence?.until || formatDate(defaultUntil)
   );
   const [recurrenceDays, setRecurrenceDays] = useState<string[]>(
-    initialEvent?.recurrence?.days || [],
+    initialEvent?.recurrence?.days || []
   );
+
   useEffect(() => {
     if (recurrenceType === "weekly" && recurrenceDays.length === 0) {
       const dayIndex = new Date(startDate).getDay();
@@ -79,24 +72,30 @@ export default function EventForm({
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
 
+  // --- START OF HANDLESUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const start = new Date(`${startDate}T${startTime}`);
     const end = new Date(`${endDate}T${endTime}`);
 
     if (end <= start) return alert("End time must be after start time");
+
+    const recurrenceUntilISO = recurrenceUntil 
+      ? new Date(`${recurrenceUntil}T00:00:00Z`).toISOString() 
+      : undefined;
 
     const payload = {
       id: initialEvent?.id,
       title,
       description,
       category,
-      start,
-      end,
+      start: start.toISOString(),
+      end: end.toISOString(),
       userId,
       recurrenceType,
       recurrenceDays: recurrenceType === "weekly" ? recurrenceDays : undefined,
-      recurrenceUntil,
+      recurrenceUntil: recurrenceUntilISO,
     };
 
     const conflict = existingEvents.find((ev: any) => {
@@ -123,21 +122,16 @@ export default function EventForm({
     if (res.ok) onSuccess();
   };
 
-  // UI for the Warning Step
   if (showConflictWarning) {
     return (
       <div className="flex flex-col items-center justify-center py-8 px-4 animate-in fade-in zoom-in duration-200">
         <div className="bg-amber-100 p-4 rounded-full mb-4">
           <span className="text-3xl text-amber-600">⚠️</span>
         </div>
-        <h4 className="text-xl font-bold text-gray-800 mb-2">
-          Schedule Conflict
-        </h4>
+        <h4 className="text-xl font-bold text-gray-800 mb-2">Schedule Conflict</h4>
         <p className="text-center text-gray-500 mb-8">
-          This event overlaps with another item on your calendar. Proceed
-          anyway?
+          This event overlaps with another item on your calendar. Proceed anyway?
         </p>
-
         <div className="flex flex-col gap-3 w-full">
           <button
             onClick={() => saveEvent(pendingPayload)}
@@ -158,7 +152,7 @@ export default function EventForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <input
+       <input
         type="text"
         placeholder="Event Title"
         value={title}
@@ -227,10 +221,9 @@ export default function EventForm({
           />
         </div>
       </div>
+
       <div>
-        <label className="text-sm font-semibold text-gray-600">
-          Recurrence
-        </label>
+        <label className="text-sm font-semibold text-gray-600">Recurrence</label>
         <select
           value={recurrenceType}
           onChange={(e) => setRecurrenceType(e.target.value as any)}
@@ -244,67 +237,37 @@ export default function EventForm({
 
         {recurrenceType !== "none" && (
           <div className="mt-2">
-            {recurrenceType === "daily" && (
-              <>
-                <label className="text-xs text-gray-400">Until</label>
-                <input
-                  type="date"
-                  value={recurrenceUntil}
-                  onChange={(e) => setRecurrenceUntil(e.target.value)}
-                  className="w-full border p-2 rounded mt-1"
-                />
-              </>
-            )}
-
             {recurrenceType === "weekly" && (
               <>
                 <label className="text-xs text-gray-400">Repeat on</label>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                    (day) => (
-                      <label key={day} className="flex items-center gap-1">
-                        <input
-                          type="checkbox"
-                          value={day}
-                          checked={recurrenceDays.includes(day)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setRecurrenceDays((prev) =>
-                              checked
-                                ? [...prev, day]
-                                : prev.filter((d) => d !== day),
-                            );
-                          }}
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm">{day}</span>
-                      </label>
-                    ),
-                  )}
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                    <label key={day} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        value={day}
+                        checked={recurrenceDays.includes(day)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setRecurrenceDays((prev) =>
+                            checked ? [...prev, day] : prev.filter((d) => d !== day)
+                          );
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm">{day}</span>
+                    </label>
+                  ))}
                 </div>
-                <label className="text-xs text-gray-400 mt-2 block">
-                  Until
-                </label>
-                <input
-                  type="date"
-                  value={recurrenceUntil}
-                  onChange={(e) => setRecurrenceUntil(e.target.value)}
-                  className="w-full border p-2 rounded mt-1"
-                />
               </>
             )}
-
-            {recurrenceType === "monthly" && (
-              <>
-                <label className="text-xs text-gray-400">Until</label>
-                <input
-                  type="date"
-                  value={recurrenceUntil}
-                  onChange={(e) => setRecurrenceUntil(e.target.value)}
-                  className="w-full border p-2 rounded mt-1"
-                />
-              </>
-            )}
+            <label className="text-xs text-gray-400 mt-2 block">Until</label>
+            <input
+              type="date"
+              value={recurrenceUntil}
+              onChange={(e) => setRecurrenceUntil(e.target.value)}
+              className="w-full border p-2 rounded mt-1"
+            />
           </div>
         )}
       </div>
