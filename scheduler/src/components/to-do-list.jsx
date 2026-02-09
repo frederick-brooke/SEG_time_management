@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Input } from "components/ui/input";
 import { Label } from "components/ui/label";
+import { Progress } from "components/ui/progress";
 import {
   Card,
   CardAction,
@@ -34,6 +35,7 @@ import { Button } from "components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "components/ui/toggle-group";
 import { Checkbox } from "components/ui/checkbox";
 import { Eye, Pencil, Trash2 } from "lucide-react";
+import { $brand } from "zod";
 
 export const description = "An interactive area chart";
 
@@ -48,6 +50,7 @@ export function ToDoList() {
   const [newTaskName, setNewTaskName] = React.useState("");
   const [newTaskDescription, setNewTaskDescription] = React.useState("");
   const [newTaskPriority, setNewTaskPriority] = React.useState("!");
+  const [newTaskDueDate, setNewTaskDueDate] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [newTaskSubtasks, setNewTaskSubtasks] = React.useState("");
   const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
@@ -84,10 +87,11 @@ export function ToDoList() {
                 newTaskPriority === "Low"
                   ? "Low"
                   : newTaskPriority === "Medium"
-                    ? "Medium"
-                    : "High",
+                  ? "Medium"
+                  : "High",
+              dueDate: newTaskDueDate || null,
             }
-          : task,
+          : task
       );
       setTasks(updatedTasks);
       setEditingTaskId(null);
@@ -100,14 +104,15 @@ export function ToDoList() {
           newTaskPriority === "Low"
             ? "Low"
             : newTaskPriority === "Medium"
-              ? "Medium"
-              : "High",
+            ? "Medium"
+            : "High",
         description: newTaskDescription,
         status: "todo",
         subtasks: newTaskSubtasks
           .split(",")
           .map((s) => s.trim())
           .filter((s) => s !== ""),
+        dueDate: newTaskDueDate || null,
       };
       setTasks([...tasks, newTask]);
     }
@@ -117,6 +122,7 @@ export function ToDoList() {
     setNewTaskName("");
     setNewTaskDescription("");
     setNewTaskPriority("Low");
+    setNewTaskDueDate("");
     setIsDialogOpen(false);
   };
 
@@ -133,9 +139,10 @@ export function ToDoList() {
         taskToEdit.priority === "Low"
           ? "Low"
           : taskToEdit.priority === "Medium"
-            ? "Medium"
-            : "High",
+          ? "Medium"
+          : "High"
       );
+      setNewTaskDueDate(taskToEdit.dueDate || "");
       setIsDialogOpen(true);
     }
   };
@@ -186,26 +193,67 @@ export function ToDoList() {
     });
     setTasks(sortedByPriority);
   };
+  // Helper: Check if a task is overdue
+  const isOverdue = (task) => {
+    if (!task.dueDate || task.status === "completed") return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    const dueDate = new Date(task.dueDate);
+    return dueDate < today;
+  };
 
-  // Filter tasks by status
-  const todoTasks = tasks.filter((task) => task.status === "todo");
-  const inProgressTasks = tasks.filter((task) => task.status === "in-progress");
+  // Helper: Colour code priorities on tasks
+  const getPriorityStyle = (priority) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
+      case "Medium":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+      case "Low":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
+  // Progress bar logic
+  const totalTasks = tasks.length;
+  const completedCount = tasks.filter((task) => task.status === "completed").length;
+  const progressPercentage = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+
+  // Filter tasks by status and due date
+  const overdueTasks = tasks.filter((task) => isOverdue(task));
+  const todoTasks = tasks.filter(
+    (task) => task.status === "todo" && !isOverdue(task)
+  );
+  const inProgressTasks = tasks.filter(
+    (task) => task.status === "in-progress" && !isOverdue(task)
+  );
   const completedTasks = tasks.filter((task) => task.status === "completed");
 
-  const renderTaskColumn = (title, taskList, status) => (
-    <div className="flex-1 min-w-[300px] rounded-lg border bg-muted/20 p-4">
-      {/* column header*/}
-      <div className="mb-4">
-        <h3 className="font-semibold text-lg">{title}</h3>
-        <p className="text-sm text-muted-foreground">
-          {taskList.length} {taskList.length === 1 ? "task" : "tasks"}
+  // Render Task Columns
+  const renderTaskColumn = (Title, taskList, status) => (
+    <div
+      className={`flex-1 min-w-[300px] rounded-lg border p-4 ${
+        status === "overdue"
+          ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900"
+          : "bg-muted/20"
+      }`}
+    >
+      {/* column header */}
+      <div className="mb-4 pb-3 border-b">
+        <h3 className="font-semibold text-base">{Title}</h3>
+        <p className="text-xs text-muted-foreground mt-1">
+          {taskList.length} {taskList.list === 1 ? "task" : "tasks"}
         </p>
       </div>
+
       {/* Task List */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {taskList.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            No tasks here
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            No tasks
           </div>
         ) : (
           taskList.map((task) => (
@@ -213,62 +261,79 @@ export function ToDoList() {
               key={task.id}
               className="flex items-center gap-2 rounded-lg border p-2.5 bg-card shadow-sm hover:shadow-md transition-shadow"
             >
-              {/* Left Side: Drag Handle + Checkbox + Task Info */}
-              <div className="flex items-center gap-3 flex-1">
-                {/* Drag Handle */}
+              {/* Drag Handle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 cursor-grab shrink-0"
+              >
+                <span className="text-muted-foreground text-sm">⋮⋮</span>
+              </Button>
+
+              {/* Checkbox */}
+              <Checkbox
+                id={`task-${task.id}`}
+                checked={task.status === "completed"}
+                onCheckedChange={() => handleToggleComplete(task.id)}
+                className="shrink-0 h-4 w-4"
+              />
+
+              {/* Task info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col gap-1">
+                  <span
+                    className={`text-sm font-medium truncate ${
+                      task.status === "completed"
+                        ? "line-through text-muted-foreground"
+                        : ""
+                    }`}
+                  >
+                    {task.name}
+                  </span>
+                  <span
+                    className={
+                      `text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}
+                  >
+                    {task.priority}
+                  </span>
+                </div>
+                {task.dueDate && (
+                  <span className="text-xs text-muted-foreground">
+                    Due:{" "}
+                    {new Date(task.dueDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-0.5 shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="ch-8 w-8 cursor-grab shrink-0"
-                >
-                  <span className="text-muted-foreground text-sm">⋮⋮</span>
-                </Button>
-
-                {/* Checkbox + Task Name and Priority */}
-                <div className="flex items-center gap-3 flex-1">
-                  <Checkbox
-                    id={"task-${task.id}"}
-                    checked={task.status === "completed"}
-                    onCheckedChange={() => handleToggleComplete(task.id)}
-                    className="shrink-0 h-3 w-3"
-                  />
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span
-                      className={`text-sm truncate ${
-                        task.status === "completed"
-                          ? "line-through text-muted-foreground"
-                          : ""
-                      }`}
-                    >
-                      {task.name}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Side: Action Buttons */}
-              <div className="flex items-center gap-1 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2"
+                  className="h-7 w-7"
                   onClick={() => handleViewTask(task)}
+                  title="View Task"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="h-7 px-2"
+                  size="icon"
+                  className="h-7 w-7"
                   onClick={() => handleEditTask(task.id)}
+                  title="Edit Task"
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="h-7 px-2"
+                  size="icon"
+                  className="h-7 w-7"
                   onClick={() => setTaskToDelete(task.id)}
+                  title="Delete Task"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -291,6 +356,15 @@ export function ToDoList() {
           <span>Get ahead of your tasks!</span>
         </CardDescription>
 
+        {/* Progress Bar */}
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Task Completion</span>
+            <span className="font-medium text-foreground">{progressPercentage}%</span>
+          </div>
+          <Progress value={progressPercentage} className="h-2" />
+        </div>
+
         {/* Action Buttons */}
         <CardAction className="flex gap-2">
           <Button onClick={handleSort}>Sort</Button>
@@ -306,6 +380,7 @@ export function ToDoList() {
                 setNewTaskName("");
                 setNewTaskDescription("");
                 setNewTaskPriority("!");
+                setNewTaskDueDate("");
               }
             }}
           >
@@ -349,7 +424,18 @@ export function ToDoList() {
                   />
                 </div>
 
-                {/* Task Priority */}
+                {/* Task Due Date */}
+                <div className="grid gap-2">
+                  <Label htmlFor="task-due-date">Due Date</Label>
+                  <Input
+                    id="task-due-date"
+                    type="date"
+                    value={newTaskDueDate}
+                    onChange={(e) => setNewTaskDueDate(e.target.value)}
+                  />
+                </div>
+
+                {/* Task Subtasks */}
 
                 <div className="grid gap-2">
                   <Label htmlFor="subtasks">Subtasks (comma separated)</Label>
@@ -406,69 +492,83 @@ export function ToDoList() {
             <p>No tasks yet. Click "New" to create your first task!</p>
           </div>
         ) : (
-          /* Three Column Layout */
+          /* Four coloumn layout */
           <div className="flex gap-4 overflow-x-auto pb-4">
             {renderTaskColumn("To Do", todoTasks, "todo")}
             {renderTaskColumn("In Progress", inProgressTasks, "in-progress")}
             {renderTaskColumn("Completed", completedTasks, "completed")}
+            {renderTaskColumn("Overdue", overdueTasks, "overdue")}
           </div>
         )}
+      </CardContent>
 
-        {/* ========== DELETE CONFIRMATION DIALOG ========== */}
-        <AlertDialog
-          open={taskToDelete !== null}
-          onOpenChange={(open) => !open && cancelDelete()}
-        >
-          <AlertDialogContent className="sm:max-w-sm">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Task?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete this task. This action cannot be
-                undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={cancelDelete}>
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDeleteTask}>
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {/* ========== DELETE CONFIRMATION DIALOG ========== */}
+      <AlertDialog
+        open={taskToDelete !== null}
+        onOpenChange={(open) => !open && cancelDelete()}
+      >
+        <AlertDialogContent className="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this task. This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTask}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {/* ========== VIEW TASK DIALOG ========== */}
-        <Dialog
-          open={viewTask !== null}
-          onOpenChange={(open) => !open && setViewTask(null)}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{viewTask?.name}</DialogTitle>
-              <DialogDescription>Task Details</DialogDescription>
-            </DialogHeader>
+      {/* ========== VIEW TASK DIALOG ========== */}
+      <Dialog
+        open={viewTask !== null}
+        onOpenChange={(open) => !open && setViewTask(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{viewTask?.name}</DialogTitle>
+            <DialogDescription>Task Details</DialogDescription>
+          </DialogHeader>
 
-            <div className="space-y-4 py-4">
-              {/* Description */}
-              <div>
-                <Label className="text-sm font-medium">Description</Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {viewTask?.description || "No description provided"}
-                </p>
-              </div>
+          <div className="space-y-4 py-4">
+            {/* Description */}
+            <div>
+              <Label className="text-sm font-medium">Description</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                {viewTask?.description || "No description provided"}
+              </p>
+            </div>
 
-              {/* Priority */}
-              <div>
-                <Label className="text-sm font-medium space-y-4 py-4">
-                  Priority
-                </Label>
-                <p className="text-sm mt-1">
-                  <span className="text-xs px-2 py-1 rounded bg-muted">
-                    {viewTask?.priority}
-                  </span>
-                </p>
-              </div>
+            {/* Priority */}
+            <div>
+              <Label className="text-sm font-medium">Priority</Label>
+              <p className="text-sm mt-1">
+                <span
+                  className={
+                    `text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(viewTask?.priority)}`}
+                >
+                  {viewTask?.priority}
+                </span>
+              </p>
+            </div>
+
+            {/* Due Date */}
+            <div>
+              <Label className="text-sm font-medium">Due Date</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                {viewTask?.dueDate
+                  ? new Date(viewTask.dueDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "No due date set"}
+              </p>
             </div>
 
             {/* Subtasks */}
@@ -484,13 +584,13 @@ export function ToDoList() {
                 )}
               </ul>
             </div>
+          </div>
 
-            <DialogFooter>
-              <Button onClick={() => setViewTask(null)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardContent>
+          <DialogFooter>
+            <Button onClick={() => setViewTask(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
