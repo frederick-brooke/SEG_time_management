@@ -69,7 +69,7 @@ const data = {
     },
     {
       title: "Admin",
-      url: "#",
+      url: "/admin",
       icon: IconUserCog,
     }
   ],
