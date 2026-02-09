@@ -17,6 +17,8 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconHeart,
+  IconUserCog,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "components/nav-documents"
@@ -42,7 +44,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
@@ -65,6 +67,11 @@ const data = {
       url: "#",
       icon: IconUsers,
     },
+    {
+      title: "Admin",
+      url: "#",
+      icon: IconUserCog,
+    }
   ],
   navClouds: [
     {

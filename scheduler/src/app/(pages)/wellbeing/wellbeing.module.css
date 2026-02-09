@@ -1,0 +1,14 @@
+.page-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    
+
+    max-height: max-content;
+    padding: 50px;
+}
+
+
+
+
