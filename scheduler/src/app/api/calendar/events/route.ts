@@ -25,7 +25,7 @@ function expandRecurringEvents(events: any[]) {
     let cursor = new Date(start);
 
     while (cursor <= untilDate) {
-      let occurrencesThisPeriod = [];
+      let occurrencesThisPeriod: Date[] = [];
 
       if (type === "daily") {
         occurrencesThisPeriod.push(new Date(cursor));
@@ -51,7 +51,7 @@ function expandRecurringEvents(events: any[]) {
 
       occurrencesThisPeriod.forEach((occ) => {
         const isExcluded = exceptions.some((exc: any) =>
-          isSameDay(new Date(exc), occ),
+          isSameDay(new Date(exc), occ)
         );
 
         if (!isExcluded) {
@@ -66,15 +66,18 @@ function expandRecurringEvents(events: any[]) {
       if (type !== "weekly") continue;
     }
   });
+
   return allEvents;
 }
+
 
 function buildGoogleRecurrenceRule(recurrence: any): string[] | undefined {
   if (!recurrence || recurrence.type === "none") return undefined;
 
   const { type, until, days } = recurrence;
   const untilDate = new Date(until);
-  const untilString = untilDate.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const untilString =
+    untilDate.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
   let rule = "";
 
@@ -124,39 +127,46 @@ export async function POST(req: NextRequest) {
     recurrenceType && recurrenceType !== "none"
       ? {
           type: recurrenceType,
-          until: recurrenceUntil,
-          days: recurrenceType === "weekly" ? recurrenceDays : null,
+          until: recurrenceUntil ? new Date(recurrenceUntil) : null,
+          days: recurrenceType === "weekly" && recurrenceDays ? recurrenceDays : null,
         }
       : null;
 
   try {
-    // Create or update event in local database
-    const event = await prisma.event.upsert({
-      where: { id: id || "new-event-placeholder" },
-      update: {
-        title,
-        description,
-        start: new Date(start),
-        end: new Date(end),
-        allDay,
-        category,
-        recurrence: recurrenceData,
-        ...(googleEventId ? { googleEventId } : {}),
-      },
-      create: {
-        title,
-        description,
-        start: new Date(start),
-        end: new Date(end),
-        allDay: allDay || false,
-        category: category || "Personal",
-        userId: session.user.id,
-        recurrence: recurrenceData,
-        ...(googleEventId ? { googleEventId } : {}),
-      },
-    });
+    let event;
+    if (id) {
+      // Update existing event
+      event = await prisma.event.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          start: new Date(start),
+          end: new Date(end),
+          allDay,
+          category,
+          recurrence: recurrenceData,
+          ...(googleEventId ? { googleEventId } : {}),
+        },
+      });
+    } else {
+      // Create new event
+      event = await prisma.event.create({
+        data: {
+          title,
+          description,
+          start: new Date(start),
+          end: new Date(end),
+          allDay: allDay || false,
+          category: category || "Personal",
+          userId: session.user.id,
+          recurrence: recurrenceData,
+          ...(googleEventId ? { googleEventId } : {}),
+        },
+      });
+    }
 
-    // Sync to Google Calendar (only if not already a Google event)
+    // Sync to Google Calendar if it's a new event
     if (!googleEventId) {
       try {
         const calendar = await getGoogleCalendarClient(session.user.id);
@@ -178,15 +188,12 @@ export async function POST(req: NextRequest) {
             },
           });
 
-          // Update local event with Google event ID
           await prisma.event.update({
             where: { id: event.id },
             data: { googleEventId: googleEvent.data.id || null },
           });
 
           console.log("Event synced to Google Calendar:", googleEvent.data.id);
-        } else {
-          console.log("Google Calendar client not available, event saved locally only");
         }
       } catch (error) {
         console.error("Failed to sync event to Google Calendar:", error);
@@ -194,14 +201,12 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(event, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST Error:", error);
-    return NextResponse.json(
-      { message: "Internal Server Error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
+
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
