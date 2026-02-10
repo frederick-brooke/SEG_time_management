@@ -9,6 +9,8 @@ import {
 } from "@/src/components/ui/card";
 import { Calendar } from "lucide-react";
 
+import { TaskActions } from "@/src/components/task-actions";
+
 export function ComingSoonCard() {
   const [tasks, setTasks] = React.useState([]);
 
@@ -92,6 +94,16 @@ export function ComingSoonCard() {
                     })}
                   </p>
                 </div>
+
+               {/* Task action buttons */}
+                <TaskActions
+                  onView={() => console.log("View:", task.id)}
+                  onEdit={() => console.log("Edit", task.id)}
+                  onDelete={() => console.log("Delete:", task.id)}
+                />
+                
+
+                {/* Priority badge */}
                 <span className={`text-xs px-2 py-1 rounded bg-muted ${
                   task.priority === "High" ? "bg-red-100 text-red-700" :
                   task.priority === "Medium" ? "bg-orange-100 text-orange-700" :
