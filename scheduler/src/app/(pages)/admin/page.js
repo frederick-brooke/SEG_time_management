@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,6 +16,10 @@ export default function AdminPage() {
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
+
+  console.log("Client session status:", status);
+  console.log("Client session data:", session);
 
   useEffect(() => {
     fetch("/api/admin")
@@ -39,7 +44,9 @@ export default function AdminPage() {
         <h2 className="text-2xl font-semibold mb-4">Statistics</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-blue-100 p-4 rounded text-center">
-            <p className="text-xl font-bold">{stats.totalUsers}</p>
+            <p className="text-xl font-bold">
+              {stats?.totalUsers ?? "-"}
+            </p>
             <p>Total Users</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded text-center">

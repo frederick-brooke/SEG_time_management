@@ -6,6 +6,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -69,7 +70,22 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async signIn() {
+    async signIn({ user, account, profile }) {
+      // For Google OAuth, fetch or set the role
+      if (account?.provider === "google") {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+          select: { role: true },
+        });
+        
+        if (dbUser) {
+          user.role = dbUser.role;
+        } else {
+          // Set a default role for new users
+          user.role = "BASIC";
+        }
+      }
+      
       return true;
     },
 
@@ -144,7 +160,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token }) {
+    async session({ session, token}) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.role = token.role as "BASIC" | "SUPERUSER";
@@ -165,3 +181,4 @@ export const authOptions: NextAuthOptions = {
     error: "/dashboard",
   },
 };
+

@@ -1,30 +1,41 @@
-//backend logic using PRISMA to query statistics for admin side
-import { prisma } from "@/src/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// app/api/admin/route.ts
 import { NextResponse } from "next/server";
-
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
-
 export async function GET() {
-    const cookieStore = await cookies();
-    console.log("COOKIES:", cookieStore.getAll());
+  // Debug: Check if cookies are being received
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  console.log("All cookies:", allCookies.map(c => c.name));
+  
+  const nextAuthCookie = cookieStore.get("next-auth.session-token") || 
+                         cookieStore.get("__Secure-next-auth.session-token");
+  console.log("NextAuth cookie present:", !!nextAuthCookie);
 
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    console.log("SESSION:", session);
-    
-    if(!session){
-        return NextResponse.json(
-            {error: "Unauthorised"},
-            {status: 401}
-        );
-    }
+  console.log("Full session:", JSON.stringify(session, null, 2));
+  console.log("User:", session?.user);
+  console.log("User role:", session?.user?.role);
 
-    const totalUsers = await prisma.user.count();
+  if (!session) {
+    return NextResponse.json(
+      { error: "No session found. Please log in." },
+      { status: 401 }
+    );
+  }
+  //change back to the SUPERUSER once added in
+  if (session.user?.role !== "BASIC") {
+    return NextResponse.json(
+      { error: "Access denied. Superuser role required.", currentRole: session.user?.role },
+      { status: 403 }
+    );
+  }
 
-    return NextResponse.json({
-        totalUsers,
-    });
+  const totalUsers = await prisma.user.count();
+
+  return NextResponse.json({ totalUsers });
 }
