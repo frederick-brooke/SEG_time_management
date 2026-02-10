@@ -166,7 +166,11 @@ export function ToDoList() {
     if (taskToDelete !== null) {
       const updatedTasks = tasks.filter((task) => task.id !== taskToDelete);
       setTasks(updatedTasks);
+
       setTaskToDelete(null);
+
+      localStorage.setItem("todo-tasks", JSON.stringify(updatedTasks));
+      window.dispatchEvent(new Event("storage"));
     }
   };
 
