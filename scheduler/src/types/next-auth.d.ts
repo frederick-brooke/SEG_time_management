@@ -12,7 +12,7 @@ declare module "next-auth" {
 
   interface User {
     id: string;
-    role: "BASIC" | "SUPERUSER"; // ✅ matches what authorize returns
+    role: "BASIC" | "SUPERUSER"; //matches what authorize returns
   }
 }
 

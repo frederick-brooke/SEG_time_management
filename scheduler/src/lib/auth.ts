@@ -23,6 +23,8 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
+        console.log("Authorize called", credentials?.email);
+
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -38,12 +40,14 @@ export const authOptions: NextAuthOptions = {
 
         if (!isValid) return null;
 
+        console.log("Login success", user.email);
+
         // Return only the required fields
         return {
-          id: user.id,
+          id: user.id.toString(),
           email: user.email,
           name: user.username,
-          role: "BASIC" as "BASIC" | "SUPERUSER", 
+          role: user.role, 
         };
       },
     }),
@@ -74,6 +78,17 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.role = user.role;
+        return token;
+      }
+
+      // Subsequent requests
+      if (!token.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+
+        token.role = dbUser?.role;
       }
 
       // Handle Google account linking (optional)

@@ -1,7 +1,7 @@
 // pages/admin.js
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,11 +13,22 @@ export default function AdminPage() {
     { id: 2, title: "Offensive content", status: "Reviewed" },
   ];
 
-  const stats = {
-    totalUsers: users.length,
-    activeReports: reports.filter(r => r.status === "Pending").length,
-    totalReports: reports.length,
-  };
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin")
+      .then(async (res) => {
+      const data = await res.json();
+      console.log("ADMIN API RESPONSE:", data);
+      setStats(data);
+      setLoading(false);
+    });
+  }, []);
+
+  if(loading){
+    return <p className="p-6">Loading</p>;
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -32,11 +43,11 @@ export default function AdminPage() {
             <p>Total Users</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded text-center">
-            <p className="text-xl font-bold">{stats.activeReports}</p>
+            <p className="text-xl font-bold">0</p>
             <p>Active Reports</p>
           </div>
           <div className="bg-red-100 p-4 rounded text-center">
-            <p className="text-xl font-bold">{stats.totalReports}</p>
+            <p className="text-xl font-bold">0</p>
             <p>Total Reports</p>
           </div>
         </div>
