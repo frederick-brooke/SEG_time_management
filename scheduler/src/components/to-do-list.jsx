@@ -36,6 +36,7 @@ import { ToggleGroup, ToggleGroupItem } from "components/ui/toggle-group";
 import { Checkbox } from "components/ui/checkbox";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { $brand } from "zod";
+import { TaskActions } from "@/src/components/task-actions";
 
 export const description = "An interactive area chart";
 
@@ -316,36 +317,12 @@ export function ToDoList() {
                 )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-0.5 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleViewTask(task)}
-                  title="View Task"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleEditTask(task.id)}
-                  title="Edit Task"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setTaskToDelete(task.id)}
-                  title="Delete Task"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+              <TaskActions
+                onView={() => handleViewTask(task)}
+                onEdit={() => handleEditTask(task.id)}
+                onDelete={() => setTaskToDelete(task.id)}
+              />
+              
             </div>
           ))
         )}
