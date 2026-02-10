@@ -23,6 +23,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Exam: "#ef4444",
   Personal: "#f59e0b",
   Lab: "#8b5cf6",
+  Google: "#4285F4",
 };
 
 const DnDCalendar = withDragAndDrop(Calendar);
@@ -132,17 +133,24 @@ export default function CalendarView({
   const filteredEvents =
     filter === "All" ? events : events.filter((e) => e.category === filter);
 
-  const eventStyleGetter = (event: any) => ({
+const eventStyleGetter = (event: any) => {
+  const isGoogle = !!event.isGoogleEvent;
+  
+  return {
     style: {
-      backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
+      backgroundColor: isGoogle ? "#4285F4" : (CATEGORY_COLORS[event.category] || "#3b82f6"),
       borderRadius: "6px",
-      border: "none",
+      
+      border: isGoogle ? "2px solid #000000" : "none", 
+      
       color: "white",
       fontSize: "0.85rem",
       paddingLeft: "5px",
       zIndex: 1,
+      opacity: isGoogle ? 0.9 : 1,
     },
-  });
+  };
+};
 
   const handleDelete = async (mode: "single" | "all" = "all") => {
     if (!selectedEvent) return;
@@ -180,7 +188,9 @@ export default function CalendarView({
   };
 
   const moveEvent = async ({ event, start, end }: any) => {
+    if (event.isGoogleEvent) return;
     const isRecurring = event.recurrence && event.recurrence.type !== "none";
+    
 
     let payload: any = {
       id: event.id,
@@ -271,7 +281,7 @@ export default function CalendarView({
                 </div>
                 {searchResults.map((event) => (
                   <button
-                    key={event.id}
+                    key={`${event.id}-${event.start.toISOString()}`} 
                     onClick={() => handleSearchResultClick(event)}
                     className="w-full text-left px-3 py-3 hover:bg-gray-50 rounded-lg transition-colors group"
                   >
@@ -357,7 +367,7 @@ export default function CalendarView({
         )}
       </div>
 
-      {/* Main Calendar Card */}
+{/* Main Calendar Card */}
       <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
         <DnDCalendar
           localizer={localizer}
@@ -382,8 +392,9 @@ export default function CalendarView({
             setIsModalOpen(true);
           }}
           eventPropGetter={eventStyleGetter}
+          draggableAccessor={(event) => !event.isGoogleEvent}
+          resizableAccessor={(event) => !event.isGoogleEvent}
           style={{ height: 600 }}
-          draggableAccessor={() => true}
           className="rounded-lg"
           scrollToTime={new Date()}
         />
@@ -391,97 +402,68 @@ export default function CalendarView({
       {/* Modal Overlay */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity"
-          style={{ zIndex: 9999 }}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm z-[9999]"
           onClick={closeModal}
         >
           <div
             className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 text-gray-400 hover:text-black transition-colors p-1"
-            >
-              ✕
-            </button>
+            <button onClick={closeModal} className="absolute top-4 right-4 text-gray-400 hover:text-black p-1">✕</button>
 
             {selectedEvent && !isEditing ? (
               <div className="pt-2">
-                <span
-                  className="px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider"
-                  style={{
-                    backgroundColor: CATEGORY_COLORS[selectedEvent.category],
-                  }}
-                >
-                  {selectedEvent.category}
-                </span>
-                <h3 className="text-2xl font-bold mt-3 text-gray-800 leading-tight">
+                {/* Visual indicator in Modal */}
+                <div className="flex justify-between items-start mb-3">
+                   <span
+                    className="px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider"
+                    style={{ backgroundColor: selectedEvent.isGoogleEvent ? "#4285F4" : CATEGORY_COLORS[selectedEvent.category] }}
+                  >
+                    {selectedEvent.isGoogleEvent ? "Google Event" : selectedEvent.category}
+                  </span>
+                  {selectedEvent.isGoogleEvent && <span className="text-blue-500 font-bold text-xs uppercase">Read Only</span>}
+                </div>
+
+                <h3 className="text-2xl font-bold text-gray-800 leading-tight">
                   {selectedEvent.title}
                 </h3>
-                <div className="text-sm text-gray-500 mt-1 mb-4 italic">
-                  {format(selectedEvent.start, "PPP")} •{" "}
-                  {format(selectedEvent.start, "p")} -{" "}
-                  {format(selectedEvent.end, "p")}
-                </div>
-                <p className="text-gray-600 mb-8 whitespace-pre-wrap leading-relaxed">
-                  {selectedEvent.description || "No description provided."}
-                </p>
 
                 <div className="flex flex-col gap-3">
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                  {selectedEvent.isGoogleEvent ? (
+                    <a
+                      href="https://calendar.google.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-center hover:bg-blue-700 transition-all shadow-md"
                     >
-                      Edit
-                    </button>
-
-                    {selectedEvent.recurrence?.type &&
-                    selectedEvent.recurrence.type !== "none" ? (
-                      <button
-                        onClick={() => handleDelete("all")}
-                        className="flex-1 bg-red-600 text-white py-2.5 rounded-xl font-bold hover:bg-red-700 transition-colors"
-                      >
-                        Delete Series
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleDelete("all")}
-                        className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-
-                  {selectedEvent.recurrence?.type &&
-                    selectedEvent.recurrence.type !== "none" && (
-                      <button
-                        onClick={() => handleDelete("single")}
-                        className="w-full bg-red-50 text-red-600 py-2 rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors border border-red-100"
-                      >
-                        Delete Only This Occurrence
-                      </button>
-                    )}
+                      Edit in Google Calendar
+                    </a>
+                  ) : (
+                    <>
+                      <div className="flex gap-3">
+                        <button onClick={() => setIsEditing(true)} className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-200">Edit</button>
+                        <button onClick={() => handleDelete("all")} className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-bold hover:bg-red-100">Delete</button>
+                      </div>
+                      {selectedEvent.recurrence?.type && selectedEvent.recurrence.type !== "none" && (
+                        <button onClick={() => handleDelete("single")} className="w-full bg-red-50 text-red-600 py-2 rounded-xl text-sm font-semibold border border-red-100">
+                          Delete Only This Occurrence
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             ) : (
               <div>
                 <h3 className="text-xl font-bold mb-6 text-gray-800">
-                  {selectedEvent
-                    ? "Update Details"
-                    : `Add Entry for ${format(new Date(selectedDate), "MMM do")}`}
+                  {selectedEvent ? "Update Details" : `Add Entry for ${format(new Date(selectedDate), "MMM do")}`}
                 </h3>
                 <EventForm
                   userId={userId}
                   initialEvent={selectedEvent}
                   initialStartDate={selectedDate}
                   existingEvents={events}
-                  onSuccess={() => {
-                    closeModal();
-                    refreshEvents();
-                  }}
+                  onSuccess={() => { closeModal(); refreshEvents(); }}
                 />
               </div>
             )}
