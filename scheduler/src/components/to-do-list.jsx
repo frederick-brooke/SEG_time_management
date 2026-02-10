@@ -316,7 +316,8 @@ export function ToDoList() {
                   </span>
                 )}
               </div>
-
+              
+              {/* Task action buttons */}
               <TaskActions
                 onView={() => handleViewTask(task)}
                 onEdit={() => handleEditTask(task.id)}
