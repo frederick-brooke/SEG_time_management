@@ -1,5 +1,8 @@
 "use client";
 
+import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Button } from "components/ui/button";
+
 import * as React from "react";
 import {
   Card,
@@ -41,10 +44,15 @@ export function ComingSoonCard() {
 
   // Helper: Check if a task is coming up soon (due within next 7 days)
   const isComingSoon = (task) => {
-    if (!task.dueDate || task.status === "completed") return false;
+    const dateValue = task.dueDate || task.due;
+    if (!dateValue) return false;
+
+    if (task.status === "completed" || task.completed === true) return false;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(task.dueDate);
+    const dueDate = new Date(dateValue);
+
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
 
@@ -52,7 +60,10 @@ export function ComingSoonCard() {
   };
 
   // Filter for coming soon tasks
-  const comingSoonTasks = tasks.filter((task) => isComingSoon(task));
+  const comingSoonTasks = tasks
+  .filter((task) => isComingSoon(task))
+  .sort((a, b) => new Date(a.dueDate || a.due)- new Date(b.dueDate || b.due));
+
 
   return (
     <Card>
@@ -67,26 +78,32 @@ export function ComingSoonCard() {
           <p className="text-sm text-muted-foreground">No tasks due soon</p>
         ) : (
           <div className="space-y-3">
-            {comingSoonTasks.map((task) => (
-              <div
+            {comingSoonTasks.map((task) => {
+              const displayDate = task.dueDate || task.due;
+
+              return (
+                <div
                 key={task.id}
-                className="flex items-start justify-between border-b pb-2 last:border-0"
-              >
+                className="flex items-start justify-between border-b pb-2 last:border-0">
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{task.name}</p>
+                  <p className="text-sm font-medium">{task.name || task.text || "Untitled Task"}</p>
                   <p className="text-xs text-muted-foreground">
                     Due:{" "}
-                    {new Date(task.dueDate).toLocaleDateString("en-US", {
+                    {new Date(displayDate).toLocaleDateString("en-GB", {
                       month: "short",
                       day: "numeric",
                     })}
                   </p>
                 </div>
-                <span className="text-xs px-2 py-1 rounded bg-muted">
-                  {task.priority}
+                <span className={`text-xs px-2 py-1 rounded bg-muted ${
+                  task.priority === "High" ? "bg-red-100 text-red-700" :
+                  task.priority === "Medium" ? "bg-orange-100 text-orange-700" :
+                  "bg-blue-100 text-blue-700"}`}>
+                    {task.priority}
                 </span>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>

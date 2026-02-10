@@ -61,6 +61,14 @@ export function ToDoList() {
   // Delete task state
   const [taskToDelete, setTaskToDelete] = React.useState(null);
 
+  // Auto save logic (while database is not setup yet)
+  React.useEffect(() => {
+    if (tasks.length > 0) {
+      localStorage.setItem("todo-tasks", JSON.stringify(tasks));
+      window.dispatchEvent(new Event("storage"));
+    }
+  }, [tasks])
+
   // ==================== HANDLER FUNCTIONS ====================
 
   // Handler: Create or update a task
