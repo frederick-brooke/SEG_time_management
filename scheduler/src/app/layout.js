@@ -2,6 +2,12 @@ import "./globals.css";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
 
+import { AppSidebar } from "@/src/components/app-sidebar";
+import {
+  SidebarProvider,
+  SidebarInset,
+} from "@/src/components/ui/sidebar";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -23,7 +29,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <div id="modal-root"></div>
+        </Providers>
       </body>
     </html>
   );

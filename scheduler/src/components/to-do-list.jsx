@@ -31,11 +31,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "components/ui/select";
 import { Button } from "components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "components/ui/toggle-group";
 import { Checkbox } from "components/ui/checkbox";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { $brand } from "zod";
+import { TaskActions } from "@/src/components/task-actions";
 
 export const description = "An interactive area chart";
 
@@ -54,6 +62,8 @@ export function ToDoList() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [newTaskSubtasks, setNewTaskSubtasks] = React.useState("");
   const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
+  const [durationHours, setDurationHours] = React.useState("0");
+  const [durationMinutes, setDurationMinutes] = React.useState("0");
 
   // View task state
   const [viewTask, setViewTask] = React.useState(null);
@@ -61,10 +71,20 @@ export function ToDoList() {
   // Delete task state
   const [taskToDelete, setTaskToDelete] = React.useState(null);
 
+  // Auto save logic (while database is not setup yet)
+  React.useEffect(() => {
+    if (tasks.length > 0) {
+      localStorage.setItem("todo-tasks", JSON.stringify(tasks));
+      window.dispatchEvent(new Event("storage"));
+    }
+  }, [tasks])
+
   // ==================== HANDLER FUNCTIONS ====================
 
   // Handler: Create or update a task
   const handleSubmitTask = () => {
+    const totalMinutes = (parseInt(durationHours) * 60) + parseInt(durationMinutes);
+
     // Validate that task name is not empty
     if (!newTaskName.trim()) {
       alert("Please enter a task name.");
@@ -90,6 +110,7 @@ export function ToDoList() {
                   ? "Medium"
                   : "High",
               dueDate: newTaskDueDate || null,
+              duration: totalMinutes,
             }
           : task
       );
@@ -113,6 +134,7 @@ export function ToDoList() {
           .map((s) => s.trim())
           .filter((s) => s !== ""),
         dueDate: newTaskDueDate || null,
+        duration: totalMinutes,
       };
       setTasks([...tasks, newTask]);
     }
@@ -124,6 +146,8 @@ export function ToDoList() {
     setNewTaskPriority("Low");
     setNewTaskDueDate("");
     setIsDialogOpen(false);
+    setDurationHours("0");
+    setDurationMinutes("0");
   };
 
   // Handler: Open edit dialog with task data
@@ -144,6 +168,9 @@ export function ToDoList() {
       );
       setNewTaskDueDate(taskToEdit.dueDate || "");
       setIsDialogOpen(true);
+      const mins = taskToEdit.duration || 0;
+      setDurationHours(Math.floor(mins / 60).toString());
+      setDurationMinutes((mins % 60).toString());
     }
   };
 
@@ -157,7 +184,11 @@ export function ToDoList() {
     if (taskToDelete !== null) {
       const updatedTasks = tasks.filter((task) => task.id !== taskToDelete);
       setTasks(updatedTasks);
+
       setTaskToDelete(null);
+
+      localStorage.setItem("todo-tasks", JSON.stringify(updatedTasks));
+      window.dispatchEvent(new Event("storage"));
     }
   };
 
@@ -292,11 +323,20 @@ export function ToDoList() {
                   </span>
                   <span
                     className={
-                      `text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}
-                  >
+                      `text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}>
                     {task.priority}
                   </span>
                 </div>
+                
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-2 items-center">
+                    {task.duration > "0" && (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        {task.duration < 60 ? `${task.duration}m` : `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`}
+                      </span>
+                    )}
+                </div>
+
                 {task.dueDate && (
                   <span className="text-xs text-muted-foreground">
                     Due:{" "}
@@ -307,37 +347,15 @@ export function ToDoList() {
                   </span>
                 )}
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-0.5 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleViewTask(task)}
-                  title="View Task"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleEditTask(task.id)}
-                  title="Edit Task"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => setTaskToDelete(task.id)}
-                  title="Delete Task"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+            </div>
+              
+              {/* Task action buttons */}
+              <TaskActions
+                onView={() => handleViewTask(task)}
+                onEdit={() => handleEditTask(task.id)}
+                onDelete={() => setTaskToDelete(task.id)}
+              />
+              
             </div>
           ))
         )}
@@ -447,6 +465,37 @@ export function ToDoList() {
                   />
                 </div>
 
+                {/* Task Duration */}
+                <div className="grid gap-2">
+                  <Label>Time Estimate</Label>
+                  <div className="flex gap-2">
+                    {/* Hours Selector */}
+                    <Select value={durationHours} onValueChange={setDurationHours}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Hours" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...Array(9)].map((_, i) => (
+                          <SelectItem key={i} value={i.toString()}>{i}h</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Minutes Selector */}
+                    <Select value={durationMinutes} onValueChange={setDurationMinutes}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Mins" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["0", "5", "10", "15", "20", "25", "30", "35", "45", "50", "55"].map((m) => (
+                          <SelectItem key={m} value={m}>{m}m</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                  </div>
+                </div>
+
                 {/* Task Priority */}
 
                 <div className="grid gap-2">
@@ -554,6 +603,16 @@ export function ToDoList() {
                 >
                   {viewTask?.priority}
                 </span>
+              </p>
+            </div>
+
+            {/* Duration */}
+            <div>
+              <Label className="text-sm font-medium">Estimated Time</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                {viewTask?.duration > 0
+                ? `${Math.floor(viewTask.duration / 60)}h ${viewTask.duration % 60}m`
+                : "No estimate set"}
               </p>
             </div>
 
