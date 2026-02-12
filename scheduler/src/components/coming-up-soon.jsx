@@ -8,61 +8,76 @@ import {
   CardTitle,
 } from "@/src/components/ui/card";
 import { Calendar } from "lucide-react";
-
 import { TaskActions } from "@/src/components/task-actions";
 
-export function ComingSoonCard() {
-  const [tasks, setTasks] = React.useState([]);
+export function ComingUpSoon({ userId }) {
+  // 1. State (variables that can change)
+  // Tasks
+  // Loading status
+  const [tasks, setTasks] = React.useState([]); // starts empty
+  const [isLoading, setIsLoading] = React.useState(true); // starts loading
 
-  // Load tasks from localStorage
-  // Load tasks from localStorage and listen for changes
+  // 2. Effects (code that runs when component loads)
+  // When should we fetch the tasks? as soon as the component loads
+  // This runs when the component loads
   React.useEffect(() => {
-    const loadTasks = () => {
-      if (typeof window !== "undefined") {
-        const savedTasks = localStorage.getItem("todo-tasks");
-        if (savedTasks) {
-          setTasks(JSON.parse(savedTasks));
-        }
+    fetchTasks();
+  }, [userId]); // Run again if userId changes
+
+  const fetchTasks = async () => {
+    try {
+      // 1. Start loading
+      setIsLoading(true);
+
+      // 2. Call API
+      // get the package
+      const res = await fetch(`/api/tasks?userId=${userId}`);
+
+      // 3. Save response
+      // open the package
+      const data = await res.json();
+      if (data.tasks) {
+        // if tasks already exists
+        setTasks(data.tasks);
       }
-    };
+    } catch (error) {
+      // Handle errors
+      console.error("Failed to fetch tasks:", error);
+    } finally {
+      // Always stop loading
+      setIsLoading(false);
+    }
+  };
 
-    // Load initially
-    loadTasks();
-
-    // Listen for storage events (when localStorage changes in another tab/window)
-    window.addEventListener("storage", loadTasks);
-
-    // Poll for changes every 2 seconds (for same-page updates)
-    const interval = setInterval(loadTasks, 2000);
-
-    return () => {
-      window.removeEventListener("storage", loadTasks);
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Helper: Check if a task is coming up soon (due within next 7 days)
+  // 3. Functions (actions/logic)
   const isComingSoon = (task) => {
-    const dateValue = task.dueDate || task.due;
-    if (!dateValue) return false;
-
-    if (task.status === "completed" || task.completed === true) return false;
-
+    // check if a task is coming up
+    if (task.status === "completed") {
+      return false;
+    }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(dateValue);
-
+    const dueDate = new Date(task.dueDate);
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
 
     return dueDate >= today && dueDate <= sevenDaysFromNow;
   };
 
-  // Filter for coming soon tasks
   const comingSoonTasks = tasks
-  .filter((task) => isComingSoon(task))
-  .sort((a, b) => new Date(a.dueDate || a.due)- new Date(b.dueDate || b.due));
+    .filter((t) => isComingSoon(t))
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
+  // 4. Return (what shows on screen)
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -77,42 +92,39 @@ export function ComingSoonCard() {
           <p className="text-sm text-muted-foreground">No tasks due soon</p>
         ) : (
           <div className="space-y-3">
-            {comingSoonTasks.map((task) => {
-              const displayDate = task.dueDate || task.due;
-
-              return (
-                <div
+            {comingSoonTasks.map((task) => (
+              <div
                 key={task.id}
-                className="flex items-start justify-between border-b pb-2 last:border-0">
+                className="flex items-start justify-between border-b pb-2 last:border-0"
+              >
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{task.name || task.text || "Untitled Task"}</p>
+                  <p className="text-sm font-medium">{task.title}</p>
                   <p className="text-xs text-muted-foreground">
                     Due:{" "}
-                    {new Date(displayDate).toLocaleDateString("en-GB", {
+                    {new Date(task.dueDate).toLocaleDateString("en-GB", {
                       month: "short",
                       day: "numeric",
                     })}
                   </p>
                 </div>
-
-               {/* Task action buttons */}
                 <TaskActions
                   onView={() => console.log("View:", task.id)}
                   onEdit={() => console.log("Edit", task.id)}
                   onDelete={() => console.log("Delete:", task.id)}
                 />
-                
-
-                {/* Priority badge */}
-                <span className={`text-xs px-2 py-1 rounded bg-muted ${
-                  task.priority === "High" ? "bg-red-100 text-red-700" :
-                  task.priority === "Medium" ? "bg-orange-100 text-orange-700" :
-                  "bg-blue-100 text-blue-700"}`}>
-                    {task.priority}
+                <span
+                  className={`text-xs px-2 py-1 rounded ${
+                    task.priority === "High"
+                      ? "bg-red-100 text-red-700"
+                      : task.priority === "Medium"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {task.priority}
                 </span>
               </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </CardContent>
