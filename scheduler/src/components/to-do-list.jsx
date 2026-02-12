@@ -48,7 +48,7 @@ import { TaskActions } from "@/src/components/task-actions";
 export const description = "An interactive area chart";
 
 // Main To-Do List Component
-export function ToDoList() {
+export function ToDoList({ userId }) {
   // ==================== STATE MANAGEMENT ====================
 
   // Task data
@@ -64,6 +64,7 @@ export function ToDoList() {
   const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
   const [durationHours, setDurationHours] = React.useState("0");
   const [durationMinutes, setDurationMinutes] = React.useState("0");
+  const [isLoading, setIsLoading] = React.useState(true);
 
   // View task state
   const [viewTask, setViewTask] = React.useState(null);
@@ -73,17 +74,29 @@ export function ToDoList() {
 
   // Auto save logic (while database is not setup yet)
   React.useEffect(() => {
-    if (tasks.length > 0) {
-      localStorage.setItem("todo-tasks", JSON.stringify(tasks));
-      window.dispatchEvent(new Event("storage"));
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/tasks?userId=${userId}`);
+      const data = await res.json();
+      if (data.tasks) {
+        setTasks(data.tasks);
+      }
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
     }
-  }, [tasks])
+  };
 
   // ==================== HANDLER FUNCTIONS ====================
 
   // Handler: Create or update a task
-  const handleSubmitTask = () => {
-    const totalMinutes = (parseInt(durationHours) * 60) + parseInt(durationMinutes);
+  const handleSubmitTask = async () => {
+    const totalMinutes =
+      parseInt(durationHours) * 60 + parseInt(durationMinutes);
 
     // Validate that task name is not empty
     if (!newTaskName.trim()) {
@@ -91,63 +104,77 @@ export function ToDoList() {
       return;
     }
 
-    if (editingTaskId !== null) {
-      // EDIT MODE: Update existing task
-      const updatedTasks = tasks.map((task) =>
-        task.id === editingTaskId
-          ? {
-              ...task,
-              name: newTaskName,
-              description: newTaskDescription,
-              subtasks: newTaskSubtasks
-                .split(",")
-                .map((s) => s.trim())
-                .filter((s) => s !== ""),
-              priority:
-                newTaskPriority === "Low"
-                  ? "Low"
-                  : newTaskPriority === "Medium"
-                  ? "Medium"
-                  : "High",
-              dueDate: newTaskDueDate || null,
-              duration: totalMinutes,
-            }
-          : task
-      );
-      setTasks(updatedTasks);
-      setEditingTaskId(null);
-    } else {
-      // CREATE MODE: Add new task
-      const newTask = {
-        id: tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1,
-        name: newTaskName,
-        priority:
-          newTaskPriority === "Low"
-            ? "Low"
-            : newTaskPriority === "Medium"
+    const subtasksArray = newTaskSubtasks
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+    const taskData = {
+      title: newTaskName,
+      description: newTaskDescription,
+      dueDate: newTaskDueDate || new Date().toISOString(),
+      priority:
+        newTaskPriority === "Low"
+          ? "Low"
+          : newTaskPriority === "Medium"
             ? "Medium"
             : "High",
-        description: newTaskDescription,
-        status: "todo",
-        subtasks: newTaskSubtasks
-          .split(",")
-          .map((s) => s.trim())
-          .filter((s) => s !== ""),
-        dueDate: newTaskDueDate || null,
-        duration: totalMinutes,
-      };
-      setTasks([...tasks, newTask]);
-    }
-    setNewTaskSubtasks("");
+      duration: totalMinutes,
+      subtasks: subtasksArray,
+      userId: userId,
+    };
 
-    // Reset form fields and close dialog
-    setNewTaskName("");
-    setNewTaskDescription("");
-    setNewTaskPriority("Low");
-    setNewTaskDueDate("");
-    setIsDialogOpen(false);
-    setDurationHours("0");
-    setDurationMinutes("0");
+    try {
+      if (editingTaskId !== null) {
+        // EDIT MODE
+        await fetch(`/api/tasks/${editingTaskId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(taskData),
+        });
+
+        setTasks(
+          tasks.map((task) =>
+            task.id === editingTaskId ? { ...task, ...taskData } : task,
+          ),
+        );
+        setEditingTaskId(null);
+      } else {
+        // CREATE MODE
+        const res = await fetch("/api/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(taskData),
+        });
+
+        // Check if the request was successful
+        if (!res.ok) {
+          const errorData = await res.json();
+          alert(`Failed to create task: ${errorData.error || "Unknown error"}`);
+          return; // Exit early - don't add to tasks
+        }
+
+        const data = await res.json();
+
+        // Only add to tasks if we got a valid task back
+        if (data.task && data.task.id) {
+          setTasks([...tasks, data.task]);
+        } else {
+          alert("Failed to create task - invalid response from server");
+          return;
+        }
+      }
+
+      setNewTaskName("");
+      setNewTaskDescription("");
+      setNewTaskPriority("Low");
+      setNewTaskDueDate("");
+      setNewTaskSubtasks("");
+      setIsDialogOpen(false);
+      setDurationHours("0");
+      setDurationMinutes("0");
+    } catch (error) {
+      alert("Failed to save task. Please try again.");
+    }
   };
 
   // Handler: Open edit dialog with task data
@@ -155,7 +182,7 @@ export function ToDoList() {
     const taskToEdit = tasks.find((task) => task.id === taskId);
     if (taskToEdit) {
       setEditingTaskId(taskId);
-      setNewTaskName(taskToEdit.name);
+      setNewTaskName(taskToEdit.title);
       setNewTaskDescription(taskToEdit.description);
       setNewTaskSubtasks(taskToEdit.subtasks?.join(", " || ""));
       // Convert priority from words back to symbols
@@ -163,8 +190,8 @@ export function ToDoList() {
         taskToEdit.priority === "Low"
           ? "Low"
           : taskToEdit.priority === "Medium"
-          ? "Medium"
-          : "High"
+            ? "Medium"
+            : "High",
       );
       setNewTaskDueDate(taskToEdit.dueDate || "");
       setIsDialogOpen(true);
@@ -180,15 +207,15 @@ export function ToDoList() {
   };
 
   // Handler: Confirm and delete a task
-  const confirmDeleteTask = () => {
+  const confirmDeleteTask = async () => {
     if (taskToDelete !== null) {
-      const updatedTasks = tasks.filter((task) => task.id !== taskToDelete);
-      setTasks(updatedTasks);
-
-      setTaskToDelete(null);
-
-      localStorage.setItem("todo-tasks", JSON.stringify(updatedTasks));
-      window.dispatchEvent(new Event("storage"));
+      try {
+        await fetch(`/api/tasks/${taskToDelete}`, { method: "DELETE" });
+        setTasks(tasks.filter((task) => task.id !== taskToDelete));
+        setTaskToDelete(null);
+      } catch (error) {
+        alert("Failed to delete task. Please try again.");
+      }
     }
   };
 
@@ -198,22 +225,37 @@ export function ToDoList() {
   };
 
   // Handler: Toggle task completion
-  const handleToggleComplete = (taskId) => {
-    const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        let nextStatus;
-        if (task.status === "todo") {
-          nextStatus = "in-progress";
-        } else if (task.status === "in-progress") {
-          nextStatus = "completed";
-        } else if (task.status === "completed") {
-          nextStatus = "in-progress";
-        }
-        return { ...task, status: nextStatus };
-      }
-      return task;
-    });
-    setTasks(updatedTasks);
+  const handleToggleComplete = async (taskId) => {
+    // search through the tasks array to find the specific task
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    let nextStatus;
+    if (task.status === "todo") {
+      nextStatus = "in-progress";
+    } else if (task.status === "in-progress") {
+      nextStatus = "completed";
+    } else if (task.status === "completed") {
+      nextStatus = "in-progress";
+    }
+
+    try {
+      await fetch(`/api/tasks/${taskId}`, {
+        //Sends a request to the API to update the task in the database
+        method: "PATCH", // Unlike PUT which replaces the whole thing, PATCH only changes what you specify
+        headers: { "Content-Type": "application/json" }, // Tells the server we're sending JSON data
+        body: JSON.stringify({ status: nextStatus }), // The data we're sending: an object with the new status
+        // JSON.stringify() converts the JavaScript object into a JSON string
+      });
+
+      setTasks(
+        tasks.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t)), // goes through each task.
+        // if the current task being looked at is the one we updated, create a copy of the task (...t) but with the new status
+        // if not, keep it the same (t)
+      );
+    } catch (error) {
+
+    }
   };
 
   // Handler: Sort tasks
@@ -249,19 +291,23 @@ export function ToDoList() {
 
   // Progress bar logic
   const totalTasks = tasks.length;
-  const completedCount = tasks.filter((task) => task.status === "completed").length;
-  const progressPercentage = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
-
+  const completedCount = tasks.filter(
+    (task) => (task.status || "todo") === "completed",
+  ).length;
+  const progressPercentage =
+    totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
   // Filter tasks by status and due date
   const overdueTasks = tasks.filter((task) => isOverdue(task));
   const todoTasks = tasks.filter(
-    (task) => task.status === "todo" && !isOverdue(task)
+    (task) => (task.status || "todo") === "todo" && !isOverdue(task),
   );
   const inProgressTasks = tasks.filter(
-    (task) => task.status === "in-progress" && !isOverdue(task)
+    (task) => (task.status || "todo") === "in-progress" && !isOverdue(task),
   );
-  const completedTasks = tasks.filter((task) => task.status === "completed");
+  const completedTasks = tasks.filter(
+    (task) => (task.status || "todo") === "completed",
+  );
 
   // Render Task Columns
   const renderTaskColumn = (Title, taskList, status) => (
@@ -319,43 +365,44 @@ export function ToDoList() {
                         : ""
                     }`}
                   >
-                    {task.name}
+                    {task.title}
                   </span>
                   <span
-                    className={
-                      `text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}>
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}
+                  >
                     {task.priority}
                   </span>
                 </div>
-                
+
                 <div className="flex flex-col gap-1">
                   <div className="flex gap-2 items-center">
                     {task.duration > "0" && (
                       <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        {task.duration < 60 ? `${task.duration}m` : `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`}
+                        {task.duration < 60
+                          ? `${task.duration}m`
+                          : `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`}
                       </span>
                     )}
-                </div>
+                  </div>
 
-                {task.dueDate && (
-                  <span className="text-xs text-muted-foreground">
-                    Due:{" "}
-                    {new Date(task.dueDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                )}
+                  {task.dueDate && (
+                    <span className="text-xs text-muted-foreground">
+                      Due:{" "}
+                      {new Date(task.dueDate).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-              
+
               {/* Task action buttons */}
               <TaskActions
                 onView={() => handleViewTask(task)}
                 onEdit={() => handleEditTask(task.id)}
                 onDelete={() => setTaskToDelete(task.id)}
               />
-              
             </div>
           ))
         )}
@@ -364,6 +411,16 @@ export function ToDoList() {
   );
 
   // ==================== RENDER ====================
+
+  if (isLoading) {
+    return (
+      <Card className="@container/card">
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">Loading tasks...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="@container/card">
@@ -378,7 +435,9 @@ export function ToDoList() {
         <div className="mt-4 space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Task Completion</span>
-            <span className="font-medium text-foreground">{progressPercentage}%</span>
+            <span className="font-medium text-foreground">
+              {progressPercentage}%
+            </span>
           </div>
           <Progress value={progressPercentage} className="h-2" />
         </div>
@@ -470,29 +529,50 @@ export function ToDoList() {
                   <Label>Time Estimate</Label>
                   <div className="flex gap-2">
                     {/* Hours Selector */}
-                    <Select value={durationHours} onValueChange={setDurationHours}>
+                    <Select
+                      value={durationHours}
+                      onValueChange={setDurationHours}
+                    >
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Hours" />
                       </SelectTrigger>
                       <SelectContent>
                         {[...Array(9)].map((_, i) => (
-                          <SelectItem key={i} value={i.toString()}>{i}h</SelectItem>
+                          <SelectItem key={i} value={i.toString()}>
+                            {i}h
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
 
                     {/* Minutes Selector */}
-                    <Select value={durationMinutes} onValueChange={setDurationMinutes}>
+                    <Select
+                      value={durationMinutes}
+                      onValueChange={setDurationMinutes}
+                    >
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Mins" />
                       </SelectTrigger>
                       <SelectContent>
-                        {["0", "5", "10", "15", "20", "25", "30", "35", "45", "50", "55"].map((m) => (
-                          <SelectItem key={m} value={m}>{m}m</SelectItem>
+                        {[
+                          "0",
+                          "5",
+                          "10",
+                          "15",
+                          "20",
+                          "25",
+                          "30",
+                          "35",
+                          "45",
+                          "50",
+                          "55",
+                        ].map((m) => (
+                          <SelectItem key={m} value={m}>
+                            {m}m
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-
                   </div>
                 </div>
 
@@ -580,7 +660,7 @@ export function ToDoList() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{viewTask?.name}</DialogTitle>
+            <DialogTitle>{viewTask?.title}</DialogTitle>
             <DialogDescription>Task Details</DialogDescription>
           </DialogHeader>
 
@@ -598,8 +678,7 @@ export function ToDoList() {
               <Label className="text-sm font-medium">Priority</Label>
               <p className="text-sm mt-1">
                 <span
-                  className={
-                    `text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(viewTask?.priority)}`}
+                  className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(viewTask?.priority)}`}
                 >
                   {viewTask?.priority}
                 </span>
@@ -611,8 +690,8 @@ export function ToDoList() {
               <Label className="text-sm font-medium">Estimated Time</Label>
               <p className="text-sm text-muted-foreground mt-1">
                 {viewTask?.duration > 0
-                ? `${Math.floor(viewTask.duration / 60)}h ${viewTask.duration % 60}m`
-                : "No estimate set"}
+                  ? `${Math.floor(viewTask.duration / 60)}h ${viewTask.duration % 60}m`
+                  : "No estimate set"}
               </p>
             </div>
 

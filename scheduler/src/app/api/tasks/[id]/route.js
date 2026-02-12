@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/src/lib/prisma";
 
 // Delete task
 export async function DELETE(request, { params }) {
   try {
+    const { id } = await params;
     await prisma.task.delete({
-      where: { id: params.id },
+      where: { id },
     });
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -19,6 +20,7 @@ export async function DELETE(request, { params }) {
 // patch (update) task
 export async function PATCH(request, { params }) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
     // build update data object
@@ -28,10 +30,14 @@ export async function PATCH(request, { params }) {
       updateData.description = body.description;
     if (body.dueDate !== undefined) updateData.dueDate = new Date(body.dueDate);
     if (body.completed !== undefined) updateData.completed = body.completed;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.priority !== undefined) updateData.priority = body.priority;
+    if (body.duration !== undefined) updateData.duration = body.duration;
+    if (body.subtasks !== undefined) updateData.subtasks = body.subtasks;
 
     const task = await prisma.task.update({
-      where: { id: params.id },
-      data: updatedTask,
+      where: { id },
+      data: updateData,
     });
     return NextResponse.json({ task });
   } catch (error) {

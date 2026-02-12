@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"; //used to send HTTP responses back to the client (like JSON data or error messages)
-import prisma from "@/lib/prisma"; //This gives you access to interact with your MongoDB database
+import prisma from "@/src/lib/prisma"; //This gives you access to interact with your MongoDB database
 
 // Get all tasks for a user
 // In Next.js API routes, functions named GET, POST, DELETE, etc. automatically handle those HTTP methods
@@ -15,7 +15,7 @@ export async function GET(request) {
     }
 
     // Queries the database to get multiple tasks. prisma.task refers to your Task table in MongoDB
-    const tasks = await prisma.tasks.findMany({
+    const tasks = await prisma.task.findMany({
       where: { userId }, // only get the tasks where the userId field matches. each user sees their own tasks.
       orderBy: { createdAt: "desc" }, // orders tasks so that the newest tasks are first
     });
@@ -33,19 +33,30 @@ export async function GET(request) {
 // Post new task
 export async function POST(request) {
   try {
-    const body = await request.json(); // extracts the JSON data sent in the request body. body now contains the contents of a task
+    const body = await request.json();
+    console.log("=== POST REQUEST ===");
+    console.log("Full body:", JSON.stringify(body, null, 2));
+    
     const task = await prisma.task.create({
-      // creates a new task in the database. prisma.task.create() inserts a new record in the tabele.
       data: {
         title: body.title,
         description: body.description,
         dueDate: new Date(body.dueDate),
-        userId: body.userId, // sets which user owns this task
+        userId: body.userId,
         completed: false,
+        priority: body.priority || "Low",
+        duration: body.duration || 0,
+        subtasks: body.subtasks || [],
       },
     });
+    
+    console.log("=== TASK CREATED ===");
+    console.log("Task:", JSON.stringify(task, null, 2));
     return NextResponse.json({ task });
   } catch (error) {
+    console.error("=== ERROR ===");
+    console.error("Error:", error);
+    console.error("Error message:", error.message);
     return NextResponse.json(
       { error: "Failed to create task" },
       { status: 500 },
