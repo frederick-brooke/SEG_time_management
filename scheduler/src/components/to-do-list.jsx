@@ -1,8 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "components/ui/input";
-import { Label } from "components/ui/label";
 import { Progress } from "components/ui/progress";
 import {
   Card,
@@ -12,270 +10,42 @@ import {
   CardHeader,
   CardTitle,
 } from "components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "components/ui/select";
 import { Button } from "components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "components/ui/toggle-group";
-import { Checkbox } from "components/ui/checkbox";
-import { Eye, Pencil, Trash2 } from "lucide-react";
-import { $brand } from "zod";
-import { TaskActions } from "@/src/components/task-actions";
+import { TaskColumn } from "./tasks/TaskColumn";
+import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskViewDialog } from "./tasks/TaskViewDialog";
+import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
+import { useTasks } from "@/src/hooks/useTasks";
 
-export const description = "An interactive area chart";
-
-// Main To-Do List Component
 export function ToDoList({ userId }) {
-  // ==================== STATE MANAGEMENT ====================
+  const {
+    tasks,
+    isLoading,
+    createTask,
+    updateTask,
+    deleteTask,
+    toggleTaskStatus,
+    sortTasks,
+  } = useTasks(userId);
 
-  // Task data
-  const [tasks, setTasks] = React.useState([]);
-
-  // Create/Edit task form state
-  const [newTaskName, setNewTaskName] = React.useState("");
-  const [newTaskDescription, setNewTaskDescription] = React.useState("");
-  const [newTaskPriority, setNewTaskPriority] = React.useState("!");
-  const [newTaskDueDate, setNewTaskDueDate] = React.useState("");
+  // Form state
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [newTaskSubtasks, setNewTaskSubtasks] = React.useState("");
-  const [editingTaskId, setEditingTaskId] = React.useState(null); // null = create mode, number = edit mode
-  const [durationHours, setDurationHours] = React.useState("0");
-  const [durationMinutes, setDurationMinutes] = React.useState("0");
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [editingTaskId, setEditingTaskId] = React.useState(null);
+  const [formData, setFormData] = React.useState({
+    name: "",
+    description: "",
+    dueDate: "",
+    subtasks: "",
+    durationHours: "0",
+    durationMinutes: "0",
+    priority: "Low",
+  });
 
-  // View task state
+  // View/Delete state
   const [viewTask, setViewTask] = React.useState(null);
-
-  // Delete task state
   const [taskToDelete, setTaskToDelete] = React.useState(null);
 
-  // Auto save logic (while database is not setup yet)
-  React.useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/tasks?userId=${userId}`);
-      const data = await res.json();
-      if (data.tasks) {
-        setTasks(data.tasks);
-      }
-    } catch (error) {
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ==================== HANDLER FUNCTIONS ====================
-
-  // Handler: Create or update a task
-  const handleSubmitTask = async () => {
-    const totalMinutes =
-      parseInt(durationHours) * 60 + parseInt(durationMinutes);
-
-    // Validate that task name is not empty
-    if (!newTaskName.trim()) {
-      alert("Please enter a task name.");
-      return;
-    }
-
-    const subtasksArray = newTaskSubtasks
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
-    const taskData = {
-      title: newTaskName,
-      description: newTaskDescription,
-      dueDate: newTaskDueDate || new Date().toISOString(),
-      priority:
-        newTaskPriority === "Low"
-          ? "Low"
-          : newTaskPriority === "Medium"
-            ? "Medium"
-            : "High",
-      duration: totalMinutes,
-      subtasks: subtasksArray,
-      userId: userId,
-    };
-
-    try {
-      if (editingTaskId !== null) {
-        // EDIT MODE
-        await fetch(`/api/tasks/${editingTaskId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(taskData),
-        });
-
-        setTasks(
-          tasks.map((task) =>
-            task.id === editingTaskId ? { ...task, ...taskData } : task,
-          ),
-        );
-        setEditingTaskId(null);
-      } else {
-        // CREATE MODE
-        const res = await fetch("/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(taskData),
-        });
-
-        // Check if the request was successful
-        if (!res.ok) {
-          const errorData = await res.json();
-          alert(`Failed to create task: ${errorData.error || "Unknown error"}`);
-          return; // Exit early - don't add to tasks
-        }
-
-        const data = await res.json();
-
-        // Only add to tasks if we got a valid task back
-        if (data.task && data.task.id) {
-          setTasks([...tasks, data.task]);
-        } else {
-          alert("Failed to create task - invalid response from server");
-          return;
-        }
-      }
-
-      setNewTaskName("");
-      setNewTaskDescription("");
-      setNewTaskPriority("Low");
-      setNewTaskDueDate("");
-      setNewTaskSubtasks("");
-      setIsDialogOpen(false);
-      setDurationHours("0");
-      setDurationMinutes("0");
-    } catch (error) {
-      alert("Failed to save task. Please try again.");
-    }
-  };
-
-  // Handler: Open edit dialog with task data
-  const handleEditTask = (taskId) => {
-    const taskToEdit = tasks.find((task) => task.id === taskId);
-    if (taskToEdit) {
-      setEditingTaskId(taskId);
-      setNewTaskName(taskToEdit.title);
-      setNewTaskDescription(taskToEdit.description);
-      setNewTaskSubtasks(taskToEdit.subtasks?.join(", " || ""));
-      // Convert priority from words back to symbols
-      setNewTaskPriority(
-        taskToEdit.priority === "Low"
-          ? "Low"
-          : taskToEdit.priority === "Medium"
-            ? "Medium"
-            : "High",
-      );
-      setNewTaskDueDate(taskToEdit.dueDate || "");
-      setIsDialogOpen(true);
-      const mins = taskToEdit.duration || 0;
-      setDurationHours(Math.floor(mins / 60).toString());
-      setDurationMinutes((mins % 60).toString());
-    }
-  };
-
-  // Handler: View task details
-  const handleViewTask = (task) => {
-    setViewTask(task);
-  };
-
-  // Handler: Confirm and delete a task
-  const confirmDeleteTask = async () => {
-    if (taskToDelete !== null) {
-      try {
-        await fetch(`/api/tasks/${taskToDelete}`, { method: "DELETE" });
-        setTasks(tasks.filter((task) => task.id !== taskToDelete));
-        setTaskToDelete(null);
-      } catch (error) {
-        alert("Failed to delete task. Please try again.");
-      }
-    }
-  };
-
-  // Handler: Cancel delete action
-  const cancelDelete = () => {
-    setTaskToDelete(null);
-  };
-
-  // Handler: Toggle task completion
-  const handleToggleComplete = async (taskId) => {
-    // search through the tasks array to find the specific task
-    const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
-
-    let nextStatus;
-    if (task.status === "todo") {
-      nextStatus = "in-progress";
-    } else if (task.status === "in-progress") {
-      nextStatus = "completed";
-    } else if (task.status === "completed") {
-      nextStatus = "in-progress";
-    }
-
-    try {
-      await fetch(`/api/tasks/${taskId}`, {
-        //Sends a request to the API to update the task in the database
-        method: "PATCH", // Unlike PUT which replaces the whole thing, PATCH only changes what you specify
-        headers: { "Content-Type": "application/json" }, // Tells the server we're sending JSON data
-        body: JSON.stringify({ status: nextStatus }), // The data we're sending: an object with the new status
-        // JSON.stringify() converts the JavaScript object into a JSON string
-      });
-
-      setTasks(
-        tasks.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t)), // goes through each task.
-        // if the current task being looked at is the one we updated, create a copy of the task (...t) but with the new status
-        // if not, keep it the same (t)
-      );
-    } catch (error) {
-
-    }
-  };
-
-  // Handler: Sort tasks
-  const handleSort = () => {
-    const priorityMap = { High: 3, Medium: 2, Low: 1 };
-    const sortedByPriority = [...tasks].sort((a, b) => {
-      return priorityMap[b.priority] - priorityMap[a.priority];
-    });
-    setTasks(sortedByPriority);
-  };
-  // Helper: Check if a task is overdue
-  const isOverdue = (task) => {
-    if (!task.dueDate || task.status === "completed") return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day
-    const dueDate = new Date(task.dueDate);
-    return dueDate < today;
-  };
-
-  // Helper: Colour code priorities on tasks
+  // Helper functions
   const getPriorityStyle = (priority) => {
     switch (priority) {
       case "High":
@@ -289,15 +59,97 @@ export function ToDoList({ userId }) {
     }
   };
 
-  // Progress bar logic
-  const totalTasks = tasks.length;
-  const completedCount = tasks.filter(
-    (task) => (task.status || "todo") === "completed",
-  ).length;
-  const progressPercentage =
-    totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+  const isOverdue = (task) => {
+    if (!task.dueDate || task.status === "completed") return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(task.dueDate);
+    return dueDate < today;
+  };
 
-  // Filter tasks by status and due date
+  const handleFormChange = (updates) => {
+    setFormData((prev) => ({ ...prev, ...updates }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      description: "",
+      dueDate: "",
+      subtasks: "",
+      durationHours: "0",
+      durationMinutes: "0",
+      priority: "Low",
+    });
+    setEditingTaskId(null);
+  };
+
+  const handleSubmitTask = async () => {
+    if (!formData.name.trim()) {
+      alert("Please enter a task name.");
+      return;
+    }
+
+    const totalMinutes =
+      parseInt(formData.durationHours) * 60 +
+      parseInt(formData.durationMinutes);
+    const subtasksArray = formData.subtasks
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+
+    const taskData = {
+      title: formData.name,
+      description: formData.description,
+      dueDate: formData.dueDate || new Date().toISOString(),
+      priority: formData.priority,
+      duration: totalMinutes,
+      subtasks: subtasksArray,
+      userId: userId,
+    };
+
+    try {
+      if (editingTaskId !== null) {
+        await updateTask(editingTaskId, taskData);
+      } else {
+        await createTask(taskData);
+      }
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      alert(`Failed to save task: ${error.message}`);
+    }
+  };
+
+  const handleEditTask = (taskId) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (task) {
+      setEditingTaskId(taskId);
+      setFormData({
+        name: task.title,
+        description: task.description,
+        dueDate: task.dueDate || "",
+        subtasks: task.subtasks?.join(", ") || "",
+        durationHours: Math.floor((task.duration || 0) / 60).toString(),
+        durationMinutes: ((task.duration || 0) % 60).toString(),
+        priority: task.priority,
+      });
+      setIsDialogOpen(true);
+    }
+  };
+
+  const confirmDeleteTask = async () => {
+    if (taskToDelete) {
+      try {
+        await deleteTask(taskToDelete);
+        setTaskToDelete(null);
+      } catch (error) {
+        alert("Failed to delete task.");
+      }
+    }
+  };
+
+  // Filter tasks
   const overdueTasks = tasks.filter((task) => isOverdue(task));
   const todoTasks = tasks.filter(
     (task) => (task.status || "todo") === "todo" && !isOverdue(task),
@@ -309,108 +161,10 @@ export function ToDoList({ userId }) {
     (task) => (task.status || "todo") === "completed",
   );
 
-  // Render Task Columns
-  const renderTaskColumn = (Title, taskList, status) => (
-    <div
-      className={`flex-1 min-w-[300px] rounded-lg border p-4 ${
-        status === "overdue"
-          ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900"
-          : "bg-muted/20"
-      }`}
-    >
-      {/* column header */}
-      <div className="mb-4 pb-3 border-b">
-        <h3 className="font-semibold text-base">{Title}</h3>
-        <p className="text-xs text-muted-foreground mt-1">
-          {taskList.length} {taskList.list === 1 ? "task" : "tasks"}
-        </p>
-      </div>
-
-      {/* Task List */}
-      <div className="space-y-3">
-        {taskList.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">
-            No tasks
-          </div>
-        ) : (
-          taskList.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-center gap-2 rounded-lg border p-2.5 bg-card shadow-sm hover:shadow-md transition-shadow"
-            >
-              {/* Drag Handle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 cursor-grab shrink-0"
-              >
-                <span className="text-muted-foreground text-sm">⋮⋮</span>
-              </Button>
-
-              {/* Checkbox */}
-              <Checkbox
-                id={`task-${task.id}`}
-                checked={task.status === "completed"}
-                onCheckedChange={() => handleToggleComplete(task.id)}
-                className="shrink-0 h-4 w-4"
-              />
-
-              {/* Task info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col gap-1">
-                  <span
-                    className={`text-sm font-medium truncate ${
-                      task.status === "completed"
-                        ? "line-through text-muted-foreground"
-                        : ""
-                    }`}
-                  >
-                    {task.title}
-                  </span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${getPriorityStyle(task.priority)}`}
-                  >
-                    {task.priority}
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <div className="flex gap-2 items-center">
-                    {task.duration > "0" && (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        {task.duration < 60
-                          ? `${task.duration}m`
-                          : `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`}
-                      </span>
-                    )}
-                  </div>
-
-                  {task.dueDate && (
-                    <span className="text-xs text-muted-foreground">
-                      Due:{" "}
-                      {new Date(task.dueDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Task action buttons */}
-              <TaskActions
-                onView={() => handleViewTask(task)}
-                onEdit={() => handleEditTask(task.id)}
-                onDelete={() => setTaskToDelete(task.id)}
-              />
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-
-  // ==================== RENDER ====================
+  const totalTasks = tasks.length;
+  const completedCount = completedTasks.length;
+  const progressPercentage =
+    totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
   if (isLoading) {
     return (
@@ -424,14 +178,10 @@ export function ToDoList({ userId }) {
 
   return (
     <Card className="@container/card">
-      {/* ========== CARD HEADER ========== */}
       <CardHeader>
         <CardTitle>TO DO LIST</CardTitle>
-        <CardDescription>
-          <span>Get ahead of your tasks!</span>
-        </CardDescription>
+        <CardDescription>Get ahead of your tasks!</CardDescription>
 
-        {/* Progress Bar */}
         <div className="mt-4 space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Task Completion</span>
@@ -442,293 +192,84 @@ export function ToDoList({ userId }) {
           <Progress value={progressPercentage} className="h-2" />
         </div>
 
-        {/* Action Buttons */}
         <CardAction className="flex gap-2">
-          <Button onClick={handleSort}>Sort</Button>
-
-          {/* Create/Edit Task Dialog */}
-          <Dialog
-            open={isDialogOpen}
+          <Button onClick={sortTasks}>Sort</Button>
+          <TaskFormDialog
+            isOpen={isDialogOpen}
             onOpenChange={(open) => {
               setIsDialogOpen(open);
-              // Reset form when dialog closes
-              if (!open) {
-                setEditingTaskId(null);
-                setNewTaskName("");
-                setNewTaskDescription("");
-                setNewTaskPriority("!");
-                setNewTaskDueDate("");
-              }
+              if (!open) resetForm();
             }}
-          >
-            <DialogTrigger asChild>
-              <Button>New</Button>
-            </DialogTrigger>
-
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTaskId !== null ? "Edit Task" : "Create New Task"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingTaskId !== null
-                    ? "Update the task details below"
-                    : "Add a new task to your list"}
-                </DialogDescription>
-              </DialogHeader>
-
-              {/* Task Form */}
-              <div className="grid gap-4 py-4">
-                {/* Task Name */}
-                <div className="grid gap-2">
-                  <Label htmlFor="task-name">Task Name</Label>
-                  <Input
-                    id="task-name"
-                    placeholder="Enter task name"
-                    value={newTaskName}
-                    onChange={(e) => setNewTaskName(e.target.value)}
-                  />
-                </div>
-
-                {/* Task Description */}
-                <div className="grid gap-2">
-                  <Label htmlFor="task-description">Task Description</Label>
-                  <Input
-                    id="task-description"
-                    placeholder="Enter task description"
-                    value={newTaskDescription}
-                    onChange={(e) => setNewTaskDescription(e.target.value)}
-                  />
-                </div>
-
-                {/* Task Due Date */}
-                <div className="grid gap-2">
-                  <Label htmlFor="task-due-date">Due Date</Label>
-                  <Input
-                    id="task-due-date"
-                    type="date"
-                    value={newTaskDueDate}
-                    onChange={(e) => setNewTaskDueDate(e.target.value)}
-                  />
-                </div>
-
-                {/* Task Subtasks */}
-
-                <div className="grid gap-2">
-                  <Label htmlFor="subtasks">Subtasks (comma separated)</Label>
-                  <Input
-                    id="subtasks"
-                    placeholder="e.g. Research, Edit"
-                    value={newTaskSubtasks}
-                    onChange={(e) => setNewTaskSubtasks(e.target.value)}
-                  />
-                </div>
-
-                {/* Task Duration */}
-                <div className="grid gap-2">
-                  <Label>Time Estimate</Label>
-                  <div className="flex gap-2">
-                    {/* Hours Selector */}
-                    <Select
-                      value={durationHours}
-                      onValueChange={setDurationHours}
-                    >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Hours" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[...Array(9)].map((_, i) => (
-                          <SelectItem key={i} value={i.toString()}>
-                            {i}h
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Minutes Selector */}
-                    <Select
-                      value={durationMinutes}
-                      onValueChange={setDurationMinutes}
-                    >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Mins" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          "0",
-                          "5",
-                          "10",
-                          "15",
-                          "20",
-                          "25",
-                          "30",
-                          "35",
-                          "45",
-                          "50",
-                          "55",
-                        ].map((m) => (
-                          <SelectItem key={m} value={m}>
-                            {m}m
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Task Priority */}
-
-                <div className="grid gap-2">
-                  <Label htmlFor="task-priority">Task Priority</Label>
-                  <ToggleGroup
-                    variant="outline"
-                    type="single"
-                    value={newTaskPriority}
-                    onValueChange={(value) => setNewTaskPriority(value)}
-                  >
-                    <ToggleGroupItem value="Low" aria-label="Low Priority">
-                      Low
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="Medium"
-                      aria-label="Medium Priority"
-                    >
-                      Medium
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="High" aria-label="High Priority">
-                      High
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <DialogFooter>
-                <Button type="button" onClick={handleSubmitTask}>
-                  {editingTaskId !== null ? "Update Task" : "Create Task"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            editingTaskId={editingTaskId}
+            formData={formData}
+            onFormChange={handleFormChange}
+            onSubmit={handleSubmitTask}
+          />
         </CardAction>
       </CardHeader>
 
-      {/* ========== CARD CONTENT: TASK LIST ========== */}
       <CardContent className="px-4">
         {tasks.length === 0 ? (
-          /* Empty State */
           <div className="text-center py-8 text-muted-foreground">
             <p>No tasks yet. Click "New" to create your first task!</p>
           </div>
         ) : (
-          /* Four coloumn layout */
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {renderTaskColumn("To Do", todoTasks, "todo")}
-            {renderTaskColumn("In Progress", inProgressTasks, "in-progress")}
-            {renderTaskColumn("Completed", completedTasks, "completed")}
-            {renderTaskColumn("Overdue", overdueTasks, "overdue")}
+            <TaskColumn
+              title="To Do"
+              tasks={todoTasks}
+              status="todo"
+              onToggle={toggleTaskStatus}
+              onView={setViewTask}
+              onEdit={handleEditTask}
+              onDelete={setTaskToDelete}
+              getPriorityStyle={getPriorityStyle}
+            />
+            <TaskColumn
+              title="In Progress"
+              tasks={inProgressTasks}
+              status="in-progress"
+              onToggle={toggleTaskStatus}
+              onView={setViewTask}
+              onEdit={handleEditTask}
+              onDelete={setTaskToDelete}
+              getPriorityStyle={getPriorityStyle}
+            />
+            <TaskColumn
+              title="Completed"
+              tasks={completedTasks}
+              status="completed"
+              onToggle={toggleTaskStatus}
+              onView={setViewTask}
+              onEdit={handleEditTask}
+              onDelete={setTaskToDelete}
+              getPriorityStyle={getPriorityStyle}
+            />
+            <TaskColumn
+              title="Overdue"
+              tasks={overdueTasks}
+              status="overdue"
+              onToggle={toggleTaskStatus}
+              onView={setViewTask}
+              onEdit={handleEditTask}
+              onDelete={setTaskToDelete}
+              getPriorityStyle={getPriorityStyle}
+            />
           </div>
         )}
       </CardContent>
 
-      {/* ========== DELETE CONFIRMATION DIALOG ========== */}
-      <AlertDialog
-        open={taskToDelete !== null}
-        onOpenChange={(open) => !open && cancelDelete()}
-      >
-        <AlertDialogContent className="sm:max-w-sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this task. This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTask}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* ========== VIEW TASK DIALOG ========== */}
-      <Dialog
-        open={viewTask !== null}
-        onOpenChange={(open) => !open && setViewTask(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{viewTask?.title}</DialogTitle>
-            <DialogDescription>Task Details</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {/* Description */}
-            <div>
-              <Label className="text-sm font-medium">Description</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                {viewTask?.description || "No description provided"}
-              </p>
-            </div>
-
-            {/* Priority */}
-            <div>
-              <Label className="text-sm font-medium">Priority</Label>
-              <p className="text-sm mt-1">
-                <span
-                  className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(viewTask?.priority)}`}
-                >
-                  {viewTask?.priority}
-                </span>
-              </p>
-            </div>
-
-            {/* Duration */}
-            <div>
-              <Label className="text-sm font-medium">Estimated Time</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                {viewTask?.duration > 0
-                  ? `${Math.floor(viewTask.duration / 60)}h ${viewTask.duration % 60}m`
-                  : "No estimate set"}
-              </p>
-            </div>
-
-            {/* Due Date */}
-            <div>
-              <Label className="text-sm font-medium">Due Date</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                {viewTask?.dueDate
-                  ? new Date(viewTask.dueDate).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : "No due date set"}
-              </p>
-            </div>
-
-            {/* Subtasks */}
-            <div>
-              <Label className="text-sm font-medium">Subtasks</Label>
-              <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
-                {viewTask?.subtasks?.length > 0 ? (
-                  viewTask.subtasks.map((sub, index) => (
-                    <li key={index}>{sub}</li>
-                  ))
-                ) : (
-                  <li>No subtasks</li>
-                )}
-              </ul>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button onClick={() => setViewTask(null)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteTaskDialog
+        isOpen={taskToDelete !== null}
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setTaskToDelete(null)}
+      />
+      <TaskViewDialog
+        task={viewTask}
+        isOpen={viewTask !== null}
+        onClose={() => setViewTask(null)}
+        getPriorityStyle={getPriorityStyle}
+      />
     </Card>
   );
 }
