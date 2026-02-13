@@ -1,13 +1,13 @@
-export default function UserModal({ user, onClose }) {
+export default function UserPanel({ user, onClose }) {
   if (!user) return null;
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
       onClick={onClose} // click outside closes
     >
       <div
-        className="bg-white p-6 rounded shadow-lg w-96 relative"
+        className="p-6"
         onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
       >
         <h3 className="text-xl font-semibold mb-4">
