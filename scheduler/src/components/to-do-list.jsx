@@ -21,31 +21,25 @@ export function ToDoList({ userId }) {
   const {
     tasks,
     isLoading,
-    createTask,
-    updateTask,
-    deleteTask,
+    isDialogOpen,
+    setIsDialogOpen,
+    editingTaskId,
+    formData,
+    viewTask,
+    setViewTask,
+    taskToDelete,
     toggleTaskStatus,
     sortTasks,
+    handleFormChange,
+    resetForm,
+    handleSubmitTask,
+    handleEditTask,
+    handleViewTask,
+    handleDeleteTask,
+    confirmDeleteTask,
+    cancelDelete,
   } = useTasks(userId);
 
-  // Form state
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingTaskId, setEditingTaskId] = React.useState(null);
-  const [formData, setFormData] = React.useState({
-    name: "",
-    description: "",
-    dueDate: "",
-    subtasks: "",
-    durationHours: "0",
-    durationMinutes: "0",
-    priority: "Low",
-  });
-
-  // View/Delete state
-  const [viewTask, setViewTask] = React.useState(null);
-  const [taskToDelete, setTaskToDelete] = React.useState(null);
-
-  // Helper functions
   const getPriorityStyle = (priority) => {
     switch (priority) {
       case "High":
@@ -67,89 +61,6 @@ export function ToDoList({ userId }) {
     return dueDate < today;
   };
 
-  const handleFormChange = (updates) => {
-    setFormData((prev) => ({ ...prev, ...updates }));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      dueDate: "",
-      subtasks: "",
-      durationHours: "0",
-      durationMinutes: "0",
-      priority: "Low",
-    });
-    setEditingTaskId(null);
-  };
-
-  const handleSubmitTask = async () => {
-    if (!formData.name.trim()) {
-      alert("Please enter a task name.");
-      return;
-    }
-
-    const totalMinutes =
-      parseInt(formData.durationHours) * 60 +
-      parseInt(formData.durationMinutes);
-    const subtasksArray = formData.subtasks
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
-
-    const taskData = {
-      title: formData.name,
-      description: formData.description,
-      dueDate: formData.dueDate || new Date().toISOString(),
-      priority: formData.priority,
-      duration: totalMinutes,
-      subtasks: subtasksArray,
-      userId: userId,
-    };
-
-    try {
-      if (editingTaskId !== null) {
-        await updateTask(editingTaskId, taskData);
-      } else {
-        await createTask(taskData);
-      }
-      setIsDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      alert(`Failed to save task: ${error.message}`);
-    }
-  };
-
-  const handleEditTask = (taskId) => {
-    const task = tasks.find((t) => t.id === taskId);
-    if (task) {
-      setEditingTaskId(taskId);
-      setFormData({
-        name: task.title,
-        description: task.description,
-        dueDate: task.dueDate || "",
-        subtasks: task.subtasks?.join(", ") || "",
-        durationHours: Math.floor((task.duration || 0) / 60).toString(),
-        durationMinutes: ((task.duration || 0) % 60).toString(),
-        priority: task.priority,
-      });
-      setIsDialogOpen(true);
-    }
-  };
-
-  const confirmDeleteTask = async () => {
-    if (taskToDelete) {
-      try {
-        await deleteTask(taskToDelete);
-        setTaskToDelete(null);
-      } catch (error) {
-        alert("Failed to delete task.");
-      }
-    }
-  };
-
-  // Filter tasks
   const overdueTasks = tasks.filter((task) => isOverdue(task));
   const todoTasks = tasks.filter(
     (task) => (task.status || "todo") === "todo" && !isOverdue(task),
@@ -220,9 +131,9 @@ export function ToDoList({ userId }) {
               tasks={todoTasks}
               status="todo"
               onToggle={toggleTaskStatus}
-              onView={setViewTask}
+              onView={handleViewTask}
               onEdit={handleEditTask}
-              onDelete={setTaskToDelete}
+              onDelete={handleDeleteTask}
               getPriorityStyle={getPriorityStyle}
             />
             <TaskColumn
@@ -230,9 +141,9 @@ export function ToDoList({ userId }) {
               tasks={inProgressTasks}
               status="in-progress"
               onToggle={toggleTaskStatus}
-              onView={setViewTask}
+              onView={handleViewTask}
               onEdit={handleEditTask}
-              onDelete={setTaskToDelete}
+              onDelete={handleDeleteTask}
               getPriorityStyle={getPriorityStyle}
             />
             <TaskColumn
@@ -240,9 +151,9 @@ export function ToDoList({ userId }) {
               tasks={completedTasks}
               status="completed"
               onToggle={toggleTaskStatus}
-              onView={setViewTask}
+              onView={handleViewTask}
               onEdit={handleEditTask}
-              onDelete={setTaskToDelete}
+              onDelete={handleDeleteTask}
               getPriorityStyle={getPriorityStyle}
             />
             <TaskColumn
@@ -250,9 +161,9 @@ export function ToDoList({ userId }) {
               tasks={overdueTasks}
               status="overdue"
               onToggle={toggleTaskStatus}
-              onView={setViewTask}
+              onView={handleViewTask}
               onEdit={handleEditTask}
-              onDelete={setTaskToDelete}
+              onDelete={handleDeleteTask}
               getPriorityStyle={getPriorityStyle}
             />
           </div>
@@ -262,7 +173,7 @@ export function ToDoList({ userId }) {
       <DeleteTaskDialog
         isOpen={taskToDelete !== null}
         onConfirm={confirmDeleteTask}
-        onCancel={() => setTaskToDelete(null)}
+        onCancel={cancelDelete}
       />
       <TaskViewDialog
         task={viewTask}

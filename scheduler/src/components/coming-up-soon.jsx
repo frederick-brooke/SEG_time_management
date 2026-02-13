@@ -1,5 +1,4 @@
 "use client";
-
 import * as React from "react";
 import {
   Card,
@@ -8,53 +7,51 @@ import {
   CardTitle,
 } from "@/src/components/ui/card";
 import { Calendar } from "lucide-react";
-import { TaskActions } from "@/src/components/task-actions";
+import { TaskCard } from "./tasks/TaskCard";
+import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskViewDialog } from "./tasks/TaskViewDialog";
+import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
+import { useTasks } from "@/src/hooks/useTasks";
 
 export function ComingUpSoon({ userId }) {
-  // 1. State (variables that can change)
-  // Tasks
-  // Loading status
-  const [tasks, setTasks] = React.useState([]); // starts empty
-  const [isLoading, setIsLoading] = React.useState(true); // starts loading
+  const {
+    tasks,
+    isLoading,
+    isDialogOpen,
+    setIsDialogOpen,
+    editingTaskId,
+    formData,
+    viewTask,
+    setViewTask,
+    taskToDelete,
+    toggleTaskStatus,
+    handleFormChange,
+    resetForm,
+    handleSubmitTask,
+    handleEditTask,
+    handleViewTask,
+    handleDeleteTask,
+    confirmDeleteTask,
+    cancelDelete,
+  } = useTasks(userId);
 
-  // 2. Effects (code that runs when component loads)
-  // When should we fetch the tasks? as soon as the component loads
-  // This runs when the component loads
-  React.useEffect(() => {
-    fetchTasks();
-  }, [userId]); // Run again if userId changes
-
-  const fetchTasks = async () => {
-    try {
-      // 1. Start loading
-      setIsLoading(true);
-
-      // 2. Call API
-      // get the package
-      const res = await fetch(`/api/tasks?userId=${userId}`);
-
-      // 3. Save response
-      // open the package
-      const data = await res.json();
-      if (data.tasks) {
-        // if tasks already exists
-        setTasks(data.tasks);
-      }
-    } catch (error) {
-      // Handle errors
-      console.error("Failed to fetch tasks:", error);
-    } finally {
-      // Always stop loading
-      setIsLoading(false);
+  const getPriorityStyle = (priority) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
+      case "Medium":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+      case "Low":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
     }
   };
 
-  // 3. Functions (actions/logic)
   const isComingSoon = (task) => {
-    // check if a task is coming up
-    if (task.status === "completed") {
-      return false;
-    }
+    if (!task.dueDate) return false;
+    if (task.status === "completed") return false;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dueDate = new Date(task.dueDate);
@@ -68,7 +65,6 @@ export function ComingUpSoon({ userId }) {
     .filter((t) => isComingSoon(t))
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
-  // 4. Return (what shows on screen)
   if (isLoading) {
     return (
       <Card>
@@ -80,54 +76,59 @@ export function ComingUpSoon({ userId }) {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          Coming Up Soon
-        </CardTitle>
-        <Calendar className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        {comingSoonTasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No tasks due soon</p>
-        ) : (
-          <div className="space-y-3">
-            {comingSoonTasks.map((task) => (
-              <div
-                key={task.id}
-                className="flex items-start justify-between border-b pb-2 last:border-0"
-              >
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{task.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Due:{" "}
-                    {new Date(task.dueDate).toLocaleDateString("en-GB", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-                <TaskActions
-                  onView={() => console.log("View:", task.id)}
-                  onEdit={() => console.log("Edit", task.id)}
-                  onDelete={() => console.log("Delete:", task.id)}
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base font-semibold">
+            Coming Up Soon
+          </CardTitle>
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+
+        <CardContent>
+          {comingSoonTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No tasks due soon</p>
+          ) : (
+            <div className="space-y-3">
+              {comingSoonTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onToggle={toggleTaskStatus}
+                  onView={handleViewTask}
+                  onEdit={handleEditTask}
+                  onDelete={handleDeleteTask}
+                  getPriorityStyle={getPriorityStyle}
                 />
-                <span
-                  className={`text-xs px-2 py-1 rounded ${
-                    task.priority === "High"
-                      ? "bg-red-100 text-red-700"
-                      : task.priority === "Medium"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  {task.priority}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Shared dialogs */}
+      <TaskFormDialog
+        isOpen={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}
+        editingTaskId={editingTaskId}
+        formData={formData}
+        onFormChange={handleFormChange}
+        onSubmit={handleSubmitTask}
+      />
+      <DeleteTaskDialog
+        isOpen={taskToDelete !== null}
+        onConfirm={confirmDeleteTask}
+        onCancel={cancelDelete}
+      />
+      <TaskViewDialog
+        task={viewTask}
+        isOpen={viewTask !== null}
+        onClose={() => setViewTask(null)}
+        getPriorityStyle={getPriorityStyle}
+      />
+    </>
   );
 }
