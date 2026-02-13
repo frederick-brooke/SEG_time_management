@@ -28,6 +28,7 @@ export async function GET() {
     );
   }
   //change back to the SUPERUSER once added in
+  //needs local key inside the env file to work
   if (session.user?.role !== "BASIC") {
     return NextResponse.json(
       { error: "Access denied. Superuser role required.", currentRole: session.user?.role },
@@ -36,6 +37,7 @@ export async function GET() {
   }
 
   const totalUsers = await prisma.user.count();
+  const users = await prisma.user.findMany()
 
-  return NextResponse.json({ totalUsers });
+  return NextResponse.json({ totalUsers, users });
 }

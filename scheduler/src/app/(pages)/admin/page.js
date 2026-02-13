@@ -2,13 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 
 export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Mock data
-  const users = ["Alice", "Bob", "Charlie", "David"];
   const reports = [
     { id: 1, title: "Spam message", status: "Pending" },
     { id: 2, title: "Offensive content", status: "Reviewed" },
@@ -16,10 +14,6 @@ export default function AdminPage() {
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { data: session, status } = useSession();
-
-  console.log("Client session status:", status);
-  console.log("Client session data:", session);
 
   useEffect(() => {
     fetch("/api/admin")
@@ -34,6 +28,8 @@ export default function AdminPage() {
   if(loading){
     return <p className="p-6">Loading</p>;
   }
+
+  const users = stats.users;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -72,14 +68,18 @@ export default function AdminPage() {
         />
         <ul className="space-y-2">
           {users
-            .filter(user => user.toLowerCase().includes(searchQuery.toLowerCase()))
+            .filter(user => user.username.toLowerCase().includes(searchQuery.toLowerCase()))
             .map((user, idx) => (
               <li key={idx} className="border-b py-1">
-                {user}
+                {user.username}
               </li>
             ))}
         </ul>
       </section>
+
+            
+
+
 
       {/* Reports Management */}
       <section className="mb-10 bg-white shadow rounded p-6">
