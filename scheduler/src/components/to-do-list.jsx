@@ -53,6 +53,8 @@ export function ToDoList({ userId }) {
     }
   };
 
+  const [searchQuery, setSearchQuery] = React.useState("");
+
   const isOverdue = (task) => {
     if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
@@ -61,17 +63,17 @@ export function ToDoList({ userId }) {
     return dueDate < today;
   };
 
-  const overdueTasks = tasks.filter((task) => isOverdue(task));
-  const todoTasks = tasks.filter(
-    (task) => (task.status || "todo") === "todo" && !isOverdue(task),
-  );
-  const inProgressTasks = tasks.filter(
-    (task) => (task.status || "todo") === "in-progress" && !isOverdue(task),
-  );
-  const completedTasks = tasks.filter(
-    (task) => (task.status || "todo") === "completed",
+  // Filter by search
+  const searchedTasks = tasks.filter(t =>
+    (t.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const overdueTasks = tasks.filter((task) => isOverdue(task));
+  const todoTasks = searchedTasks.filter(t => (t.status || "todo") === "todo" && !isOverdue(t));
+  const inProgressTasks = searchedTasks.filter(t => (t.status || "todo") === "in-progress" && !isOverdue(t));
+  const completedTasks = searchedTasks.filter(t => (t.status || "todo") === "completed");
+
+  // Progress bar logic
   const totalTasks = tasks.length;
   const completedCount = completedTasks.length;
   const progressPercentage =
@@ -118,6 +120,19 @@ export function ToDoList({ userId }) {
           />
         </CardAction>
       </CardHeader>
+
+      {/* Search Bar */}
+      <div className="px-6 mb-6">
+        <div className="mt-4">
+            <input
+              placeholder="Search Tasks"
+              className="w-full max-w-sm p-2 text-sm border rounded-md bg-transparent"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
+      </div>
+      
 
       <CardContent className="px-4">
         {tasks.length === 0 ? (
