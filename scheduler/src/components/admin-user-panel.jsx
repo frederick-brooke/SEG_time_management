@@ -4,11 +4,11 @@ export default function UserPanel({ user, onClose }) {
   return (
     <div
       className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
-      onClick={onClose} // click outside closes
+      onClick={onClose} //click outside closes
     >
       <div
         className="p-6"
-        onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+        onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
       >
         <h3 className="text-xl font-semibold mb-4">
           User Details
