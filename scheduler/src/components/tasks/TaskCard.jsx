@@ -59,6 +59,30 @@ export function TaskCard({
             </span>
           )}
         </div>
+
+        {/* Subtask Checklist */}
+        {task.subtasks && (
+          <div className="mt-2 pt-2 border-t border-dashed border-muted space-y-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase">Subtasks</p>
+            <div className="flex flex-col gap-2">
+              {(Array.isArray(task.subtasks) 
+              ? task.subtasks 
+              : String(task.subtasks).split(',').filter(s => s.trim() !== "")
+              ).map((sub, i) => (
+                <div key={i} className="flex items-center gap-1.5 group">
+                  <input 
+                  type="checkbox" 
+                  className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 
+                  onClick={(e) => e.stopPropagation()}
+                  />
+                  <span className="text-[10px] text-muted-foreground truncate group-hover:text-foreground">
+                    {typeof sub === 'string' ? sub.trim() : (sub.title || "New Subtask")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )} 
       </div>
 
       <TaskActions
