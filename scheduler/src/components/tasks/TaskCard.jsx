@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Button } from "components/ui/button";
 import { Checkbox } from "components/ui/checkbox";
 import { TaskActions } from "@/src/components/task-actions";
@@ -12,6 +13,23 @@ export function TaskCard({
   attributes,
   listeners,
 }) {
+
+
+  const subtasksList = React.useMemo(() => {
+    if (!task.subtasks) return [];
+    return Array.isArray(task.subtasks)
+      ? task.subtasks
+      : String(task.subtasks).split(',').filter(s => s.trim() !== "");
+  }, [task.subtasks]);
+
+  const [checkedList, setCheckedList] = React.useState(() => {
+    const length = subtasksList.length;
+    if (task.status === "completed") {
+      return new Array(length).fill(true);
+    }
+    return new Array(length).fill(false);
+});
+
   return (
     <div className="flex items-center gap-2 rounded-lg border p-2.5 bg-card shadow-sm hover:shadow-md transition-shadow">
       <Button
@@ -70,7 +88,7 @@ export function TaskCard({
         </div>
 
         {/* Subtask Checklist */}
-        {task.subtasks && (
+        {subtasksList.length > 0 && (
           <div className="mt-2 pt-2 border-t border-dashed border-muted space-y-1">
             <p className="text-[10px] font-bold text-muted-foreground uppercase">Subtasks</p>
             <div className="flex flex-col gap-2">
@@ -80,9 +98,27 @@ export function TaskCard({
               ).map((sub, i) => (
                 <div key={i} className="flex items-center gap-1.5 group">
                   <input 
-                  type="checkbox" 
-                  className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 
-                  onClick={(e) => e.stopPropagation()}
+                    type="checkbox" 
+                    checked={checkedList[i] || false}
+                    className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 
+                    onChange={(e) => {
+                      e.stopPropagation()
+
+                      const isCheckedNow = e.target.checked;
+                      const newList = [...checkedList];
+                      newList[i] = isCheckedNow;
+                      setCheckedList(newList);
+
+                      const total = newList.length;
+                      const currentCheckedCount = newList.filter(Boolean).length;
+
+                      if (total > 0 && currentCheckedCount === total && task.status !== "completed") {
+                        onToggle(task.id, "completed");
+                      }
+                      else if (currentCheckedCount < total && task.status === "completed") {
+                        onToggle(task.id, "in-progress");
+                      }
+                    }}
                   />
                   <span className="text-[10px] text-muted-foreground truncate group-hover:text-foreground">
                     {typeof sub === 'string' ? sub.trim() : (sub.title || "New Subtask")}
