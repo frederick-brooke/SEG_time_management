@@ -9,13 +9,19 @@ export function TaskCard({
   onEdit,
   onDelete,
   getPriorityStyle,
+  attributes,
+  listeners,
 }) {
   return (
     <div className="flex items-center gap-2 rounded-lg border p-2.5 bg-card shadow-sm hover:shadow-md transition-shadow">
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 cursor-grab shrink-0"
+        className="h-8 w-8 cursor-pointer shrink-0"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(task.id);
+        }}
       >
         <span className="text-muted-foreground text-sm">⋮⋮</span>
       </Button>
@@ -23,7 +29,10 @@ export function TaskCard({
       <Checkbox
         id={`task-${task.id}`}
         checked={task.status === "completed"}
-        onCheckedChange={() => onToggle(task.id)}
+        onCheckedChange={() => {
+          const next = task.status === "completed" ? "todo" : "completed";
+          onToggle(task.id, next)
+        }}
         className="shrink-0 h-4 w-4"
       />
 

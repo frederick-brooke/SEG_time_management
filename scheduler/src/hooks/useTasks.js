@@ -78,14 +78,17 @@ export function useTasks(userId) {
     setTasks(tasks.filter((task) => task.id !== taskId));
   };
 
-  const toggleTaskStatus = async (taskId) => {
+  const toggleTaskStatus = async (taskId, forcedStatus = null) => {
     const task = tasks.find((t) => t.id === taskId);
+   
     if (!task) return;
 
-    let nextStatus;
-    if (task.status === "todo") nextStatus = "in-progress";
-    else if (task.status === "in-progress") nextStatus = "completed";
-    else if (task.status === "completed") nextStatus = "in-progress";
+    let nextStatus = forcedStatus;
+    if (!nextStatus) {
+      if (task.status === "todo") nextStatus = "in-progress";
+      else if (task.status === "in-progress") nextStatus = "todo";
+      else if (task.status === "completed") nextStatus = "in-progress";
+    }
 
     await updateTask(taskId, { status: nextStatus });
   };
