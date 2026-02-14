@@ -2,6 +2,7 @@
   "name": "scheduler",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -67,6 +68,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "prisma": "^6.19.2",
     "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
     "whatwg-fetch": "^3.6.20"
   }
 }

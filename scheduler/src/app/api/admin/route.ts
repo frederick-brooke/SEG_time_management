@@ -25,14 +25,14 @@ export async function GET(req: Request) {
     }
     //change back to the SUPERUSER once added in
     //needs local key inside the env file to work
-    if (session.user?.role !== "BASIC") {
+    if (session.user?.role !== "SUPERUSER") {
         return NextResponse.json(
             { error: "Access denied. Superuser role required.", currentRole: session.user?.role },
             { status: 403 }
         );
     }
 
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(req.url);  //from the frontend URLSearchParams
 
     const search = searchParams.get("search") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
@@ -40,33 +40,68 @@ export async function GET(req: Request) {
     //by default it is given in descending order
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const categories = searchParams.get("categories");
 
     const totalUsers = await prisma.user.count(); //fixed number of users
 
-    // total matching search
-    const totalMatchingUsers = await prisma.user.count({
-        where: {
-            username: {
+    //dynamically build the query set
+    const where: any = {};
+
+    if (search && search.trim() !== "") {
+        where.username = {
             contains: search,
             mode: "insensitive",
-            },
-        },
+        };
+    }
+
+    //date filtering of theusers
+    if (startDate || endDate) {
+        where.createdAt = {};
+
+        if (startDate) {
+            where.createdAt.gte = new Date(startDate);
+        }
+
+        if (endDate) {
+            where.createdAt.lte = new Date(endDate);
+        }
+    }
+    //category filtering
+    if (categories) {
+        const categoryArray = categories
+            .split(",")
+            .map(c => c.trim().toUpperCase());
+        where.role = {
+            in: categoryArray,
+        };
+    }
+
+    // total matching search
+    const totalMatchingUsers = await prisma.user.count({
+        where,
     });
 
     //filtered and sorted list of users
+    console.log("Final where object:", JSON.stringify(where, null, 2));
+
     const users = await prisma.user.findMany({
-        where: {
-            username: {
-                contains: search,
-                mode: "insensitive",
-            },
-        },
+        where,
         orderBy: {
             [sortBy]: order,
         },
         skip: (page - 1) * limit,
         take: limit,
     });
+
+    const allRoles = await prisma.user.findMany({
+        select: { role: true },
+    });
+
+    console.log("All roles in DB:", allRoles);
+
+
 
     return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalMatchingUsers/limit), totalMatchingUsers});
 }

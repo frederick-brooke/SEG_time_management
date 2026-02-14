@@ -1,7 +1,7 @@
 // pages/admin.js
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect } from "react";
 import UserPanel from "@/components/admin-user-panel";
 import UserFilter from "@/components/user-filter-panel";
 
@@ -31,17 +31,37 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentUserPage, searchQuery, sortBy, order]);
+
+    console.log("Fetching with:", {
+      searchQuery,
+      sortBy,
+      order,
+      currentUserPage,
+      startDate,
+      endDate,
+      categories,
+    });
+  }, [currentUserPage, searchQuery, sortBy, order, startDate, endDate, categories]);
+
+  console.log("Categories state:", categories);
 
   async function fetchUsers(){
     try {
       //setLoading(true); //reset the search on every keystroke infut
+      const query = new URLSearchParams({
+        search: searchQuery, sortBy, order, page: currentUserPage,
+        limit: 10, startDate, endDate,
+        categories: categories.join(","),
+      });
 
+      console.log(query.toString());
       const res = await fetch(
-        `/api/admin?search=${searchQuery}&sortBy=${sortBy}&order=${order}&page=${currentUserPage}&limit=10`
+        `/api/admin?${query.toString()}`
       );
 
       if(!res.ok){
+        const err = await res.json();
+        console.log("API error:", err);
         return;
       }
 

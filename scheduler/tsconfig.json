@@ -40,7 +40,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "scripts/fix-role.js"  ],
   "exclude": [
     "node_modules"
   ]
