@@ -3,10 +3,22 @@
 
 import { useState, useEffect, useTransition } from "react";
 import UserPanel from "@/components/admin-user-panel";
+import UserFilter from "@/components/user-filter-panel";
 
 export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null); //user profile view
+
+  const [currentUserPage, setCurrentUserPage] = useState(1);
+
+  //search values to be checked and filtered
+  const [sortBy, setSortBy] = useState("username");
+  const [order, setOrder] = useState("asc");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [categories, setCategories] = useState([]);
+
+  const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);
 
   // Mock data
   const reports = [
@@ -19,14 +31,14 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentUserPage, searchQuery, sortBy, order]);
 
   async function fetchUsers(){
     try {
       //setLoading(true); //reset the search on every keystroke infut
 
       const res = await fetch(
-        `/api/admin?search=${searchQuery}&sortBy=username&order=asc&page=1&limit=10`
+        `/api/admin?search=${searchQuery}&sortBy=${sortBy}&order=${order}&page=${currentUserPage}&limit=10`
       );
 
       if(!res.ok){
@@ -82,7 +94,7 @@ export default function AdminPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              fetchUsers();
+              setCurrentUserPage(1);
             }}
             className="flex items-center gap-2"
           >
@@ -100,9 +112,16 @@ export default function AdminPage() {
             >
               Search
             </button>
+
+            <button
+              type="button"
+              className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={() => setIsUserFilterOpen(true)}
+            >
+              Filter
+            </button>
           </form>
          
-          
           <div className="space-y-2">
             {users.map((user) => (
                 <div key={user.id} 
@@ -134,6 +153,30 @@ export default function AdminPage() {
               </p>
             )}
           </div>
+
+          {stats?.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <button
+                disabled={currentUserPage === 1}
+                onClick={() => setCurrentUserPage((prev) => prev - 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+
+              <span className="text-sm text-gray-600">
+                Page {currentUserPage} of {stats.totalPages}
+              </span>
+
+              <button
+                disabled={currentUserPage === stats.totalPages}
+                onClick={() => setCurrentUserPage((prev) => prev + 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </section>
 
         {/* Reports Management */}
@@ -163,9 +206,18 @@ export default function AdminPage() {
         </section>
       </div>
 
-      
-
       <UserPanel user={selectedUser} onClose={() => setSelectedUser(null)}/>
+      
+      {isUserFilterOpen && (
+        <UserFilter sortBy={sortBy} setSortBy={setSortBy} 
+          order={order} setOrder={setOrder} 
+          onClose={() => setIsUserFilterOpen(false)} 
+          startDate={startDate} setStartDate={setStartDate} 
+          endDate={endDate} setEndDate={setEndDate}
+          categories={categories} setCategories={setCategories}
+        />
+      )} 
+        
     </div>
   );
 }

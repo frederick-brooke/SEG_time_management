@@ -68,5 +68,5 @@ export async function GET(req: Request) {
         take: limit,
     });
 
-    return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalUsers/limit), totalMatchingUsers});
+    return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalMatchingUsers/limit), totalMatchingUsers});
 }
