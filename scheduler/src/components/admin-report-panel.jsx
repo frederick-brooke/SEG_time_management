@@ -1,6 +1,6 @@
-{/* view the user profiles */}
-export default function UserPanel({ user, onClose }) {
-  if (!user) return null;
+{/* view the information for each report */}
+export default function UserPanel({ report, onClose }) {
+  if (!report) return null;
 
   return (
     <div
@@ -12,11 +12,15 @@ export default function UserPanel({ user, onClose }) {
         onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
       >
         <h3 className="text-xl font-semibold mb-4">
-          User Details
+          Report Details
+        </h3>
+
+        <h3 className="text-l font-bold mb-4">
+          <p><strong>Report ID:</strong> {report.id} </p>
         </h3>
 
         <div className="space-y-2">
-          <p><strong>Username:</strong> {user.username}</p>
+          <p><strong>Reported User:</strong> {report.reportedUserId}</p>
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Role:</strong> {user.role}</p>
         </div>

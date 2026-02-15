@@ -5,15 +5,12 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
+
 export async function GET(req: Request) {
     // Debug: Check if cookies are being received
     const cookieStore = await cookies();
-    const allCookies = cookieStore.getAll();
-    console.log("All cookies:", allCookies.map(c => c.name));
 
-    const nextAuthCookie = cookieStore.get("next-auth.session-token") || 
     cookieStore.get("__Secure-next-auth.session-token");
-    console.log("NextAuth cookie present:", !!nextAuthCookie);
 
     const session = await getServerSession(authOptions);
 
@@ -83,9 +80,6 @@ export async function GET(req: Request) {
         where,
     });
 
-    //filtered and sorted list of users
-    console.log("Final where object:", JSON.stringify(where, null, 2));
-
     const users = await prisma.user.findMany({
         where,
         orderBy: {
@@ -94,14 +88,6 @@ export async function GET(req: Request) {
         skip: (page - 1) * limit,
         take: limit,
     });
-
-    const allRoles = await prisma.user.findMany({
-        select: { role: true },
-    });
-
-    console.log("All roles in DB:", allRoles);
-
-
 
     return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalMatchingUsers/limit), totalMatchingUsers});
 }

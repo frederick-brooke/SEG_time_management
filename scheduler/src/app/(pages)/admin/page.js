@@ -20,8 +20,11 @@ export default function AdminPage() {
 
   const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);
 
+  const [reports, setReports] = useState([]); //track if reports get rendered
+  const [reportLoading, setReportLoading] = useState(true);
+
   // Mock data
-  const reports = [
+  const reportstemp = [
     { id: 1, title: "Spam message", status: "Pending" },
     { id: 2, title: "Offensive content", status: "Reviewed" },
   ];
@@ -31,16 +34,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchUsers();
-
-    console.log("Fetching with:", {
-      searchQuery,
-      sortBy,
-      order,
-      currentUserPage,
-      startDate,
-      endDate,
-      categories,
-    });
+    fetchReports();
   }, [currentUserPage, searchQuery, sortBy, order, startDate, endDate, categories]);
 
   console.log("Categories state:", categories);
@@ -56,7 +50,7 @@ export default function AdminPage() {
 
       console.log(query.toString());
       const res = await fetch(
-        `/api/admin?${query.toString()}`
+        `/api/admin/users?${query.toString()}`
       );
 
       if(!res.ok){
@@ -70,6 +64,26 @@ export default function AdminPage() {
       setLoading(false);
     } catch (err){
       setLoading(false);
+    }
+  }
+
+  async function fetchReports() {
+    try {
+      setReportLoading(true);
+
+      const res = await fetch("/api/admin/reports");
+
+      if (!res.ok) {
+        console.log("Failed to fetch reports");
+        return;
+      }
+
+      const data = await res.json();
+      setReports(data.reports);
+      setReportLoading(false);
+    } catch (err) {
+      console.error(err);
+      setReportLoading(false);
     }
   }
 
@@ -95,11 +109,15 @@ export default function AdminPage() {
             <p>Total Users</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded text-center">
-            <p className="text-xl font-bold">0</p>
+            <p className="text-xl font-bold">
+              {reports.filter(report => report.status === "PENDING").length}
+            </p>
             <p>Active Reports</p>
           </div>
           <div className="bg-red-100 p-4 rounded text-center">
-            <p className="text-xl font-bold">0</p>
+            <p className="text-xl font-bold">
+              {reports.length}
+            </p>
             <p>Total Reports</p>
           </div>
         </div>
@@ -209,15 +227,23 @@ export default function AdminPage() {
                 className="border p-3 rounded flex justify-between items-center"
               >
                 <div>
-                  <p className="font-medium">{report.title}</p>
-                  <p className="text-sm text-gray-500">Status: {report.status}</p>
+                  <p className="font-medium">
+                    ID: {report.id}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Reported User: {report.reportedUser?.username}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Reported By: {report.reportedBy?.username}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Status: {report.status}
+                  </p>
                 </div>
+                {/* load the action panel for the responses */}
                 <div className="space-x-2">
-                  <button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
-                    Approve
-                  </button>
-                  <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-                    Reject
+                  <button className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-green-600">
+                    Action
                   </button>
                 </div>
               </li>
