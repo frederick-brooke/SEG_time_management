@@ -6,7 +6,6 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 
-
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -41,7 +40,25 @@ export const authOptions: NextAuthOptions = {
 
         if (!isValid) return null;
 
-        console.log("Login success", user.email);
+        if(user.isBanned){
+          //permanent ban
+          if(!user.banExpires){
+            throw new Error("Permanently banned");
+          }
+
+          //temporary ban still active
+          if (new Date() < user.banExpires) {
+            throw new Error("Temporarily banned");
+          }
+          
+          //Ban expired 
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { isBanned: false, banExpires: null },
+          });
+        }
+
+        
 
         // Return only the required fields
         return {

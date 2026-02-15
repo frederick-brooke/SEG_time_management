@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import UserPanel from "@/components/admin-user-panel";
 import UserFilter from "@/components/user-filter-panel";
-
+import ReportPanel from "@/components/admin-report-panel";
 export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null); //user profile view
@@ -23,11 +23,7 @@ export default function AdminPage() {
   const [reports, setReports] = useState([]); //track if reports get rendered
   const [reportLoading, setReportLoading] = useState(true);
 
-  // Mock data
-  const reportstemp = [
-    { id: 1, title: "Spam message", status: "Pending" },
-    { id: 2, title: "Offensive content", status: "Reviewed" },
-  ];
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -224,27 +220,16 @@ export default function AdminPage() {
             {reports.map((report) => (
               <li
                 key={report.id}
-                className="border p-3 rounded flex justify-between items-center"
+                onClick={() => setSelectedReport(report)}
+                className="border p-3 rounded flex justify-between cursor-pointer items-center"
               >
                 <div>
                   <p className="font-medium">
                     ID: {report.id}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Reported User: {report.reportedUser?.username}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Reported By: {report.reportedBy?.username}
-                  </p>
-                  <p className="text-sm text-gray-500">
                     Status: {report.status}
                   </p>
-                </div>
-                {/* load the action panel for the responses */}
-                <div className="space-x-2">
-                  <button className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-green-600">
-                    Action
-                  </button>
                 </div>
               </li>
             ))}
@@ -263,6 +248,8 @@ export default function AdminPage() {
           categories={categories} setCategories={setCategories}
         />
       )} 
+
+      <ReportPanel report={selectedReport} onClose={() => setSelectedReport(null)}/>
         
     </div>
   );

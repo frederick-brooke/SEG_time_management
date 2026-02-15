@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
-
 export async function GET(req: Request) {
     // Debug: Check if cookies are being received
     const cookieStore = await cookies();
