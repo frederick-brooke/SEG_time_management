@@ -5,7 +5,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { revalidatePath } from "next/cache";
 
-// Helper: Logic to count friends (used by both functions)
+/**
+ * count the number of accepted friend relationships for a user
+ * @param userId the user's database ID
+ * @returns {promis<number>}, the count of accepted friend requests
+ */
 async function getFriendCount(userId: string) {
   return await prisma.friendRequest.count({
     where: {
@@ -18,13 +22,18 @@ async function getFriendCount(userId: string) {
   });
 }
 
-// 1. GET MY PROFILE (Private Dashboard)
-export async function getMyProfile() {
+/**
+ * fetches the current logged in user's profile data
+ * @param username 
+ * @returns {Promise<Object | null>} - User profile with stats and friend requests, or null if not authenticated
+ */
+export async function getMyProfile(username: string) {
   const session = await getServerSession(authOptions);
+
   if (!session?.user?.email) return null;
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: {email: session.user.email},
     select: {
       id: true,
       username: true,
@@ -47,7 +56,7 @@ export async function getMyProfile() {
 
   const friendCount = await getFriendCount(user.id);
 
-  // Stats
+  //calculate task statistics
   const completedTasks = user.tasks.filter(t => t.completed).length;
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
@@ -59,7 +68,11 @@ export async function getMyProfile() {
   };
 }
 
-// 2. GET OTHER PROFILE (Public View)
+/**
+ * fetches another user's public profile by username
+ * @param username , string value that is the username to look up
+ * @returns user profile with stats and friend status or null if not found
+ */
 export async function getProfile(username: string) {
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id;
@@ -112,9 +125,12 @@ export async function getProfile(username: string) {
   };
 }
 
-// 3. ACTIONS
+/**
+ * updates the current user's profile information
+ * @param formData , form data containing fname, lname and bio
+ * @return revalidates the profile page after update
+ */
 export async function updateProfile(formData: FormData) {
-  // ... (Keep existing code) ...
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) throw new Error("Unauthorized");
 
@@ -129,12 +145,17 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/profile");
 }
 
+/**
+ * sends a friend request to another user
+ * @param targetUserId , the database ID of the user to send request to
+ * @returns creates a pending friend request
+ */
 export async function sendFriendRequest(targetUserId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
   if (session.user.id === targetUserId) return; 
 
-  // Prevent duplicates
+  // check for existing requests in either direction
   const existing = await prisma.friendRequest.findFirst({
     where: {
       OR: [
@@ -155,7 +176,11 @@ export async function sendFriendRequest(targetUserId: string) {
   });
   revalidatePath("/profile");
 }
-
+/**
+ * accept a pending friend request
+ * @param requestId -the databse ID of the friend request
+ * @return updates request status to ACCEPTED
+ */
 export async function acceptFriendRequest(requestId: string) {
   await prisma.friendRequest.update({
     where: { id: requestId },
@@ -164,7 +189,11 @@ export async function acceptFriendRequest(requestId: string) {
   revalidatePath("/profile");
 }
 
-// NEW: Ability to reject requests
+/**
+ * rejects and deletes a pending friend request
+ * @param requestId ,the database ID of the friend request
+ * @return deletes the friend request from database
+ */
 export async function rejectFriendRequest(requestId: string) {
   await prisma.friendRequest.delete({
     where: { id: requestId }
