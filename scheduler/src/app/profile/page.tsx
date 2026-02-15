@@ -19,14 +19,18 @@ export default async function ProfilePage() {
   if (!profile) return <div className="p-8">Profile not found. Please log in again.</div>;
 
   return (
-    <SidebarProvider
+    <SidebarProvider 
+      defaultOpen={true}
+      open={undefined}
+      onOpenChange={undefined}
+      className=""
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
       } as React.CSSProperties}
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="">
         <SiteHeader />
         
         <div className="flex flex-1 flex-col gap-6 p-6 pt-0">

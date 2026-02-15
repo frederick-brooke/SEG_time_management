@@ -27,7 +27,7 @@ async function getFriendCount(userId: string) {
  * @param username 
  * @returns {Promise<Object | null>} - User profile with stats and friend requests, or null if not authenticated
  */
-export async function getMyProfile(username: string) {
+export async function getMyProfile() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) return null;

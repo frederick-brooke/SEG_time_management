@@ -1,17 +1,22 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { redirect } from "next/navigation";
-import { getProfile } from "@/src/app/actions/profile";
+import { getProfile, sendFriendRequest} from "@/src/app/actions/profile";
 import { prisma } from "@/src/lib/prisma";
 import { AppSidebar } from "components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
 import { SiteHeader } from "components/site-header";
-import { Users, Trophy, Target, CheckCircle } from "lucide-react";
+import { Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock} from "lucide-react";
 
+/**
+ * displayes another user's public profile page
+ * @param param0 usrl paramets containing username
+ * @returns JSX.Element- user profile page with stats and friend request options
+ */
 export default async function UserProfilePage({ 
   params 
 }: { 
-  params: Promise<{ username: string }> // Changed: params is now a Promise
+  params: Promise<{ username: string }> 
 }) {
   // Await params to get the username
   const { username } = await params;
@@ -45,16 +50,59 @@ export default async function UserProfilePage({
       </div>
     );
   }
+  /**
+   * render the appropriate friend request button based on current friendship status
+   * @return  {JSX.Element | null} - Friend request button or status badge
+   */
+  const FriendRequestButton = () => {
+    if (profile.friendStatus == "FRIENDS"){
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+          <UserCheck size={18} />
+          <span className="font-medium">Friends</span>
+        </div>
+      )
+    }
+    if (profile.friendStatus === "REQUEST_SENT") {
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg border border-yellow-200">
+          <Clock size={18} />
+          <span className="font-medium">Request Pending</span>
+        </div>
+      );
+    }
 
+    if (profile.friendStatus === "REQUEST_RECEIVED") {
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+          <Clock size={18} />
+          <span className="font-medium">Wants to be Friends</span>
+        </div>
+      );
+    }
+    //show add friend button
+    return (
+      <form action={sendFriendRequest.bind(null, profile.id)}>
+        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors">
+          <UserPlus size={18} />
+          <span>Add Friend</span>
+        </button>
+      </form>
+    );
+  };
   return (
     <SidebarProvider
+      defaultOpen={true}
+      open={undefined}
+      onOpenChange={undefined}
+      className=""
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
       } as React.CSSProperties}
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="">
         <SiteHeader />
         
         <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
@@ -72,13 +120,13 @@ export default async function UserProfilePage({
                   )}
                 </div>
                 
-                {/* Info */}
+                {/* Info  and Friend*/}
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold text-gray-900">
                     {profile.fname} {profile.lname}
                   </h1>
                   <p className="text-gray-500 font-medium">@{profile.username}</p>
-                  
+                  <FriendRequestButton />
                   {profile.bio && (
                     <div className="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">About</h3>
