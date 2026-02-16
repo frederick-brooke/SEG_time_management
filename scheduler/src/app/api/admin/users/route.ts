@@ -69,6 +69,7 @@ export async function GET(req: Request) {
         const categoryArray = categories
             .split(",")
             .map(c => c.trim().toUpperCase());
+            
         where.role = {
             in: categoryArray,
         };

@@ -22,8 +22,31 @@ export async function GET(req: Request) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
-    const categories = searchParams.get("categories");
+    const status = searchParams.get("status");
 
+    const where: any = {};
+
+    if (startDate || endDate) {
+        where.createdAt = {};
+
+        if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+        }
+
+        if (endDate) {
+        where.createdAt.lte = new Date(endDate);
+        }
+    }
+
+    if (status) {
+        where.status = status.toUpperCase();
+    }
+
+    const totalMatchingReports = await prisma.report.count({
+        where,
+    });
+
+    //pagination of the queries and combines adll searches
     const reports = await prisma.report.findMany({
         include: {
         reportedUser: {
@@ -36,8 +59,17 @@ export async function GET(req: Request) {
             select: { id: true, username: true },
         },
         },
-        orderBy: { createdAt: "desc" },
+
+        orderBy: {
+            [sortBy]: order,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
     });
 
-    return NextResponse.json({ reports });
+    return NextResponse.json({ 
+        reports,
+        totalPages: Math.ceil(totalMatchingReports / limit),
+        totalMatchingReports, 
+    });
 }

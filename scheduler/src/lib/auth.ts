@@ -45,20 +45,16 @@ export const authOptions: NextAuthOptions = {
           if(!user.banExpires){
             throw new Error("Permanently banned");
           }
-
           //temporary ban still active
           if (new Date() < user.banExpires) {
             throw new Error("Temporarily banned");
           }
-          
           //Ban expired 
           await prisma.user.update({
             where: { id: user.id },
             data: { isBanned: false, banExpires: null },
           });
         }
-
-        
 
         // Return only the required fields
         return {

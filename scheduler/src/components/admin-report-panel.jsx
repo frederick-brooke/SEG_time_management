@@ -1,10 +1,29 @@
 import { useState } from "react";
 
 //view the information for each report
-export default function ReportPanel({ report, onClose }) {
+export default function ReportPanel({ report, onClose, fetchReports }) {
   if (!report) return null;
 
   const [showReportAction, setShowReportAction] = useState(null);
+
+    async function banUser(user, type, durationDays = null) {
+        await fetch(`/api/admin/users/${user.id}/ban`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type, durationDays }),
+        });
+
+        if(type === "TEMP"){
+            alert(`User ${user.username} Temporarily Banned`);
+        } else if(type === "PERM"){
+            alert(`User ${user.username} Permanently Banned`);
+        }
+        else{
+            alert(`User ${user.username} Unbanned`);
+        }
+
+        fetchReports();
+    }
 
   return (
     <div
@@ -48,34 +67,57 @@ export default function ReportPanel({ report, onClose }) {
 
         {showReportAction && (
             <ReportActionModal
+                report={report}
                 onClose={() => setShowReportAction(false)}
+                banUser={banUser}
             />
         )}
     </div>
   );
 }
 
-function ReportActionModal( {onClose} ) {
+function ReportActionModal( {report, onClose, banUser} ) {
     return(
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-xl">
-            <h2 className="text-xl font-bold mb-4">Report User</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={onClose}   
+        >
+            <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h2 className="text-xl font-bold mb-4">Report Action</h2>
 
-            <textarea
-                placeholder="Additional details (optional)"
-                className="w-full border p-2 rounded mb-4"
-            />
+                {/* Send as a notification afterwards */}
+                <textarea
+                    placeholder="Reasoning (If needed)"
+                    className="w-full border p-2 rounded mb-4"
+                />
 
                 <div className="flex justify-end gap-2">
-                    <button
-                    onClick={onClose}
-                    className="px-4 py-2 border rounded"
-                    >
+                    <button onClick={onClose} className="px-4 py-2 border rounded">
                         Cancel
+                    </button>
+
+                    <button onClick={() => banUser(report.reportedUser, "TEMP", 7)}
+                        className="bg-yellow-500 text-white px-3 py-2 rounded"
+                    >
+                        Temp Ban (7 days)
+                    </button>
+
+                    <button
+                        onClick={() => banUser(report.reportedUser, "PERM")}
+                        className="bg-red-600 text-white px-3 py-2 rounded"
+                    >
+                        Permanent Ban
+                    </button>
+
+                    <button
+                        onClick={() => banUser(report.reportedUser, "UNBAN")}
+                        className="bg-green-600 text-white px-3 py-2 rounded"
+                    >
+                        Unban
                     </button>
                 </div>
             </div>
         </div>
     )
-    
 }

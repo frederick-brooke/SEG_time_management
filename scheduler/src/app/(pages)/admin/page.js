@@ -22,16 +22,19 @@ export default function AdminPage() {
 
   const [reports, setReports] = useState([]); //track if reports get rendered
   const [reportLoading, setReportLoading] = useState(true);
+  const [totalReportPages, setTotalReportPages] = useState(1);
+  const [currentReportPage, setCurrentReportPage] = useState(1);
+  const [totalReports, setTotalReports] = useState(null);
 
   const [selectedReport, setSelectedReport] = useState(null);
 
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(null);   //for users
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchUsers();
     fetchReports();
-  }, [currentUserPage, searchQuery, sortBy, order, startDate, endDate, categories]);
+  }, [currentUserPage, currentReportPage, searchQuery, sortBy, order, startDate, endDate, categories]);
 
   console.log("Categories state:", categories);
 
@@ -39,12 +42,16 @@ export default function AdminPage() {
     try {
       //setLoading(true); //reset the search on every keystroke infut
       const query = new URLSearchParams({
-        search: searchQuery, sortBy, order, page: currentUserPage,
-        limit: 10, startDate, endDate,
-        categories: categories.join(","),
+        search: searchQuery || "",
+        sortBy: sortBy || "",
+        order: order || "",
+        page: currentUserPage.toString(),
+        limit: "10",
+        startDate: startDate || "",
+        endDate: endDate || "",
+        categories: categories.length ? categories.join(",") : "",
       });
 
-      console.log(query.toString());
       const res = await fetch(
         `/api/admin/users?${query.toString()}`
       );
@@ -67,7 +74,12 @@ export default function AdminPage() {
     try {
       setReportLoading(true);
 
-      const res = await fetch("/api/admin/reports");
+      const query = new URLSearchParams({
+        page: currentReportPage.toString(),
+        limit: "10",
+      });
+
+      const res = await fetch(`/api/admin/reports?${query.toString()}`);
 
       if (!res.ok) {
         console.log("Failed to fetch reports");
@@ -75,8 +87,12 @@ export default function AdminPage() {
       }
 
       const data = await res.json();
+
       setReports(data.reports);
       setReportLoading(false);
+      setTotalReportPages(data.totalPages);
+      setTotalReports(data.totalMatchingReports);
+      console.log("Total Number of Report Pages" + totalReportPages)
     } catch (err) {
       console.error(err);
       setReportLoading(false);
@@ -156,7 +172,7 @@ export default function AdminPage() {
             </button>
           </form>
          
-          <div className="space-y-2">
+          <div className="space-y-2 flex-1 overflow-y-auto">
             {users.map((user) => (
                 <div key={user.id} 
                 onClick={() => setSelectedUser(user)}
@@ -166,7 +182,7 @@ export default function AdminPage() {
               ))}
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 flex justify-center">
             {users.length !== 0 && (
               <p className="text-sm text-gray-600">
                 Showing{" "}
@@ -188,8 +204,8 @@ export default function AdminPage() {
             )}
           </div>
 
-          {stats?.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+          {stats?.totalPages >= 1 && (
+            <div className="flex items-center justify-between mt-4 border-t flex-shrink-0">
               <button
                 disabled={currentUserPage === 1}
                 onClick={() => setCurrentUserPage((prev) => prev - 1)}
@@ -214,9 +230,23 @@ export default function AdminPage() {
         </section>
 
         {/* Reports Management */}
-        <section className="mb-10 bg-white shadow rounded p-6">
-          <h2 className="text-2xl font-semibold mb-4">Reports Management</h2>
-          <ul className="space-y-2">
+        <section className="mb-10 bg-white shadow rounded p-6 flex flex-col">
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            {/*Header with name and filtering button */}
+            <h2 className="text-2xl font-semibold">
+              Reports Management
+            </h2>
+
+            <button
+              type="button"
+              onClick={() => setIsReportFilterOpen(true)}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            >
+              Filter
+            </button>
+          </div>
+          
+          <ul className="space-y-2 flex-1 overflow-y-auto">
             {reports.map((report) => (
               <li
                 key={report.id}
@@ -227,6 +257,7 @@ export default function AdminPage() {
                   <p className="font-medium">
                     ID: {report.id}
                   </p>
+
                   <p className="text-sm text-gray-500">
                     Status: {report.status}
                   </p>
@@ -234,6 +265,56 @@ export default function AdminPage() {
               </li>
             ))}
           </ul>
+
+          <div className="mt-4 flex justify-center">
+            {reports.length !== 0 && (
+              <p className="text-sm text-gray-600">
+                Showing{" "}
+              <span className="font-semibold text-gray-900">
+                {reports.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-gray-900">
+                {totalReports ?? 0}
+              </span>{" "}
+                users
+              </p>
+            )}           
+
+            {users.length === 0 && (
+              <p className="text-sm text-gray-500 mt-4">
+                No users found.
+              </p>
+            )}
+          </div>
+
+          {totalReportPages >= 1 && (
+            <div className="flex items-center justify-between mt-6 pt-4 border-t flex-shrink-0">
+              <button
+                disabled={currentReportPage === 1}
+                onClick={() =>
+                  setCurrentReportPage((prev) => prev - 1)
+                }
+                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+
+              <span className="text-sm text-gray-600">
+                Page {currentReportPage} of {totalReportPages}
+              </span>
+
+              <button
+                disabled={currentReportPage === totalReportPages}
+                onClick={() =>
+                  setCurrentReportPage((prev) => prev + 1)
+                }
+                className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </section>
       </div>
 
@@ -249,7 +330,7 @@ export default function AdminPage() {
         />
       )} 
 
-      <ReportPanel report={selectedReport} onClose={() => setSelectedReport(null)}/>
+      <ReportPanel report={selectedReport} onClose={() => setSelectedReport(null)} fetchReports={fetchReports}/>
         
     </div>
   );

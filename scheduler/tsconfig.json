@@ -40,7 +40,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-, "scripts/fix-role.js"  ],
+, "scripts/fix-role.js", "src/app/api/admin/users/[id]/ban/route.js"  ],
   "exclude": [
     "node_modules"
   ]

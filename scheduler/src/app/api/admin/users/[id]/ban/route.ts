@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function Patch(req: Request, { params}){
+export async function PATCH(req, context){
+    const params = await context.params;
+    const { id } = params;
     const { type, durationDays } = await req.json();
 
     if (type === "TEMP"){
@@ -9,7 +11,7 @@ export async function Patch(req: Request, { params}){
         expires.setDate(expires.getDate() + durationDays);
 
         await prisma.user.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 isBanned: true,
                 banExpires: expires,
@@ -19,7 +21,7 @@ export async function Patch(req: Request, { params}){
 
     if (type === "PERMANENT"){
         await prisma.user.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 isBanned: true,
                 banExpires: null,
@@ -29,7 +31,7 @@ export async function Patch(req: Request, { params}){
 
     if (type === "UNBAN"){
         await prisma.user.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 isBanned: false,
                 banExpires: null,
