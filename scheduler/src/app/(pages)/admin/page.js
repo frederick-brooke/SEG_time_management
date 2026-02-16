@@ -5,13 +5,15 @@ import { useState, useEffect } from "react";
 import UserPanel from "@/components/admin-user-panel";
 import UserFilter from "@/components/user-filter-panel";
 import ReportPanel from "@/components/admin-report-panel";
+import ReportFilter from "@/components/report-filter-panel";
+
 export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState(null); //user profile view
 
   const [currentUserPage, setCurrentUserPage] = useState(1);
 
-  //search values to be checked and filtered
+  //search values to be checked and filtered for the usesrs
   const [sortBy, setSortBy] = useState("username");
   const [order, setOrder] = useState("asc");
   const [startDate, setStartDate] = useState("");
@@ -27,6 +29,13 @@ export default function AdminPage() {
   const [totalReports, setTotalReports] = useState(null);
 
   const [selectedReport, setSelectedReport] = useState(null);
+  const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
+
+  const [reportSortBy, setReportSortBy] = useState("createdAt");
+  const [reportOrder, setReportOrder] = useState("desc");
+  const [reportStartDate, setReportStartDate] = useState("");
+  const [reportEndDate, setReportEndDate] = useState("");
+  const [reportStatus, setReportStatus] = useState("");
 
   const [stats, setStats] = useState(null);   //for users
   const [loading, setLoading] = useState(true);
@@ -34,9 +43,7 @@ export default function AdminPage() {
   useEffect(() => {
     fetchUsers();
     fetchReports();
-  }, [currentUserPage, currentReportPage, searchQuery, sortBy, order, startDate, endDate, categories]);
-
-  console.log("Categories state:", categories);
+  }, [currentUserPage, currentReportPage, searchQuery, sortBy, order, startDate, endDate, categories, reportSortBy,reportOrder, reportStartDate, reportEndDate, reportStatus]);
 
   async function fetchUsers(){
     try {
@@ -77,6 +84,11 @@ export default function AdminPage() {
       const query = new URLSearchParams({
         page: currentReportPage.toString(),
         limit: "10",
+        sortBy: reportSortBy,
+        order: reportOrder,
+        startDate: reportStartDate || "",
+        endDate: reportEndDate || "",
+        status: reportStatus || "",
       });
 
       const res = await fetch(`/api/admin/reports?${query.toString()}`);
@@ -332,6 +344,15 @@ export default function AdminPage() {
 
       <ReportPanel report={selectedReport} onClose={() => setSelectedReport(null)} fetchReports={fetchReports}/>
         
+      {isReportFilterOpen && (
+        <ReportFilter sortBy={reportSortBy} setSortBy={setReportSortBy} 
+          order={reportOrder} setOrder={setReportOrder} 
+          startDate={reportStartDate} setStartDate={setReportStartDate} 
+          endDate={reportEndDate} setEndDate={setReportEndDate}
+          status={reportStatus} setStatus={setReportStatus}
+          onClose={() => setIsReportFilterOpen(false)}
+        />
+      )} 
     </div>
   );
 }
