@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import styles from "./breath_tracker.module.css"
 //Breathing tracker component
 export default function BreathTrack() {
     //based on the 4-7-8 breathing technique
@@ -25,16 +24,16 @@ export default function BreathTrack() {
         const breathe_animation = async ()=> {
             while(!cancelled){
                 text.innerHTML = "Breathe in through nose"; //phase 1
-                container.classList.remove(styles.shrink); // remove opposite
-                container.classList.add(styles.grow);      // apply grow
+                container.classList.remove("scale-100"); // remove opposite
+                container.classList.add("scale-125");      // apply grow
                 await sleep(nose_breathe);  //wait for the nose breathing duration
             
                 text.innerHTML = "Hold";    //phase 2 
                 await sleep(hold_time);     //wait for the hold duration
                     
                 text.innerHTML = "Breathe in through mouth";    //phase 3
-                container.classList.remove(styles.grow);   // remove opposite
-                container.classList.add(styles.shrink);    // apply shrink
+                container.classList.remove("scale-125");   // remove opposite
+                container.classList.add("scale-100");    // apply shrink
                 await sleep(total_time - nose_breathe - hold_time); //wait for remaining duration
             }            
         };
@@ -44,18 +43,35 @@ export default function BreathTrack() {
     }, []);   
 
     return(
-            <div ref={containerRef} className={styles['breath-container']}>
-                
-                    <div className={styles["circle"]}/>
+        <div className="relative left-[30%] top-[10%]">
+            <div
+                ref={containerRef}
+                className="relative h-[120px] w-[120px] transform transition-transform duration-[4000ms] scale-100"
+            >
+                {/* Outer Gradient Ring */}
+                <div
+                    className="absolute border-2 border-black shadow-lg top-1/2 left-1/2 h-[130px] w-[130px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    style={{
+                        background:
+                        "conic-gradient(#55b7a4 0%, #56a595 21%, #ffffff 21%, #ffffff 58%, #0f3830 58%, #1f5046 100%)",
+                    }}
+                />
 
-                    <p ref={textRef} className={styles["text"]}> </p>
+                {/* Inner Circle */}
+                <div className="absolute inset-0 rounded-full bg-[#7cabd7]" />
 
-                    <div className={styles["pointer-container"]}>
-                        <div className={styles["pointer"]}/>
-                    </div>
-                    
-                    <div className={styles['gradient-circle']}/>                 
+                {/* Text */}
+                <p
+                ref={textRef}
+                className="absolute inset-0 flex items-center justify-center text-white text-xs text-center z-10 pointer-events-none"
+                />
+
+                {/* Rotating Pointer */}
+                <div className="absolute top-1/2 left-1/2 h-0 w-0 origin-bottom animate-spin [animation-duration:19s]">
+                <div className="absolute left-1/2 top-0 h-[8px] w-[8px] -translate-x-1/2 -translate-y-1/2 -translate-y-[60px] rounded-full bg-white" />
+                </div>
             </div>
+        </div>           
     )
 }
 

@@ -1,7 +1,6 @@
 "use client";
-import { Import } from "lucide-react";
 //component containing the toggle and modal view
-import styles from "./timer_reminder.module.css";
+import { IconLock, IconLockOff, IconDroplet } from "@tabler/icons-react";
 
 import ReminderContainer from "./reminder_display";
 
@@ -12,8 +11,8 @@ export default function Reminders() {
         <>
             <ReminderContainer
                 id="focus"
-                iconOn="🔒"
-                iconOff="🔓"
+                iconOn= {<IconLock className="w-5 h-5" />}
+                iconOff= {<IconLockOff className="w-5 h-5" />}
                 settingsTitle="Focus Time"
                 settingsText="Select time for focus."
                 firedTitle="Time for a Break"
@@ -22,8 +21,8 @@ export default function Reminders() {
 
             <ReminderContainer
                 id="water"
-                iconOn="💧"
-                iconOff="💧"
+                iconOn= {<IconDroplet className="w-5 h-5" />}
+                iconOff= {<IconDroplet className="w-5 h-5" />}
                 settingsTitle="Water Reminder"
                 settingsText="How often should I remind you to drink water?"
                 firedTitle="Hydration Time"

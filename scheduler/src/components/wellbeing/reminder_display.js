@@ -1,6 +1,5 @@
 "use client";
 //component containing the toggle and modal view
-import styles from "./timer_reminder.module.css";
 import { useState, useEffect, useRef } from "react";
 
 import { Button } from "components/ui/button";
@@ -46,14 +45,19 @@ export default function ReminderContainer({
 
 
     return (
-         <div className="reminders-container">
+         <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+            {/* reminders containers */}
 
-            <div className={`${styles["toggle-btn"]} ${reminder.enabled ? styles["active"] : ""}`}
-                onClick={handleToggleClick}
+            <div onClick={handleToggleClick}
+                className={`relative w-14 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300
+                ${reminder.enabled ? "bg-green-500" : "bg-gray-300"}`}
             >
-                <div className={styles["toggle-icon"]}>
-                    {reminder.enabled ? iconOn: iconOff}
-                    {/* change the icon back whenver it resets automatically */}
+                <div
+                    className={`absolute left-1 flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-md text-sm transition-transform duration-300
+                    ${reminder.enabled ? "translate-x-6" : "translate-x-0"}
+                    `}
+                >
+                    {reminder.enabled ? iconOn : iconOff}
                 </div>
             </div>
 
@@ -80,7 +84,7 @@ export default function ReminderContainer({
                 />
 
                 {reminder.enabled && reminder.remainingMs != null && (
-                    <div className={styles["time-text"]}>
+                    <div className="time-text">
                         Time remaining: {formatMs(reminder.remainingMs)}
                     </div>
                 )}

@@ -3,13 +3,11 @@ import BreathTrack from "components/wellbeing/breath_tracker";
 
 import TimerController from "components/wellbeing/timer_controller";
 
-import styles from "./wellbeing.module.css"
-
 export default function WellbeingPage(){
     //timer handling
     return (
-        <div className={styles["page-wrapper"]}>
-            <div >
+        <div className="w-full max-w-4xl mx-auto p-8 flex flex-col gap-10">
+            <div className="flex justify-center">
                 <TimerController />
             </div>
 
@@ -17,7 +15,7 @@ export default function WellbeingPage(){
                 <QuoteBlock />
             </div>
 
-            <div >
+            <div className="flex justify-center">
                 <BreathTrack />
             </div>
         </div>

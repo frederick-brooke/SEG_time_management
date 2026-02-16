@@ -15,6 +15,8 @@ import { ComingSoonCard } from "@/src/components/coming-up-soon";
 
 import { ToDoList } from "@/src/components/to-do-list";
 
+import Panel from "@/src/components/panel";
+
 export default function Page() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -124,15 +126,19 @@ export default function Page() {
 
         <button
           onClick={() => setWellbeingOpen(true)}
-          className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-indigo-700 transition"
-          aria-label="Open wellbeing"
+          className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-pink-700 transition"
         >
           ❤️
         </button>
 
-        <Modal open={wellbeingOpen} onClose={() => setWellbeingOpen(false)} title="For Your Wellbeing">
+        <Panel
+          open={wellbeingOpen}
+          onClose={() => setWellbeingOpen(false)}
+          title="For Your Wellbeing"
+        >
           <WellbeingPage />
-        </Modal>
+        </Panel>
+        
 
       </SidebarInset>
     </SidebarProvider>
