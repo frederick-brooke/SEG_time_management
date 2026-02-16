@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 /**
  * count the number of accepted friend relationships for a user
  * @param userId the user's database ID
- * @returns {promis<number>}, the count of accepted friend requests
+ * @returns {Promise<number>}, the count of accepted friend requests
  */
 async function getFriendCount(userId: string) {
   return await prisma.friendRequest.count({
@@ -24,7 +24,6 @@ async function getFriendCount(userId: string) {
 
 /**
  * fetches the current logged in user's profile data
- * @param username 
  * @returns {Promise<Object | null>} - User profile with stats and friend requests, or null if not authenticated
  */
 export async function getMyProfile() {
@@ -33,7 +32,7 @@ export async function getMyProfile() {
   if (!session?.user?.email) return null;
 
   const user = await prisma.user.findUnique({
-    where: {email: session.user.email},
+    where: { email: session.user.email },
     select: {
       id: true,
       username: true,
@@ -47,7 +46,20 @@ export async function getMyProfile() {
       // Fetch Incoming Requests so we can Accept/Reject them
       receivedRequests: {
         where: { status: 'PENDING' },
-        include: { sender: { select: { username: true, fname: true, lname: true, pfp: true } } }
+        include: { 
+          sender: { 
+            select: { username: true, fname: true, lname: true, pfp: true } 
+          } 
+        }
+      },
+      // Fetch accepted friend requests (sent by current user)
+      sentRequests: {
+        where: { status: 'ACCEPTED' },
+        include: { 
+          receiver: { 
+            select: { id: true, username: true, fname: true, lname: true, pfp: true } 
+          } 
+        }
       }
     }
   });
@@ -55,22 +67,42 @@ export async function getMyProfile() {
   if (!user) return null;
 
   const friendCount = await getFriendCount(user.id);
+  
+  // Get accepted friend requests where current user is the receiver
+  const receivedFriendRequests = await prisma.friendRequest.findMany({
+    where: {
+      receiverId: user.id,
+      status: 'ACCEPTED'
+    },
+    include: {
+      sender: { 
+        select: { id: true, username: true, fname: true, lname: true, pfp: true } 
+      }
+    }
+  });
 
-  //calculate task statistics
+  // Combine friends from both sent and received requests
+  const friends = [
+    ...user.sentRequests.map(req => req.receiver),
+    ...receivedFriendRequests.map(req => req.sender)
+  ];
+
+  // Calculate task statistics
   const completedTasks = user.tasks.filter(t => t.completed).length;
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return {
     ...user,
-    stats: { completedTasks, totalTasks, completionRate, friendCount }, // Added friendCount
+    friends,
+    stats: { completedTasks, totalTasks, completionRate, friendCount },
     friendStatus: "ME"
   };
 }
 
 /**
  * fetches another user's public profile by username
- * @param username , string value that is the username to look up
+ * @param username, string value that is the username to look up
  * @returns user profile with stats and friend status or null if not found
  */
 export async function getProfile(username: string) {
@@ -98,6 +130,38 @@ export async function getProfile(username: string) {
   if (!user) return null;
 
   const friendCount = await getFriendCount(user.id);
+  
+  // Get accepted friend requests (sent by this user)
+  const sentFriendRequests = await prisma.friendRequest.findMany({
+    where: {
+      senderId: user.id,
+      status: 'ACCEPTED'
+    },
+    include: {
+      receiver: { 
+        select: { id: true, username: true, fname: true, lname: true, pfp: true } 
+      }
+    }
+  });
+
+  // Get accepted friend requests (received by this user)
+  const receivedFriendRequests = await prisma.friendRequest.findMany({
+    where: {
+      receiverId: user.id,
+      status: 'ACCEPTED'
+    },
+    include: {
+      sender: { 
+        select: { id: true, username: true, fname: true, lname: true, pfp: true } 
+      }
+    }
+  });
+
+  // Combine friends
+  const friends = [
+    ...sentFriendRequests.map(req => req.receiver),
+    ...receivedFriendRequests.map(req => req.sender)
+  ];
 
   // Stats
   const completedTasks = user.tasks.filter(t => t.completed).length;
@@ -119,6 +183,7 @@ export async function getProfile(username: string) {
 
   return {
     ...user,
+    friends,
     stats: { completedTasks, totalTasks, completionRate, friendCount },
     friendStatus,
     requestId: received?.id 
@@ -127,7 +192,7 @@ export async function getProfile(username: string) {
 
 /**
  * updates the current user's profile information
- * @param formData , form data containing fname, lname and bio
+ * @param formData, form data containing fname, lname and bio
  * @return revalidates the profile page after update
  */
 export async function updateProfile(formData: FormData) {
@@ -147,7 +212,7 @@ export async function updateProfile(formData: FormData) {
 
 /**
  * sends a friend request to another user
- * @param targetUserId , the database ID of the user to send request to
+ * @param targetUserId, the database ID of the user to send request to
  * @returns creates a pending friend request
  */
 export async function sendFriendRequest(targetUserId: string) {
@@ -176,9 +241,10 @@ export async function sendFriendRequest(targetUserId: string) {
   });
   revalidatePath("/profile");
 }
+
 /**
  * accept a pending friend request
- * @param requestId -the databse ID of the friend request
+ * @param requestId - the database ID of the friend request
  * @return updates request status to ACCEPTED
  */
 export async function acceptFriendRequest(requestId: string) {
@@ -191,7 +257,7 @@ export async function acceptFriendRequest(requestId: string) {
 
 /**
  * rejects and deletes a pending friend request
- * @param requestId ,the database ID of the friend request
+ * @param requestId, the database ID of the friend request
  * @return deletes the friend request from database
  */
 export async function rejectFriendRequest(requestId: string) {
