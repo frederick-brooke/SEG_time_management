@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('Starting seed...')
+  console.log('Starting seeding users...')
   
   // Clear existing users
   console.log('Clearing existing users...')
