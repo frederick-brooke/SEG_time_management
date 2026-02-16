@@ -7,8 +7,8 @@ async function main() {
   console.log('Starting seeding users...')
   
   // Clear existing users
-  console.log('Clearing existing users...')
-  await prisma.user.deleteMany()
+  //console.log('Clearing existing users...')
+  //await prisma.user.deleteMany()
   
   console.log('Creating users...')
   
