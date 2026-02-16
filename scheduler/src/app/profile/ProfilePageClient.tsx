@@ -1,10 +1,10 @@
 'use client';
 
-import { updateProfile, acceptFriendRequest, rejectFriendRequest, sendFriendRequest } from "@/src/app/actions/profile";
+import { updateProfile, acceptFriendRequest, rejectFriendRequest, sendFriendRequest, removeFriend, cancelFriendRequest } from "@/src/app/actions/profile";
 import { AppSidebar } from "components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
 import { SiteHeader } from "components/site-header";
-import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock, ChevronDown, ChevronUp, UserMinus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
@@ -43,8 +43,7 @@ function SubmitButton({ text, loadingText }: { text: string; loadingText: string
       disabled={pending}
       className={`bg-black text-white px-8 py-3 rounded-xl font-medium transition-colors shadow-lg shadow-gray-200 ${
         pending ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
-      }`}
-    >
+      }`}>
       {pending ? loadingText : text}
     </button>
   );
@@ -57,7 +56,6 @@ function SubmitButton({ text, loadingText }: { text: string; loadingText: string
  */
 function AcceptButton({ requestId }: { requestId: string }) {
   const { pending } = useFormStatus();
-  
   return (
     <button 
       disabled={pending}
@@ -98,12 +96,6 @@ function RejectButton() {
 export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
   const [isPending, startTransition] = useTransition();
-  // DEBUG: Log profile data
-  console.log("Profile data:", {
-    friendCount: profile.stats?.friendCount,
-    friendsArray: profile.friends,
-    friendsLength: profile.friends?.length
-  });
 
   /**
    * Renders the appropriate friend request button based on current friendship status
@@ -122,25 +114,66 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
         await sendFriendRequest(profile.id);
       });
     };
+    /**
+     * Handles removing a friend with loading state
+     * @return {Promise<void>} - Removes friend via server action
+     */
+    const handleRemoveFriend = async () => {
+      if (confirm('Are you sure you want to remove this friend?')) {
+        startTransition(async () => {
+          await removeFriend(profile.id);
+        });
+      }
+    };
 
+    /**
+     * Handles canceling a pending friend request with loading state
+     * @return {Promise<void>} - Cancels friend request via server action
+     */
+    const handleCancelRequest = async () => {
+      startTransition(async () => {
+        await cancelFriendRequest(profile.id);
+      });
+    };
     if (profile.friendStatus === "FRIENDS") {
       return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
-          <UserCheck size={18} />
-          <span className="font-medium">Friends</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+            <UserCheck size={18} />
+            <span className="font-medium">Friends</span>
+          </div>
+          <button
+            onClick={handleRemoveFriend}
+            disabled={isPending}
+            className={`flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 font-medium transition-colors ${
+              isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100"
+            }`}>
+            <UserMinus size={16} />
+            <span className="text-sm">{isPending ? "Removing..." : "Remove"}</span>
+          </button>
         </div>
       );
     }
-
     if (profile.friendStatus === "REQUEST_SENT") {
       return (
-        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg border border-yellow-200">
-          <Clock size={18} />
-          <span className="font-medium">Request Pending</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg border border-yellow-200">
+            <Clock size={18} />
+            <span className="font-medium">Request Pending</span>
+          </div>
+          <button
+            onClick={handleCancelRequest}
+            disabled={isPending}
+            className={`flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-lg border border-gray-300 font-medium transition-colors ${
+              isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
+            }`}
+          >
+            <X size={16} />
+            <span className="text-sm">{isPending ? "Canceling..." : "Cancel"}</span>
+          </button>
         </div>
       );
     }
-
     if (profile.friendStatus === "REQUEST_RECEIVED") {
       return (
         <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
@@ -165,6 +198,21 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
     );
   };
 
+  /**
+   * Handles removing a friend from the friends list dropdown
+   * @param {string} friendId - The database ID of the friend to remove
+   * @param {React.MouseEvent} e - Click event to prevent navigation
+   */
+  const handleRemoveFriendFromList = async (friendId: string, e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation to profile
+    e.stopPropagation();
+    
+    if (confirm('Are you sure you want to remove this friend?')) {
+      startTransition(async () => {
+        await removeFriend(friendId);
+      });
+    }
+  };
   return (
     <SidebarProvider
       defaultOpen={true}
@@ -288,25 +336,43 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 {profile.friends && profile.friends.length > 0 ? (
                   <div className="max-h-96 overflow-y-auto space-y-2 pr-2">
                     {profile.friends.map((friend: any) => (
-                      <Link 
-                        key={friend.id} 
-                        href={`/profile/${friend.username}`}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      <div
+                        key={friend.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <div className="w-12 h-12 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
-                          {friend.pfp ? (
-                            <img src={friend.pfp} alt={friend.username} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-600 font-bold text-lg">
-                              {friend.fname?.[0] || friend.username[0]}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-gray-900 truncate">{friend.fname || friend.username} {friend.lname}</p>
-                          <p className="text-sm text-gray-500 truncate">@{friend.username}</p>
-                        </div>
-                      </Link>
+                        <Link 
+                          href={`/profile/${friend.username}`}
+                          className="flex items-center gap-3 flex-1 min-w-0"
+                        >
+                          <div className="w-12 h-12 bg-gray-300 rounded-full overflow-hidden flex-shrink-0">
+                            {friend.pfp ? (
+                              <img src={friend.pfp} alt={friend.username} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-600 font-bold text-lg">
+                                {friend.fname?.[0] || friend.username[0]}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 truncate">{friend.fname || friend.username} {friend.lname}</p>
+                            <p className="text-sm text-gray-500 truncate">@{friend.username}</p>
+                          </div>
+                        </Link>
+                        
+                        {/* Remove Friend Button - Only show on own profile */}
+                        {isOwnProfile && (
+                          <button
+                            onClick={(e) => handleRemoveFriendFromList(friend.id, e)}
+                            disabled={isPending}
+                            className={`flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg border border-red-200 text-sm font-medium transition-colors flex-shrink-0 ml-2 ${
+                              isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-red-100"
+                            }`}
+                          >
+                            <UserMinus size={14} />
+                            <span>Remove</span>
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -405,3 +471,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
     </SidebarProvider>
   );
 }
+
+
+

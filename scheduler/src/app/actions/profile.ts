@@ -266,3 +266,47 @@ export async function rejectFriendRequest(requestId: string) {
   });
   revalidatePath("/profile");
 }
+
+/**
+ * Removes an existing friendship (deletes the accepted friend request)
+ * @param friendUserId - the database ID of the friend to remove
+ * @return deletes the accepted friend request between users
+ */
+export async function removeFriend(friendUserId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Find and delete the accepted friend request (in either direction)
+  await prisma.friendRequest.deleteMany({
+    where: {
+      status: 'ACCEPTED',
+      OR: [
+        { senderId: session.user.id, receiverId: friendUserId },
+        { senderId: friendUserId, receiverId: session.user.id }
+      ]
+    }
+  });
+  
+  revalidatePath("/profile");
+}
+
+/**
+ * Cancels a pending friend request that was sent by the current user
+ * @param requestUserId - the database ID of the user to whom the request was sent
+ * @return deletes the pending friend request
+ */
+export async function cancelFriendRequest(requestUserId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  // Delete the pending request sent by current user
+  await prisma.friendRequest.deleteMany({
+    where: {
+      senderId: session.user.id,
+      receiverId: requestUserId,
+      status: 'PENDING'
+    }
+  });
+  
+  revalidatePath("/profile");
+}
