@@ -13,7 +13,7 @@ import { SiteHeader } from "@/src/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
 import { ComingSoonCard } from "@/src/components/coming-up-soon";
 
-import { ToDoList } from "@/src/components/to-do-list";
+import { ComingUpSoon } from "@/src/components/coming-up-soon";
 
 export default function Page() {
   const { data: session, status } = useSession();
@@ -109,16 +109,8 @@ export default function Page() {
         </div>
 
         <div className="flex flex-1 flex-col p-4 gap-6">
-          <div className="w-full">
-            <ToDoList />
-          </div>
-
-          <div className="flex flex-col gap-4 md:gap-6">
-            <SectionCards />
-          </div>
-
           <div>
-            <ComingSoonCard />
+            <ComingUpSoon userId={session?.user?.id} />
           </div>
         </div>
 
