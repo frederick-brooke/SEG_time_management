@@ -20,6 +20,7 @@ export default function EventForm({
   onSuccess,
   existingEvents = [],
 }: any) {
+  // --- HELPERS ---
   const formatDate = (d: Date) => d.toISOString().split("T")[0];
   const formatTime = (d: Date) =>
     d.toLocaleTimeString("en-GB", {
@@ -33,10 +34,13 @@ export default function EventForm({
   const isGoogle = !!initialEvent?.isGoogleEvent;
   const isRecurring = !!(initialEvent?.recurrence && initialEvent.recurrence.type !== "none");
 
+  // --- STATE ---
   const [title, setTitle] = useState(initialEvent?.title || "");
   const [description, setDescription] = useState(initialEvent?.description || "");
   const [category, setCategory] = useState(initialEvent?.category || "Lecture");
-  const [editMode, setEditMode] = useState<"single" | "series">("series");
+  
+  // Default to 'single' if moving an instance, 'series' for general edits
+  const [editMode, setEditMode] = useState<"single" | "series">(isRecurring ? "single" : "series");
 
   const [startDate, setStartDate] = useState(
     initialEvent ? formatDate(new Date(initialEvent.start)) : initialStartDate || formatDate(now)
@@ -54,6 +58,7 @@ export default function EventForm({
   const [recurrenceType, setRecurrenceType] = useState<"none" | "daily" | "weekly" | "monthly">(
     initialEvent?.recurrence?.type || "none"
   );
+  
   const defaultUntil = new Date();
   defaultUntil.setMonth(defaultUntil.getMonth() + 1);
 
@@ -67,6 +72,7 @@ export default function EventForm({
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
 
+  // Sync recurrence days with start date if weekly is chosen
   useEffect(() => {
     if (recurrenceType === "weekly" && recurrenceDays.length === 0) {
       const dayIndex = new Date(startDate).getDay();
@@ -75,9 +81,10 @@ export default function EventForm({
     }
   }, [recurrenceType, startDate]);
 
+  // --- HANDLERS ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isGoogle) return; // Prevent submission of Google events
+    if (isGoogle) return;
 
     const start = new Date(`${startDate}T${startTime}`);
     const end = new Date(`${endDate}T${endTime}`);
@@ -97,6 +104,7 @@ export default function EventForm({
       end: end.toISOString(),
       userId,
       mode: editMode,
+      // originalDate is vital for the backend to find which occurrence to 'exclude'
       originalDate: initialEvent?.start, 
       recurrenceType,
       recurrenceDays: recurrenceType === "weekly" ? recurrenceDays : undefined,
@@ -118,42 +126,33 @@ export default function EventForm({
   };
 
   const saveEvent = async (payload: any) => {
-
-    const method = (initialEvent && editMode === "single") ? "PATCH" : "POST";
+    // If we have an ID, use PATCH. If not, use POST.
+    const method = initialEvent?.id ? "PATCH" : "POST";
 
     const res = await fetch("/api/calendar/events", {
-      method: method,
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    if (res.ok) onSuccess();
+    if (res.ok) {
+      onSuccess();
+    } else {
+      const errorData = await res.json();
+      alert(errorData.message || "Failed to save event");
+    }
   };
 
-
+  // --- RENDER ---
   if (showConflictWarning) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 px-4 animate-in fade-in zoom-in duration-200">
-        <div className="bg-amber-100 p-4 rounded-full mb-4">
-          <span className="text-3xl text-amber-600">⚠️</span>
-        </div>
+      <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+        <div className="bg-amber-100 p-4 rounded-full mb-4">⚠️</div>
         <h4 className="text-xl font-bold text-gray-800 mb-2">Schedule Conflict</h4>
-        <p className="text-center text-gray-500 mb-8">
-          This event overlaps with another item on your calendar. Proceed anyway?
-        </p>
+        <p className="text-gray-500 mb-6">This overlaps with another event. Proceed?</p>
         <div className="flex flex-col gap-3 w-full">
-          <button
-            onClick={() => saveEvent(pendingPayload)}
-            className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold hover:bg-amber-600 transition-all"
-          >
-            Ignore Warning & Save
-          </button>
-          <button
-            onClick={() => setShowConflictWarning(false)}
-            className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold hover:bg-gray-200 transition-all"
-          >
-            Go Back
-          </button>
+          <button onClick={() => saveEvent(pendingPayload)} className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold">Ignore & Save</button>
+          <button onClick={() => setShowConflictWarning(false)} className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold">Go Back</button>
         </div>
       </div>
     );
@@ -161,19 +160,23 @@ export default function EventForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-
       {isGoogle && (
-        <div className="bg-blue-50 border-2 border-dashed border-blue-300 p-3 rounded-xl flex items-center gap-3">
-          <div className="bg-blue-500 text-white p-2 rounded-full text-xs">GO</div>
-          <div>
-            <p className="text-xs font-bold text-blue-800 uppercase tracking-widest">Google Calendar</p>
-            <p className="text-xs text-blue-600">Locked for editing in this application.</p>
-          </div>
+        <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl text-xs text-blue-700 font-medium">
+          Locked: Google events must be edited in Google Calendar.
         </div>
       )}
 
       {initialEvent && isRecurring && !isGoogle && (
         <div className="flex bg-gray-100 p-1 rounded-lg">
+          <button
+            type="button"
+            onClick={() => setEditMode("single")}
+            className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
+              editMode === "single" ? "bg-white shadow-sm text-amber-600" : "text-gray-500"
+            }`}
+          >
+            Move Only This Day
+          </button>
           <button
             type="button"
             onClick={() => setEditMode("series")}
@@ -182,15 +185,6 @@ export default function EventForm({
             }`}
           >
             Edit Entire Series
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditMode("single")}
-            className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
-              editMode === "single" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"
-            }`}
-          >
-            Move Single Day
           </button>
         </div>
       )}
@@ -202,7 +196,7 @@ export default function EventForm({
         onChange={(e) => setTitle(e.target.value)}
         required
         disabled={isGoogle}
-        className="border p-2 rounded text-black outline-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+        className="border p-2 rounded text-black outline-blue-500 disabled:opacity-50"
       />
 
       <div>
@@ -215,9 +209,7 @@ export default function EventForm({
               disabled={isGoogle}
               onClick={() => setCategory(cat.label)}
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                category === cat.label
-                  ? "border-black scale-105"
-                  : "border-transparent opacity-50"
+                category === cat.label ? "border-black scale-105" : "border-transparent opacity-40"
               }`}
               style={{ backgroundColor: cat.color, color: "white" }}
             >
@@ -227,54 +219,23 @@ export default function EventForm({
         </div>
       </div>
 
-      <textarea
-        placeholder="Description (Optional)"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        disabled={isGoogle}
-        className="border p-2 rounded text-black h-20 resize-none disabled:bg-gray-50"
-      />
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-bold text-gray-400">START</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            disabled={isGoogle}
-            className="w-full border p-2 rounded disabled:bg-gray-50"
-          />
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            disabled={isGoogle}
-            className="w-full border p-2 rounded mt-1 disabled:bg-gray-50"
-          />
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded" />
+          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded mt-1" />
         </div>
         <div>
           <label className="text-xs font-bold text-gray-400">END</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            disabled={isGoogle}
-            className="w-full border p-2 rounded disabled:bg-gray-50"
-          />
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            disabled={isGoogle}
-            className="w-full border p-2 rounded mt-1 disabled:bg-gray-50"
-          />
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded" />
+          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded mt-1" />
         </div>
       </div>
 
+      {/* Recurrence Options: Only show if creating new or editing the whole series */}
       {!isGoogle && editMode === "series" && (
-        <div>
-          <label className="text-sm font-semibold text-gray-600">Recurrence</label>
+        <div className="border-t pt-4">
+          <label className="text-sm font-semibold text-gray-600">Repeat</label>
           <select
             value={recurrenceType}
             onChange={(e) => setRecurrenceType(e.target.value as any)}
@@ -289,61 +250,42 @@ export default function EventForm({
           {recurrenceType !== "none" && (
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
               {recurrenceType === "weekly" && (
-                <>
-                  <label className="text-xs text-gray-400">Repeat on</label>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                      <label key={day} className="flex items-center gap-1">
-                        <input
-                          type="checkbox"
-                          checked={recurrenceDays.includes(day)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setRecurrenceDays((prev) =>
-                              checked ? [...prev, day] : prev.filter((d) => d !== day)
-                            );
-                          }}
-                          className="w-4 h-4"
-                        />
-                        <span className="text-sm">{day}</span>
-                      </label>
-                    ))}
-                  </div>
-                </>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                    <label key={day} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={recurrenceDays.includes(day)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setRecurrenceDays((prev) =>
+                            checked ? [...prev, day] : prev.filter((d) => d !== day)
+                          );
+                        }}
+                      />
+                      <span className="text-xs">{day}</span>
+                    </label>
+                  ))}
+                </div>
               )}
-              <label className="text-xs text-gray-400 mt-2 block">Until</label>
-              <input
-                type="date"
-                value={recurrenceUntil}
-                onChange={(e) => setRecurrenceUntil(e.target.value)}
-                className="w-full border p-2 rounded mt-1"
-              />
+              <label className="text-xs text-gray-400">Until</label>
+              <input type="date" value={recurrenceUntil} onChange={(e) => setRecurrenceUntil(e.target.value)} className="w-full border p-2 rounded mt-1" />
             </div>
           )}
         </div>
       )}
 
-      {isGoogle ? (
-        <a
-          href="https://calendar.google.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-gray-800 text-white p-3 rounded-xl font-bold text-center hover:bg-black transition-all"
-        >
-          View in Google Calendar
-        </a>
-      ) : (
-        <button
-          type="submit"
-          className={`text-white p-3 rounded-xl font-bold transition-all active:scale-95 shadow-lg ${
-            editMode === "single" ? "bg-amber-600 hover:bg-amber-700" : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          {initialEvent 
-            ? (editMode === "single" ? "Update This Instance Only" : "Update Series") 
-            : "Create Event"}
-        </button>
-      )}
+      <button
+        type="submit"
+        disabled={isGoogle}
+        className={`w-full p-3 rounded-xl font-bold text-white transition-all active:scale-95 shadow-lg ${
+          isGoogle ? "bg-gray-300" : editMode === "single" ? "bg-amber-600 hover:bg-amber-700" : "bg-blue-600 hover:bg-blue-700"
+        }`}
+      >
+        {initialEvent 
+          ? (editMode === "single" ? "Update Only This Day" : "Update Series") 
+          : "Create Event"}
+      </button>
     </form>
   );
 }

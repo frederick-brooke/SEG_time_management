@@ -5,17 +5,9 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import EventForm from "./EventForm";
-import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 
 const locales = { "en-US": enUS };
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
+const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
 
 const CATEGORY_COLORS: Record<string, string> = {
   Lecture: "#6366f1",
@@ -26,8 +18,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   Google: "#4285F4",
 };
 
-const DnDCalendar = withDragAndDrop(Calendar);
-
 export default function CalendarView({
   events: initialEvents,
   userId,
@@ -36,16 +26,11 @@ export default function CalendarView({
   userId: string;
 }) {
   const [events, setEvents] = useState(
-    initialEvents.map((e) => ({
-      ...e,
-      start: new Date(e.start),
-      end: new Date(e.end),
-    })),
+    initialEvents.map((e) => ({ ...e, start: new Date(e.start), end: new Date(e.end) }))
   );
   const [filter, setFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -53,62 +38,73 @@ export default function CalendarView({
   const [selectedDate, setSelectedDate] = useState("");
   const [calendarDate, setCalendarDate] = useState(new Date());
   const searchRef = useRef<HTMLDivElement>(null);
+  const [lastDeletedEvent, setLastDeletedEvent] = useState<any | null>(null);
+  const [showUndo, setShowUndo] = useState(false);
+  const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Close search results when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node))
         setShowSearchResults(false);
-      }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Move refreshEvents BEFORE useEffect
   const refreshEvents = async () => {
-    const res = await fetch("/api/calendar/events");
-    const data = await res.json();
-    const parsedEvents = data.map((e: any) => ({
-      ...e,
-      start: new Date(e.start),
-      end: new Date(e.end),
-    }));
-    setEvents(parsedEvents);
+    try {
+      const res = await fetch("/api/calendar/events");
+      if (!res.ok) return;
+      const data = await res.json();
+      setEvents(data.map((e: any) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })));
+    } catch (err) {
+      console.error("Failed to refresh events:", err);
+    }
   };
 
-  useEffect(() => {
-    refreshEvents();
-  }, []);
+  useEffect(() => { refreshEvents(); }, []);
+
+  const triggerUndo = () => {
+    setShowUndo(true);
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current = setTimeout(() => setShowUndo(false), 8000);
+  };
+
+  const handleUndo = async () => {
+    if (!lastDeletedEvent) return;
+    try {
+      await fetch("/api/calendar/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: lastDeletedEvent.title,
+          description: lastDeletedEvent.description,
+          start: lastDeletedEvent.start.toISOString(),
+          end: lastDeletedEvent.end.toISOString(),
+          allDay: lastDeletedEvent.allDay,
+          category: lastDeletedEvent.category,
+          recurrenceType: lastDeletedEvent.recurrence?.type || "none",
+          recurrenceDays: lastDeletedEvent.recurrence?.days,
+          recurrenceUntil: lastDeletedEvent.recurrence?.until,
+        }),
+      });
+      setShowUndo(false);
+      setLastDeletedEvent(null);
+      refreshEvents();
+    } catch (err) {
+      console.error("Undo failed:", err);
+    }
+  };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    
-    if (!query.trim()) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    setIsSearching(true);
+    if (!query.trim()) { setSearchResults([]); setShowSearchResults(false); return; }
     setShowSearchResults(true);
-    
-    // Build query params
     const params = new URLSearchParams({ q: query });
-    if (filter !== "All") {
-      params.append("category", filter);
-    }
-
-    const res = await fetch(`/api/calendar/events?${params.toString()}`);
+    if (filter !== "All") params.append("category", filter);
+    const res = await fetch(`/api/calendar/events?${params}`);
     const data = await res.json();
-    const parsedEvents = data.map((e: any) => ({
-      ...e,
-      start: new Date(e.start),
-      end: new Date(e.end),
-    }));
-    setSearchResults(parsedEvents);
-    setIsSearching(false);
+    setSearchResults(data.map((e: any) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })));
   };
 
   const clearSearch = () => {
@@ -118,268 +114,140 @@ export default function CalendarView({
   };
 
   const handleSearchResultClick = (event: any) => {
-    // Navigate calendar to the event's date
     setCalendarDate(new Date(event.start));
-    
-    // Open the event modal
     setSelectedEvent(event);
     setIsEditing(false);
     setIsModalOpen(true);
-    
-    // Close search results
     setShowSearchResults(false);
   };
 
-  const filteredEvents =
-    filter === "All" ? events : events.filter((e) => e.category === filter);
+  const filteredEvents = filter === "All" ? events : events.filter((e) => e.category === filter);
 
-const eventStyleGetter = (event: any) => {
-  const isGoogle = !!event.isGoogleEvent;
-  
-  return {
+  const eventStyleGetter = (event: any) => ({
     style: {
-      backgroundColor: isGoogle ? "#4285F4" : (CATEGORY_COLORS[event.category] || "#3b82f6"),
+      backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
       borderRadius: "6px",
-      
-      border: isGoogle ? "2px solid #000000" : "none", 
-      
+      border: "none",
       color: "white",
       fontSize: "0.85rem",
       paddingLeft: "5px",
-      zIndex: 1,
-      opacity: isGoogle ? 0.9 : 1,
+      cursor: "pointer",
     },
-  };
-};
+  });
 
-  const handleDelete = async (mode: "single" | "all" = "all") => {
+  const handleDelete = async () => {
     if (!selectedEvent) return;
+    const label = selectedEvent.isRecurring
+      ? "Delete this entire recurring series and all its occurrences?"
+      : "Delete this event?";
+    if (!confirm(label)) return;
 
-    const message =
-      mode === "single"
-        ? "Delete only this specific occurrence?"
-        : "Delete the entire recurring series?";
+    const eventId = selectedEvent.baseEventId || selectedEvent.id;
 
-    if (!confirm(message)) return;
+    // Save for undo — use the raw event data
+    setLastDeletedEvent(selectedEvent);
 
-    const instanceDate = format(selectedEvent.start, "yyyy-MM-dd");
-    const queryParams = new URLSearchParams({
-      id: selectedEvent.id,
-      mode: mode,
-      date: instanceDate,
-    });
-
-    const res = await fetch(`/api/calendar/events?${queryParams.toString()}`, {
-      method: "DELETE",
-    });
-
+    const res = await fetch(`/api/calendar/events?id=${eventId}`, { method: "DELETE" });
     if (res.ok) {
       setIsModalOpen(false);
       refreshEvents();
-    } else {
-      alert("Failed to delete event");
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setIsEditing(false);
-    setSelectedEvent(null);
-  };
-
-  const moveEvent = async ({ event, start, end }: any) => {
-    if (event.isGoogleEvent) return;
-    const isRecurring = event.recurrence && event.recurrence.type !== "none";
-    
-
-    let payload: any = {
-      id: event.id,
-      start: start.toISOString(),
-      end: end.toISOString(),
-      mode: isRecurring ? "single" : "all",
-      originalDate: isRecurring ? event.start.toISOString() : null,
-    };
-
-    try {
-      const res = await fetch("/api/calendar/events", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        refreshEvents();
-      } else {
-        const errorData = await res.json();
-        console.error("Update failed:", errorData.message);
-      }
-    } catch (err) {
-      console.error("Network error:", err);
+      triggerUndo();
     }
   };
 
   return (
     <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative">
-      {/* Search Bar */}
-      <div className="mb-4 relative" ref={searchRef}>
-        <div className="relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            onFocus={() => searchQuery && setShowSearchResults(true)}
-            placeholder="Search events by title or description..."
-            className="w-full px-4 py-3 pl-11 pr-20 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent shadow-sm transition-all"
-          />
-          <svg
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          {searchQuery && (
-            <button
-              onClick={clearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          )}
-          {isSearching && (
-            <div className="absolute right-12 top-1/2 -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-black"></div>
-            </div>
-          )}
-        </div>
 
-        {/* Search Results Dropdown */}
-        {showSearchResults && searchQuery && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50">
-            {searchResults.length > 0 ? (
-              <div className="p-2">
-                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
-                </div>
-                {searchResults.map((event) => (
-                  <button
-                    key={`${event.id}-${event.start.toISOString()}`} 
-                    onClick={() => handleSearchResultClick(event)}
-                    className="w-full text-left px-3 py-3 hover:bg-gray-50 rounded-lg transition-colors group"
-                  >
-                    <div className="flex items-start gap-3">
+      {/* Top bar: undo notification or search */}
+      <div className="h-14 mb-4 relative">
+        {showUndo ? (
+          <div className="absolute inset-0 bg-gray-900 text-white rounded-2xl shadow-xl flex items-center justify-between px-6 z-[60]">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-[10px] font-bold">!</span>
+              <p className="text-sm font-medium">Event deleted</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleUndo}
+                className="bg-blue-500 hover:bg-blue-400 text-white px-5 py-1.5 rounded-lg font-bold text-sm flex items-center gap-2"
+              >
+                <span className="text-lg leading-none">↺</span> Undo
+              </button>
+              <button onClick={() => setShowUndo(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
+            </div>
+          </div>
+        ) : (
+          <div className="relative h-full" ref={searchRef}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              onFocus={() => searchQuery && setShowSearchResults(true)}
+              placeholder="Search events..."
+              className="w-full h-full px-4 pl-11 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black shadow-sm bg-white"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</div>
+            {searchQuery && (
+              <button onClick={clearSearch} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">✕</button>
+            )}
+            {showSearchResults && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-[70] p-2">
+                {searchResults.length > 0 ? (
+                  searchResults.map((event) => (
+                    <button
+                      key={event.occurrenceId || event.id}
+                      onClick={() => handleSearchResultClick(event)}
+                      className="w-full text-left p-3 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                    >
                       <div
-                        className="w-1 h-full rounded-full flex-shrink-0 mt-1"
-                        style={{
-                          backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
-                          minHeight: "40px",
-                        }}
+                        className="w-1.5 h-8 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6" }}
                       />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-gray-900 truncate group-hover:text-black">
-                            {event.title}
-                          </h4>
-                          <span
-                            className="px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider flex-shrink-0"
-                            style={{
-                              backgroundColor: CATEGORY_COLORS[event.category],
-                            }}
-                          >
-                            {event.category}
-                          </span>
+                      <div>
+                        <div className="font-bold text-gray-900 text-sm">{event.title}</div>
+                        <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                          {format(event.start, "PPP")}
+                          {event.isRecurring && " · Recurring"}
                         </div>
-                        <div className="text-sm text-gray-600 mb-1">
-                          {format(event.start, "PPP")} • {format(event.start, "p")} - {format(event.end, "p")}
-                        </div>
-                        {event.description && (
-                          <p className="text-sm text-gray-500 line-clamp-2">
-                            {event.description}
-                          </p>
-                        )}
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center text-gray-500">
-                <svg
-                  className="w-12 h-12 mx-auto mb-3 text-gray-300"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="font-medium">No events found</p>
-                <p className="text-sm mt-1">Try a different search term</p>
+                    </button>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-sm text-gray-400">No matching events</div>
+                )}
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Filter Bar */}
+      {/* Category filters */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {["All", "Lecture", "Individual Study", "Exam", "Personal", "Lab"].map(
-          (cat) => (
-            <button
-              key={cat}
-              onClick={() => {
-                setFilter(cat);
-                if (searchQuery) {
-                  handleSearch(searchQuery); // Re-search with new filter
-                }
-              }}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border shadow-sm ${
-                filter === cat
-                  ? "bg-black text-white border-black scale-105"
-                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-100"
-              }`}
-            >
-              {cat}
-            </button>
-          ),
-        )}
+        {["All", "Lecture", "Individual Study", "Exam", "Personal", "Lab"].map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setFilter(cat)}
+            className={`px-4 py-1.5 rounded-full text-[11px] uppercase tracking-widest font-bold border transition-all ${
+              filter === cat
+                ? "bg-black text-white border-black"
+                : "bg-white text-gray-500 hover:bg-gray-100 border-gray-200"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
 
-{/* Main Calendar Card */}
-      <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100">
-        <DnDCalendar
+      {/* Calendar — plain Calendar, no DnD wrapper */}
+      <div className="bg-white p-4 rounded-3xl shadow-md border border-gray-100">
+        <Calendar
           localizer={localizer}
           events={filteredEvents}
           startAccessor="start"
           endAccessor="end"
           selectable
-          resizable
-          onEventDrop={moveEvent}
-          onEventResize={moveEvent}
           date={calendarDate}
-          onNavigate={(date) => setCalendarDate(date)}
+          onNavigate={setCalendarDate}
           onSelectSlot={({ start }) => {
             setSelectedEvent(null);
             setIsEditing(false);
@@ -392,78 +260,80 @@ const eventStyleGetter = (event: any) => {
             setIsModalOpen(true);
           }}
           eventPropGetter={eventStyleGetter}
-          draggableAccessor={(event) => !event.isGoogleEvent}
-          resizableAccessor={(event) => !event.isGoogleEvent}
           style={{ height: 600 }}
-          className="rounded-lg"
-          scrollToTime={new Date()}
         />
       </div>
-      {/* Modal Overlay */}
+
+      {/* Event detail / edit modal */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm z-[9999]"
-          onClick={closeModal}
+          className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
+          onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200"
+            className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <button onClick={closeModal} className="absolute top-4 right-4 text-gray-400 hover:text-black p-1">✕</button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-black text-xl"
+            >
+              ✕
+            </button>
 
             {selectedEvent && !isEditing ? (
               <div className="pt-2">
-                {/* Visual indicator in Modal */}
-                <div className="flex justify-between items-start mb-3">
-                   <span
-                    className="px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider"
-                    style={{ backgroundColor: selectedEvent.isGoogleEvent ? "#4285F4" : CATEGORY_COLORS[selectedEvent.category] }}
-                  >
-                    {selectedEvent.isGoogleEvent ? "Google Event" : selectedEvent.category}
-                  </span>
-                  {selectedEvent.isGoogleEvent && <span className="text-blue-500 font-bold text-xs uppercase">Read Only</span>}
-                </div>
-
-                <h3 className="text-2xl font-bold text-gray-800 leading-tight">
+                <div
+                  className="w-12 h-1.5 rounded-full mb-6"
+                  style={{ backgroundColor: CATEGORY_COLORS[selectedEvent.category] || "#3b82f6" }}
+                />
+                <h3 className="text-3xl font-black text-gray-900 mb-2 leading-tight">
                   {selectedEvent.title}
                 </h3>
+                <p className="text-gray-500 text-sm mb-4 font-medium">
+                  {format(selectedEvent.start, "EEEE, MMMM do · h:mm a")}
+                </p>
 
-                <div className="flex flex-col gap-3">
-                  {selectedEvent.isGoogleEvent ? (
-                    <a
-                      href="https://calendar.google.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-center hover:bg-blue-700 transition-all shadow-md"
-                    >
-                      Edit in Google Calendar
-                    </a>
-                  ) : (
-                    <>
-                      <div className="flex gap-3">
-                        <button onClick={() => setIsEditing(true)} className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-200">Edit</button>
-                        <button onClick={() => handleDelete("all")} className="flex-1 bg-red-50 text-red-600 py-2.5 rounded-xl font-bold hover:bg-red-100">Delete</button>
-                      </div>
-                      {selectedEvent.recurrence?.type && selectedEvent.recurrence.type !== "none" && (
-                        <button onClick={() => handleDelete("single")} className="w-full bg-red-50 text-red-600 py-2 rounded-xl text-sm font-semibold border border-red-100">
-                          Delete Only This Occurrence
-                        </button>
-                      )}
-                    </>
-                  )}
+                {selectedEvent.isRecurring && (
+                  <div className="mb-4 px-3 py-2 bg-blue-50 rounded-lg text-xs text-blue-700 font-medium flex items-center gap-2">
+                    <span>🔁</span>
+                    <span>Recurring series</span>
+                  </div>
+                )}
+
+                {selectedEvent.description && (
+                  <p className="text-gray-600 text-sm mb-6">{selectedEvent.description}</p>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all"
+                  >
+                    {selectedEvent.isRecurring ? "Delete Series" : "Delete"}
+                  </button>
                 </div>
               </div>
             ) : (
               <div>
-                <h3 className="text-xl font-bold mb-6 text-gray-800">
-                  {selectedEvent ? "Update Details" : `Add Entry for ${format(new Date(selectedDate), "MMM do")}`}
+                <h3 className="text-2xl font-black mb-8 text-gray-900">
+                  {selectedEvent ? "Modify Event" : "New Schedule"}
                 </h3>
                 <EventForm
                   userId={userId}
                   initialEvent={selectedEvent}
                   initialStartDate={selectedDate}
                   existingEvents={events}
-                  onSuccess={() => { closeModal(); refreshEvents(); }}
+                  onSuccess={() => {
+                    setIsModalOpen(false);
+                    refreshEvents();
+                  }}
                 />
               </div>
             )}
