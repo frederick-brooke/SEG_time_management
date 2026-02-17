@@ -38,8 +38,7 @@ export default function EventForm({
   const [title, setTitle] = useState(initialEvent?.title || "");
   const [description, setDescription] = useState(initialEvent?.description || "");
   const [category, setCategory] = useState(initialEvent?.category || "Lecture");
-  
-  // Default to 'single' if moving an instance, 'series' for general edits
+
   const [editMode, setEditMode] = useState<"single" | "series">(isRecurring ? "single" : "series");
 
   const [startDate, setStartDate] = useState(
@@ -58,7 +57,7 @@ export default function EventForm({
   const [recurrenceType, setRecurrenceType] = useState<"none" | "daily" | "weekly" | "monthly">(
     initialEvent?.recurrence?.type || "none"
   );
-  
+
   const defaultUntil = new Date();
   defaultUntil.setMonth(defaultUntil.getMonth() + 1);
 
@@ -72,7 +71,6 @@ export default function EventForm({
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
 
-  // Sync recurrence days with start date if weekly is chosen
   useEffect(() => {
     if (recurrenceType === "weekly" && recurrenceDays.length === 0) {
       const dayIndex = new Date(startDate).getDay();
@@ -104,8 +102,7 @@ export default function EventForm({
       end: end.toISOString(),
       userId,
       mode: editMode,
-      // originalDate is vital for the backend to find which occurrence to 'exclude'
-      originalDate: initialEvent?.start, 
+      originalDate: initialEvent?.start,
       recurrenceType,
       recurrenceDays: recurrenceType === "weekly" ? recurrenceDays : undefined,
       recurrenceUntil: recurrenceUntilISO,
@@ -126,7 +123,6 @@ export default function EventForm({
   };
 
   const saveEvent = async (payload: any) => {
-    // If we have an ID, use PATCH. If not, use POST.
     const method = initialEvent?.id ? "PATCH" : "POST";
 
     const res = await fetch("/api/calendar/events", {
@@ -140,6 +136,50 @@ export default function EventForm({
     } else {
       const errorData = await res.json();
       alert(errorData.message || "Failed to save event");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!initialEvent?.id || isGoogle) return;
+
+    const confirmMsg = editMode === "single"
+      ? "Are you sure you want to delete this specific occurrence?"
+      : "Are you sure you want to delete the entire series?";
+
+    if (!confirm(confirmMsg)) return;
+
+    const realId = initialEvent.id;
+
+    if (!realId || !/^[a-f\d]{24}$/i.test(realId)) {
+      alert(`Invalid event ID: "${realId}". Cannot delete.`);
+      console.error("Bad realId:", realId, "Full event:", initialEvent);
+      return;
+    }
+    const dateToSend = new Date(initialEvent.start).toISOString();
+
+    const params = new URLSearchParams({
+      id: realId,
+      mode: editMode,
+      date: dateToSend,
+    });
+
+    console.log("EventForm DELETE params:", Object.fromEntries(params)); 
+
+    try {
+      const res = await fetch(`/api/calendar/events?${params.toString()}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        onSuccess();
+      } else {
+        const error = await res.json();
+        console.error("EventForm delete error:", error);
+        alert(error.message || "Failed to delete");
+      }
+    } catch (err) {
+      console.error("Delete Error:", err);
+      alert("An error occurred while deleting.");
     }
   };
 
@@ -232,7 +272,6 @@ export default function EventForm({
         </div>
       </div>
 
-      {/* Recurrence Options: Only show if creating new or editing the whole series */}
       {!isGoogle && editMode === "series" && (
         <div className="border-t pt-4">
           <label className="text-sm font-semibold text-gray-600">Repeat</label>
@@ -282,10 +321,21 @@ export default function EventForm({
           isGoogle ? "bg-gray-300" : editMode === "single" ? "bg-amber-600 hover:bg-amber-700" : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
-        {initialEvent 
-          ? (editMode === "single" ? "Update Only This Day" : "Update Series") 
+        {initialEvent
+          ? (editMode === "single" ? "Update Only This Day" : "Update Series")
           : "Create Event"}
       </button>
+
+      {initialEvent && !isGoogle && (
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="w-full mt-2 p-3 rounded-xl font-bold text-red-600 border border-red-200 hover:bg-red-50 transition-all"
+        >
+          {editMode === "single" ? "Delete This Day Only" : "Delete Entire Event"}
+        </button>
+      )}
+
     </form>
   );
 }

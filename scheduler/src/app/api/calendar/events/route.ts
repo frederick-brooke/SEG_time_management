@@ -4,6 +4,7 @@ import { authOptions } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
 import { addDays, addWeeks, addMonths, startOfDay, endOfDay } from "date-fns";
 import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
+import { ObjectId } from "mongodb";
 
 // Global lock to prevent multiple syncs running at once per server instance 
 let isSyncing = false;
@@ -25,7 +26,7 @@ function expandRecurringEvents(events: any[]) {
     const { type, until, days } = e.recurrence;
     // Normalize exceptions - new Date(d) works with ISO strings
     const exceptions = Array.isArray(e.exceptions)
-      ? e.exceptions.map((d: any) => startOfDay(new Date(d)).getTime())
+      ? e.exceptions.map((d: any) => new Date(d).toISOString().split('.')[0] + "Z") // Match the format
       : [];
     const start = new Date(e.start);
     const end = new Date(e.end);
@@ -65,7 +66,8 @@ function expandRecurringEvents(events: any[]) {
       }
 
       occurrencesThisPeriod.forEach((occ) => {
-        if (!exceptions.includes(startOfDay(occ).getTime())) {
+        const occIso = occ.toISOString().split('.')[0] + "Z";
+        if (!exceptions.includes(occIso)) {
           allEvents.push({
             ...e,
             start: new Date(occ),
@@ -122,40 +124,51 @@ export async function GET(req: NextRequest) {
           const startDt = ge.start?.dateTime ? new Date(ge.start.dateTime) : (ge.start?.date ? new Date(ge.start.date + 'T00:00:00Z') : new Date());
           const endDt = ge.end?.dateTime ? new Date(ge.end.dateTime) : (ge.end?.date ? new Date(ge.end.date + 'T00:00:00Z') : new Date());
 
-          const localEvent = await prisma.event.findUnique({ where: { googleEventId: ge.id } });
+          const localEvent = await prisma.event.findFirst({ 
+            where: { googleEventId: ge.id, userId: session.user.id } 
+          });
           if (localEvent && localEvent.lastSyncedAt) {
             const timeSinceLastSync = Date.now() - new Date(localEvent.lastSyncedAt).getTime();
             if (timeSinceLastSync < 10000) continue;
           }
 
-          await prisma.event.upsert({
-            where: { googleEventId: ge.id },
-            update: {
-              title: ge.summary || "Untitled",
-              start: startDt,
-              end: endDt,
-              description: ge.description || "",
-              lastSyncedAt: new Date()
-            },
-            create: {
-              googleEventId: ge.id,
-              title: ge.summary || "Untitled",
-              description: ge.description || "",
-              start: startDt,
-              end: endDt,
-              userId: session.user.id,
-              category: "Google",
-              allDay: !ge.start?.dateTime,
-              lastSyncedAt: new Date()
-            },
-          }).catch(() => { });
+          if (localEvent) {
+            await prisma.event.update({
+              where: { id: localEvent.id },
+              data: {
+                title: ge.summary || "Untitled",
+                start: startDt,
+                end: endDt,
+                description: ge.description || "",
+                lastSyncedAt: new Date()
+              }
+            }).catch(err => console.error("Sync Update Error:", err));
+          } else {
+            // Create new
+            await prisma.event.create({
+              data: {
+                googleEventId: ge.id,
+                title: ge.summary || "Untitled",
+                description: ge.description || "",
+                start: startDt,
+                end: endDt,
+                userId: session.user.id,
+                category: "Google",
+                allDay: !ge.start?.dateTime,
+                lastSyncedAt: new Date()
+              }
+            }).catch(err => console.error("Sync Create Error:", err));
+          }
         }
+      } catch (err) {
+        console.error("Sync process failed:", err);
       } finally {
         isSyncing = false;
       }
     })();
   }
 
+  // --- Filtering & Response ---
   const filters: any = { userId: session.user.id };
   if (query) {
     filters.OR = [
@@ -232,8 +245,11 @@ export async function PATCH(req: NextRequest) {
   const { id, start, end, title, description, mode, originalDate } = await req.json();
 
   try {
-    const event = await prisma.event.findUnique({
-      where: { id, userId: session.user.id }
+    const event = await prisma.event.findFirst({
+      where: { 
+        id,
+        userId: session.user.id
+      }
     });
 
     if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
@@ -308,39 +324,45 @@ export async function DELETE(req: NextRequest) {
 
   if (!id) return NextResponse.json({ message: "ID required" }, { status: 400 });
 
+  if (!ObjectId.isValid(id)) {
+    return NextResponse.json({ message: "Invalid event ID. Must be a MongoDB ObjectID", status: 400 });
+  }
   try {
-    const event = await prisma.event.findUnique({
-      where: { id, userId: session.user.id }
+    const event = await prisma.event.findFirst({
+      where: { id, userId: session.user.id },
     });
 
-    if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
+    if (!event) return NextResponse.json({ message: "Event not found", status: 404 });
 
     if (mode === "single" && instanceDate) {
-      await prisma.event.update({
-        where: { id },
-        // FIXED: Convert Date to ISO String for Prisma String[]
-        data: { exceptions: { push: new Date(instanceDate).toISOString() } },
-      });
-      return NextResponse.json({ success: true });
+      const dt = new Date(instanceDate);
+      if (isNaN(dt.getTime())) return NextResponse.json({ message: "Invalid date" }, { status: 400 });
+
+      const iso = dt.toISOString().split('.')[0] + "Z"; 
+      
+      const exceptions = event.exceptions || [];
+      if (!exceptions.includes(iso)) {
+        await prisma.event.update({
+          where: { id },
+          data: { exceptions: { push: iso } },
+        });
+      }
+      return NextResponse.json({ success: true, message: "Occurrence removed" });
     }
 
     if (event.googleEventId) {
       try {
         const calendar = await getGoogleCalendarClient(session.user.id);
-        if (calendar) {
-          await calendar.events.delete({
-            calendarId: "primary",
-            eventId: event.googleEventId
-          });
-        }
+        if (calendar) await calendar.events.delete({ calendarId: "primary", eventId: event.googleEventId });
       } catch (err) {
         console.error("Google Delete Failed:", err);
       }
     }
 
     await prisma.event.delete({ where: { id } });
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "Event deleted" });
   } catch (e: any) {
+    console.error("Delete handler error:", e);
     return NextResponse.json({ message: e.message }, { status: 500 });
   }
 }

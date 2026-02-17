@@ -135,23 +135,46 @@ export default function CalendarView({
     },
   });
 
-  const handleDelete = async () => {
+  const handleDelete = async (mode: "single" | "series") => {
     if (!selectedEvent) return;
-    const label = selectedEvent.isRecurring
-      ? "Delete this entire recurring series and all its occurrences?"
-      : "Delete this event?";
-    if (!confirm(label)) return;
 
-    const eventId = selectedEvent.baseEventId || selectedEvent.id;
+    const eventId = selectedEvent.id;
 
-    // Save for undo — use the raw event data
+    if (!eventId || !/^[a-f\d]{24}$/i.test(eventId)) {
+      alert(`Invalid event ID: "${eventId}". Cannot delete.`);
+      console.error("Bad eventId:", eventId, "Full event:", selectedEvent);
+      return;
+    }
+
+    const confirmMsg = mode === "single"
+      ? "Remove only this specific occurrence?"
+      : "Delete the entire recurring series?";
+    if (!confirm(confirmMsg)) return;
+
     setLastDeletedEvent(selectedEvent);
 
-    const res = await fetch(`/api/calendar/events?id=${eventId}`, { method: "DELETE" });
-    if (res.ok) {
-      setIsModalOpen(false);
-      refreshEvents();
-      triggerUndo();
+    const instanceDate = selectedEvent.start instanceof Date
+      ? selectedEvent.start.toISOString()
+      : new Date(selectedEvent.start).toISOString();
+
+    const params = new URLSearchParams({ id: eventId, mode });
+    if (mode === "single") params.append("date", instanceDate);
+
+    console.log("DELETE params:", Object.fromEntries(params)); // helpful debug log
+
+    try {
+      const res = await fetch(`/api/calendar/events?${params}`, { method: "DELETE" });
+      if (res.ok) {
+        setIsModalOpen(false);
+        refreshEvents();
+        triggerUndo();
+      } else {
+        const errData = await res.json();
+        console.error("Delete API error:", errData);
+        alert(`Error: ${errData.message}`);
+      }
+    } catch (err) {
+      console.error("Delete failed:", err);
     }
   };
 
@@ -238,7 +261,7 @@ export default function CalendarView({
         ))}
       </div>
 
-      {/* Calendar — plain Calendar, no DnD wrapper */}
+      {/* Calendar */}
       <div className="bg-white p-4 rounded-3xl shadow-md border border-gray-100">
         <Calendar
           localizer={localizer}
@@ -305,19 +328,37 @@ export default function CalendarView({
                   <p className="text-gray-600 text-sm mb-6">{selectedEvent.description}</p>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-3">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="flex-1 bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+                    className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={handleDelete}
-                    className="flex-1 bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all"
-                  >
-                    {selectedEvent.isRecurring ? "Delete Series" : "Delete"}
-                  </button>
+
+                  {(selectedEvent.recurrence?.type && selectedEvent.recurrence.type !== "none") || selectedEvent.isRecurring ? (
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => handleDelete("single")}
+                        className="bg-red-50 text-red-600 py-3 rounded-2xl font-bold hover:bg-red-100 transition-all text-sm"
+                      >
+                        Delete Only This Instance
+                      </button>
+                      <button
+                        onClick={() => handleDelete("series")}
+                        className="bg-red-600 text-white py-3 rounded-2xl font-bold hover:bg-red-700 transition-all text-sm"
+                      >
+                        Delete Entire Series
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleDelete("series")}
+                      className="bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all"
+                    >
+                      Delete Event
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
