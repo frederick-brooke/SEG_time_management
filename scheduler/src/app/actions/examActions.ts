@@ -1,4 +1,4 @@
-'user server'
+'use server'
 
 import { prisma } from "@/src/lib/prisma"; 
 import { getServerSession } from "next-auth";
