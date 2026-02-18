@@ -34,6 +34,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "components/ui/sidebar"
+import { GraduationCap } from "lucide-react"
 
 const data = {
   user: {
@@ -53,9 +54,9 @@ const data = {
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
+      title: "Exam Planner",
+      url: "/exam-planner",
+      icon: GraduationCap,
     },
     {
       title: "Projects",
