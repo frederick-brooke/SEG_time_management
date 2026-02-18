@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
@@ -14,13 +14,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      const authError = searchParams.get('error');
-      
+    if (status === "authenticated") {
+      const authError = searchParams.get("error");
+
       if (authError) {
         router.replace(`/dashboard?error=${authError}`);
       } else {
-        router.replace('/dashboard');
+        router.replace("/dashboard");
       }
     }
   }, [status, searchParams, router]);
@@ -28,24 +28,43 @@ export default function LoginPage() {
   useEffect(() => {
     const urlError = searchParams.get("error");
     if (urlError === "AccessDenied") {
-        setError("Access denied. Please check your credentials.");
+      setError("Access denied. Please check your credentials.");
     }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setError(null);     // clears any previous error messages
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
+    const result = await signIn("credentials", {    // stores whether login succeeded or failed
+      redirect: false,    // dont automatically redirect, let us handle it
+      email,              // the values from the form
       password,
     });
 
-    if (result?.error) {
+    if (result?.error) {      // if result exists, check its error property
       setError("Invalid email or password");
-    } else {
+    } else {                  // if login succeeded
+      const sessionRes = await fetch("/api/auth/session");    // fetches the raw, current session from the API
+      const session = await sessionRes.json();    // converts the response to JSON. Now session contains the user's data like their ID, email
+
       router.push("/dashboard");
+
+      if (!session?.user?.id) {
+        setError("Failed to get user session");
+        return;
+      }
+
+      const prefsRes = await fetch(
+        `/api/preferences/check?userId=${session.user.id}`,     // calls our preferences API to check if this user has filled out the quiz
+      );
+      const prefsData = await prefsRes.json();    // converts the response to JSON
+
+      if (prefsData.hasPreferences) {
+        router.push("/dashboard");
+      } else {
+        router.push("/quiz");
+      }
     }
   };
 
@@ -93,8 +112,11 @@ export default function LoginPage() {
         </button>
 
         <div className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+          Don't have an account?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-blue-600 hover:text-blue-500"
+          >
             Sign up
           </Link>
         </div>
