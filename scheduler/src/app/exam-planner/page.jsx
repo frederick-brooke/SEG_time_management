@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { AppSidebar } from "@/src/components/app-sidebar";
 import { SiteHeader } from "@/src/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
-import { getMyExams } from "@/src/app/actions/examActions";
+import { getMyExams, deleteExam } from "@/src/app/actions/examActions";
 import ExamFormDialog from "@/src/components/exams/exam-form-dialog";
 
 export default function ExamPlannerPage() {
@@ -31,6 +31,18 @@ export default function ExamPlannerPage() {
         }
         loadExams();
     }, [session]);
+
+    const handleDelete = async (id) => {
+        if (confirm("Are you sure you want to delete this exam entry?")) {
+            try {
+                await deleteExam(id);
+                setExams(exams.filter(exam => exam.id !== id));
+            } catch (error) {
+                console.error("Failed to delete:", error);
+                alert("Could not delete exam");
+            }
+        }
+    };
 
     if (status === "loading") return <p className="p-4">Loading session</p>
 
@@ -58,13 +70,24 @@ export default function ExamPlannerPage() {
                             {exams.length > 0 ? (
                                 exams.map((exam) => (
                                     <div key={exam.id} className="p-6 border rounded-2xl bg-card shadow-sm">
-                                        <h2 className="text-xl font-bold">{exam.title}</h2>
-                                        <p className="text-sm text-muted-foreground mt-2">
-                                            Exam Date: {new Date(exam.examDate).toLocaleDateString()}
-                                        </p>
-                                        <p className="text-sm font-medium mt-1">
-                                            Daily Goal: {exam.maxTimePerDay} mins
-                                        </p>
+                                        <div>
+                                            <h2 className="text-xl font-bold">{exam.title}</h2>
+                                            <p className="text-sm text-muted-foreground mt-2">
+                                                Exam Date: {new Date(exam.examDate).toLocaleDateString()}
+                                            </p>
+                                            <p className="text-sm font-medium mt-1">
+                                                Daily Goal: {exam.maxTimePerDay} mins
+                                            </p>
+                                        </div>
+
+                                        <div className="flex justify-end mt-4">
+                                            <button
+                                                onClick={() => handleDelete(exam.id)}
+                                                className="text-xs font-bold text-red-500 hove:text-red-700 transition-colors px-2 py-1 rounded hover:bg-red-50"
+                                            >
+                                                Delete Exam
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             ) : (

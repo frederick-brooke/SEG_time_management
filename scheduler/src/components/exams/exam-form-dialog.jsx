@@ -39,7 +39,7 @@ export default function ExamFormDialog({ onExamAdded }) {
                                 <input name="title" required className="w-full border-2 p-3 rounded-xl focus:border-indigo-500 outline none" placeholder="e.g. Computer Science" />                        
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold mb-1">Exam Dare</label>
+                                <label className="block text-sm font-semibold mb-1">Exam Date</label>
                                 <input name="examDate" type="date" required className="w-full border-2 p-3 rounded-xl focus:border-indigo-500 outline none"/>                        
                             </div>
                             <div>
