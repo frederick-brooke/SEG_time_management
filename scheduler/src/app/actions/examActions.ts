@@ -78,3 +78,16 @@ export async function createExam(formData: FormData) {
 
         revalidatePath("/exam-planner")
     }
+
+    export async function getExamById(id: string) {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) return null;
+
+        return await prisma.exam.findUnique({
+            where: {id: id},
+            include: {
+                tasks: true,
+                revisionMaterials: true,
+            }
+        });
+    }

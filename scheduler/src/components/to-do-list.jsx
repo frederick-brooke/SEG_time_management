@@ -17,7 +17,7 @@ import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 
-export function ToDoList({ userId, exams = [] }) {
+export function ToDoList({ userId, exams = [], filterExamId = null }) {
   const {
     tasks,
     isLoading,
@@ -63,19 +63,22 @@ export function ToDoList({ userId, exams = [] }) {
     return dueDate < today;
   };
 
-  // Filter by search
-  const searchedTasks = tasks.filter(t =>
+  const examFilteredTasks = filterExamId
+    ? tasks.filter(t => t.examId === filterExamId)
+    : tasks;
+
+  const searchedTasks = examFilteredTasks.filter(t =>
     (t.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const overdueTasks = tasks.filter((task) => isOverdue(task));
+  const overdueTasks = searchedTasks.filter((task) => isOverdue(task));
   const todoTasks = searchedTasks.filter(t => (t.status || "todo") === "todo" && !isOverdue(t));
   const inProgressTasks = searchedTasks.filter(t => (t.status || "todo") === "in-progress" && !isOverdue(t));
   const completedTasks = searchedTasks.filter(t => (t.status || "todo") === "completed");
 
   // Progress bar logic
-  const totalTasks = tasks.length;
-  const completedCount = completedTasks.length;
+  const totalTasks = examFilteredTasks.length;
+  const completedCount = examFilteredTasks.filter(t => t.status === "completed").length;
   const progressPercentage =
     totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
@@ -112,6 +115,10 @@ export function ToDoList({ userId, exams = [] }) {
             onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) resetForm();
+
+              if (open && editingTaskId === null && filterExamId) {
+                handleFormChange({ examId: filterExamId });
+              }
             }}
             editingTaskId={editingTaskId}
             formData={formData}
@@ -136,7 +143,7 @@ export function ToDoList({ userId, exams = [] }) {
       
 
       <CardContent className="px-4">
-        {tasks.length === 0 ? (
+        {examFilteredTasks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <p>No tasks yet. Click "New" to create your first task!</p>
           </div>

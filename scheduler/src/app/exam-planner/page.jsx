@@ -11,6 +11,8 @@ import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
 import { getMyExams, deleteExam } from "@/src/app/actions/examActions";
 import ExamFormDialog from "@/src/components/exams/exam-form-dialog";
 
+import Link from "next/link";
+
 export default function ExamPlannerPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -76,7 +78,9 @@ export default function ExamPlannerPage() {
                                     return (
                                         <div key={exam.id} className="p-6 border rounded-2xl bg-card shadow-sm flex flex-col gap-4">
                                             <div className="flex justify-between items-start">
-                                                <h2 className="text-xl font-bold">{exam.title}</h2>
+                                                <Link href={`/exam-planner/${exam.id}`} className="hover-underline">
+                                                    <h2 className="text-xl font-bold">{exam.title}</h2>
+                                                </Link>                                    
 
                                                 {/* Task Counter */}
                                                 <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md border border-indigo-100 uppercase">
