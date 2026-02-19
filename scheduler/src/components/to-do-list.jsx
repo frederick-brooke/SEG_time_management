@@ -17,7 +17,7 @@ import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 
-export function ToDoList({ userId }) {
+export function ToDoList({ userId, exams = [] }) {
   const {
     tasks,
     isLoading,
@@ -117,6 +117,7 @@ export function ToDoList({ userId }) {
             formData={formData}
             onFormChange={handleFormChange}
             onSubmit={handleSubmitTask}
+            exams={exams}
           />
         </CardAction>
       </CardHeader>

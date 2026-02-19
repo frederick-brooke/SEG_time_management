@@ -26,6 +26,7 @@ export function TaskFormDialog({
   formData,
   onFormChange,
   onSubmit,
+  exams = [],
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -137,6 +138,26 @@ export function TaskFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="exam-link">Link to Exam (Optional)</Label>
+            <Select
+              value={formData.examId || "none"}
+              onValueChange={(value) => onFormChange({ examId: value })}
+            >
+              <SelectTrigger id="exam-link">
+                <SelectValue placeholder="Select and exam" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">General Task (No Exam)</SelectItem>
+                {exams.map((exam) => (
+                  <SelectItem key={exam.id} value={exam.id}>
+                    {exam.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">

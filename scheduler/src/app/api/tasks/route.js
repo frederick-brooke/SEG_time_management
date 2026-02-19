@@ -47,6 +47,7 @@ export async function POST(request) {
         priority: body.priority || "Low",
         duration: body.duration || 0,
         subtasks: body.subtasks || [],
+        examId: body.examId && body.examId !== "none" ? body.examId : null,
       },
     });
     
