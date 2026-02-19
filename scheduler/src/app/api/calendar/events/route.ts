@@ -9,7 +9,7 @@ import { ObjectId } from "mongodb";
 // Global lock to prevent multiple syncs running at once per server instance 
 let isSyncing = false;
 let lastSyncTime = 0;
-const SYNC_INTERVAL = 60 * 1000;
+const SYNC_INTERVAL = 5 * 60 * 1000;
 
 // --- HELPERS --- 
 
@@ -100,85 +100,80 @@ export async function GET(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
+  const now = Date.now();
+  
   const query = searchParams.get("q");
   const category = searchParams.get("category");
 
-  const now = Date.now();
-  if (!isSyncing && (now - lastSyncTime > SYNC_INTERVAL)) {
+  const localCount = await prisma.event.count({ where: { userId: session.user.id } });
+
+  const shouldSync = 
+    searchParams.get("force") === "true" || 
+    (now - lastSyncTime > SYNC_INTERVAL) || 
+    localCount === 0;
+
+  if (!isSyncing && shouldSync) {
     isSyncing = true;
     lastSyncTime = now;
-    (async () => {
-      try {
-        const calendar = await getGoogleCalendarClient(session.user.id);
-        if (!calendar) return;
-
+    try {
+      const calendar = await getGoogleCalendarClient(session.user.id);
+      if (calendar) {
         const res = await calendar.events.list({
           calendarId: "primary",
-          timeMin: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          singleEvents: false,
+          timeMin: new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          singleEvents: true, 
         });
         const googleEvents = res.data.items || [];
         for (const ge of googleEvents) {
           if (!ge.id || ge.status === "cancelled") continue;
 
-          const startDt = ge.start?.dateTime ? new Date(ge.start.dateTime) : (ge.start?.date ? new Date(ge.start.date + 'T00:00:00Z') : new Date());
-          const endDt = ge.end?.dateTime ? new Date(ge.end.dateTime) : (ge.end?.date ? new Date(ge.end.date + 'T00:00:00Z') : new Date());
-
-          const localEvent = await prisma.event.findFirst({ 
-            where: { googleEventId: ge.id, userId: session.user.id } 
-          });
-          if (localEvent && localEvent.lastSyncedAt) {
-            const timeSinceLastSync = Date.now() - new Date(localEvent.lastSyncedAt).getTime();
-            if (timeSinceLastSync < 10000) continue;
-          }
-
-          if (localEvent) {
-            await prisma.event.update({
-              where: { id: localEvent.id },
-              data: {
-                title: ge.summary || "Untitled",
-                start: startDt,
-                end: endDt,
-                description: ge.description || "",
-                lastSyncedAt: new Date()
-              }
-            }).catch(err => console.error("Sync Update Error:", err));
-          } else {
-            // Create new
-            await prisma.event.create({
-              data: {
+          await prisma.event.upsert({
+            where: {
+              googleEventId_userId: {
                 googleEventId: ge.id,
-                title: ge.summary || "Untitled",
-                description: ge.description || "",
-                start: startDt,
-                end: endDt,
                 userId: session.user.id,
-                category: "Google",
-                allDay: !ge.start?.dateTime,
-                lastSyncedAt: new Date()
-              }
-            }).catch(err => console.error("Sync Create Error:", err));
-          }
+              },
+            },
+            update: {
+              title: ge.summary || "Untitled",
+              start: new Date(ge.start?.dateTime || ge.start?.date || now),
+              end: new Date(ge.end?.dateTime || ge.end?.date || now),
+            },
+            create: {
+              googleEventId: ge.id,
+              userId: session.user.id,
+              title: ge.summary || "Untitled",
+              start: new Date(ge.start?.dateTime || ge.start?.date || now),
+              end: new Date(ge.end?.dateTime || ge.end?.date || now),
+              category: "Google",
+            },
+          });
         }
-      } catch (err) {
-        console.error("Sync process failed:", err);
-      } finally {
-        isSyncing = false;
       }
-    })();
+    } finally {
+      isSyncing = false;
+    }
   }
 
   // --- Filtering & Response ---
   const filters: any = { userId: session.user.id };
+  
   if (query) {
     filters.OR = [
       { title: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
     ];
   }
-  if (category && category !== "all") filters.category = category;
+  
+  if (category && category !== "all") {
+    filters.category = category;
+  }
 
-  const events = await prisma.event.findMany({ where: filters, orderBy: { start: "asc" } });
+  const events = await prisma.event.findMany({ 
+    where: filters, 
+    orderBy: { start: "asc" } 
+  });
+  
   return NextResponse.json(expandRecurringEvents(events));
 }
 
@@ -238,6 +233,81 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+
+  try {
+    const calendar = await getGoogleCalendarClient(session.user.id);
+    if (!calendar) return NextResponse.json({ message: "No Google Calendar linked" }, { status: 400 });
+
+    const res = await calendar.events.list({
+      calendarId: "primary",
+      timeMin: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+      timeMax: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), 
+      singleEvents: false,
+      maxResults: 2500,
+    });
+
+    const googleEvents = res.data.items || [];
+    let created = 0, updated = 0, skipped = 0;
+
+    for (const ge of googleEvents) {
+      if (!ge.id || ge.status === "cancelled") { skipped++; continue; }
+
+      const startDt = ge.start?.dateTime
+        ? new Date(ge.start.dateTime)
+        : new Date((ge.start?.date ?? "") + "T00:00:00Z");
+      const endDt = ge.end?.dateTime
+        ? new Date(ge.end.dateTime)
+        : new Date((ge.end?.date ?? "") + "T00:00:00Z");
+
+      const existing = await prisma.event.findFirst({
+        where: { googleEventId: ge.id, userId: session.user.id },
+      });
+
+      if (existing) {
+        await prisma.event.update({
+          where: { id: existing.id },
+          data: {
+            title: ge.summary || "Untitled",
+            start: startDt,
+            end: endDt,
+            description: ge.description || "",
+            lastSyncedAt: new Date(),
+          },
+        });
+        updated++;
+      } else {
+        await prisma.event.create({
+          data: {
+            googleEventId: ge.id,
+            title: ge.summary || "Untitled",
+            description: ge.description || "",
+            start: startDt,
+            end: endDt,
+            userId: session.user.id,
+            category: "Google",
+            allDay: !ge.start?.dateTime,
+            lastSyncedAt: new Date(),
+          },
+        });
+        created++;
+      }
+    }
+
+    return NextResponse.json({
+      message: "Re-sync complete",
+      created,
+      updated,
+      skipped,
+      total: googleEvents.length,
+    });
+  } catch (err: any) {
+    console.error("Force re-sync failed:", err);
+    return NextResponse.json({ message: err.message }, { status: 500 });
+  }
+}
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -246,21 +316,44 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const event = await prisma.event.findFirst({
-      where: { 
-        id,
-        userId: session.user.id
-      }
+      where: { id, userId: session.user.id }
     });
 
     if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-    // --- CASE 1: Single Instance Exception --- 
     if (mode === "single" && originalDate) {
       await prisma.event.update({
         where: { id },
-        // FIXED: Convert Date to ISO String for Prisma String[]
         data: { exceptions: { push: new Date(originalDate).toISOString() } },
       });
+
+      let googleEventIdForNewEvent: string | null = null;
+
+      if (event.googleEventId) {
+        try {
+          const calendar = await getGoogleCalendarClient(session.user.id);
+          if (calendar) {
+            const instanceId = `${event.googleEventId}_${new Date(originalDate)
+              .toISOString()
+              .replace(/[-:]/g, "")
+              .split(".")[0]}Z`;
+
+            const gRes = await calendar.events.patch({
+              calendarId: "primary",
+              eventId: instanceId,
+              requestBody: {
+                summary: title || event.title,
+                description: description || event.description,
+                start: { dateTime: new Date(start).toISOString() },
+                end: { dateTime: new Date(end).toISOString() },
+              },
+            });
+            googleEventIdForNewEvent = gRes.data.id || null;
+          }
+        } catch (err) {
+          console.error("Google Instance Update Failed:", err);
+        }
+      }
 
       const newStandalone = await prisma.event.create({
         data: {
@@ -270,50 +363,59 @@ export async function PATCH(req: NextRequest) {
           end: new Date(end),
           userId: session.user.id,
           category: event.category,
+          googleEventId: googleEventIdForNewEvent,
         },
       });
       return NextResponse.json(newStandalone);
     }
 
-    // --- CASE 2: Update Entire Series --- 
+    const newDateReq = new Date(start);
+    const newEndDateReq = new Date(end);
+    const originalMasterStart = new Date(event.start);
+
+    const updatedSeriesStart = new Date(originalMasterStart);
+    updatedSeriesStart.setHours(newDateReq.getHours(), newDateReq.getMinutes(), 0, 0);
+
+    const duration = newEndDateReq.getTime() - newDateReq.getTime();
+    const updatedSeriesEnd = new Date(updatedSeriesStart.getTime() + duration);
+
     const updated = await prisma.event.update({
       where: { id },
       data: {
         title: title || undefined,
         description: description || undefined,
-        start: new Date(start),
-        end: new Date(end)
+        start: updatedSeriesStart,
+        end: updatedSeriesEnd,
       },
     });
 
     if (updated.googleEventId) {
-      (async () => {
-        try {
-          const calendar = await getGoogleCalendarClient(session.user.id);
-          if (calendar) {
-            await calendar.events.patch({
-              calendarId: "primary",
-              eventId: updated.googleEventId!,
-              requestBody: {
-                summary: updated.title,
-                description: updated.description || "",
-                start: { dateTime: updated.start.toISOString(), timeZone: "UTC" },
-                end: { dateTime: updated.end.toISOString(), timeZone: "UTC" }
-              },
-            });
-          }
-        } catch (err) {
-          console.error("Google Update Failed:", err);
+      try {
+        const calendar = await getGoogleCalendarClient(session.user.id);
+        if (calendar) {
+          await calendar.events.patch({
+            calendarId: "primary",
+            eventId: updated.googleEventId,
+            requestBody: {
+              summary: updated.title,
+              description: updated.description || "",
+              start: { dateTime: updatedSeriesStart.toISOString(), timeZone: "UTC" },
+              end: { dateTime: updatedSeriesEnd.toISOString(), timeZone: "UTC" },
+            },
+          });
         }
-      })();
+      } catch (err) {
+        console.error("Google Series Update Failed:", err);
+      }
     }
+    
     return NextResponse.json(updated);
+
   } catch (e: any) {
+    console.error("PATCH error:", e);
     return NextResponse.json({ message: e.message }, { status: 500 });
   }
-}
-
-export async function DELETE(req: NextRequest) {
+}export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
@@ -322,47 +424,60 @@ export async function DELETE(req: NextRequest) {
   const mode = searchParams.get("mode");
   const instanceDate = searchParams.get("date");
 
-  if (!id) return NextResponse.json({ message: "ID required" }, { status: 400 });
-
-  if (!ObjectId.isValid(id)) {
-    return NextResponse.json({ message: "Invalid event ID. Must be a MongoDB ObjectID", status: 400 });
+  if (!id || !ObjectId.isValid(id)) {
+    return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
   }
   try {
     const event = await prisma.event.findFirst({
       where: { id, userId: session.user.id },
     });
 
-    if (!event) return NextResponse.json({ message: "Event not found", status: 404 });
+    if (!event) return NextResponse.json({ message: "Event not found" }, { status: 404 });
 
     if (mode === "single" && instanceDate) {
-      const dt = new Date(instanceDate);
-      if (isNaN(dt.getTime())) return NextResponse.json({ message: "Invalid date" }, { status: 400 });
-
-      const iso = dt.toISOString().split('.')[0] + "Z"; 
       
-      const exceptions = event.exceptions || [];
-      if (!exceptions.includes(iso)) {
-        await prisma.event.update({
-          where: { id },
-          data: { exceptions: { push: iso } },
-        });
+      if (event.googleEventId) {
+        const calendar = await getGoogleCalendarClient(session.user.id);
+        if (calendar) {
+          try {
+            const instanceId = `${event.googleEventId}_${new Date(instanceDate)
+              .toISOString()
+              .replace(/[-:]/g, "")
+              .split(".")[0]}Z`;
+
+            await calendar.events.delete({
+              calendarId: "primary",
+              eventId: instanceId,
+            });
+          } catch (err) {
+            console.error("Google Single Instance Delete Failed:", err);
+          }
+        }
       }
-      return NextResponse.json({ success: true, message: "Occurrence removed" });
+
+      const iso = new Date(instanceDate).toISOString().split('.')[0] + "Z";
+      await prisma.event.update({
+        where: { id },
+        data: { exceptions: { push: iso } },
+      });
+
+      return NextResponse.json({ success: true, message: "Instance removed" });
     }
 
     if (event.googleEventId) {
-      try {
-        const calendar = await getGoogleCalendarClient(session.user.id);
-        if (calendar) await calendar.events.delete({ calendarId: "primary", eventId: event.googleEventId });
-      } catch (err) {
-        console.error("Google Delete Failed:", err);
+      const calendar = await getGoogleCalendarClient(session.user.id);
+      if (calendar) {
+        await calendar.events.delete({
+          calendarId: "primary",
+          eventId: event.googleEventId,
+        });
       }
     }
 
     await prisma.event.delete({ where: { id } });
-    return NextResponse.json({ success: true, message: "Event deleted" });
+    return NextResponse.json({ success: true, message: "Series deleted" });
   } catch (e: any) {
-    console.error("Delete handler error:", e);
+    console.error("Delete Error:", e);
     return NextResponse.json({ message: e.message }, { status: 500 });
   }
 }
