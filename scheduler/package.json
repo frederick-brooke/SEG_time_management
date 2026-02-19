@@ -9,6 +9,8 @@
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
     "test": "jest",
+    "test:clean": "jest --silent --verbose=false",
+    "test:coverage": "jest --coverage --silent --onlyFailures --testPathPattern",
     "test:watch": "jest --watch"
   },
   "prisma": {
@@ -65,10 +67,8 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.0",
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/next-auth": "^3.13.0",
     "@types/node": "25.0.10",
     "@types/react": "19.2.10",
@@ -80,7 +80,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "prisma": "^6.19.2",
     "tailwindcss": "^4.1.18",
-    "whatwg-fetch": "^3.6.20",
     "whatwg-fetch": "^3.6.20"
   }
 }
