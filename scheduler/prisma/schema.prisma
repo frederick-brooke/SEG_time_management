@@ -64,7 +64,7 @@ model Task {
 }
 
 model Event {
-  id             String   @id @default(auto()) @map("_id") @
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   userId         String    @db.ObjectId
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -74,7 +74,12 @@ model Event {
   end            DateTime
   allDay         Boolean  @default(false)
   category       String
+  startCoords       Json?
   destinationCoords Json?
+  travelDuration    Int?
+  startLocationName String?
+  destLocationName  String?
+  transportMode     String?
 
   recurrence     Json?
   exceptions     String[] @default([])

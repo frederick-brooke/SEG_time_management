@@ -42,6 +42,33 @@ export default function CalendarView({
   const [showUndo, setShowUndo] = useState(false);
   const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const EventComponent = ({ event }: any) => {
+    if (event.allDay) {
+      return <div className="font-semibold truncate">{event.title}</div>;
+    }
+
+  const travelMins =
+    typeof event.travelDuration === "number"
+      ? event.travelDuration 
+      : null;
+
+    return (
+      <div className="flex flex-col h-full">
+        {travelMins !== null && (
+          <div className="mb-1 px-1 py-[2px] rounded bg-white/20 text-[9px] flex items-center gap-1 font-bold">
+            <span>🚗</span>
+            <span>{travelMins} min travel</span>
+          </div>
+        )}
+
+        <div className="font-semibold truncate leading-tight">
+          {event.title}
+        </div>
+      </div>
+    );
+  };
+
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node))
@@ -263,6 +290,7 @@ export default function CalendarView({
 
       {/* Calendar */}
       <div className="bg-white p-4 rounded-3xl shadow-md border border-gray-100">
+        <div className="h-[600px]">
         <Calendar
           localizer={localizer}
           events={filteredEvents}
@@ -282,9 +310,27 @@ export default function CalendarView({
             setIsEditing(false);
             setIsModalOpen(true);
           }}
-          eventPropGetter={eventStyleGetter}
-          style={{ height: 600 }}
+          eventPropGetter={(event) => ({
+            style: {
+              backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
+              borderRadius: "6px",
+              border: "none",
+              color: "white",
+              fontSize: "0.85rem",
+              padding: "4px",
+              minHeight:
+                typeof event.travelDuration === "number"
+                  ? "48px"
+                  : "32px",
+
+            },
+          })}
+
+          components={{
+            event: EventComponent
+          }}
         />
+        </div>
       </div>
 
       {/* Event detail / edit modal */}

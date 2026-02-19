@@ -5,6 +5,7 @@ import { prisma } from "@/src/lib/prisma";
 import { addDays, addWeeks, addMonths, startOfDay, endOfDay } from "date-fns";
 import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
 import { ObjectId } from "mongodb";
+import { calculateTravelTime } from "@/src/lib/travel";
 
 // Global lock to prevent multiple syncs running at once per server instance 
 let isSyncing = false;
@@ -187,7 +188,17 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { title, description, start, end, allDay, category, recurrenceType, recurrenceDays, recurrenceUntil } = body;
+  const { 
+    title, description, start, end, allDay, category, 
+    recurrenceType, recurrenceDays, recurrenceUntil, 
+    startCoords, destCoords, startLocationName, destLocationName, 
+    transportMode, travelDuration: clientTravelDuration 
+  } = body;
+
+  let travelDuration = clientTravelDuration;
+  if ((travelDuration === undefined || travelDuration === null) && startCoords && destCoords) {
+    travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
+  }
 
   const recurrenceData = (recurrenceType && recurrenceType !== "none")
     ? { type: recurrenceType, until: recurrenceUntil ? new Date(recurrenceUntil) : null, days: recurrenceDays }
@@ -218,7 +229,7 @@ export async function POST(req: NextRequest) {
       console.error("Google Calendar Insert Failed:", googleError);
     }
 
-    const event = await prisma.event.create({
+const event = await prisma.event.create({
       data: {
         title,
         description: description || "",
@@ -228,7 +239,13 @@ export async function POST(req: NextRequest) {
         category: category || "Personal",
         userId: session.user.id,
         recurrence: recurrenceData || undefined,
-        googleEventId: googleEventId
+        googleEventId: googleEventId,
+        startCoords, 
+        destinationCoords: destCoords, 
+        travelDuration: travelDuration ? Math.round(travelDuration) : null,
+        startLocationName,
+        destLocationName,
+        transportMode,
       },
     });
 
@@ -242,23 +259,27 @@ export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-  const { id, start, end, title, description, mode, originalDate } = await req.json();
+  const body = await req.json();
+  const { 
+    id, start, end, title, description, mode, originalDate, 
+    startCoords, destCoords, startLocationName, destLocationName, 
+    transportMode, travelDuration: clientTravelDuration 
+  } = body;
 
   try {
     const event = await prisma.event.findFirst({
-      where: { 
-        id,
-        userId: session.user.id
-      }
+      where: { id, userId: session.user.id }
     });
 
     if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-    // --- CASE 1: Single Instance Exception --- 
+    let travelDuration = clientTravelDuration;
+    if ((travelDuration === undefined || travelDuration === null) && startCoords && destCoords) {
+      travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
+    }
     if (mode === "single" && originalDate) {
       await prisma.event.update({
         where: { id },
-        // FIXED: Convert Date to ISO String for Prisma String[]
         data: { exceptions: { push: new Date(originalDate).toISOString() } },
       });
 
@@ -270,19 +291,30 @@ export async function PATCH(req: NextRequest) {
           end: new Date(end),
           userId: session.user.id,
           category: event.category,
+          startCoords: startCoords ?? (event as any).startCoords,
+          destinationCoords: destCoords ?? (event as any).destinationCoords,
+          travelDuration: travelDuration ?? (event as any).travelDuration,
+          transportMode: transportMode || event.transportMode,
+          startLocationName: startLocationName || (event as any).startLocationName,
+          destLocationName: destLocationName || (event as any).destLocationName,
         },
       });
       return NextResponse.json(newStandalone);
     }
 
-    // --- CASE 2: Update Entire Series --- 
     const updated = await prisma.event.update({
       where: { id },
       data: {
         title: title || undefined,
         description: description || undefined,
         start: new Date(start),
-        end: new Date(end)
+        end: new Date(end),
+        startCoords: startCoords ?? null,
+        destinationCoords: destCoords ?? null,
+        travelDuration: travelDuration ? Math.round(travelDuration) : null,
+        startLocationName: startLocationName ?? null,
+        destLocationName: destLocationName ?? null,
+        transportMode 
       },
     });
 
