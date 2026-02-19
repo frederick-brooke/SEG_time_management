@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from 'lib/prisma';
 import { getServerSession } from 'next-auth'; 
 
-
 // GET /api/notifications - Fetch user notifications
 // Returns the 20 most recent notifications that are either non-expiring or not yet expired
 export async function GET(req: NextRequest) {
@@ -71,10 +70,10 @@ export async function PATCH(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession();
-
-        // if (!session?.user?.id) {
-        //     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        // }
+        
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         const { message, type, link, expiresAt } = await req.json();
 
