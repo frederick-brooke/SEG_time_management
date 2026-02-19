@@ -61,6 +61,13 @@ export function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
             </p>
           </div>
 
+          <div className="grid gap-1">
+            <p className="text-sm font-semibold">Linked Exams</p>
+            <p className="text-sm text-muted-foreground">
+              {task.exam?.title || "Not linked to an exam"}
+            </p>
+          </div>
+
           <div>
             <Label className="text-sm font-medium">Subtasks</Label>
             <ul className="list-disc list-inside text-sm text-muted-foreground mt-1">
