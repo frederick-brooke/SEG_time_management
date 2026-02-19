@@ -111,10 +111,14 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Work Start time */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="workStartTime"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   When would you like to start working?
                 </label>
                 <input
+                  id="workStartTime"
                   type="time"
                   value={formData.workStartTime}
                   onChange={(e) =>
@@ -126,10 +130,11 @@ export default function QuizPage() {
 
               {/* Work End Time */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="workEndTime" className="block text-sm font-medium text-gray-700 mb-2">
                   When would you like to stop working?
                 </label>
                 <input
+                  id="workEndTime"
                   type="time"
                   value={formData.workEndTime}
                   onChange={(e) => handleChange("workEndTime", e.target.value)}
@@ -139,7 +144,7 @@ export default function QuizPage() {
 
               {/* Days off */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="daysOff" className="block text-sm font-medium text-gray-700 mb-2">
                   Which days are you off?
                 </label>
                 <div className="space-y-2">
@@ -155,6 +160,7 @@ export default function QuizPage() {
                     <label key={day} className="flex items-center">
                       <input
                         type="checkbox"
+                        id={`day-${day}`}
                         checked={formData.daysOff.includes(day)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -180,10 +186,11 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Session Length */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="sessionLength" className="block text-sm font-medium text-gray-700 mb-2">
                   How long do you work before taking a break? (minutes)
                 </label>
                 <input
+                  id="sessionLength"
                   type="number"
                   value={formData.sessionLength}
                   onChange={(e) =>
@@ -197,10 +204,11 @@ export default function QuizPage() {
 
               {/* Break Length */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="breakLength" className="block text-sm font-medium text-gray-700 mb-2">
                   How long are your breaks? (minutes)
                 </label>
                 <input
+                  id="breakLength"
                   type="number"
                   value={formData.breakLength}
                   onChange={(e) =>
@@ -214,10 +222,11 @@ export default function QuizPage() {
 
               {/* Breaks Per Day */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="breaksPerDay" className="block text-sm font-medium text-gray-700 mb-2">
                   How many breaks do you take per day?
                 </label>
                 <input
+                  id="breaksPerDay"
                   type="number"
                   value={formData.breaksPerDay}
                   onChange={(e) =>
@@ -235,7 +244,7 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Task Order */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="taskOrder" className="block text-sm font-medium text-gray-700 mb-2">
                   Do you prefer to tackle hard tasks first or easy tasks first?
                 </label>
                 <div className="space-y-2">
@@ -270,10 +279,11 @@ export default function QuizPage() {
 
               {/* Max tasks per day */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="maxTasksPerDay" className="block text-sm font-medium text-gray-700 mb-2">
                   How many tasks can you handle per day?
                 </label>
                 <input
+                  id="maxTasksPerDay"
                   type="number"
                   value={formData.maxTasksPerDay}
                   onChange={(e) =>
@@ -287,10 +297,11 @@ export default function QuizPage() {
 
               {/* Default task duration */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="defaultTaskDuration" className="block text-sm font-medium text-gray-700 mb-2">
                   Default task duration? (minutes)
                 </label>
                 <input
+                  id="defaultTaskDuration"
                   type="number"
                   value={formData.defaultTaskDuration}
                   onChange={(e) =>
@@ -311,10 +322,11 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Reminder Days */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="reminderDays" className="block text-sm font-medium text-gray-700 mb-2">
                   How many days before a deadline should we remind you?
                 </label>
                 <input
+                  id="reminderDays"
                   type="number"
                   value={formData.reminderDays}
                   onChange={(e) =>
