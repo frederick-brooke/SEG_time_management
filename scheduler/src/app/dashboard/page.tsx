@@ -136,7 +136,7 @@ export default function Page() {
           📢
         </button>
 
-        {notiShowModal && <NotificationModal handleShowModal={handleShowModal} />}
+        {notiShowModal && <NotificationModal handleShowModal={handleShowModal} isOpen={notiShowModal} />}
 
         <Modal open={wellbeingOpen} onClose={() => setWellbeingOpen(false)} title="For Your Wellbeing">
           <WellbeingPage />
