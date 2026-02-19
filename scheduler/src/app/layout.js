@@ -30,18 +30,18 @@ const geistMono = GeistMono({
 // };
 
 export default function RootLayout({ children }) {
-  const [showModal, setShowModal] = useState(true);
+  // const [notiShowModal, setShowModal] = useState(false);
 
-  const handleShowModal = () => {
-    setShowModal(!showModal);
-  };
+  // const handleShowModal = () => {
+  //   setShowModal(!notiShowModal);
+  // };
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
         <Providers>
           {children}
-          {showModal && <NotificationModal handleShowModal={handleShowModal} />}
+          {/* {notiShowModal && <NotificationModal handleShowModal={handleShowModal} />} */}
           <div id="modal-root"></div>
         </Providers>
       </body>

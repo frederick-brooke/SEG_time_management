@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import Modal from "components/ui/modal";
 import WellbeingPage from "../(pages)/wellbeing/page";
+import NotificationModal from "../components/NotificationModal";
 
 export default function Page() {
   const { data: session, status } = useSession();
@@ -42,6 +43,12 @@ export default function Page() {
       callbackUrl: "/dashboard",
       redirect: true
     });
+  };
+
+  const [notiShowModal, setShowNotiModal] = useState(false);
+
+  const handleShowModal = () => {
+    setShowNotiModal(!notiShowModal);
   };
 
   return (
@@ -119,6 +126,16 @@ export default function Page() {
         >
           ❤️
         </button>
+
+        <button 
+          onClick={handleShowModal}
+          className="fixed bottom-6 right-24 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-indigo-700 transition"
+          aria-label="Open notification"
+        >
+          📢
+        </button>
+
+        {notiShowModal && <NotificationModal handleShowModal={handleShowModal} />}
 
         <Modal open={wellbeingOpen} onClose={() => setWellbeingOpen(false)} title="For Your Wellbeing">
           <WellbeingPage />
