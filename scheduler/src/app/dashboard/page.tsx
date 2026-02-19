@@ -19,6 +19,11 @@ export default function Page() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const [wellbeingOpen, setWellbeingOpen] = useState(false);
+  const [notiShowModal, setShowNotiModal] = useState(false);
+
+  const handleShowModal = () => {
+    setShowNotiModal(!notiShowModal);
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -45,11 +50,7 @@ export default function Page() {
     });
   };
 
-  const [notiShowModal, setShowNotiModal] = useState(false);
-
-  const handleShowModal = () => {
-    setShowNotiModal(!notiShowModal);
-  };
+  
 
   return (
     <SidebarProvider

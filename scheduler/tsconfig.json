@@ -39,7 +39,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "src/app/dashboard/page.tsx"  ],
   "exclude": [
     "node_modules"
   ]
