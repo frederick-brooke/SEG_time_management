@@ -30,7 +30,7 @@ const geistMono = GeistMono({
 // };
 
 export default function RootLayout({ children }) {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(true);
 
   const handleShowModal = () => {
     setShowModal(!showModal);
