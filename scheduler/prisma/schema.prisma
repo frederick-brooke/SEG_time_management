@@ -99,6 +99,11 @@ model Task {
 
   examId      String?  @db.ObjectId
   exam        Exam?    @relation(fields: [examId], references: [id])
+
+  durationHours     String?
+  durationMins      String?
+
+  url         String?
 }
 
 model Exam {
@@ -113,6 +118,7 @@ model Exam {
   tasks             Task[]
   revisionMaterials RevisionMaterial[]
   createdAt         DateTime  @default(now())
+
 }
 
 model RevisionMaterial {
@@ -124,4 +130,5 @@ model RevisionMaterial {
   type              String
   duration          Int
   url               String?
+  
 }

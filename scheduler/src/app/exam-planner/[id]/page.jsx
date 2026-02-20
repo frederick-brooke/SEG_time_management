@@ -57,6 +57,11 @@ export default function ExamDetailPage() {
         }
     };
 
+    const handleUpdateSettings = async (newData) => {
+        const updated = await updateExamSettings(id, newData);
+        setExam(updated);
+    };
+
     return (
         <SidebarProvider 
             style={{

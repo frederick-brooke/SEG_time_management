@@ -173,6 +173,7 @@ export function useTasks(userId) {
         durationMinutes: ((task.duration || 0) % 60).toString(),
         priority: task.priority,
         examId: task.examId || "none",
+        url: task.url || "",
       });
       setIsDialogOpen(true);
     }

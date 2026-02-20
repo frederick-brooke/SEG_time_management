@@ -11,6 +11,19 @@ import { revalidatePath } from "next/cache";
  * @returns {Promise<Object>} success status and created exam, or error message
  */
 
+export async function updateExamSettings(examId: string, data: { maxTimePerDay?: number, examDate?: Date}) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new Error("Unauthorised");
+
+    const updated = await prisma.exam.update({
+        where: { id: examId, userId: session.user.id },
+        data: data
+    });
+
+    revalidatePath(`/exam-planner/${examId}`);
+    return updated;
+}
+
 export async function createExam(formData: FormData) {
     const session = await getServerSession(authOptions);
 
@@ -93,7 +106,9 @@ export async function getExamById(id: string) {
     });
 }
 
-export async function generateExamPlan(examId: string, topics: { title:string, duration: number }[]) {
+
+
+export async function generateExamPlan(examId: string, topics: { title:string, duration: number, url?: string }[]) {
     const exam = await prisma.exam.findUnique({
         where: { id: examId },
         select: { examDate: true, unavailableDays: true, maxTimePerDay: true, userId: true }
@@ -119,9 +134,13 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
     let dailyTimeSpent = 0;
 
     for (const topic of topics) {
+        const hours = Math.floor(topic.duration / 60);
+        const mins = topic.duration % 60;
+        const dateForTask = availableDates[dateIndex].toISOString().split('T')[0];
+
         if (dateIndex >= availableDates.length) break;
 
-        if (dailyTimeSpent + topic.duration > exam.maxTimePerDay) {
+        if (dailyTimeSpent + topic.duration > exam.maxTimePerDay && dailyTimeSpent > 0) {
             dateIndex++;
             dailyTimeSpent = 0;
         }
@@ -129,14 +148,30 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
         if (dateIndex < availableDates.length) {
             await prisma.task.create({
                 data: {
-                    title: `Revise: ${topic.title}`,
+                    title: `${topic.title}`,
                     status: "todo",
                     priority: "Medium",
                     dueDate: availableDates[dateIndex],
                     examId: examId,
-                    userId: exam.userId
+                    userId: exam.userId,
+                    durationHours: hours.toString(),
+                    durationMins: mins.toString(),
+                    duration: topic.duration,
+                    url: topic.url
                 }
             });
+           
+            if (topic.url) {
+                await prisma.revisionMaterial.create({
+                    data: {
+                        title: topic.title,
+                        url: topic.url,
+                        examId: examId,
+                        type: "Link",
+                        duration: topic.duration
+                    }
+                });
+            }
             dailyTimeSpent += topic.duration;
         }
     }
