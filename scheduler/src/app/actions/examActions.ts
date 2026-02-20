@@ -39,55 +39,135 @@ export async function createExam(formData: FormData) {
             console.error("Error creating exam:", error)
             return { success: false, error: "Failed to create exam"};
         }
+}
+
+
+/**
+ * Fetches all exams belonging to the current authenticated user
+ * @returns {Promise<Array>} List of user exams with linked tasks and materials
+ */
+
+export async function getMyExams() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return []
+
+    return await prisma.exam.findMany({
+        where: { userId: session.user.id },
+        include: {
+            tasks: true,
+            revisionMaterials: true,
+        },
+        orderBy: { examDate: 'asc'}
+    });
+}
+
+/**
+ * Deletes an exam and its associated revision materials and tasks
+ * @param examId The database ID of the exam to remove
+ */
+
+export async function deleteExam(examId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session.user?.id) throw new Error("Unauthorised");
+
+    await prisma.exam.delete({
+        where: {
+            id: examId,
+            userId: session.user.id
+        }
+    });
+
+    revalidatePath("/exam-planner")
+}
+
+export async function getExamById(id: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return null;
+
+    return await prisma.exam.findUnique({
+        where: {id: id},
+        include: {
+            tasks: true,
+            revisionMaterials: true,
+        }
+    });
+}
+
+export async function generateExamPlan(examId: string, topics: { title:string, duration: number }[]) {
+    const exam = await prisma.exam.findUnique({
+        where: { id: examId },
+        select: { examDate: true, unavailableDays: true, maxTimePerDay: true, userId: true }
+    });
+
+    if (!exam) return { error: "Exam not found" };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const availableDates: Date[] = [];
+    let currentDate = new Date(today);
+
+    while (currentDate < new Date(exam.examDate)) {
+        const isUnavailable = exam.unavailableDays.some(d => d.toDateString() === currentDate.toDateString());
+        if (!isUnavailable) {
+            availableDates.push(new Date(currentDate));
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    /**
-     * Fetches all exams belonging to the current authenticated user
-     * @returns {Promise<Array>} List of user exams with linked tasks and materials
-     */
+    let dateIndex = 0;
+    let dailyTimeSpent = 0;
 
-    export async function getMyExams() {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) return []
+    for (const topic of topics) {
+        if (dateIndex >= availableDates.length) break;
 
-        return await prisma.exam.findMany({
-            where: { userId: session.user.id },
-            include: {
-                tasks: true,
-                revisionMaterials: true,
-            },
-            orderBy: { examDate: 'asc'}
-        });
+        if (dailyTimeSpent + topic.duration > exam.maxTimePerDay) {
+            dateIndex++;
+            dailyTimeSpent = 0;
+        }
+
+        if (dateIndex < availableDates.length) {
+            await prisma.task.create({
+                data: {
+                    title: `Revise: ${topic.title}`,
+                    status: "todo",
+                    priority: "Medium",
+                    dueDate: availableDates[dateIndex],
+                    examId: examId,
+                    userId: exam.userId
+                }
+            });
+            dailyTimeSpent += topic.duration;
+        }
     }
 
-    /**
-     * Deletes an exam and its associated revision materials and tasks
-     * @param examId The database ID of the exam to remove
-     */
+    return { success: true };
+}
 
-    export async function deleteExam(examId: string) {
-        const session = await getServerSession(authOptions);
-        if (!session.user?.id) throw new Error("Unauthorised");
+export async function updateExamUnavailableDays(examId: string, days: Date[] | undefined) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) throw new Error("Unauthorised");
 
-        await prisma.exam.delete({
-            where: {
-                id: examId,
-                userId: session.user.id
-            }
-        });
+    const cleanedDays = days ? days.map(d => {
+        const date = new Date(d);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }) : [];
 
-        revalidatePath("/exam-planner")
-    }
+    const updatedExam = await prisma.exam.update({
+        where: {
+            id: examId,
+            userId: session.user.id
+        },
+        data: {
+            unavailableDays: cleanedDays
+        },
+        include: {
+            tasks: true,
+            revisionMaterials: true,
+        }
+    });
 
-    export async function getExamById(id: string) {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.id) return null;
-
-        return await prisma.exam.findUnique({
-            where: {id: id},
-            include: {
-                tasks: true,
-                revisionMaterials: true,
-            }
-        });
-    }
+    revalidatePath(`/exam-planner/${examId}`);
+    return updatedExam;
+}
