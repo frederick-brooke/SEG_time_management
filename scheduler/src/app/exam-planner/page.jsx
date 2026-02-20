@@ -45,7 +45,7 @@ export default function ExamPlannerPage() {
             }
         }
     };
-
+        
     if (status === "loading") return <p className="p-4">Loading session</p>
 
     return (
@@ -111,6 +111,13 @@ export default function ExamPlannerPage() {
 
 
                                         <div className="flex justify-end mt-4">
+                                            <ExamFormDialog
+                                                editingExam={exam}
+                                                onExamUpdated={(updated) => {
+                                                    setExams(exams.map(e => e.id === updated.id ? updated : e));
+                                                }}
+                                            />
+
                                             <button
                                                 onClick={() => handleDelete(exam.id)}
                                                 className="text-xs font-bold text-red-500 hove:text-red-700 transition-colors px-2 py-1 rounded hover:bg-red-50"

@@ -11,7 +11,7 @@ import { revalidatePath } from "next/cache";
  * @returns {Promise<Object>} success status and created exam, or error message
  */
 
-export async function updateExamSettings(examId: string, data: { maxTimePerDay?: number, examDate?: Date}) {
+export async function updateExamSettings(examId: string, data: { title?: string, maxTimePerDay?: number, examDate?: Date}) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) throw new Error("Unauthorised");
 
