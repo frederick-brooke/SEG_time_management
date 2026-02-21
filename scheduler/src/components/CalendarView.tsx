@@ -340,7 +340,7 @@ export default function CalendarView({
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative"
+            className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <button

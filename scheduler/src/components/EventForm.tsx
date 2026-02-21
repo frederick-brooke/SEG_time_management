@@ -230,25 +230,45 @@ export default function EventForm({
       alert("An error occurred while deleting.");
     }
   };
+const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+const handleLocationSearch = (text: string, type: "start" | "dest") => {
+  setSearchQuery((prev) => ({ ...prev, [type]: text }));
 
-  const handleLocationSearch = async (text: string, type: "start" | "dest") => {
-    setSearchQuery((prev) => ({ ...prev, [type]: text }));
+  if (debounceTimer) clearTimeout(debounceTimer);
 
+  const timer = setTimeout(async () => {
     if (text.length < 3) {
       setSuggestions((prev) => ({ ...prev, [type]: [] }));
       return;
     }
 
     try {
-      const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
-      if (!res.ok) throw new Error("Failed to fetch locations");
-      const data = await res.json();
-      setSuggestions((prev) => ({ ...prev, [type]: Array.isArray(data) ? data : [] }));
+        const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
+
+        if (!res.ok) {
+          console.error("Search failed:", res.status);
+          setSuggestions((prev) => ({ ...prev, [type]: [] }));
+          return;
+        }
+
+        const data = await res.json();
+
+      setSuggestions((prev) => ({
+        ...prev,
+        [type]: Array.isArray(data) ? data : [],
+      }));
     } catch (err) {
       console.error("Location search failed", err);
-      setSuggestions((prev) => ({ ...prev, [type]: [] }));
     }
+  }, 400); // 400ms delay
+
+  setDebounceTimer(timer);
+};
+useEffect(() => {
+  return () => {
+    if (debounceTimer) clearTimeout(debounceTimer);
   };
+}, [debounceTimer]);
 
   const selectLocation = (feature: any, type: "start" | "dest") => {
     if (!feature?.geometry?.coordinates) return;

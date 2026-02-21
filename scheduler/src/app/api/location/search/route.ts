@@ -1,41 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q") || "";
+  const q = searchParams.get("q");
 
-  if (!q) return new Response(JSON.stringify([]), { status: 200 });
+  if (!q) return Response.json([]);
 
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`,
-      {
-        headers: {
-          "User-Agent": "MyNextApp/1.0 (your@email.com)", 
-          "Referer": "http://localhost:3000",        
-        },
-      }
+      `https://api.openrouteservice.org/geocode/search?api_key=${process.env.OPENROUTE_API_KEY}&text=${encodeURIComponent(q)}&size=5`
     );
 
     if (!res.ok) {
-      console.error("Nominatim error:", res.status, await res.text());
-      return new Response(JSON.stringify([]), { status: res.status });
+      const text = await res.text();
+      console.error("OpenRoute geocode failed:", text);
+      return Response.json([]);
     }
 
     const data = await res.json();
 
-  const features = data.map((item: any) => ({
-    geometry: { coordinates: [parseFloat(item.lon), parseFloat(item.lat)] },
-    properties: { 
-      name: item.name || item.display_name.split(",")[0],
-      city: item.address?.city || item.address?.town || item.address?.suburb || "",
-      display: item.display_name,
-    },
-  }));
+    if (!data.features || !Array.isArray(data.features)) {
+      return Response.json([]);
+    }
 
-    return new Response(JSON.stringify(features), { status: 200 });
-  } catch (err) {
-    console.error("Server Nominatim fetch error:", err);
-    return new Response(JSON.stringify([]), { status: 500 });
+    const results = data.features.map((feature: any) => ({
+      geometry: {
+        coordinates: feature.geometry.coordinates,
+      },
+      properties: {
+        name:
+          feature.properties.name ||
+          feature.properties.label ||
+          "Unknown",
+        city: feature.properties.locality || "",
+        display: feature.properties.label,
+      },
+    }));
+
+    return Response.json(results);
+  } catch (error) {
+    console.error("Geocode server error:", error);
+    return Response.json([]);
   }
 }
