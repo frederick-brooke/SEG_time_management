@@ -86,6 +86,7 @@ model Task {
   description String?
   dueDate     DateTime
   completed   Boolean  @default(false)
+  completedAt DateTime?
   status      String   @default("todo")
   duration    Int      @default(0)
   subtasks    String[] @default([])

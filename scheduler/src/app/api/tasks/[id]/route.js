@@ -26,14 +26,16 @@ export async function PATCH(request, { params }) {
     // build update data object
     const updateData = {};
     if (body.title !== undefined) updateData.title = body.title;
-    if (body.description !== undefined)
-      updateData.description = body.description;
+    if (body.description !== undefined) updateData.description = body.description;
     if (body.dueDate !== undefined) updateData.dueDate = new Date(body.dueDate);
-    if (body.completed !== undefined) updateData.completed = body.completed;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.priority !== undefined) updateData.priority = body.priority;
     if (body.duration !== undefined) updateData.duration = body.duration;
     if (body.subtasks !== undefined) updateData.subtasks = body.subtasks;
+    if (body.completed !== undefined){
+      updateData.completed = body.completed;
+      updateData.completedAt = body.completed ? new Date() : null;
+    }
 
     const task = await prisma.task.update({
       where: { id },
@@ -41,6 +43,7 @@ export async function PATCH(request, { params }) {
     });
     return NextResponse.json({ task });
   } catch (error) {
+    console.error("Failed to update task:", error);
     return NextResponse.json(
       { error: "Failed to update task" },
       { status: 500 },
