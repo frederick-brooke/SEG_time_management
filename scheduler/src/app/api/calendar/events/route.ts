@@ -94,118 +94,125 @@ const SYNC_INTERVAL = 5 * 60 * 1000;
     return [`RRULE:FREQ=${freq}${byDay};UNTIL=${untilString}`];
   }
 
-  // --- HANDLERS --- 
-export async function GET(req: NextRequest) {
+ export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
+  if (!session?.user)
+    return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
 
-  const { searchParams } = new URL(req.url);
   const now = Date.now();
-  
-  const query = searchParams.get("q");
-  const category = searchParams.get("category");
+  const { searchParams } = new URL(req.url);
 
-  const localCount = await prisma.event.count({ where: { userId: session.user.id } });
+  const localCount = await prisma.event.count({
+    where: { userId: session.user.id },
+  });
 
-  const shouldSync = 
-    searchParams.get("force") === "true" || 
-    (now - lastSyncTime > SYNC_INTERVAL) || 
+  const shouldSync =
+    searchParams.get("force") === "true" ||
+    now - lastSyncTime > SYNC_INTERVAL ||
     localCount === 0;
 
   if (!isSyncing && shouldSync) {
     isSyncing = true;
     lastSyncTime = now;
+
     try {
       const calendar = await getGoogleCalendarClient(session.user.id);
       if (calendar) {
         const res = await calendar.events.list({
           calendarId: "primary",
           timeMin: new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          singleEvents: true, 
+          singleEvents: true,
         });
+
         const googleEvents = res.data.items || [];
-        
+
         for (const ge of googleEvents) {
           if (!ge.id || ge.status === "cancelled") continue;
 
-const startDt = ge.start?.dateTime
-  ? new Date(ge.start.dateTime)
-  : ge.start?.date
-  ? new Date(ge.start.date + 'T00:00:00Z')
-  : new Date();
+          const startDt = ge.start?.dateTime
+            ? new Date(ge.start.dateTime)
+            : new Date((ge.start?.date ?? "") + "T00:00:00Z");
 
-const endDt = ge.end?.dateTime
-  ? new Date(ge.end.dateTime)
-  : ge.end?.date
-  ? new Date(ge.end.date + 'T00:00:00Z')
-  : new Date();
+          const endDt = ge.end?.dateTime
+            ? new Date(ge.end.dateTime)
+            : new Date((ge.end?.date ?? "") + "T00:00:00Z");
 
-// Find local event by Google ID or by matching title/start/end
-const localEvent = await prisma.event.findFirst({
-  where: {
-    userId: session.user.id,
-    OR: [
-      { googleEventId: ge.id },
-      { title: ge.summary || "Untitled", start: startDt, end: endDt }
-    ]
+          // Find existing event by Google ID or matching title/start/end
+          const localEvent = await prisma.event.findFirst({
+            where: {
+              userId: session.user.id,
+              OR: [
+                { googleEventId: ge.id },
+                { title: ge.summary || "Untitled", start: startDt, end: endDt },
+              ],
+            },
+          });
+
+          // Skip if recently synced
+          if (localEvent?.lastSyncedAt) {
+            const diff = Date.now() - new Date(localEvent.lastSyncedAt).getTime();
+            if (diff < 10000) continue;
+          }
+
+          if (localEvent) {
+            // Update existing event
+            await prisma.event.update({
+              where: { id: localEvent.id },
+              data: {
+                title: ge.summary || localEvent.title || "Untitled",
+                description: ge.description || localEvent.description || "",
+                start: startDt,
+                end: endDt,
+                allDay: !ge.start?.dateTime,
+                lastSyncedAt: new Date(),
+              },
+            }).catch(err => console.error("Sync Update Error:", err));
+          } else {
+            // Create new event
+            await prisma.event.create({
+              data: {
+                googleEventId: ge.id,
+                userId: session.user.id,
+                title: ge.summary || "Untitled",
+                description: ge.description || "",
+                start: startDt,
+                end: endDt,
+                category: "Google",
+                allDay: !ge.start?.dateTime,
+                lastSyncedAt: new Date(),
+              },
+            }).catch(err => console.error("Sync Create Error:", err));
+          }
+        }
+      }
+    } finally {
+      isSyncing = false;
+    }
   }
-});
 
-// Skip if recently synced (less than 10 seconds ago)
-if (localEvent?.lastSyncedAt) {
-  const timeSinceLastSync = Date.now() - new Date(localEvent.lastSyncedAt).getTime();
-  if (timeSinceLastSync < 10000) return; // or continue in a loop
-}
-
-// Use upsert to create or update the event
-await prisma.event.upsert({
-  where: localEvent
-    ? { id: localEvent.id } // update existing event
-    : { googleEventId_userId: { googleEventId: ge.id, userId: session.user.id } }, // fallback composite key
-  create: {
-    googleEventId: ge.id,
-    userId: session.user.id,
-    title: ge.summary || "Untitled",
-    description: ge.description || "",
-    start: startDt,
-    end: endDt,
-    category: "Google",
-    allDay: !ge.start?.dateTime,
-    lastSyncedAt: new Date()
-  },
-  update: {
-    googleEventId: ge.id,
-    title: ge.summary || localEvent?.title || "Untitled",
-    description: ge.description || localEvent?.description || "",
-    start: startDt,
-    end: endDt,
-    allDay: !ge.start?.dateTime,
-    lastSyncedAt: new Date()
-  }
-}).catch(err => console.error("Sync Upsert Error:", err));
-
-  // --- Filtering & Response ---
+  // Filter and return events
+  const query = searchParams.get("q");
+  const category = searchParams.get("category");
   const filters: any = { userId: session.user.id };
-  
+
   if (query) {
     filters.OR = [
       { title: { contains: query, mode: "insensitive" } },
       { description: { contains: query, mode: "insensitive" } },
     ];
   }
-  
+
   if (category && category !== "all") {
     filters.category = category;
   }
 
-  const events = await prisma.event.findMany({ 
-    where: filters, 
-    orderBy: { start: "asc" } 
+  const events = await prisma.event.findMany({
+    where: filters,
+    orderBy: { start: "asc" },
   });
-  
+
   return NextResponse.json(expandRecurringEvents(events));
 }
-    
 
   export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -361,142 +368,154 @@ export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+  try {
     const body = await req.json();
-    const { 
-      id, start, end, title, description, mode, originalDate, 
-      startCoords, destCoords, startLocationName, destLocationName, 
-      transportMode, travelDuration: clientTravelDuration 
+    const {
+      id,
+      start,
+      end,
+      title,
+      description,
+      mode,
+      originalDate,
+      startCoords,
+      destCoords,
+      startLocationName,
+      destLocationName,
+      transportMode,
+      travelDuration: clientTravelDuration,
     } = body;
 
-    try {
-      const event = await prisma.event.findFirst({
-        where: { id, userId: session.user.id }
-      });
-
-if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
-
-try {
-  // Calculate travel duration if missing
-  let travelDuration = clientTravelDuration;
-  if ((travelDuration === undefined || travelDuration === null) && startCoords && destCoords) {
-    travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
-  }
-
-  if (mode === "single" && originalDate) {
-    // Add exception date
-    await prisma.event.update({
-      where: { id },
-      data: { exceptions: { push: new Date(originalDate).toISOString() } },
+    const event = await prisma.event.findFirst({
+      where: { id, userId: session.user.id },
     });
 
-    let googleEventIdForNewEvent: string | null = null;
+    if (!event) return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-    // Patch the specific Google Calendar instance if exists
-    if (event.googleEventId) {
-      try {
-        const calendar = await getGoogleCalendarClient(session.user.id);
-        if (calendar) {
-          const instanceId = `${event.googleEventId}_${new Date(originalDate)
-            .toISOString()
-            .replace(/[-:]/g, "")
-            .split(".")[0]}Z`;
-
-          const gRes = await calendar.events.patch({
-            calendarId: "primary",
-            eventId: instanceId,
-            requestBody: {
-              summary: title || event.title,
-              description: description || event.description,
-              start: { dateTime: new Date(start).toISOString() },
-              end: { dateTime: new Date(end).toISOString() },
-            },
-          });
-          googleEventIdForNewEvent = gRes.data.id || null;
-        }
-      } catch (err) {
-        console.error("Google Instance Update Failed:", err);
-      }
+    // Calculate travel duration if missing
+    let travelDuration = clientTravelDuration;
+    if ((travelDuration === undefined || travelDuration === null) && startCoords && destCoords) {
+      travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
     }
 
-    // Create standalone event for the exception
-    const newStandalone = await prisma.event.create({
+    // --- SINGLE INSTANCE UPDATE ---
+    if (mode === "single" && originalDate) {
+      const isoException = new Date(originalDate).toISOString();
+
+      // Add exception date
+      await prisma.event.update({
+        where: { id },
+        data: { exceptions: { push: isoException } },
+      });
+
+      let googleEventIdForNewEvent: string | null = null;
+
+      // Patch specific Google Calendar instance if exists
+      if (event.googleEventId) {
+        try {
+          const calendar = await getGoogleCalendarClient(session.user.id);
+          if (calendar) {
+            const instanceId = `${event.googleEventId}_${isoException
+              .replace(/[-:]/g, "")
+              .split(".")[0]}Z`;
+
+            const gRes = await calendar.events.patch({
+              calendarId: "primary",
+              eventId: instanceId,
+              requestBody: {
+                summary: title || event.title,
+                description: description || event.description,
+                start: { dateTime: new Date(start).toISOString() },
+                end: { dateTime: new Date(end).toISOString() },
+              },
+            });
+            googleEventIdForNewEvent = gRes.data.id || null;
+          }
+        } catch (err) {
+          console.error("Google Instance Update Failed:", err);
+        }
+      }
+
+      // Create standalone event for the exception
+      const newStandalone = await prisma.event.create({
+        data: {
+          title: title || event.title,
+          description: description || event.description,
+          start: new Date(start),
+          end: new Date(end),
+          userId: session.user.id,
+          category: event.category,
+          googleEventId: googleEventIdForNewEvent,
+          allDay: event.allDay,
+          startCoords: startCoords ?? (event as any).startCoords,
+          destinationCoords: destCoords ?? (event as any).destinationCoords,
+          travelDuration: travelDuration ? Math.round(travelDuration) : (event as any).travelDuration,
+          transportMode: transportMode || event.transportMode,
+          startLocationName: startLocationName || (event as any).startLocationName,
+          destLocationName: destLocationName || (event as any).destLocationName,
+        },
+      });
+
+      return NextResponse.json(newStandalone);
+    }
+
+    // --- SERIES UPDATE ---
+    const newDateReq = new Date(start);
+    const newEndDateReq = new Date(end);
+    const originalMasterStart = new Date(event.start);
+
+    const updatedSeriesStart = new Date(originalMasterStart);
+    updatedSeriesStart.setHours(newDateReq.getHours(), newDateReq.getMinutes(), 0, 0);
+
+    const duration = newEndDateReq.getTime() - newDateReq.getTime();
+    const updatedSeriesEnd = new Date(updatedSeriesStart.getTime() + duration);
+
+    const updated = await prisma.event.update({
+      where: { id },
       data: {
-        title: title || event.title,
-        description: description || event.description,
-        start: new Date(start),
-        end: new Date(end),
-        userId: session.user.id,
-        category: event.category,
-        googleEventId: googleEventIdForNewEvent,
-        allDay: event.allDay,
-        startCoords: startCoords ?? (event as any).startCoords,
-        destinationCoords: destCoords ?? (event as any).destinationCoords,
-        travelDuration: travelDuration ? Math.round(travelDuration) : (event as any).travelDuration,
-        transportMode: transportMode || event.transportMode,
-        startLocationName: startLocationName || (event as any).startLocationName,
-        destLocationName: destLocationName || (event as any).destLocationName,
+        title: title || undefined,
+        description: description || undefined,
+        start: updatedSeriesStart,
+        end: updatedSeriesEnd,
+        startCoords: startCoords ?? null,
+        destinationCoords: destCoords ?? null,
+        travelDuration: travelDuration ? Math.round(travelDuration) : null,
+        startLocationName: startLocationName ?? null,
+        destLocationName: destLocationName ?? null,
+        transportMode,
       },
     });
 
-    return NextResponse.json(newStandalone);
-  }
-
-  // For series update: adjust start/end relative to original series
-  const newDateReq = new Date(start);
-  const newEndDateReq = new Date(end);
-  const originalMasterStart = new Date(event.start);
-
-  const updatedSeriesStart = new Date(originalMasterStart);
-  updatedSeriesStart.setHours(newDateReq.getHours(), newDateReq.getMinutes(), 0, 0);
-
-  const duration = newEndDateReq.getTime() - newDateReq.getTime();
-  const updatedSeriesEnd = new Date(updatedSeriesStart.getTime() + duration);
-
-  const updated = await prisma.event.update({
-    where: { id },
-    data: {
-      title: title || undefined,
-      description: description || undefined,
-      start: updatedSeriesStart,
-      end: updatedSeriesEnd,
-      startCoords: startCoords ?? null,
-      destinationCoords: destCoords ?? null,
-      travelDuration: travelDuration ? Math.round(travelDuration) : null,
-      startLocationName: startLocationName ?? null,
-      destLocationName: destLocationName ?? null,
-      transportMode,
-    },
-  });
-
-  // Patch main Google Calendar event if exists
-  if (updated.googleEventId) {
-    (async () => {
-      try {
-        const calendar = await getGoogleCalendarClient(session.user.id);
-        if (calendar) {
-          await calendar.events.patch({
-            calendarId: "primary",
-            eventId: updated.googleEventId!,
-            requestBody: {
-              summary: updated.title,
-              description: updated.description || "",
-              start: { dateTime: updatedSeriesStart.toISOString(), timeZone: "UTC" },
-              end: { dateTime: updatedSeriesEnd.toISOString(), timeZone: "UTC" },
-            },
-          });
+    // Patch main Google Calendar event asynchronously
+    if (updated.googleEventId) {
+      (async () => {
+        try {
+          const calendar = await getGoogleCalendarClient(session.user.id);
+          if (calendar) {
+            await calendar.events.patch({
+              calendarId: "primary",
+              eventId: updated.googleEventId!,
+              requestBody: {
+                summary: updated.title,
+                description: updated.description || "",
+                start: { dateTime: updatedSeriesStart.toISOString(), timeZone: "UTC" },
+                end: { dateTime: updatedSeriesEnd.toISOString(), timeZone: "UTC" },
+              },
+            });
+          }
+        } catch (err) {
+          console.error("Google Series Update Failed:", err);
         }
-      } catch (err) {
-        console.error("Google Series Update Failed:", err);
-      }
-    })();
+      })();
+    }
+
+    return NextResponse.json(updated);
+  } catch (e: any) {
+    console.error("PATCH error:", e);
+    return NextResponse.json({ message: e.message }, { status: 500 });
   }
-
-  return NextResponse.json(updated);
-
-} catch (e: any) {
-  console.error("PATCH error:", e);
-  return NextResponse.json({ message: e.message }, { status: 500 });
 }
+
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
