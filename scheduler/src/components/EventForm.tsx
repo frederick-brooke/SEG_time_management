@@ -85,7 +85,7 @@ export default function EventForm({
     initialEvent?.destinationCoords ?? initialEvent?.destCoords ?? null
   );
 
-  const [transportMode, setTransportMode] = useState<"walking" | "cycling" | "driving" | "transit">(
+  const [transportMode, setTransportMode] = useState<"walking" | "cycling" | "driving" >(
     initialEvent?.transportMode || "walking"
   );
 
@@ -520,7 +520,6 @@ useEffect(() => {
           <option value="walking">Walking</option>
           <option value="cycling">Cycling</option>
           <option value="driving">Driving</option>
-          <option value="transit">Public Transport</option>
         </select>
       </div>
 
