@@ -7,6 +7,15 @@ declare module "next-auth" {
       id: string;
       role: "BASIC" | "SUPERUSER";
       googleConnected?: boolean;
+    } & DefaultSession["user"]
+  }
+}
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      googleConnected?: boolean;
     } & DefaultSession["user"];
   }
 
