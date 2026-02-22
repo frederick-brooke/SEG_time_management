@@ -61,8 +61,7 @@ function AcceptButton({ requestId }: { requestId: string }) {
       disabled={pending}
       className={`bg-black text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
         pending ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"
-      }`}
-    >
+      }`}>
       <Check size={14} /> {pending ? "Accepting..." : "Accept"}
     </button>
   );
@@ -279,12 +278,21 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
             </div>
 
             {/* 2. STATS SECTIONS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               
-              {/* Left Column: Social Stats - CLICKABLE */}
+              {/* NEW: Streak Card */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center">
+                <div className="bg-red-50 p-3 rounded-full mb-3">
+                  <span className="text-3xl">🔥</span>
+                </div>
+                <span className="text-4xl font-bold text-gray-900">{profile.stats.streak || 0}</span>
+                <span className="text-sm text-gray-500 font-medium mt-1">Day Streak</span>
+              </div>
+
+              {/* Friends - CLICKABLE */}
               <button
                 onClick={() => setShowFriends(!showFriends)}
-                className="md:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center hover:bg-gray-50 transition-colors"
+                className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center hover:bg-gray-50 transition-colors"
               >
                 <div className="bg-orange-50 p-3 rounded-full mb-3 text-orange-600">
                   <Users size={24} />
@@ -296,7 +304,7 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 </span>
               </button>
 
-              {/* Right Column: Task Stats */}
+              {/* Task Stats - NOW SPANS 2 COLUMNS */}
               <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Trophy className="text-yellow-500" size={18} /> Task Performance
@@ -304,27 +312,26 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 <div className="grid grid-cols-3 gap-4">
                   
                   <div className="bg-blue-50 p-4 rounded-xl flex flex-col items-center justify-center border border-blue-100">
-                     <CheckCircle className="text-blue-500 mb-2" size={20} />
-                     <span className="text-2xl font-bold text-blue-700">{profile.stats.completedTasks}</span>
-                     <span className="text-xs text-blue-600 font-medium">Completed</span>
+                    <CheckCircle className="text-blue-500 mb-2" size={20} />
+                    <span className="text-2xl font-bold text-blue-700">{profile.stats.completedTasks}</span>
+                    <span className="text-xs text-blue-600 font-medium">Completed</span>
                   </div>
 
                   <div className="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center border border-purple-100">
-                     <Target className="text-purple-500 mb-2" size={20} />
-                     <span className="text-2xl font-bold text-purple-700">{profile.stats.totalTasks}</span>
-                     <span className="text-xs text-purple-600 font-medium">Created</span>
+                    <Target className="text-purple-500 mb-2" size={20} />
+                    <span className="text-2xl font-bold text-purple-700">{profile.stats.totalTasks}</span>
+                    <span className="text-xs text-purple-600 font-medium">Created</span>
                   </div>
 
                   <div className="bg-green-50 p-4 rounded-xl flex flex-col items-center justify-center border border-green-100">
-                     <div className="text-green-500 mb-2 font-bold text-lg">%</div>
-                     <span className="text-2xl font-bold text-green-700">{profile.stats.completionRate}%</span>
-                     <span className="text-xs text-green-600 font-medium">Success Rate</span>
+                    <div className="text-green-500 mb-2 font-bold text-lg">%</div>
+                    <span className="text-2xl font-bold text-green-700">{profile.stats.completionRate}%</span>
+                    <span className="text-xs text-green-600 font-medium">Success Rate</span>
                   </div>
 
                 </div>
               </div>
             </div>
-
             {/* FRIENDS LIST - Shows when toggled */}
             {showFriends && (
               <div className="mb-8 bg-white border border-orange-100 rounded-2xl p-6 shadow-sm">

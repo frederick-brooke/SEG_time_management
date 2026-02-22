@@ -23,6 +23,66 @@ async function getFriendCount(userId: string) {
 }
 
 /**
+ * Calculates the current task completion streak for a user
+ * @param string userId - The user's database ID
+ * @return {Promise<number>} - The number of consecutive days with at least one completed task
+ */
+async function calculateStreak(userId: string): Promise<number> {
+  const tasks = await prisma.task.findMany({
+    where: {
+      userId,
+      completed: true,
+      completedAt: { not: null }
+    },
+    orderBy: { completedAt: 'desc' },
+    select: { completedAt: true }
+  });
+
+  if (tasks.length === 0) return 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Get unique dates (one task per day counts)
+  const completionDates = tasks
+    .map(task => {
+      if (!task.completedAt) return null;
+      const date = new Date(task.completedAt);
+      date.setHours(0, 0, 0, 0);
+      return date.getTime();
+    })
+    .filter((date): date is number => date !== null);
+
+  const uniqueDates = [...new Set(completionDates)].sort((a, b) => b - a);
+
+  if (uniqueDates.length === 0) return 0;
+
+  // Check if most recent completion was today or yesterday
+  const mostRecentDate = new Date(uniqueDates[0]);
+  const daysDiff = Math.floor((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  // If last completion was more than 1 day ago, streak is broken
+  if (daysDiff > 1) return 0;
+
+  // Count consecutive days
+  let streak = 0;
+  let expectedDate = today.getTime();
+  
+  for (const dateTimestamp of uniqueDates) {
+    const diff = Math.floor((expectedDate - dateTimestamp) / (1000 * 60 * 60 * 24));
+    
+    if (diff === 0 || diff === 1) {
+      streak++;
+      expectedDate = dateTimestamp - (1000 * 60 * 60 * 24); // Move to previous day
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
+/**
  * fetches the current logged in user's profile data
  * @returns {Promise<Object | null>} - User profile with stats and friend requests, or null if not authenticated
  */
@@ -42,7 +102,7 @@ export async function getMyProfile() {
       bio: true,
       pfp: true,
       createdAt: true,
-      tasks: { select: { completed: true } },
+      tasks: { select: { completed: true, completedAt: true} },
       // Fetch Incoming Requests so we can Accept/Reject them
       receivedRequests: {
         where: { status: 'PENDING' },
@@ -91,11 +151,12 @@ export async function getMyProfile() {
   const completedTasks = user.tasks.filter(t => t.completed).length;
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
+  // Calculate streak
+  const streak = await calculateStreak(user.id);
   return {
     ...user,
     friends,
-    stats: { completedTasks, totalTasks, completionRate, friendCount },
+    stats: { completedTasks, totalTasks, completionRate, friendCount, streak },
     friendStatus: "ME"
   };
 }
@@ -120,7 +181,7 @@ export async function getProfile(username: string) {
       bio: true,
       pfp: true,
       createdAt: true,
-      tasks: { select: { completed: true } },
+      tasks: { select: { completed: true, completedAt: true } },
       // Check relationship status
       sentRequests: { where: { receiverId: currentUserId } },
       receivedRequests: { where: { senderId: currentUserId } }
@@ -168,6 +229,8 @@ export async function getProfile(username: string) {
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  // Calculate streak
+  const streak = await calculateStreak(user.id);
   // Determine Friend Status
   let friendStatus = "NONE"; 
   const sent = user.receivedRequests[0]; 
@@ -184,7 +247,7 @@ export async function getProfile(username: string) {
   return {
     ...user,
     friends,
-    stats: { completedTasks, totalTasks, completionRate, friendCount },
+    stats: { completedTasks, totalTasks, completionRate, friendCount, streak },
     friendStatus,
     requestId: received?.id 
   };
