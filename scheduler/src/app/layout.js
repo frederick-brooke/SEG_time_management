@@ -1,12 +1,7 @@
 import "./globals.css";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
-
-import { AppSidebar } from "@/src/components/app-sidebar";
-import {
-  SidebarProvider,
-  SidebarInset,
-} from "@/src/components/ui/sidebar";
+import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +25,10 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
         <Providers>
-          {children}
-          <div id="modal-root"></div>
+          <UIProvider>
+            {children}
+            <div id="modal-root"></div>
+          </UIProvider>          
         </Providers>
       </body>
     </html>

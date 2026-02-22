@@ -1,7 +1,8 @@
 "use client";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useUI } from "@/context/UIContext";
 
 import Modal from "components/ui/modal";
 import WellbeingPage from "../(pages)/wellbeing/page";
@@ -23,7 +24,7 @@ export default function Page() {
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState("");
 
-  const [wellbeingOpen, setWellbeingOpen] = useState(false);
+  const {wellbeingOpen, setWellbeingOpen} = useUI();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -132,13 +133,12 @@ export default function Page() {
         </button>
 
         <Panel
-          open={wellbeingOpen}
-          onClose={() => setWellbeingOpen(false)}
-          title="For Your Wellbeing"
-        >
-          <WellbeingPage />
-        </Panel>
-        
+                open={wellbeingOpen}
+                onClose={() => setWellbeingOpen(false)}
+                title="For Your Wellbeing"
+            >
+            <WellbeingPage />
+        </Panel>       
 
       </SidebarInset>
     </SidebarProvider>

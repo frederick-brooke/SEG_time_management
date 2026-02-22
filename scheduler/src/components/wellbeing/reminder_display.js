@@ -1,6 +1,7 @@
 "use client";
 //component containing the toggle and modal view
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
+import { useUI } from "@/context/UIContext";
 
 import { Button } from "components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
@@ -20,10 +21,15 @@ export default function ReminderContainer({
 {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isFiredOpen, setIsFiredOpen] = useState(false);
+    const {wellbeingOpen, setWellbeingOpen} = useUI();      //shared global state via the UI
+
 
     const reminder = useReminders({
         id,
-        onFire: () => setIsFiredOpen(true),
+        onFire: () => {
+            setIsFiredOpen(true),
+            setWellbeingOpen(false)
+        }
     });
 
     const handleToggleClick = () => {
@@ -43,7 +49,6 @@ export default function ReminderContainer({
         return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
     };
 
-
     return (
          <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
             {/* reminders containers */}
@@ -59,17 +64,33 @@ export default function ReminderContainer({
                 >
                     {reminder.enabled ? iconOn : iconOff}
                 </div>
+
+                
             </div>
 
+            {reminder.enabled && reminder.remainingMs != null && (
+                <div className="time-text">
+                    <div className="text-sm text-gray-600 font-medium">
+                        Time remaining: {formatMs(reminder.remainingMs)}
+                    </div>
+                </div>
+            )}
             {/* popup asking for what time */}
-            <Button variant="outline" size="icon" onClick={() => setIsSettingsOpen(true)}> 
+            <Button variant="outline" size="icon" onClick={
+                () => {
+                    setIsSettingsOpen(true)
+                    setWellbeingOpen(false)
+                }}> 
                 <IconSettings/>
             </Button>
 
             {/* Reminder setup modal asking for time inputs */}
             <Modal
                 open={isSettingsOpen}
-                onClose={() => setIsSettingsOpen(false)}
+                onClose={() => {
+                    setIsSettingsOpen(false);
+                    setWellbeingOpen(true);
+                }}
                 title={settingsTitle}
             >
                 <p>{settingsText}</p>
@@ -77,28 +98,27 @@ export default function ReminderContainer({
                 <ReminderPicker
                     onConfirm={(newDurationMs) => {
                         setIsSettingsOpen(false);
+                        setWellbeingOpen(true);
                         reminder.setDurationMs(newDurationMs);
-                        reminder.startReminderTimer(newDurationMs);
+                        //reminder.startReminderTimer(newDurationMs);
                     }}
                     initialDuration = {reminder.durationMs}
                 />
-
-                {reminder.enabled && reminder.remainingMs != null && (
-                    <div className="time-text">
-                        Time remaining: {formatMs(reminder.remainingMs)}
-                    </div>
-                )}
             </Modal>
 
             {/* Break modal for focus time */}
             <Modal
                 open={isFiredOpen}
-                onClose={() => setIsFiredOpen(false)}
+                onClose={() => {
+                    setIsFiredOpen(false);
+                    setWellbeingOpen(true)
+                }
+            }
                 title={firedTitle}
             >
                 <p>{firedText}</p>
-                <Button onClick={() => setIsFiredOpen(false)}>
-                    Got it
+                <Button onClick={() => {setIsFiredOpen(false); setWellbeingOpen(true)}}>
+                    OK!
                 </Button>
             </Modal>
         </div>
