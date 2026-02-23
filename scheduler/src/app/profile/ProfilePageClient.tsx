@@ -9,11 +9,6 @@ import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 
-/**
- * Formats a date string in UK format (DD/MM/YYYY) consistently for both server and client
- * @param {string} dateString - ISO date string to format
- * @return {string} - Formatted date in UK format (e.g., "12/02/2026")
- */
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   const day = String(date.getDate()).padStart(2, '0');
@@ -27,16 +22,8 @@ interface ProfilePageClientProps {
   isOwnProfile: boolean;
 }
 
-/**
- * Submit button component with automatic loading state detection
- * @param {Object} props - Component props
- * @param {string} props.text - Button text to display
- * @param {string} props.loadingText - Text to show while submitting
- * @return {JSX.Element} - Button with loading state
- */
 function SubmitButton({ text, loadingText }: { text: string; loadingText: string }) {
   const { pending } = useFormStatus();
-  
   return (
     <button 
       type="submit"
@@ -49,11 +36,6 @@ function SubmitButton({ text, loadingText }: { text: string; loadingText: string
   );
 }
 
-/**
- * Accept friend request button with loading state
- * @param {string} requestId - The friend request ID to accept
- * @return {JSX.Element} - Accept button with loading indicator
- */
 function AcceptButton({ requestId }: { requestId: string }) {
   const { pending } = useFormStatus();
   return (
@@ -67,13 +49,8 @@ function AcceptButton({ requestId }: { requestId: string }) {
   );
 }
 
-/**
- * Reject friend request button with loading state
- * @return {JSX.Element} - Reject button with loading indicator
- */
 function RejectButton() {
   const { pending } = useFormStatus();
-  
   return (
     <button 
       disabled={pending}
@@ -86,54 +63,27 @@ function RejectButton() {
   );
 }
 
-/**
- * Shared client component for profile pages with interactive elements
- * @param {Object} profile - User profile data from server
- * @param {boolean} isOwnProfile - Whether this is the current user's own profile
- * @return {JSX.Element} - Interactive profile page layout
- */
 export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  /**
-   * Renders the appropriate friend request button based on current friendship status
-   * Only shown on other users' profiles, not your own
-   * @return {JSX.Element | null} - Friend request button or status badge
-   */
   const FriendRequestButton = () => {
     if (isOwnProfile) return null;
 
-    /**
-     * Handles sending a friend request with loading state
-     * @return {Promise<void>} - Sends friend request via server action
-     */
     const handleFriendRequest = async () => {
-      startTransition(async () => {
-        await sendFriendRequest(profile.id);
-      });
+      startTransition(async () => { await sendFriendRequest(profile.id); });
     };
-    /**
-     * Handles removing a friend with loading state
-     * @return {Promise<void>} - Removes friend via server action
-     */
+
     const handleRemoveFriend = async () => {
       if (confirm('Are you sure you want to remove this friend?')) {
-        startTransition(async () => {
-          await removeFriend(profile.id);
-        });
+        startTransition(async () => { await removeFriend(profile.id); });
       }
     };
 
-    /**
-     * Handles canceling a pending friend request with loading state
-     * @return {Promise<void>} - Cancels friend request via server action
-     */
     const handleCancelRequest = async () => {
-      startTransition(async () => {
-        await cancelFriendRequest(profile.id);
-      });
+      startTransition(async () => { await cancelFriendRequest(profile.id); });
     };
+
     if (profile.friendStatus === "FRIENDS") {
       return (
         <div className="flex items-center gap-2">
@@ -182,7 +132,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
       );
     }
 
-    // NONE - show add friend button
     return (
       <button 
         onClick={handleFriendRequest}
@@ -197,13 +146,8 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
     );
   };
 
-  /**
-   * Handles removing a friend from the friends list dropdown
-   * @param {string} friendId - The database ID of the friend to remove
-   * @param {React.MouseEvent} e - Click event to prevent navigation
-   */
   const handleRemoveFriendFromList = async (friendId: string, e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation to profile
+    e.preventDefault(); 
     e.stopPropagation();
     
     if (confirm('Are you sure you want to remove this friend?')) {
@@ -212,6 +156,7 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
       });
     }
   };
+
   return (
     <SidebarProvider
       defaultOpen={true}
@@ -232,7 +177,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
             
             {/* 1. HEADER & BIO SECTION */}
             <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 flex flex-col md:flex-row gap-8 items-start shadow-sm">
-              {/* Avatar */}
               <div className="w-32 h-32 shrink-0 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-500 overflow-hidden border-4 border-white shadow-md">
                 {profile.pfp ? (
                   <img src={profile.pfp} alt="Profile" className="w-full h-full object-cover" />
@@ -241,7 +185,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 )}
               </div>
               
-              {/* Info & Bio */}
               <div className="flex-1 space-y-4">
                 <div className="flex items-start justify-between">
                   <div>
@@ -250,12 +193,9 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                     </h1>
                     <p className="text-gray-500 font-medium">@{profile.username}</p>
                   </div>
-                  
-                  {/* Friend Request Button - Only on other profiles */}
                   <FriendRequestButton />
                 </div>
                 
-                {/* THE DISPLAYED BIO */}
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                     {isOwnProfile ? "About Me" : "About"}
@@ -280,7 +220,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
             {/* 2. STATS SECTIONS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               
-              {/* NEW: Streak Card */}
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center">
                 <div className="bg-red-50 p-3 rounded-full mb-3">
                   <span className="text-3xl">🔥</span>
@@ -289,7 +228,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 <span className="text-sm text-gray-500 font-medium mt-1">Day Streak</span>
               </div>
 
-              {/* Friends - CLICKABLE */}
               <button
                 onClick={() => setShowFriends(!showFriends)}
                 className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center hover:bg-gray-50 transition-colors"
@@ -304,35 +242,49 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 </span>
               </button>
 
-              {/* Task Stats - NOW SPANS 2 COLUMNS */}
-              <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+              {/* Task Stats - UPGRADED UI */}
+              <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col">
                 <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Trophy className="text-yellow-500" size={18} /> Task Performance
                 </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  
-                  <div className="bg-blue-50 p-4 rounded-xl flex flex-col items-center justify-center border border-blue-100">
-                    <CheckCircle className="text-blue-500 mb-2" size={20} />
-                    <span className="text-2xl font-bold text-blue-700">{profile.stats.completedTasks}</span>
-                    <span className="text-xs text-blue-600 font-medium">Completed</span>
+                
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-blue-50 p-4 rounded-xl flex flex-col border border-blue-100">
+                    <span className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Tasks Completed</span>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="text-4xl font-bold text-blue-700">{profile.stats.completedTasks}</span>
+                      <span className="text-sm text-blue-500 font-medium">/ {profile.stats.totalTasks} total</span>
+                    </div>
                   </div>
 
-                  <div className="bg-purple-50 p-4 rounded-xl flex flex-col items-center justify-center border border-purple-100">
-                    <Target className="text-purple-500 mb-2" size={20} />
-                    <span className="text-2xl font-bold text-purple-700">{profile.stats.totalTasks}</span>
-                    <span className="text-xs text-purple-600 font-medium">Created</span>
+                  <div className="bg-green-50 p-4 rounded-xl flex flex-col border border-green-100">
+                    <span className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Success Rate</span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-4xl font-bold text-green-700">{profile.stats.completionRate}</span>
+                      <span className="text-xl font-bold text-green-500">%</span>
+                    </div>
                   </div>
+                </div>
 
-                  <div className="bg-green-50 p-4 rounded-xl flex flex-col items-center justify-center border border-green-100">
-                    <div className="text-green-500 mb-2 font-bold text-lg">%</div>
-                    <span className="text-2xl font-bold text-green-700">{profile.stats.completionRate}%</span>
-                    <span className="text-xs text-green-600 font-medium">Success Rate</span>
+                <div className="mt-auto">
+                  <div className="flex justify-between text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
+                    <span>Progress</span>
+                    <span className={profile.stats.completionRate >= 50 ? "text-green-600" : "text-gray-500"}>
+                      {profile.stats.completionRate}%
+                    </span>
                   </div>
-
+                  <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-green-500 transition-all duration-1000 ease-out rounded-full"
+                      style={{ width: `${profile.stats.completionRate}%` }}
+                    ></div>
+                  </div>
                 </div>
               </div>
+
             </div>
-            {/* FRIENDS LIST - Shows when toggled */}
+
+            {/* FRIENDS LIST */}
             {showFriends && (
               <div className="mb-8 bg-white border border-orange-100 rounded-2xl p-6 shadow-sm">
                 <h2 className="text-lg font-bold mb-4 text-gray-900 flex items-center gap-2">
@@ -366,7 +318,6 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                           </div>
                         </Link>
                         
-                        {/* Remove Friend Button - Only show on own profile */}
                         {isOwnProfile && (
                           <button
                             onClick={(e) => handleRemoveFriendFromList(friend.id, e)}
@@ -390,7 +341,7 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
               </div>
             )}
 
-            {/* 3. PENDING REQUESTS - Only on own profile */}
+            {/* 3. PENDING REQUESTS */}
             {isOwnProfile && profile.receivedRequests && profile.receivedRequests.length > 0 && (
               <div className="mb-8 bg-white border border-red-100 rounded-2xl p-6 shadow-sm relative overflow-hidden">
                  <div className="absolute top-0 left-0 w-1 h-full bg-red-400"></div>
@@ -430,7 +381,7 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
               </div>
             )}
 
-            {/* 4. EDIT FORM - Only on own profile */}
+            {/* 4. EDIT FORM */}
             {isOwnProfile && (
               <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
                 <h2 className="text-lg font-bold mb-6 text-gray-900">Edit Profile Details</h2>
@@ -478,6 +429,3 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
     </SidebarProvider>
   );
 }
-
-
-

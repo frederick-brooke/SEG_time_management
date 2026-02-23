@@ -5,11 +5,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { revalidatePath } from "next/cache";
 
-/**
- * count the number of accepted friend relationships for a user
- * @param userId the user's database ID
- * @returns {Promise<number>}, the count of accepted friend requests
- */
 async function getFriendCount(userId: string) {
   return await prisma.friendRequest.count({
     where: {
@@ -22,12 +17,7 @@ async function getFriendCount(userId: string) {
   });
 }
 
-/**
- * Calculates the current task completion streak for a user
- * @param string userId - The user's database ID
- * @return {Promise<number>} - The number of consecutive days with at least one completed task
- */
-async function calculateStreak(userId: string): Promise<number> {
+export async function calculateStreak(userId: string): Promise<number> {
   const tasks = await prisma.task.findMany({
     where: {
       userId,
@@ -43,7 +33,6 @@ async function calculateStreak(userId: string): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Get unique dates (one task per day counts)
   const completionDates = tasks
     .map(task => {
       if (!task.completedAt) return null;
@@ -57,14 +46,11 @@ async function calculateStreak(userId: string): Promise<number> {
 
   if (uniqueDates.length === 0) return 0;
 
-  // Check if most recent completion was today or yesterday
   const mostRecentDate = new Date(uniqueDates[0]);
   const daysDiff = Math.floor((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
 
-  // If last completion was more than 1 day ago, streak is broken
   if (daysDiff > 1) return 0;
 
-  // Count consecutive days
   let streak = 0;
   let expectedDate = today.getTime();
   
@@ -73,7 +59,7 @@ async function calculateStreak(userId: string): Promise<number> {
     
     if (diff === 0 || diff === 1) {
       streak++;
-      expectedDate = dateTimestamp - (1000 * 60 * 60 * 24); // Move to previous day
+      expectedDate = dateTimestamp - (1000 * 60 * 60 * 24); 
     } else {
       break;
     }
@@ -82,10 +68,6 @@ async function calculateStreak(userId: string): Promise<number> {
   return streak;
 }
 
-/**
- * fetches the current logged in user's profile data
- * @returns {Promise<Object | null>} - User profile with stats and friend requests, or null if not authenticated
- */
 export async function getMyProfile() {
   const session = await getServerSession(authOptions);
 
@@ -103,19 +85,17 @@ export async function getMyProfile() {
       pfp: true,
       createdAt: true,
       tasks: { select: { completed: true, completedAt: true} },
-      // Fetch Incoming Requests so we can Accept/Reject them
       receivedRequests: {
         where: { status: 'PENDING' },
-        include: { 
+        select: { 
           sender: { 
-            select: { username: true, fname: true, lname: true, pfp: true } 
+            select: { id: true, username: true, fname: true, lname: true, pfp: true } 
           } 
         }
       },
-      // Fetch accepted friend requests (sent by current user)
       sentRequests: {
         where: { status: 'ACCEPTED' },
-        include: { 
+        select: { 
           receiver: { 
             select: { id: true, username: true, fname: true, lname: true, pfp: true } 
           } 
@@ -128,7 +108,6 @@ export async function getMyProfile() {
 
   const friendCount = await getFriendCount(user.id);
   
-  // Get accepted friend requests where current user is the receiver
   const receivedFriendRequests = await prisma.friendRequest.findMany({
     where: {
       receiverId: user.id,
@@ -141,18 +120,16 @@ export async function getMyProfile() {
     }
   });
 
-  // Combine friends from both sent and received requests
   const friends = [
     ...user.sentRequests.map(req => req.receiver),
     ...receivedFriendRequests.map(req => req.sender)
   ];
 
-  // Calculate task statistics
   const completedTasks = user.tasks.filter(t => t.completed).length;
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  // Calculate streak
   const streak = await calculateStreak(user.id);
+  
   return {
     ...user,
     friends,
@@ -161,14 +138,11 @@ export async function getMyProfile() {
   };
 }
 
-/**
- * fetches another user's public profile by username
- * @param username, string value that is the username to look up
- * @returns user profile with stats and friend status or null if not found
- */
 export async function getProfile(username: string) {
   const session = await getServerSession(authOptions);
-  const currentUserId = session?.user?.id;
+  
+  // ✅ FIX: Fallback to string so Prisma types don't break if undefined
+  const currentUserId = session?.user?.id || "UNAUTHENTICATED";
 
   const user = await prisma.user.findUnique({
     where: { username },
@@ -182,7 +156,6 @@ export async function getProfile(username: string) {
       pfp: true,
       createdAt: true,
       tasks: { select: { completed: true, completedAt: true } },
-      // Check relationship status
       sentRequests: { where: { receiverId: currentUserId } },
       receivedRequests: { where: { senderId: currentUserId } }
     }
@@ -192,7 +165,6 @@ export async function getProfile(username: string) {
 
   const friendCount = await getFriendCount(user.id);
   
-  // Get accepted friend requests (sent by this user)
   const sentFriendRequests = await prisma.friendRequest.findMany({
     where: {
       senderId: user.id,
@@ -205,7 +177,6 @@ export async function getProfile(username: string) {
     }
   });
 
-  // Get accepted friend requests (received by this user)
   const receivedFriendRequests = await prisma.friendRequest.findMany({
     where: {
       receiverId: user.id,
@@ -218,20 +189,16 @@ export async function getProfile(username: string) {
     }
   });
 
-  // Combine friends
   const friends = [
     ...sentFriendRequests.map(req => req.receiver),
     ...receivedFriendRequests.map(req => req.sender)
   ];
 
-  // Stats
   const completedTasks = user.tasks.filter(t => t.completed).length;
   const totalTasks = user.tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // Calculate streak
   const streak = await calculateStreak(user.id);
-  // Determine Friend Status
   let friendStatus = "NONE"; 
   const sent = user.receivedRequests[0]; 
   const received = user.sentRequests[0]; 
@@ -253,11 +220,6 @@ export async function getProfile(username: string) {
   };
 }
 
-/**
- * updates the current user's profile information
- * @param formData, form data containing fname, lname and bio
- * @return revalidates the profile page after update
- */
 export async function updateProfile(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) throw new Error("Unauthorized");
@@ -273,17 +235,11 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/profile");
 }
 
-/**
- * sends a friend request to another user
- * @param targetUserId, the database ID of the user to send request to
- * @returns creates a pending friend request
- */
 export async function sendFriendRequest(targetUserId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
   if (session.user.id === targetUserId) return; 
 
-  // check for existing requests in either direction
   const existing = await prisma.friendRequest.findFirst({
     where: {
       OR: [
@@ -305,11 +261,6 @@ export async function sendFriendRequest(targetUserId: string) {
   revalidatePath("/profile");
 }
 
-/**
- * accept a pending friend request
- * @param requestId - the database ID of the friend request
- * @return updates request status to ACCEPTED
- */
 export async function acceptFriendRequest(requestId: string) {
   await prisma.friendRequest.update({
     where: { id: requestId },
@@ -318,11 +269,6 @@ export async function acceptFriendRequest(requestId: string) {
   revalidatePath("/profile");
 }
 
-/**
- * rejects and deletes a pending friend request
- * @param requestId, the database ID of the friend request
- * @return deletes the friend request from database
- */
 export async function rejectFriendRequest(requestId: string) {
   await prisma.friendRequest.delete({
     where: { id: requestId }
@@ -330,16 +276,10 @@ export async function rejectFriendRequest(requestId: string) {
   revalidatePath("/profile");
 }
 
-/**
- * Removes an existing friendship (deletes the accepted friend request)
- * @param friendUserId - the database ID of the friend to remove
- * @return deletes the accepted friend request between users
- */
 export async function removeFriend(friendUserId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Find and delete the accepted friend request (in either direction)
   await prisma.friendRequest.deleteMany({
     where: {
       status: 'ACCEPTED',
@@ -353,16 +293,10 @@ export async function removeFriend(friendUserId: string) {
   revalidatePath("/profile");
 }
 
-/**
- * Cancels a pending friend request that was sent by the current user
- * @param requestUserId - the database ID of the user to whom the request was sent
- * @return deletes the pending friend request
- */
 export async function cancelFriendRequest(requestUserId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Delete the pending request sent by current user
   await prisma.friendRequest.deleteMany({
     where: {
       senderId: session.user.id,
