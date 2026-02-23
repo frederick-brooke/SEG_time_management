@@ -9,7 +9,6 @@ export async function getFriendsLeaderboard() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return null;
 
-  // 1. Get current user
   const currentUser = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: { id: true }
@@ -17,7 +16,6 @@ export async function getFriendsLeaderboard() {
 
   if (!currentUser) return null;
 
-  // 2. Get all accepted friends (checking both sender and receiver)
   const sentRequests = await prisma.friendRequest.findMany({
     where: { senderId: currentUser.id, status: 'ACCEPTED' },
     select: { receiverId: true }
@@ -28,14 +26,12 @@ export async function getFriendsLeaderboard() {
     select: { senderId: true }
   });
 
-  // Combine friend IDs and add the current user's ID so they are on the board too!
   const friendIds = [
     ...sentRequests.map(req => req.receiverId),
     ...receivedRequests.map(req => req.senderId),
     currentUser.id 
   ];
 
-  // 3. Fetch data for all these users
   const users = await prisma.user.findMany({
     where: { id: { in: friendIds } },
     select: {
@@ -44,13 +40,24 @@ export async function getFriendsLeaderboard() {
       fname: true,
       lname: true,
       pfp: true,
-      tasks: { select: { completed: true } }
+      tasks: { select: { completed: true, duration: true } }
     }
   });
 
-  // 4. Calculate stats and streaks for everyone
   const leaderboard = await Promise.all(users.map(async (user) => {
-    const completedTasks = user.tasks.filter(t => t.completed).length;
+    const totalTasks = user.tasks.length;
+    const completedTasksList = user.tasks.filter(t => t.completed);
+    const completedTasksCount = completedTasksList.length;
+
+    // Completion Rate Math
+    const completionRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+
+    // Focus Time Math
+    const totalMinutes = completedTasksList.reduce((sum, task) => sum + (task.duration || 0), 0);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const focusTimeFormatted = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
     const streak = await calculateStreak(user.id);
     
     return {
@@ -58,16 +65,18 @@ export async function getFriendsLeaderboard() {
       username: user.username,
       name: `${user.fname || user.username} ${user.lname || ''}`.trim(),
       pfp: user.pfp,
-      completedTasks,
       streak,
+      completionRate,
+      focusTime: focusTimeFormatted,
+      focusTimeRaw: totalMinutes, // Used for sorting
       isCurrentUser: user.id === currentUser.id
     };
   }));
 
-  // 5. Sort the leaderboard (Let's sort by Streak first, then by Tasks Completed)
+  // Sort by Streak highest, then by Focus Time highest
   leaderboard.sort((a, b) => {
     if (b.streak !== a.streak) return b.streak - a.streak;
-    return b.completedTasks - a.completedTasks;
+    return b.focusTimeRaw - a.focusTimeRaw;
   });
 
   return leaderboard;
