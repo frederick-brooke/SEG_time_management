@@ -28,6 +28,8 @@ export default function Reminders() {
                 firedTitle="Hydration Time"
                 firedText="Time to drink a glass of water!"
             />   
+
+            {/* Add successive customisable reminders here, up to 5 more*/}
         </div>
     );
 }

@@ -4,10 +4,11 @@ import { updateProfile, acceptFriendRequest, rejectFriendRequest, sendFriendRequ
 import { AppSidebar } from "components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
 import { SiteHeader } from "components/site-header";
-import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock, ChevronDown, ChevronUp, UserMinus } from "lucide-react";
+import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock, ChevronDown, ChevronUp, UserMinus, Flag } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import ReportModal from "components/report-modal";
 
 /**
  * Formats a date string in UK format (DD/MM/YYYY) consistently for both server and client
@@ -96,6 +97,7 @@ function RejectButton() {
 export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [showReport, setShowReport] = useState(false); 
 
   /**
    * Renders the appropriate friend request button based on current friendship status
@@ -253,8 +255,27 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                   </div>
                   
                   {/* Friend Request Button - Only on other profiles */}
-                  <FriendRequestButton />
+                    {!isOwnProfile && (
+                      <div className="flex gap-1">
+                        <FriendRequestButton />
+
+                        <button
+                          onClick={() => setShowReport(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border border-red-200"
+                        >
+                          <Flag/> Report User
+                        </button>
+                      </div>
+                    )}
+
+                    {showReport && (
+                      <ReportModal
+                        reportedUserId={profile.id}
+                        onClose={() => setShowReport(false)}
+                      />
+                    )}
                 </div>
+                
                 
                 {/* THE DISPLAYED BIO */}
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
