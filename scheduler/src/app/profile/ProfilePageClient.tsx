@@ -20,6 +20,7 @@ function formatDate(dateString: string): string {
 interface ProfilePageClientProps {
   profile: any;
   isOwnProfile: boolean;
+  rank?: number;
 }
 
 function SubmitButton({ text, loadingText }: { text: string; loadingText: string }) {
@@ -63,7 +64,7 @@ function RejectButton() {
   );
 }
 
-export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePageClientProps) {
+export default function ProfilePageClient({ profile, isOwnProfile, rank }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -216,16 +217,30 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 </div>
               </div>
             </div>
-
-            {/* 2. STATS SECTIONS */}
+              
+              {/* 2. STATS SECTIONS */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               
+              {/* STREAK & RANK CARD - Clean Overview */}
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center">
                 <div className="bg-red-50 p-3 rounded-full mb-3">
                   <span className="text-3xl">🔥</span>
                 </div>
                 <span className="text-4xl font-bold text-gray-900">{profile.stats.streak || 0}</span>
                 <span className="text-sm text-gray-500 font-medium mt-1">Day Streak</span>
+                
+                {/* Dynamic Rank Display - Pure Text Link */}
+                {rank && rank > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100 w-full">
+                    <Link 
+                      href="/leaderboard" 
+                      className="text-xs font-medium text-gray-500 group cursor-pointer"
+                    >
+                      <span className="font-bold text-blue-600 group-hover:underline">#{rank}</span>
+                      <span className="transition-colors group-hover:text-gray-800 group-hover:underline"> on leaderboard</span>
+                    </Link>
+                  </div>
+                )}
               </div>
 
               <button
