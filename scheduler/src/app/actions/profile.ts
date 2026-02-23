@@ -141,7 +141,6 @@ export async function getMyProfile() {
 export async function getProfile(username: string) {
   const session = await getServerSession(authOptions);
   
-  // ✅ FIX: Fallback to string so Prisma types don't break if undefined
   const currentUserId = session?.user?.id || "UNAUTHENTICATED";
 
   const user = await prisma.user.findUnique({
