@@ -102,6 +102,7 @@ enum NotificationType {
 model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String?  @db.ObjectId
+  title     String
   message   String
   type      NotificationType
   isRead    Boolean  @default(false)

@@ -3,19 +3,21 @@
 import { prisma } from 'lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { getServerSession } from 'next-auth';
+import { authOptions } from 'lib/auth';
 
 // Returns the n (20 default) most recent notifications that are either non-expiring or not yet expired
 export async function getNotifications(count: number = 20) {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
 
-        if (!session) {
+        if (!session?.user?.id) {
             throw new Error('Unauthorized');
         }
 
         const notifications = await prisma.notification.findMany({
             where: {
                 userId: session.user.id,
+                isRead: false,
                 OR: [
                     { expiresAt: null },
                     { expiresAt: { gt: new Date() } }
@@ -35,7 +37,7 @@ export async function getNotifications(count: number = 20) {
 
 export async function markNotificationAsRead(notificationId: string) {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
             throw new Error('Unauthorized');
@@ -65,7 +67,7 @@ export async function markNotificationAsRead(notificationId: string) {
 
 export async function markAllNotificationsAsRead() {
     try {
-        const session = await getServerSession();
+        const session = await getServerSession(authOptions);
 
         if (!session?.user?.id) {
             throw new Error('Unauthorized');
@@ -84,28 +86,25 @@ export async function markAllNotificationsAsRead() {
     }
 }
 
-export async function createNotification(message: string, type: NotificationType, userId?: string, link?: string, expiresAt?: Date) {
+export async function createNotification(title: string, message: string, type: NotificationType, userId?: string, link?: string, expiresAt?: Date) {
     try {
-        const session = await getServerSession();
-        
-        if (!session?.user?.id) {
-            throw new Error('Unauthorized');
-        }
-
-        if (!message || !type) {
-            throw new Error('Message and type are required');
+        if (!title || !message || !type) {
+            console.error('Title, message and type are required to create a notification');
+            return { notification: null, error: 'Title, message and type are required' };
         }
 
         const notification = await prisma.notification.create({
             data: {
-                userId: userId || null,
+                userId: userId ? userId : null,
+                title,
                 message,
                 type,
-                link,
+                link: link? link : null,
                 expiresAt: expiresAt ? new Date(expiresAt) : null
             }
         });
 
+        console.log('Notification created:', notification);
         return { notification, error: null };
 
     } catch (err) {
@@ -113,3 +112,4 @@ export async function createNotification(message: string, type: NotificationType
         return { notification: null, error: 'Failed to create notification' };
     }
 }
+

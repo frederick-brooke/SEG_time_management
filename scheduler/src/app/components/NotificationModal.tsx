@@ -1,34 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react'
-import { X, CheckCircle, AlertCircle, Info, XCircle, Trash2 } from 'lucide-react'
+import { X, CheckCircle, AlertCircle, Info, XCircle, Trash2, UserRoundIcon } from 'lucide-react'
 import { NotificationType } from '@prisma/client'
-import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../actions/notifications'
-
-import { createNotification } from 'lib/notifications';
-
+import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead, createNotification } from '../actions/notifications'
+import { useSession } from 'next-auth/react';
 interface Notification {
   id: string
   userId?: string
+  title: string
   message: string
   type: NotificationType
   isRead?: boolean
   link?: string
   createdAt?: Date
   expiresAt?: Date
-  title: string
-  timestamp: Date
-  // id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  // userId    String?  @db.ObjectId
-  // message   String
-  // type      NotificationType
-  // isRead    Boolean  @default(false)
-  // link      String?  
-  // createdAt DateTime @default(now())
-  // expiresAt DateTime? 
 }
 
 const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () => void, isOpen: boolean }) => {
+  const { data: session } = useSession()
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   const fetchNotifications = async () => {
@@ -43,7 +33,6 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
       console.error('Error fetching notifications:', error)
     }
   }
-
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
@@ -96,8 +85,10 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
     setNotifications([])
   }
 
+  //TESTING
   const createTestNotification = async () => {
-    const result = await createNotification('This is a test notification', NotificationType.INFO)
+    const userId = session?.user?.id
+    const result = await createNotification('Test', 'This is a test notification', NotificationType.INFO, userId)
     if (result.error) {
       console.error('Failed to create test notification:', result.error)
     } else {
@@ -167,7 +158,7 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-gray-900">{notification.title}</h3>
                     <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                    <span className="text-xs text-gray-500 mt-2 block">{formatTime(notification.timestamp)}</span>
+                    <span className="text-xs text-gray-500 mt-2 block">{formatTime(notification.createdAt)}</span>
                   </div>
                   <button
                     onClick={() => removeNotification(notification.id)}
@@ -185,17 +176,13 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
                 <CheckCircle className="w-8 h-8 text-gray-400" />
               </div>
               <p className="text-gray-600 font-medium">No notifications</p>
-              <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>
-              
-              
-              {/* Optional: Add a button to refresh or explore features */}
+              <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>              
               <button
-                onClick={createTestNotification}
+                onClick={fetchNotifications}
                 className="mt-6 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
               >
-                Create Test Notification
+                Refresh
               </button>
-            
             </div>
           )}
         </div>
