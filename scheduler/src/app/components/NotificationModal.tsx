@@ -5,6 +5,8 @@ import { X, CheckCircle, AlertCircle, Info, XCircle, Trash2 } from 'lucide-react
 import { NotificationType } from '@prisma/client'
 import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../actions/notifications'
 
+import { createNotification } from 'lib/notifications';
+
 interface Notification {
   id: string
   userId?: string
@@ -27,59 +29,15 @@ interface Notification {
 }
 
 const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () => void, isOpen: boolean }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-  //   {
-  //     id: '1',
-  //     type: NotificationType.SUCCESS,
-  //     title: 'Profile Updated',
-  //     message: 'Your profile has been successfully updated.',
-  //     timestamp: new Date(Date.now() - 5 * 60000)
-  //   },
-  //   {
-  //     id: '2',
-  //     type: NotificationType.WARNING,
-  //     title: 'Low Battery',
-  //     message: 'Your device battery is running low. Please charge soon.',
-  //     timestamp: new Date(Date.now() - 15 * 60000)
-  //   },
-  //   {
-  //     id: '3',
-  //     type: NotificationType.INFO,
-  //     title: 'New Event',
-  //     message: 'You have a meeting scheduled for tomorrow at 2:00 PM.',
-  //     timestamp: new Date(Date.now() - 30 * 60000)
-  //   },
-  //   {
-  //     id: '4',
-  //     type: NotificationType.ERROR,
-  //     title: 'Sync Failed',
-  //     message: 'Failed to sync data. Please try again later.',
-  //     timestamp: new Date(Date.now() - 1 * 3600000)
-  //   },
-  //   {
-  //     id: '5',
-  //     type: NotificationType.ERROR,
-  //     title: 'Sync Failed',
-  //     message: 'Failed to sync data. Please try again later.',
-  //     timestamp: new Date(Date.now() - 1 * 3600000)
-  //   },
-  //   {
-  //     id: '6',
-  //     type: NotificationType.ERROR,
-  //     title: 'Sync Failed',
-  //     message: 'Failed to sync data. Please try again later.',
-  //     timestamp: new Date(Date.now() - 1 * 3600000)
-  //   }
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
 
   const fetchNotifications = async () => {
     try {
-      const response = await getNotifications()
-      const data = await response.json()
-      if (response.ok) {
-        setNotifications(data.notifications)
-      } else {
+      const data = await getNotifications()
+      if (data.error) {
         console.error('Failed to fetch notifications:', data.error)
+      } else if (data.notifications) {
+        setNotifications(data.notifications)
       }
     } catch (error) {
       console.error('Error fetching notifications:', error)
@@ -136,6 +94,15 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
   const clearAll = () => {
     markAllNotificationsAsRead()
     setNotifications([])
+  }
+
+  const createTestNotification = async () => {
+    const result = await createNotification('This is a test notification', NotificationType.INFO)
+    if (result.error) {
+      console.error('Failed to create test notification:', result.error)
+    } else {
+      fetchNotifications()
+    }
   }
 
   // Fetch notifications only once when the component mounts
@@ -219,6 +186,16 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
               </div>
               <p className="text-gray-600 font-medium">No notifications</p>
               <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>
+              
+              
+              {/* Optional: Add a button to refresh or explore features */}
+              <button
+                onClick={createTestNotification}
+                className="mt-6 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Create Test Notification
+              </button>
+            
             </div>
           )}
         </div>

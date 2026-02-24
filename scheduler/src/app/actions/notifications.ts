@@ -1,10 +1,8 @@
 "use server";
 
-import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from 'lib/prisma';
 import { NotificationType } from '@prisma/client';
-import { getServerSession } from 'next-auth'; 
-import { Not } from '@/src/generated/prisma/internal/prismaNamespace';
+import { getServerSession } from 'next-auth';
 
 // Returns the n (20 default) most recent notifications that are either non-expiring or not yet expired
 export async function getNotifications(count: number = 20) {
@@ -12,7 +10,7 @@ export async function getNotifications(count: number = 20) {
         const session = await getServerSession();
 
         if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            throw new Error('Unauthorized');
         }
 
         const notifications = await prisma.notification.findMany({
@@ -27,11 +25,11 @@ export async function getNotifications(count: number = 20) {
             take: count
         });
 
-        return NextResponse.json({ notifications });
+        return { notifications, error: null };
 
     } catch (err) {
         console.error(err);
-        return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
+        return { notifications: null, error: 'Failed to fetch notifications' };
     }
 }
 
@@ -40,7 +38,7 @@ export async function markNotificationAsRead(notificationId: string) {
         const session = await getServerSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            throw new Error('Unauthorized');
         }
 
         const notification = await prisma.notification.findUnique({
@@ -49,7 +47,7 @@ export async function markNotificationAsRead(notificationId: string) {
 
         // Ensure the notification exists and belongs to the user
         if (!notification || notification.userId !== session.user.id) {
-            return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
+            throw new Error('Notification not found');
         }
 
         await prisma.notification.update({
@@ -57,11 +55,11 @@ export async function markNotificationAsRead(notificationId: string) {
             data: { isRead: true }
         });
 
-        return NextResponse.json({ success: true });
+        return { success: true, error: null };
 
     } catch (err) {
         console.error(err);
-        return NextResponse.json({ error: 'Failed to mark notifications as read' }, { status: 500 });
+        return { success: false, error: 'Failed to mark notifications as read' };
     }
 }
 
@@ -70,7 +68,7 @@ export async function markAllNotificationsAsRead() {
         const session = await getServerSession();
 
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            throw new Error('Unauthorized');
         }
 
         await prisma.notification.updateMany({
@@ -78,11 +76,11 @@ export async function markAllNotificationsAsRead() {
             data: { isRead: true }
         });
 
-        return NextResponse.json({ success: true });
+        return { success: true, error: null };
 
     } catch (err) {
         console.error(err);
-        return NextResponse.json({ error: 'Failed to mark notifications as read' }, { status: 500 });
+        return { success: false, error: 'Failed to mark notifications as read' };
     }
 }
 
@@ -91,11 +89,11 @@ export async function createNotification(message: string, type: NotificationType
         const session = await getServerSession();
         
         if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            throw new Error('Unauthorized');
         }
 
         if (!message || !type) {
-            return NextResponse.json({ error: 'Message and type are required' }, { status: 400 });
+            throw new Error('Message and type are required');
         }
 
         const notification = await prisma.notification.create({
@@ -108,10 +106,10 @@ export async function createNotification(message: string, type: NotificationType
             }
         });
 
-        return NextResponse.json({ notification });
+        return { notification, error: null };
 
     } catch (err) {
         console.error(err);
-        return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
+        return { notification: null, error: 'Failed to create notification' };
     }
 }

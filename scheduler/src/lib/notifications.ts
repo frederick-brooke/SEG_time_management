@@ -1,4 +1,3 @@
-import { NextResponse } from "next/dist/server/web/spec-extension/response";
 import { prisma } from "./prisma";
 import { NotificationType } from "@prisma/client";
 
@@ -6,7 +5,7 @@ export async function createNotification(message: string, type: NotificationType
     try {
         if (!message || !type) {
             console.error('Message and type are required to create a notification');
-            return NextResponse.json({ error: 'Message and type are required' }, { status: 400 });
+            return { notification: null, error: 'Message and type are required' };
         }
 
         const notification = await prisma.notification.create({
@@ -19,10 +18,10 @@ export async function createNotification(message: string, type: NotificationType
             }
         });
 
-        return NextResponse.json({ notification });
+        return { notification, error: null };
 
     } catch (err) {
         console.error(err);
-        return NextResponse.json({ error: 'Failed to create notification' }, { status: 500 });
+        return { notification: null, error: 'Failed to create notification' };
     }
 }
