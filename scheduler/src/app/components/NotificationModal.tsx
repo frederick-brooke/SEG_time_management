@@ -28,48 +28,48 @@ interface Notification {
 
 const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () => void, isOpen: boolean }) => {
   const [notifications, setNotifications] = useState<Notification[]>([
-    // {
-    //   id: '1',
-    //   type: NotificationType.SUCCESS,
-    //   title: 'Profile Updated',
-    //   message: 'Your profile has been successfully updated.',
-    //   timestamp: new Date(Date.now() - 5 * 60000)
-    // },
-    // {
-    //   id: '2',
-    //   type: NotificationType.WARNING,
-    //   title: 'Low Battery',
-    //   message: 'Your device battery is running low. Please charge soon.',
-    //   timestamp: new Date(Date.now() - 15 * 60000)
-    // },
-    // {
-    //   id: '3',
-    //   type: NotificationType.INFO,
-    //   title: 'New Event',
-    //   message: 'You have a meeting scheduled for tomorrow at 2:00 PM.',
-    //   timestamp: new Date(Date.now() - 30 * 60000)
-    // },
-    // {
-    //   id: '4',
-    //   type: NotificationType.ERROR,
-    //   title: 'Sync Failed',
-    //   message: 'Failed to sync data. Please try again later.',
-    //   timestamp: new Date(Date.now() - 1 * 3600000)
-    // },
-    // {
-    //   id: '5',
-    //   type: NotificationType.ERROR,
-    //   title: 'Sync Failed',
-    //   message: 'Failed to sync data. Please try again later.',
-    //   timestamp: new Date(Date.now() - 1 * 3600000)
-    // },
-    // {
-    //   id: '6',
-    //   type: NotificationType.ERROR,
-    //   title: 'Sync Failed',
-    //   message: 'Failed to sync data. Please try again later.',
-    //   timestamp: new Date(Date.now() - 1 * 3600000)
-    // }
+  //   {
+  //     id: '1',
+  //     type: NotificationType.SUCCESS,
+  //     title: 'Profile Updated',
+  //     message: 'Your profile has been successfully updated.',
+  //     timestamp: new Date(Date.now() - 5 * 60000)
+  //   },
+  //   {
+  //     id: '2',
+  //     type: NotificationType.WARNING,
+  //     title: 'Low Battery',
+  //     message: 'Your device battery is running low. Please charge soon.',
+  //     timestamp: new Date(Date.now() - 15 * 60000)
+  //   },
+  //   {
+  //     id: '3',
+  //     type: NotificationType.INFO,
+  //     title: 'New Event',
+  //     message: 'You have a meeting scheduled for tomorrow at 2:00 PM.',
+  //     timestamp: new Date(Date.now() - 30 * 60000)
+  //   },
+  //   {
+  //     id: '4',
+  //     type: NotificationType.ERROR,
+  //     title: 'Sync Failed',
+  //     message: 'Failed to sync data. Please try again later.',
+  //     timestamp: new Date(Date.now() - 1 * 3600000)
+  //   },
+  //   {
+  //     id: '5',
+  //     type: NotificationType.ERROR,
+  //     title: 'Sync Failed',
+  //     message: 'Failed to sync data. Please try again later.',
+  //     timestamp: new Date(Date.now() - 1 * 3600000)
+  //   },
+  //   {
+  //     id: '6',
+  //     type: NotificationType.ERROR,
+  //     title: 'Sync Failed',
+  //     message: 'Failed to sync data. Please try again later.',
+  //     timestamp: new Date(Date.now() - 1 * 3600000)
+  //   }
   ])
 
   const fetchNotifications = async () => {
