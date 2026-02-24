@@ -69,6 +69,38 @@ async function main() {
     }
   }
 
+  // --- Events (currently 6 per user) ---
+  console.log('Creating events...')
+  for (const user of users) {
+    for (let e = 0; e < 6; e++) {
+      const start = randomFutureDate(20)
+      const end = new Date(start)
+      end.setHours(start.getHours() + faker.number.int({ min: 1, max: 3 }))
+      const allDay = faker.datatype.boolean(0.2)
+      await prisma.event.create({
+        data: {
+          userId: user.id,
+          title: faker.lorem.words({ min: 2, max: 4 }),
+          description: faker.datatype.boolean(0.5) ? faker.lorem.sentence() : null,
+          start: allDay ? new Date(start.toDateString()) : start,
+          end: allDay ? new Date(end.toDateString()) : end,
+          allDay,
+          category: faker.helpers.arrayElement(EVENT_CATEGORIES),
+          destinationCoords: faker.datatype.boolean(0.3)
+            ? { lat: faker.location.latitude(), lng: faker.location.longitude() }
+            : null,
+          recurrence: null,
+          exceptions: [],
+          googleEventId: null,
+          lastSyncedAt: null,
+        },
+      })
+    }
+  }
+
+}
+
+
 main()
   .catch((e) => {
     console.error('Error during seeding:', e)
