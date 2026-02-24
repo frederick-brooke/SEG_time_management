@@ -86,7 +86,7 @@ export async function markAllNotificationsAsRead() {
     }
 }
 
-export async function createNotification(userId: string, message: string, type: NotificationType, link?: string, expiresAt?: Date) {
+export async function createNotification(message: string, type: NotificationType, userId?: string, link?: string, expiresAt?: Date) {
     try {
         const session = await getServerSession();
         
@@ -100,7 +100,7 @@ export async function createNotification(userId: string, message: string, type: 
 
         const notification = await prisma.notification.create({
             data: {
-                userId: session.user.id,
+                userId: userId || null,
                 message,
                 type,
                 link,
