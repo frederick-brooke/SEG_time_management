@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, CheckCircle, AlertCircle, Info, XCircle, Trash2 } from 'lucide-react'
 import { NotificationType } from '@prisma/client'
-import { GET } from '../api/notifications/route'
+import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead } from '../actions/notifications'
 
 interface Notification {
   id: string
@@ -74,9 +74,13 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/notifications')
+      const response = await getNotifications()
       const data = await response.json()
-      setNotifications(data.notifications)
+      if (response.ok) {
+        setNotifications(data.notifications)
+      } else {
+        console.error('Failed to fetch notifications:', data.error)
+      }
     } catch (error) {
       console.error('Error fetching notifications:', error)
     }
@@ -125,10 +129,12 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
   }
 
   const removeNotification = (id: string) => {
+    markNotificationAsRead(id)
     setNotifications(notifications.filter(notif => notif.id !== id))
   }
 
   const clearAll = () => {
+    markAllNotificationsAsRead()
     setNotifications([])
   }
 
