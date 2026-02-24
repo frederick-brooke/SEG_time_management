@@ -1,107 +1,132 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react'
-import { X, CheckCircle, AlertCircle, Info, XCircle, Trash2, UserRoundIcon } from 'lucide-react'
-import { NotificationType } from '@prisma/client'
-import { getNotifications, markAllNotificationsAsRead, markNotificationAsRead, createNotification } from '../actions/notifications'
-import { useSession } from 'next-auth/react';
+import React, { useState, useEffect } from "react";
+import {
+  X,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  XCircle,
+  Trash2,
+  UserRoundIcon,
+} from "lucide-react";
+import { NotificationType } from "@prisma/client";
+import {
+  getNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  createNotification,
+} from "../actions/notifications";
+import { useSession } from "next-auth/react";
 interface Notification {
-  id: string
-  userId?: string
-  title: string
-  message: string
-  type: NotificationType
-  isRead?: boolean
-  link?: string
-  createdAt?: Date
-  expiresAt?: Date
+  id: string;
+  userId?: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  isRead?: boolean;
+  link?: string;
+  createdAt?: Date;
+  expiresAt?: Date;
 }
 
-const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () => void, isOpen: boolean }) => {
-  const { data: session } = useSession()
-  const [notifications, setNotifications] = useState<Notification[]>([])
+const NotificationModal = ({
+  handleShowModal,
+  isOpen,
+}: {
+  handleShowModal: () => void;
+  isOpen: boolean;
+}) => {
+  const { data: session } = useSession();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchNotifications = async () => {
     try {
-      const data = await getNotifications()
+      const data = await getNotifications();
       if (data.error) {
-        console.error('Failed to fetch notifications:', data.error)
+        console.error("Failed to fetch notifications:", data.error);
       } else if (data.notifications) {
-        setNotifications(data.notifications)
+        setNotifications(data.notifications);
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error)
+      console.error("Error fetching notifications:", error);
     }
-  }
+  };
 
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case NotificationType.SUCCESS:
-        return <CheckCircle className="w-5 h-5 text-green-500" />
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
       case NotificationType.ERROR:
-        return <XCircle className="w-5 h-5 text-red-500" />
+        return <XCircle className="w-5 h-5 text-red-500" />;
       case NotificationType.WARNING:
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />
+        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
       case NotificationType.INFO:
-        return <Info className="w-5 h-5 text-blue-500" />
+        return <Info className="w-5 h-5 text-blue-500" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   const getNotificationBgColor = (type: NotificationType) => {
     switch (type) {
       case NotificationType.SUCCESS:
-        return 'bg-green-50 border-green-200'
+        return "bg-green-50 border-green-200";
       case NotificationType.ERROR:
-        return 'bg-red-50 border-red-200'
+        return "bg-red-50 border-red-200";
       case NotificationType.WARNING:
-        return 'bg-yellow-50 border-yellow-200'
+        return "bg-yellow-50 border-yellow-200";
       case NotificationType.INFO:
-        return 'bg-blue-50 border-blue-200'
+        return "bg-blue-50 border-blue-200";
       default:
-        return 'bg-gray-50 border-gray-200'
+        return "bg-gray-50 border-gray-200";
     }
-  }
+  };
 
   const formatTime = (timestamp: Date) => {
-    const now = new Date()
-    const diffMs = now.getTime() - timestamp.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
+    const now = new Date();
+    const diffMs = now.getTime() - timestamp.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'just now'
-    if (diffMins < 60) return `${diffMins}m ago`
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`
-    return timestamp.toLocaleDateString()
-  }
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+    return timestamp.toLocaleDateString();
+  };
 
   const removeNotification = (id: string) => {
-    markNotificationAsRead(id)
-    setNotifications(notifications.filter(notif => notif.id !== id))
-  }
+    markNotificationAsRead(id);
+    setNotifications(notifications.filter((notif) => notif.id !== id));
+  };
 
   const clearAll = () => {
-    markAllNotificationsAsRead()
-    setNotifications([])
-  }
+    markAllNotificationsAsRead();
+    setNotifications([]);
+  };
 
-  //TESTING
+  //TESTING PURPOSES ONLY
   const createTestNotification = async () => {
-    const userId = session?.user?.id
-    const result = await createNotification('Test', 'This is a test notification', NotificationType.INFO, userId)
+    const userId = session?.user?.id;
+    const result = await createNotification(
+      userId,
+      "Test",
+      "This is a test notification",
+      NotificationType.INFO,
+    );
     if (result.error) {
-      console.error('Failed to create test notification:', result.error)
+      console.error("Failed to create test notification:", result.error);
     } else {
-      fetchNotifications()
+      fetchNotifications();
     }
-  }
+  };
 
   // Fetch notifications only once when the component mounts
   useEffect(() => {
-    if(isOpen) {
-      fetchNotifications()
+    if (isOpen) {
+      fetchNotifications();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   return (
     <div
@@ -132,7 +157,9 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
         <div className="border-b border-gray-200 p-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-            <p className="text-sm text-gray-500 mt-1">{notifications.length} notifications</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {notifications.length} notifications
+            </p>
           </div>
           <button
             onClick={handleShowModal}
@@ -156,9 +183,15 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                    <span className="text-xs text-gray-500 mt-2 block">{formatTime(notification.createdAt)}</span>
+                    <h3 className="font-semibold text-gray-900">
+                      {notification.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {notification.message}
+                    </p>
+                    <span className="text-xs text-gray-500 mt-2 block">
+                      {formatTime(notification.createdAt)}
+                    </span>
                   </div>
                   <button
                     onClick={() => removeNotification(notification.id)}
@@ -176,10 +209,18 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
                 <CheckCircle className="w-8 h-8 text-gray-400" />
               </div>
               <p className="text-gray-600 font-medium">No notifications</p>
-              <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>              
+              <p className="text-sm text-gray-500 mt-1">
+                You're all caught up!
+              </p>
               <button
-                onClick={fetchNotifications}
-                className="mt-6 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                onClick={() => {
+                  setIsRefreshing(true);
+                  fetchNotifications();
+                  setTimeout(() => setIsRefreshing(false), 2000);
+                }}
+                className={`mt-6 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${
+                  isRefreshing ? "bg-blue-800" : "bg-blue-600 hover:bg-blue-700"
+                }`}
               >
                 Refresh
               </button>
@@ -207,7 +248,7 @@ const NotificationModal = ({ handleShowModal, isOpen }: { handleShowModal: () =>
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default NotificationModal
+export default NotificationModal;
