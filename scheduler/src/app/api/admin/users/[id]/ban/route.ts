@@ -1,43 +1,54 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function PATCH(req, context){
-    const params = await context.params;
-    const { id } = params;
+export async function PATCH(
+    req: Request,
+    context: { params: Promise<{ id: string }> }
+) {
+    const { id } = await context.params;
     const { type, durationDays } = await req.json();
 
-    if (type === "TEMP"){
-        const expires = new Date();
-        expires.setDate(expires.getDate() + durationDays);
+    console.log("Ban route ID:", id);
 
-        await prisma.user.update({
-            where: { id },
-            data: {
-                isBanned: true,
-                banExpires: expires,
-            },
-        });
-    }
+    try{
+        if (type === "TEMP"){
+            const expires = new Date();
+            expires.setDate(expires.getDate() + durationDays);
 
-    if (type === "PERMANENT"){
-        await prisma.user.update({
-            where: { id },
-            data: {
-                isBanned: true,
-                banExpires: null,
-            },
-        });
-    }
+            await prisma.user.update({
+                where: { id },
+                data: {
+                    isBanned: true,
+                    banExpires: expires,
+                },
+            });
+        }
 
-    if (type === "UNBAN"){
-        await prisma.user.update({
-            where: { id },
-            data: {
-                isBanned: false,
-                banExpires: null,
-            },
-        });
+        if (type === "PERMANENT"){
+            const result = await prisma.user.updateMany({
+                where: { id },
+                data: {
+                    isBanned: true,
+                    banExpires: null,
+                },
+            });
+
+            console.log("Update result:", result);
+        }
+
+        if (type === "UNBAN"){
+            await prisma.user.update({
+                where: { id },
+                data: {
+                    isBanned: false,
+                    banExpires: null,
+                },
+            });
+        }
     }
+    catch(e){
+        console.error(e);
+    }    
 
     return NextResponse.json({ success: true });
 }

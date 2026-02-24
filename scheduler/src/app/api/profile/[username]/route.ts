@@ -3,10 +3,12 @@ import { prisma } from "lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ username: string }> }
+  params: { username: string }
 ) {
   try {
-    const { username } = await params;
+    const { username } = params;
+
+    console.log("URL username:", username);
 
     if (!username) {
       return NextResponse.json(

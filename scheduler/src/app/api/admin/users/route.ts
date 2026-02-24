@@ -19,6 +19,7 @@ export async function GET(req: Request) {
             { status: 401 }
         );
     }
+
     //change back to the SUPERUSER once added in
     //needs local key inside the env file to work
     if (session.user?.role !== "SUPERUSER") {

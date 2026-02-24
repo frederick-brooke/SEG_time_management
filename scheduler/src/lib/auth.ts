@@ -29,6 +29,9 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: {
+            reportsReceived: true, // or whatever your relation is called
+          },
         });
 
         if (!user || !user.passwordHash) return null;
@@ -43,11 +46,11 @@ export const authOptions: NextAuthOptions = {
         if(user.isBanned){
           //permanent ban
           if(!user.banExpires){
-            throw new Error("Permanently banned");
+            throw new Error("Banned");
           }
           //temporary ban still active
           if (new Date() < user.banExpires) {
-            throw new Error("Temporarily banned");
+            throw new Error("Banned");
           }
           //Ban expired 
           await prisma.user.update({
@@ -62,6 +65,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.username,
           role: user.role, 
+          isBanned: user.isBanned,
         };
       },
     }),
@@ -107,6 +111,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.role = user.role;
+        token.isBanned = user.isBanned;
+
         return token;
       }
 
@@ -177,6 +183,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.role = token.role as "BASIC" | "SUPERUSER";
+        session.user.isBanned = token.isBanned; 
 
         // Optional: track Google connection
         const googleAccount = await prisma.account.findFirst({

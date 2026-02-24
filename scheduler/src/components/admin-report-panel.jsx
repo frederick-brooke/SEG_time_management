@@ -15,7 +15,7 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
 
         if(type === "TEMP"){
             alert(`User ${user.username} Temporarily Banned`);
-        } else if(type === "PERM"){
+        } else if(type === "PERMANENT"){
             alert(`User ${user.username} Permanently Banned`);
         }
         else{
@@ -104,7 +104,7 @@ function ReportActionModal( {report, onClose, banUser} ) {
                     </button>
 
                     <button
-                        onClick={() => banUser(report.reportedUser, "PERM")}
+                        onClick={() => banUser(report.reportedUser, "PERMANENT")}
                         className="bg-red-600 text-white px-3 py-2 rounded"
                     >
                         Permanent Ban

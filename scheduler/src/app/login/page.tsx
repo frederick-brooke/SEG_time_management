@@ -47,6 +47,14 @@ export default function LoginPage() {
     } else {
       router.push("/dashboard");
     }
+
+    if (result?.error) {
+      if (result.error === "Banned") {
+        setError("Your account has been banned.");
+      } else {
+        setError("Invalid email or password");
+      }
+    }
   };
 
   if (status === "loading" || status === "authenticated") {
