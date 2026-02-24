@@ -4,6 +4,7 @@ import { prisma } from "@/src/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { revalidatePath } from "next/cache";
+import { examPlannerLogic  } from "@/src/lib/examPlannerLogic";
 
 /**
  * Creates a new exam entry and associated details
@@ -106,8 +107,6 @@ export async function getExamById(id: string) {
     });
 }
 
-
-
 export async function generateExamPlan(examId: string, topics: { title:string, duration: number, url?: string }[]) {
     const exam = await prisma.exam.findUnique({
         where: { id: examId },
@@ -140,7 +139,7 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
 
         if (dateIndex >= availableDates.length) break;
 
-        if (dailyTimeSpent + topic.duration > exam.maxTimePerDay && dailyTimeSpent > 0) {
+        if (examPlannerLogic.calculateDaysRequired([{duration: dailyTimeSpent}, topic ], exam.maxTimePerDay) > 1 && dailyTimeSpent > 0) {
             dateIndex++;
             dailyTimeSpent = 0;
         }
