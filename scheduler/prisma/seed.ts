@@ -98,6 +98,34 @@ async function main() {
     }
   }
 
+  // --- Friend Requests (Followers) (currently 5 per user) ---
+  console.log('Creating friendships...')
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i]
+    const otherUsers = users.filter((u) => u.id !== user.id)
+    const following = faker.helpers.arrayElements(otherUsers, 5)
+
+    for (const target of following) {
+      const exists = await prisma.friendRequest.findFirst({
+        where: {
+          OR: [
+            { senderId: user.id, receiverId: target.id },
+            { senderId: target.id, receiverId: user.id },
+          ],
+        },
+      })
+
+      if (!exists) {
+        await prisma.friendRequest.create({
+          data: {
+            senderId: user.id,
+            receiverId: target.id,
+            status: 'ACCEPTED',
+          },
+        })
+      }
+    }
+  }
 }
 
 
