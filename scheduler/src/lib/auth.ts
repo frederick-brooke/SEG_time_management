@@ -57,6 +57,8 @@ export const authOptions: NextAuthOptions = {
             where: { id: user.id },
             data: { isBanned: false, banExpires: null },
           });
+
+          user.isBanned = false;
         }
 
         // Return only the required fields

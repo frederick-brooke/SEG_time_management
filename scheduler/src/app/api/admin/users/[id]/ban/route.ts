@@ -8,8 +8,6 @@ export async function PATCH(
     const { id } = await context.params;
     const { type, durationDays } = await req.json();
 
-    console.log("Ban route ID:", id);
-
     try{
         if (type === "TEMP"){
             const expires = new Date();
@@ -33,7 +31,6 @@ export async function PATCH(
                 },
             });
 
-            console.log("Update result:", result);
         }
 
         if (type === "UNBAN"){

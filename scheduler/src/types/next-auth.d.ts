@@ -1,33 +1,27 @@
-// types/next-auth.d.ts
 import { DefaultSession } from "next-auth";
+import { DefaultJWT } from "next-auth/jwt";
 
 declare module "next-auth" {
+  interface User {
+    id: string;
+    role: "BASIC" | "SUPERUSER";
+    isBanned: boolean;
+  }
+
   interface Session {
     user: {
       id: string;
       role: "BASIC" | "SUPERUSER";
-      googleConnected?: boolean;
-    } & DefaultSession["user"]
-  }
-}
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
+      isBanned: boolean;
       googleConnected?: boolean;
     } & DefaultSession["user"];
-  }
-
-  interface User {
-    id: string;
-    role: "BASIC" | "SUPERUSER"; //matches what authorize returns
   }
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: "BASIC" | "SUPERUSER";
+  interface JWT extends DefaultJWT {
+    id?: string;
+    role?: "BASIC" | "SUPERUSER";
+    isBanned?: boolean;
   }
 }
