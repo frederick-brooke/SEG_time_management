@@ -78,6 +78,9 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
+!**/scheduler/src/lib/examPlannerLogic.ts
+!**/scheduler/src/lib/examPlannerLogic.test.ts
+
 # ==================== DJANGO BACKEND ====================
 
 # Python
