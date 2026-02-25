@@ -3,22 +3,20 @@
 import * as React from "react"
 import {
   IconCamera,
-  IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
   IconFileDescription,
   IconFileWord,
-  IconFolder,
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
-  IconUsers,
-  IconHeart,
   IconUserCog,
+  IconUser,
+  IconTrophy,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "components/nav-documents"
@@ -59,14 +57,14 @@ const data = {
       icon: GraduationCap,
     },
     {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
+      title: "Profile",
+      url: "/profile",
+      icon: IconUser,
     },
     {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
+      title: "Leaderboard",
+      url: "/leaderboard",
+      icon: IconTrophy,
     },
     {
       title: "Admin",

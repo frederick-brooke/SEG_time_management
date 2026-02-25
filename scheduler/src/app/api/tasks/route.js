@@ -47,6 +47,7 @@ export async function POST(request) {
         dueDate: new Date(body.dueDate),
         userId: body.userId,
         completed: false,
+        completedAt: null,
         priority: body.priority || "Low",
         duration: body.duration || 0,
         subtasks: body.subtasks || [],

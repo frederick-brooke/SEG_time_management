@@ -86,8 +86,9 @@ model Task {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
-  dueDate     DateTime
+  dueDate     DateTime?
   completed   Boolean  @default(false)
+  completedAt DateTime?
   status      String   @default("todo")
   duration    Int      @default(0)
   subtasks    String[] @default([])
