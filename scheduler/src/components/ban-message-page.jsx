@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 
 export default function BannedPage() {
   const [banInfo, setBanInfo] = useState(null);     //get the API ban information for the user if any
@@ -52,7 +53,14 @@ export default function BannedPage() {
                     className="mt-4 w-full bg-blue-600 text-white py-2 rounded"
                 >
                     Submit Appeal
-                </button>        
+                </button> 
+
+                <button 
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded"
+                >
+                    Logout
+                </button>       
             </div>
         )}
 

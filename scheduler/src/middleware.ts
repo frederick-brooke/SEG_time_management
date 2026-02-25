@@ -3,6 +3,16 @@ import { NextResponse } from "next/server";
 
 export async function middleware(req) {
   const token = await getToken({ req });
+  const { pathname } = req.nextUrl;
+
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/banned")
+  ) {
+    return NextResponse.next();
+  }
 
   if (!token) return NextResponse.next();
 
