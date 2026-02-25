@@ -14,6 +14,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { description, reportId } = body;
 
+    if (!reportId) {
+      return new Response("Missing reportId", { status: 400 });
+    }
+
     if (!description) {
       return NextResponse.json(
         { error: "Description required" },

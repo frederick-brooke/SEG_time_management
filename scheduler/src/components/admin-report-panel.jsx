@@ -7,10 +7,15 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
   const [showReportAction, setShowReportAction] = useState(null);
 
     async function banUser(user, type, durationDays = null) {
+        if (!user?.id) {
+            alert(`Cannot ban user: user ID is missing.`);
+            return;
+        }
+
         await fetch(`/api/admin/users/${user.id}/ban`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type, durationDays }),
+            body: JSON.stringify({ type, durationDays, reportId: report.id  }),
         });
 
         if(type === "TEMP"){
@@ -104,8 +109,10 @@ function ReportActionModal( {report, onClose, banUser} ) {
                     </button>
 
                     <button
-                        onClick={() => banUser(report.reportedUser, "PERMANENT")}
+                        onClick={() => {
+                            banUser(report.reportedUser, "PERMANENT")}}
                         className="bg-red-600 text-white px-3 py-2 rounded"
+                        disabled={!report.reportedUser?.id}
                     >
                         Permanent Ban
                     </button>

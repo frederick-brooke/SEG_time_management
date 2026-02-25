@@ -25,5 +25,6 @@ export async function GET() {
   return NextResponse.json({
     reason: report?.description ?? "Violation of community rules",
     expires: user?.banExpires,
+    reportId: report?.id,
   });
 }

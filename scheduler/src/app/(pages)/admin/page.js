@@ -104,7 +104,6 @@ export default function AdminPage() {
       setReportLoading(false);
       setTotalReportPages(data.totalPages);
       setTotalReports(data.totalMatchingReports);
-      console.log("Total Number of Report Pages" + totalReportPages)
     } catch (err) {
       console.error(err);
       setReportLoading(false);

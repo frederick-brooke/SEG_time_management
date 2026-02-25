@@ -67,7 +67,7 @@ export default function BannedPage() {
         {showAppeal && (
             <AppealModal
                 onClose={() => setShowAppeal(false)}
-                reportId={banInfo.reportId}
+                reportId={banInfo?.reportId}
             />
         )}        
       </div>
@@ -78,27 +78,31 @@ export default function BannedPage() {
 function AppealModal({onClose, reportId}){
     const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(false);          //custom message displayed when loading
+    console.log("AppealModal props reportId:", reportId);
 
     async function handleSubmit() {
         try {
-        setLoading(true);
+            setLoading(true);
 
-        const res = await fetch("/api/appeal", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ description, reportId }),
-            credentials: "include",
-        });
+            const res = await fetch("/api/appeal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ description, reportId }),
+                credentials: "include",
+            });
 
-        if (!res.ok) throw new Error("Failed to submit appeal");
+            if (!res.ok) throw new Error("Failed to submit appeal");
+            alert("Successfully submitted an appeal, pleas wait while our admin reviews it!")
 
-        onClose(); // close appeal modal
+            onClose(); // close appeal modal
         } catch (err) {
-        console.error(err);
-        alert("Failed to submit appeal");
+            console.error(err);
+            alert("Failed to submit appeal");
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
+
+        console.log("REPORT ID:", reportId);
     }
 
     return(

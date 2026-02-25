@@ -3,10 +3,16 @@ import { NextResponse } from "next/server";
 
 export async function PATCH(
     req: Request,
-    context: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = await context.params;
-    const { type, durationDays } = await req.json();
+    const { id } = await params;
+    const { type, durationDays, reportId } = await req.json();
+
+    console.log("Resolved ID:", id);
+
+    if (!id) {
+        throw new Error("User ID missing for ban action");
+    }
 
     try{
         if (type === "TEMP"){
@@ -23,14 +29,13 @@ export async function PATCH(
         }
 
         if (type === "PERMANENT"){
-            const result = await prisma.user.updateMany({
+            await prisma.user.update({
                 where: { id },
                 data: {
                     isBanned: true,
                     banExpires: null,
                 },
             });
-
         }
 
         if (type === "UNBAN"){
@@ -42,9 +47,15 @@ export async function PATCH(
                 },
             });
         }
+
+        await prisma.report.update({
+            where: { id: reportId },
+            data: { status: "RESOLVED" }
+        });
     }
     catch(e){
         console.error(e);
+        return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }    
 
     return NextResponse.json({ success: true });
