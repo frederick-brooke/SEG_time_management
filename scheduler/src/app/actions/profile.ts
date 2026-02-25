@@ -42,6 +42,9 @@ export async function getMyProfile() {
       bio: true,
       pfp: true,
       createdAt: true,
+      points: true,      
+      level: true,       
+      experience: true, 
       tasks: { select: { completed: true } },
       // Fetch Incoming Requests so we can Accept/Reject them
       receivedRequests: {

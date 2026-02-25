@@ -4,7 +4,7 @@ import { updateProfile, acceptFriendRequest, rejectFriendRequest, sendFriendRequ
 import { AppSidebar } from "components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
 import { SiteHeader } from "components/site-header";
-import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock, ChevronDown, ChevronUp, UserMinus } from "lucide-react";
+import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Clock, ChevronDown, ChevronUp, UserMinus, Star } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
@@ -96,6 +96,11 @@ function RejectButton() {
 export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
   const [isPending, startTransition] = useTransition();
+  
+  // Gamification Logic
+  const level = profile.level || 1;
+  const totalPoints = profile.points || 0;
+  const xpProgress = totalPoints % 100; // Assuming 100XP per level
 
   /**
    * Renders the appropriate friend request button based on current friendship status
@@ -233,23 +238,47 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
             
             {/* 1. HEADER & BIO SECTION */}
             <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 flex flex-col md:flex-row gap-8 items-start shadow-sm">
-              {/* Avatar */}
-              <div className="w-32 h-32 shrink-0 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-500 overflow-hidden border-4 border-white shadow-md">
-                {profile.pfp ? (
-                  <img src={profile.pfp} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{profile.fname?.[0] ?? profile.username?.[0] ?? ""}{profile.lname?.[0] ?? ""}</span>
-                )}
+              {/* Avatar & Level Badge */}
+              <div className="relative shrink-0">
+                <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-500 overflow-hidden border-4 border-white shadow-md">
+                  {profile.pfp ? (
+                    <img src={profile.pfp} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{profile.fname?.[0] ?? profile.username?.[0] ?? ""}{profile.lname?.[0] ?? ""}</span>
+                  )}
+                </div>
+                {/* Level Badge Overlay */}
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-yellow-400 rounded-xl rotate-12 border-4 border-white flex items-center justify-center shadow-lg">
+                  <span className="text-black font-black text-xl -rotate-12">{level}</span>
+                </div>
               </div>
               
               {/* Info & Bio */}
-              <div className="flex-1 space-y-4">
-                <div className="flex items-start justify-between">
+              <div className="flex-1 space-y-4 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900">
                       {profile.fname || profile.username} {profile.lname}
                     </h1>
                     <p className="text-gray-500 font-medium">@{profile.username}</p>
+                    
+                    {/* XP Progress Bar (Gamification Addition) */}
+                    <div className="mt-4 max-w-xs">
+                      <div className="flex justify-between items-end mb-1">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                          <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                          Experience
+                        </span>
+                        <span className="text-xs font-bold text-gray-600">{totalPoints} XP</span>
+                      </div>
+                      <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                        <div 
+                          className="h-full bg-yellow-400 transition-all duration-1000 ease-out"
+                          style={{ width: `${xpProgress}%` }}
+                        />
+                      </div>
+                      <p className="text-[9px] text-gray-400 mt-1 font-medium">{100 - xpProgress} XP until next level</p>
+                    </div>
                   </div>
                   
                   {/* Friend Request Button - Only on other profiles */}
@@ -324,6 +353,7 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
                 </div>
               </div>
             </div>
+            
 
             {/* FRIENDS LIST - Shows when toggled */}
             {showFriends && (
@@ -471,6 +501,3 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
     </SidebarProvider>
   );
 }
-
-
-

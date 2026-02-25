@@ -35,6 +35,12 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  points       Int      @default(0)
+  level        Int      @default(1)
+  experience   Int      @default(0)
+  
+  pointHistory PointTransaction[]
 }
 
 model Account {
@@ -119,4 +125,16 @@ model Event {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+}
+
+model PointTransaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount    Int
+  reason    String   // e.g., "TASK_COMPLETED", "DAILY_STREAK"
+  taskId    String?  @db.ObjectId // Optional link to the specific task
+  
+  createdAt DateTime @default(now())
 }
