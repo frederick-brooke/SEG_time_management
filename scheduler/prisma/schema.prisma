@@ -34,6 +34,8 @@ model User {
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  exams       Exam[]
 }
 
 model Account {
@@ -95,4 +97,39 @@ model Task {
   userId      String   @db.ObjectId
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  examId      String?  @db.ObjectId
+  exam        Exam?    @relation(fields: [examId], references: [id])
+
+  durationHours     String?
+  durationMins      String?
+
+  url         String?
+}
+
+model Exam {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String    @db.ObjectId
+  user              User      @relation(fields: [userId], references: [id])
+  title             String
+  examDate          DateTime
+  maxTimePerDay     Int
+  unavailableDays   DateTime[]
+
+  tasks             Task[]
+  revisionMaterials RevisionMaterial[]
+  createdAt         DateTime  @default(now())
+
+}
+
+model RevisionMaterial {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  examId            String    @db.ObjectId
+  exam              Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  title             String
+  type              String
+  duration          Int
+  url               String?
+  
 }

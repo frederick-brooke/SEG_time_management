@@ -15,6 +15,7 @@ export function useTasks(userId) {
     durationHours: "0",
     durationMinutes: "0",
     priority: "Low",
+    examId: "none",
   });
 
   // View/Delete state
@@ -116,6 +117,7 @@ export function useTasks(userId) {
       durationHours: "0",
       durationMinutes: "0",
       priority: "Low",
+      examId: "none",
     });
     setEditingTaskId(null);
   };
@@ -142,6 +144,7 @@ export function useTasks(userId) {
       duration: totalMinutes,
       subtasks: subtasksArray,
       userId: userId,
+      examId: formData.examId === "none" ? null : formData.examId,
     };
 
     try {
@@ -169,6 +172,8 @@ export function useTasks(userId) {
         durationHours: Math.floor((task.duration || 0) / 60).toString(),
         durationMinutes: ((task.duration || 0) % 60).toString(),
         priority: task.priority,
+        examId: task.examId || "none",
+        url: task.url || "",
       });
       setIsDialogOpen(true);
     }
