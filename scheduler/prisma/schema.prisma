@@ -9,41 +9,43 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "mongodb"
+  url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL")
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  email        String  @unique
   passwordHash String?
-  username     String   @unique
+  username     String  @unique
 
-  fname        String?
-  lname        String?
+  fname String?
+  lname String?
 
-  bio        String?
-  pfp        String?
+  bio String?
+  pfp String?
 
-  accounts     Account[]
-  tasks        Task[]
+  accounts Account[]
+  tasks    Task[]
 
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  role     Role @default(BASIC)
+  role Role @default(BASIC)
 
-  reportsMade      Report[] @relation("UserReportsMade")
-  reportsReceived  Report[] @relation("UserReportsReceived")
+  reportsMade     Report[] @relation("UserReportsMade")
+  reportsReceived Report[] @relation("UserReportsReceived")
 
-  handledReports   Report[] @relation("ModeratorHandledReports")
+  handledReports Report[] @relation("ModeratorHandledReports")
 
-  isBanned      Boolean @default(false)
-  banExpires    DateTime?
+  isBanned   Boolean   @default(false)
+  banExpires DateTime?
+
+  appeals Appeal[]
 }
 
 enum Role {
@@ -52,19 +54,19 @@ enum Role {
 }
 
 model Account {
-  id                       String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId                   String  @db.ObjectId
-  type                     String
-  provider                 String
-  providerAccountId        String
-  refresh_token            String? @db.String
-  access_token             String? @db.String
-  expires_at               Int?
-  token_type               String?
-  scope                    String?
-  id_token                 String? @db.String
-  session_state            String?
-  
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
   refresh_token_expires_in Int?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -73,18 +75,18 @@ model Account {
 }
 
 model FriendRequest {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  
-  senderId   String   @db.ObjectId
-  sender     User     @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
-  
-  receiverId String   @db.ObjectId
-  receiver   User     @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
-  
-  status     FriendStatus @default(PENDING)
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  senderId String @db.ObjectId
+  sender   User   @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String @db.ObjectId
+  receiver   User   @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  status FriendStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([senderId, receiverId])
 }
@@ -108,29 +110,49 @@ model Task {
 }
 
 model Report {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  reportedUserId  String   @db.ObjectId
-  reportedUser    User     @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
+  reportedUserId String @db.ObjectId
+  reportedUser   User   @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
 
-  reportedById    String   @db.ObjectId
-  reportedBy      User     @relation("UserReportsMade", fields: [reportedById], references: [id])
+  reportedById String @db.ObjectId
+  reportedBy   User   @relation("UserReportsMade", fields: [reportedById], references: [id])
 
-  reason          String
-  description     String?
+  reason      String
+  description String?
 
-  status          ReportStatus @default(PENDING)
+  status ReportStatus @default(PENDING)
 
-  handledById     String?  @db.ObjectId
-  handledBy       User?    @relation("ModeratorHandledReports", fields: [handledById], references: [id])
+  handledById String? @db.ObjectId
+  handledBy   User?   @relation("ModeratorHandledReports", fields: [handledById], references: [id])
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appeals Appeal[]
 }
 
 enum ReportStatus {
   PENDING
   UNDER_REVIEW
   RESOLVED
+  REJECTED
+}
+
+model Appeal {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  reportId    String   @db.ObjectId
+  description String
+  createdAt   DateTime @default(now())
+  status      AppealStatus @default(PENDING)
+
+  user   User   @relation(fields: [userId], references: [id])
+  report Report @relation(fields: [reportId], references: [id])
+}
+
+enum AppealStatus {
+  PENDING
+  APPROVED
   REJECTED
 }
