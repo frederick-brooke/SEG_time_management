@@ -18,12 +18,12 @@ export async function DELETE(request, { params }) {
 }
 
 // patch (update) task
+// [id]/route.ts
 export async function PATCH(request, { params }) {
   try {
     const { id } = await params;
     const body = await request.json();
 
-    // 1. Fetch current task state to see if it's already completed
     const currentTask = await prisma.task.findUnique({
       where: { id },
       select: { completed: true, userId: true, priority: true }
@@ -33,47 +33,41 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // 2. Identify if this specific update is "completing" the task
+    // IMPORTANT: Check if we are moving from incomplete -> complete
     const isCompleting = body.completed === true && currentTask.completed === false;
 
-    // 3. Define Point Logic based on Priority
-    const priorityPoints = {
-      Low: 10,
-      Medium: 25,
-      High: 50
-    };
-    const pointsToAdd = priorityPoints[currentTask.priority] || 10;
-
-    // 4. Use a Transaction to update Task, User Points, and create a Log
     const result = await prisma.$transaction(async (tx) => {
-      // Update the Task
+      // 1. Update the Task
       const updatedTask = await tx.task.update({
         where: { id },
-        data: body, // Applies your title, description, completed, etc.
+        data: body,
       });
 
       let xpGained = 0;
 
-      // Only reward points if the user just finished the task
       if (isCompleting) {
-        xpGained = pointsToAdd;
+        // Match points to your priority field
+        const pointsMap = { High: 50, Medium: 25, Low: 10 };
+        xpGained = pointsMap[currentTask.priority] || 10;
 
-        // Update User's total points/XP
+        // 2. Update User (The fields match your schema: points, level, experience)
         await tx.user.update({
-          where: { id: currentTask.userId },
+          where: { id: currentTask.userId }, // Prisma handles the ObjectId conversion if this is the correct ID
           data: {
             points: { increment: xpGained },
-            experience: { increment: xpGained }
+            experience: { increment: xpGained },
+            // Optional: Dynamic leveling logic (1 level per 100 XP)
+            // level: Math.floor((newPoints) / 100) + 1
           }
         });
 
-        // Create a history record (optional but highly recommended)
+        // 3. Log the transaction (matches your PointTransaction model)
         await tx.pointTransaction.create({
           data: {
             userId: currentTask.userId,
             amount: xpGained,
-            reason: `Completed task: ${updatedTask.title}`,
-            taskId: updatedTask.id
+            reason: "TASK_COMPLETED",
+            taskId: id
           }
         });
       }
@@ -81,13 +75,9 @@ export async function PATCH(request, { params }) {
       return { updatedTask, xpGained };
     });
 
-    return NextResponse.json({ 
-      task: result.updatedTask, 
-      xpGained: result.xpGained 
-    });
-
+    return NextResponse.json({ success: true, xpGained: result.xpGained });
   } catch (error) {
-    console.error("PATCH ERROR:", error);
-    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
+    console.error("XP Update Error:", error);
+    return NextResponse.json({ error: "Failed to update" }, { status: 500 });
   }
 }
