@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { format } from "date-fns";
 
 const CATEGORY_COLORS = {
   Lecture: "#6366f1",
@@ -18,13 +19,7 @@ const TRANSPORT_ICONS = {
 };
 
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return format(new Date(iso), "EEE dd MMM, HH:mm");
 }
 
 function createPinSvg(color, label) {
@@ -45,10 +40,8 @@ export default function MapView({ events }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !containerRef.current) return;
-    if (mapRef.current) return;
+    if (typeof window === "undefined" || !containerRef.current || mapRef.current) return;
 
-    // Inject Leaflet CSS
     if (!document.getElementById("leaflet-css")) {
       const link = document.createElement("link");
       link.id = "leaflet-css";
@@ -58,7 +51,6 @@ export default function MapView({ events }) {
     }
 
     import("leaflet").then((L) => {
-      // Fix default marker icons
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -66,7 +58,6 @@ export default function MapView({ events }) {
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      // Collect all coords to find center and fit bounds
       const allCoords = events.flatMap((e) => {
         const pts = [];
         if (e.startCoords) pts.push([e.startCoords.lat, e.startCoords.lng]);
@@ -77,21 +68,19 @@ export default function MapView({ events }) {
       const center =
         allCoords.length > 0
           ? [
-              allCoords.reduce((s, c) => s + c[0], 0) / allCoords.length,
-              allCoords.reduce((s, c) => s + c[1], 0) / allCoords.length,
+              allCoords.reduce((sum, c) => sum + c[0], 0) / allCoords.length,
+              allCoords.reduce((sum, c) => sum + c[1], 0) / allCoords.length,
             ]
-          : [51.505, -0.09]; // Default to London
+          : [51.505, -0.09];
 
       const map = L.map(containerRef.current).setView(center, 12);
       mapRef.current = map;
 
-      // OpenStreetMap tiles
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 
-      // Add markers for each event
       events.forEach((event) => {
         const color = CATEGORY_COLORS[event.category] || "#6b7280";
         const transportIcon = TRANSPORT_ICONS[event.transportMode || ""] || "";
@@ -111,7 +100,6 @@ export default function MapView({ events }) {
           </div>
         `;
 
-        // Start location pin
         if (event.startCoords) {
           const icon = L.divIcon({
             html: createPinSvg(color, event.category),
@@ -126,7 +114,6 @@ export default function MapView({ events }) {
             .bindPopup(popupContent, { maxWidth: 280 });
         }
 
-        // Destination pin
         if (event.destinationCoords) {
           const destIcon = L.divIcon({
             html: createPinSvg(color, "D"),
@@ -140,7 +127,6 @@ export default function MapView({ events }) {
             .addTo(map)
             .bindPopup(popupContent, { maxWidth: 280 });
 
-          // Dashed line between start and destination
           if (event.startCoords) {
             L.polyline(
               [
@@ -153,10 +139,7 @@ export default function MapView({ events }) {
         }
       });
 
-      // Fit map to all markers
-      if (allCoords.length > 1) {
-        map.fitBounds(allCoords, { padding: [40, 40] });
-      }
+      if (allCoords.length > 1) map.fitBounds(allCoords, { padding: [40, 40] });
     });
 
     return () => {
@@ -165,7 +148,7 @@ export default function MapView({ events }) {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [events]);
 
   return (
     <div className="space-y-4">
@@ -189,7 +172,7 @@ export default function MapView({ events }) {
         className="w-full rounded-xl border shadow-sm overflow-hidden h-[600px]"
       />
 
-      {/* Event list below map */}
+      {/* Event list */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
         {events.map((event) => {
           const color = CATEGORY_COLORS[event.category] || "#6b7280";
@@ -204,14 +187,10 @@ export default function MapView({ events }) {
                   <p className="font-semibold text-sm text-gray-800 truncate">{event.title}</p>
                   <p className="text-xs text-gray-400">{formatDate(event.start)}</p>
                   {event.startLocationName && (
-                    <p className="text-xs text-gray-500 truncate mt-1">
-                      🔵 {event.startLocationName}
-                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-1">🔵 {event.startLocationName}</p>
                   )}
                   {event.destLocationName && (
-                    <p className="text-xs text-gray-500 truncate">
-                      🔴 {event.destLocationName}
-                    </p>
+                    <p className="text-xs text-gray-500 truncate">🔴 {event.destLocationName}</p>
                   )}
                   {event.travelDuration && (
                     <p className="text-xs font-medium text-blue-600 mt-1">
