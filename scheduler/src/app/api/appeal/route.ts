@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+//for creating user appeals only
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);

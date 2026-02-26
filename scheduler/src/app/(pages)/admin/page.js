@@ -7,8 +7,10 @@ import UserFilter from "@/components/user-filter-panel";
 import ReportFilter from "@/components/report-filter-panel";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { useAdminReports } from "@/hooks/useAdminReports";
+import { useAdminAppeals } from "@/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
 import ReportManagement from "@/components/admin/reportManagement";
+import AppealsManagement from "@/components/admin/appealManagement";
 
 export default function AdminPage() {
   //User management states
@@ -36,6 +38,10 @@ export default function AdminPage() {
   const [reportEndDate, setReportEndDate] = useState("");
   const [reportStatus, setReportStatus] = useState("");
 
+  const [currentAppealPage, setCurrentAppealPage] = useState(1);
+  const [selectedAppeal, setSelectedAppeal] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
+
   const userFilters = {
     search: searchQuery,
     page: currentUserPage,
@@ -62,13 +68,14 @@ export default function AdminPage() {
     loading
   } = useAdminStats(userFilters);
 
-  const {
-    reports,
-    totalReportPages,
-    totalReports,
-    reportLoading,
-    fetchReports,
-  } = useAdminReports(reportFilters);
+  const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(reportFilters);
+
+  const { appeals, totalAppealPages, totalAppeals, appealLoading, fetchAppeals,} = useAdminAppeals({
+    page: currentAppealPage,
+    limit: 10,
+    status: selectedStatus,
+  });
+
 
   if (loading || reportLoading) {
     return <p className="p-6">Loading...</p>;
@@ -103,6 +110,17 @@ export default function AdminPage() {
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           fetchReports={fetchReports}
+        />
+
+        <AppealsManagement
+          appeals={appeals}
+          totalAppeals={totalAppeals}
+          totalAppealPages={totalAppealPages}
+          currentAppealPage={currentAppealPage}
+          setCurrentAppealPage={setCurrentAppealPage}
+          selectedAppeal={selectedAppeal}
+          setSelectedAppeal={setSelectedAppeal}
+          fetchAppeals={fetchAppeals}
         />
       </div>
       
