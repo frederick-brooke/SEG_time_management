@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -28,14 +29,14 @@ model User {
 
   accounts     Account[]
   tasks        Task[]
+  events       Event[]
+  exams        Exam[]
 
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
-  exams       Exam[]
 }
 
 model Account {
@@ -51,7 +52,6 @@ model Account {
   scope                    String?
   id_token                 String? @db.String
   session_state            String?
-  
   refresh_token_expires_in Int?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -91,26 +91,27 @@ model Task {
   completedAt DateTime?
   status      String   @default("todo")
   duration    Int      @default(0)
+  durationHours String?
+  durationMins  String?
   subtasks    String[] @default([])
   priority    String   @default("Low")
-  user        User     @relation(fields: [userId], references: [id])
+  url         String?
+
   userId      String   @db.ObjectId
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   examId      String?  @db.ObjectId
   exam        Exam?    @relation(fields: [examId], references: [id])
 
-  durationHours     String?
-  durationMins      String?
-
-  url         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Exam {
   id                String    @id @default(auto()) @map("_id") @db.ObjectId
   userId            String    @db.ObjectId
-  user              User      @relation(fields: [userId], references: [id])
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   title             String
   examDate          DateTime
   maxTimePerDay     Int
@@ -118,18 +119,50 @@ model Exam {
 
   tasks             Task[]
   revisionMaterials RevisionMaterial[]
-  createdAt         DateTime  @default(now())
 
+  createdAt         DateTime  @default(now())
 }
 
 model RevisionMaterial {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
-  examId            String    @db.ObjectId
-  exam              Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+
+  examId   String @db.ObjectId
+  exam     Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  title    String
+  type     String
+  duration Int
+  url      String?
+}
+
+model Event {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId            String   @db.ObjectId
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title             String
-  type              String
-  duration          Int
-  url               String?
-  
+  description       String?
+  start             DateTime
+  end               DateTime
+  allDay            Boolean  @default(false)
+  category          String
+
+  startCoords       Json?
+  destinationCoords Json?
+  travelDuration    Int?
+  startLocationName String?
+  destLocationName  String?
+  transportMode     String?
+
+  recurrence        Json?
+  exceptions        String[] @default([])
+
+  googleEventId     String?
+  lastSyncedAt      DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([googleEventId, userId])
 }

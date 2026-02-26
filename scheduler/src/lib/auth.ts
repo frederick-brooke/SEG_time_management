@@ -4,6 +4,16 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
+import NextAuth, { DefaultSession } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      googleConnected: boolean;
+    } & DefaultSession["user"];
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -28,7 +38,7 @@ export const authOptions: NextAuthOptions = {
 
         const isValid = await verifyPassword(
           credentials.password,
-          user.passwordHash || ""
+          user.passwordHash || "",
         );
 
         if (!isValid) return null;
@@ -46,7 +56,8 @@ export const authOptions: NextAuthOptions = {
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
-          scope: "openid email profile https://www.googleapis.com/auth/calendar.readonly",
+          scope:
+            "openid email profile https://www.googleapis.com/auth/calendar",
           access_type: "offline",
           prompt: "consent",
         },
@@ -55,75 +66,78 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ account }) {
-      return true; 
+      return true;
     },
 
-    async jwt({ token, user, account }) {
-      if (account?.provider === "google") {
-        
-        if (token.sub) {
-            const existingAccount = await prisma.account.findUnique({
-                where: {
-                    provider_providerAccountId: {
-                        provider: "google",
-                        providerAccountId: account.providerAccountId
-                    }
-                }
-            });
+async jwt({ token, user, account }) {
+  if (user) {
+    token.sub = user.id;
+  }
 
-            // If the account exists but belongs to a different user, throw an error
-            if (existingAccount && existingAccount.userId !== token.sub) {
-                throw new Error("GoogleAccountTaken");
-            }
+  if (account?.provider === "google") {
+    const userId = token.sub ?? user?.id; 
+    
+    if (userId) {
+      const existingAccount = await prisma.account.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: "google",
+            providerAccountId: account.providerAccountId,
+          },
+        },
+      });
 
-            await prisma.account.upsert({
-                where: {
-                    provider_providerAccountId: {
-                        provider: "google",
-                        providerAccountId: account.providerAccountId
-                    }
-                },
-                update: {
-                    access_token: account.access_token,
-                    refresh_token: account.refresh_token,
-                    expires_at: account.expires_at,
-                    scope: account.scope,
-                    token_type: account.token_type,
-                    id_token: account.id_token,
-                    refresh_token_expires_in: account.refresh_token_expires_in as number,
-                },
-                create: {
-                    userId: token.sub, 
-                    type: account.type,
-                    provider: "google",
-                    providerAccountId: account.providerAccountId,
-                    access_token: account.access_token,
-                    refresh_token: account.refresh_token,
-                    expires_at: account.expires_at,
-                    scope: account.scope,
-                    token_type: account.token_type,
-                    id_token: account.id_token,
-                    refresh_token_expires_in: account.refresh_token_expires_in as number,
-                }
-            });
-        }
-      } 
-      else if (user) {
-        token.id = user.id;
-        token.email = user.email;
+      if (existingAccount && existingAccount.userId !== userId) {
+        throw new Error("GoogleAccountTaken");
       }
 
-      return token;
-    },
+      await prisma.account.upsert({
+        where: {
+          provider_providerAccountId: {
+            provider: "google",
+            providerAccountId: account.providerAccountId,
+          },
+        },
+        update: {
+          access_token: account.access_token,
+          refresh_token: account.refresh_token,
+          expires_at: account.expires_at,
+          scope: account.scope,
+          token_type: account.token_type,
+          id_token: account.id_token,
+          refresh_token_expires_in: account.refresh_token_expires_in as number,
+        },
+        create: {
+          userId,  
+          type: account.type,
+          provider: "google",
+          providerAccountId: account.providerAccountId,
+          access_token: account.access_token,
+          refresh_token: account.refresh_token,
+          expires_at: account.expires_at,
+          scope: account.scope,
+          token_type: account.token_type,
+          id_token: account.id_token,
+          refresh_token_expires_in: account.refresh_token_expires_in as number,
+        },
+      });
+    }
+  } else if (user) {
+    token.id = user.id;
+    token.email = user.email;
+  }
+
+  return token;
+},
 
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
-        
+
         const googleAccount = await prisma.account.findFirst({
-            where: { userId: token.sub, provider: "google" }
+          where: { userId: token.sub, provider: "google" },
         });
-        
+
         session.user.googleConnected = !!googleAccount;
       }
       return session;
