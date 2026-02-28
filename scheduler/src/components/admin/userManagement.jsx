@@ -1,11 +1,10 @@
 import { useState } from "react";
-import UserPanel from "@/components/admin-user-panel";
-import UserFilter from "@/components/user-filter-panel";
+import UserPanel from "@/components/admin/admin-user-panel";
+import {FunnelXIcon } from "lucide-react";
 
-export default function UserManagement({users,totalUsers, totalUserPages, searchQuery, setSearchQuery, currentUserPage, setCurrentUserPage,
-  setIsUserFilterOpen, selectedUser, setSelectedUser})
+export default function UserManagement({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
 {
-    const [inputValue, setInputValue] = useState(searchQuery ?? "");   // typed value
+    const [inputValue, setInputValue] = useState(filters.search ?? "");   // typed value
 
     return(
         <div>
@@ -15,33 +14,44 @@ export default function UserManagement({users,totalUsers, totalUserPages, search
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        setSearchQuery(inputValue); 
-                        setCurrentUserPage(1);
+                        setFilters(saved_result => ({
+                            ...saved_result,
+                            search: inputValue,
+                            page: 1,
+                        }));
                     }}
                     className="flex items-center gap-2"
                 >
-                <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    className="border rounded px-3 py-2 max-w-sm"
-                />
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        className="border rounded px-3 py-2 max-w-sm"
+                    />
 
-                <button
-                    type="submit"
-                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
-                >
-                    Search
-                </button>
+                    <button
+                        type="submit"
+                        className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                    >
+                        Search
+                    </button>
 
-                <button
-                    type="button"
-                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => setIsUserFilterOpen(true)}
-                >
-                    Filter
-                </button>
+                    <button
+                        type="button"
+                        className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                        onClick={() => setIsUserFilterOpen(true)}
+                    >
+                        Filter
+                    </button>
+
+                    <button 
+                        type="button" 
+                        className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                        onClick={() => {setInputValue(""); resetFilters()}}
+                    >
+                        <FunnelXIcon size={18}/>
+                    </button>
                 </form>
                 
                 <div className="space-y-2 flex-1 overflow-y-auto">
@@ -79,19 +89,28 @@ export default function UserManagement({users,totalUsers, totalUserPages, search
                 {totalUserPages >= 1 && (
                     <div className="flex items-center justify-between mt-4 border-t flex-shrink-0">
                         <button
-                        disabled={currentUserPage === 1}
-                        onClick={() => setCurrentUserPage((prev) => prev - 1)}
+                        disabled={filters.page === 1}
+
+                        onClick={() =>
+                            setFilters(prev => ({
+                                ...prev,
+                                page: prev.page - 1,
+                            }))
+                        }
+
+                        //fix pagination tmr
+
                         className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                         Previous
                         </button>
 
                         <span className="text-sm text-gray-600">
-                            Page {currentUserPage} of {totalUserPages}
+                            Page {filters.page} of {totalUserPages}
                         </span>
 
                         <button
-                            disabled={currentUserPage === totalUserPages}
+                            disabled={filters.page === totalUserPages}
                             onClick={() => setCurrentUserPage((prev) => prev + 1)}
                             className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >

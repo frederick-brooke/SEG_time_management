@@ -84,7 +84,7 @@ export async function GET(req: Request) {
     const users = await prisma.user.findMany({
         where,
         orderBy: {
-            [sortBy]: order,
+            [sortBy]: order,        //lowercase comes after upercase always
         },
         skip: (page - 1) * limit,
         take: limit,

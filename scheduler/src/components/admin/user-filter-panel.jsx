@@ -1,4 +1,4 @@
-export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose, startDate, setStartDate, endDate, setEndDate, categories, setCategories}) {
+export default function UserFilter({ filters, setFilters, onClose, resetFilters}) {
 
     return (
     <div
@@ -9,8 +9,10 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
         className="p-6 space-y-6"
         onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
       >
-        <h3 className="text-xl font-semibold mb-4">
+        <h3 className="text-xl flex font-semibold mb-4">
           Filter and Sort
+
+          {/* reset button to clear all filters*/}
         </h3>
 
         {/* Sort by username, date of creation or email*/}
@@ -20,8 +22,15 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
           </label>
 
           <select 
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            value={filters.sortBy}
+            onChange={(e) => 
+                    setFilters(saved_result => ({
+                        ...saved_result,
+                        sortBy: e.target.value,
+                        page:1,
+                    })
+                )                
+            }
             className="w-full border rounded px-3 py-2"
           >
             <option value="username">Username</option>
@@ -37,8 +46,15 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
             </label>
 
             <select 
-                value={order}
-                onChange={(e) => setOrder(e.target.value)}
+                value={filters.order}
+                onChange={(e) => 
+                    setFilters(saved_result => ({
+                        ...saved_result,
+                        order: e.target.value,
+                        page:1,
+                    }))                
+                }
+
                 className="w-full border rounded px-3 py-2"
             >
                 <option value="asc">Ascending</option>
@@ -52,8 +68,14 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
             </label>
             <input
                 type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                value={filters.startDate}
+                onChange={(e) => 
+                    setFilters(saved_result => ({
+                        ...saved_result,
+                        startDate: e.target.value,
+                        page:1,
+                    }))                
+                }
                 className="w-full border rounded px-3 py-2"
             />
         </div>
@@ -64,8 +86,14 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
             </label>
             <input
                 type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                value={filters.endDate}
+                onChange={(e) => 
+                    setFilters(saved_result => ({
+                        ...saved_result,
+                        endDate: e.target.value,
+                        page:1,
+                    }))                
+                }
                 className="w-full border rounded px-3 py-2"
             />
         </div>
@@ -80,14 +108,14 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
                 <input
                     type="checkbox"
                     value={cat}
-                    checked={categories.includes(cat)}
-                    onChange={(e) => {
-                    if (e.target.checked) {
-                        setCategories([...categories, cat]);
-                    } else {
-                        setCategories(categories.filter((c) => c !== cat));
+                    checked={filters.categories.includes(cat)}
+                    onChange={(newCategories) =>
+                        setFilters(saved_result => ({
+                            ...saved_result,
+                            categories: newCategories,
+                            page: 1,
+                        }))
                     }
-                    }}
                 />
                     <span>
                         {cat === "SUPERUSER" && "Admin"}
@@ -96,6 +124,12 @@ export default function UserFilter({ sortBy, setSortBy, order, setOrder, onClose
                 </label>
             ))}
         </div>
+
+        <button onClick={resetFilters}
+            className="mt-6 w-full bg-red-800 text-white py-2 rounded hover:bg-gray-700 transition"
+        >
+            Reset Filters
+        </button>
 
         <button
           onClick={onClose}

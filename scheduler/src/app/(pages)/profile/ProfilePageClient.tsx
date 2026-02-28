@@ -8,7 +8,7 @@ import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Cloc
 import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import ReportModal from "components/report-modal";
+import ReportModal from "@/src/components/admin/report-modal";
 
 /**
  * Formats a date string in UK format (DD/MM/YYYY) consistently for both server and client

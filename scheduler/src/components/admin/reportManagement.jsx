@@ -1,5 +1,5 @@
-import ReportPanel from "@/components/admin-report-panel";
-import ReportFilter from "@/components/report-filter-panel";
+import ReportPanel from "@/components/admin/admin-report-panel";
+import ReportFilter from "@/components/admin/report-filter-panel";
 
 export default function ReportManagement({reports, totalReports, totalReportPages, currentReportPage, setCurrentReportPage,setIsReportFilterOpen,
     selectedReport, setSelectedReport, fetchReports}){

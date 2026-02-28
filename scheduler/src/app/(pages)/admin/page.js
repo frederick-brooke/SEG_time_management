@@ -2,15 +2,16 @@
 "use client";
 
 import { useState } from "react";
-import UserFilter from "@/components/user-filter-panel";
+import UserFilter from "@/components/admin/user-filter-panel";
 
-import ReportFilter from "@/components/report-filter-panel";
+import ReportFilter from "@/components/admin/report-filter-panel";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { useAdminAppeals } from "@/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
 import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
+import { useFilters } from "@/hooks/useFilters";
 
 export default function AdminPage() {
   //User management states
@@ -18,13 +19,6 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState(null);   //user profile view
   const [currentUserPage, setCurrentUserPage] = useState(1);
   const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  //search values to be checked and filtered for the usesrs
-
-  //user search parameters
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [order, setOrder] = useState("desc");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [categories, setCategories] = useState([]);
 
   //report management
   const [currentReportPage, setCurrentReportPage] = useState(1);
@@ -42,15 +36,8 @@ export default function AdminPage() {
   const [selectedAppeal, setSelectedAppeal] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
 
-  const userFilters = {
-    search: searchQuery,
-    page: currentUserPage,
-    sortBy,
-    order,
-    startDate,
-    endDate,
-    categories,
-  };
+  const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: []};  //user search parameters
+  const { filters: userFilters, setFilters: setUserFilters, reset: resetUserFilters,} = useFilters(defaultUserFilters); 
 
   const reportFilters = {
     page: currentReportPage,
@@ -91,13 +78,12 @@ export default function AdminPage() {
           users={users}
           totalUsers={totalUsers}
           totalUserPages={totalUserPages}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          currentUserPage={currentUserPage}
-          setCurrentUserPage={setCurrentUserPage}
           setIsUserFilterOpen={setIsUserFilterOpen}
           selectedUser={selectedUser}
           setSelectedUser={setSelectedUser}
+          filters={userFilters}
+          setFilters={setUserFilters}
+          resetFilters={resetUserFilters}
         />
 
         <ReportManagement
@@ -125,17 +111,17 @@ export default function AdminPage() {
       </div>
       
       {isUserFilterOpen && (
-        <UserFilter sortBy={sortBy} setSortBy={setSortBy} 
-          order={order} setOrder={setOrder} 
-          onClose={() => setIsUserFilterOpen(false)} 
-          startDate={startDate} setStartDate={setStartDate} 
-          endDate={endDate} setEndDate={setEndDate}
-          categories={categories} setCategories={setCategories}
+        <UserFilter 
+          filters={userFilters}
+          setFilters={setUserFilters}
+          onClose={() => setIsUserFilterOpen(false)}
+          resetFilters={resetUserFilters}              
         />
       )} 
         
       {isReportFilterOpen && (
-        <ReportFilter sortBy={reportSortBy} setSortBy={setReportSortBy} 
+        <ReportFilter 
+          sortBy={reportSortBy} setSortBy={setReportSortBy} 
           order={reportOrder} setOrder={setReportOrder} 
           startDate={reportStartDate} setStartDate={setReportStartDate} 
           endDate={reportEndDate} setEndDate={setReportEndDate}

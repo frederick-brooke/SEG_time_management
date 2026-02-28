@@ -78,7 +78,7 @@ export default function AppealsManagement({
         )}
       </div>
 
-      {/* Pagination (identical logic) */}
+      {/* pagination of the appeals */}
       {totalAppealPages >= 1 && (
         <div className="flex items-center justify-between mt-6 pt-4 border-t flex-shrink-0">
           <button
