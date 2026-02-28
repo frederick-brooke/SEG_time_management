@@ -21,10 +21,12 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
     }, [appeal.id, fetchAppeals, onClose]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end">
-      <div className="w-96 bg-white p-6 shadow-lg h-full overflow-y-auto">
+    <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
+      onClick={onClose} //click outside closes
+    >
+      <div className="p-6" onClick={(e) => e.stopPropagation()} >
         <h3 className="text-xl font-semibold mb-4">
-          Appeal Details
+        Appeal Details
         </h3>
 
         <p className="mb-2">
@@ -36,20 +38,23 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
         </p>
 
         <p className="mb-4">
-          <strong>Description:</strong>
-          <br />
+          <strong>Reasoning:</strong>
+          {appeal.description == null && (
+            <> None Given </> //reasoning and description are only optional
+          )}
+
           {appeal.description}
         </p>
 
         <div className="flex gap-2 mt-6">
           {appeal.status === "PENDING" && (
             <>
-              <button
-                onClick={() => handleAction("APPROVE")}
-                className="bg-green-500 text-white px-4 py-2 rounded"
-              >
-                Approve & Unban
-              </button>
+                <button
+                  onClick={() => handleAction("APPROVE")}
+                  className="bg-green-500 text-white px-4 py-2 rounded"
+                >
+                  Approve & Unban
+                </button>
 
               <button
                 onClick={() => handleAction("REJECT")}
@@ -61,13 +66,14 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
           )}
         </div>
 
-        <button
-          onClick={onClose}
-          className="mt-4 text-sm text-gray-500 underline"
-        >
-          Close
-        </button>
-      </div>
+      <button
+        onClick={onClose}
+        className="mt-4 text-sm text-gray-500 underline"
+      >
+        Close
+      </button>
     </div>
+  </div>
+      
   );
 }

@@ -1,4 +1,4 @@
-export default function ReportFilter({ filters, setFilters, onClose, applyFilters, resetFilters}) {
+export default function AppealFilter({ filters, setFilters, onClose, applyFilters, resetFilters}) {
   return (
     <div
       className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
@@ -9,7 +9,7 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-xl font-semibold mb-4">
-          Filter and Sort Reports
+          Filter and Sort Appeals
         </h3>
 
         {/* Sort By */}
@@ -29,7 +29,7 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
           >
             <option value="createdAt">Date Created</option>
             <option value="status">Status</option>
-            <option value="id">Report ID</option>
+            <option value="id">Appeal ID</option>
           </select>
         </div>
 

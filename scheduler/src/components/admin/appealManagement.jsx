@@ -6,10 +6,11 @@ export default function AppealsManagement({
     totalAppealPages,
     currentAppealPage,
     setCurrentAppealPage,
-    setIsAppealFilterOpen,
     selectedAppeal,
     setSelectedAppeal,
     fetchAppeals,
+    setIsAppealFilterOpen,
+
 }) {
   return (
     <section className="mb-10 bg-white shadow rounded p-6 flex flex-col">
@@ -19,15 +20,15 @@ export default function AppealsManagement({
           Appeals Management
         </h2>
 
-        {/* need to add in the appeals filter panel if needed
-            <button
+        {/* appeal filter button */}
+        <button
             type="button"
             onClick={() => setIsAppealFilterOpen(true)}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-            >
+        >
             Filter
-            </button>
-        */}
+        </button>
+        
       </div>
 
       {/* List */}
