@@ -69,7 +69,11 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                     <p className="text-sm text-gray-600">
                     Showing{" "}
                     <span className="font-semibold text-gray-900">
-                    {users.length}
+                        {users.length == 0. && (
+                            totalUsers
+                        )}
+
+                        {users.length}
                     </span>{" "}
                     of{" "}
                     <span className="font-semibold text-gray-900">
@@ -98,11 +102,9 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                             }))
                         }
 
-                        //fix pagination tmr
-
                         className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                        Previous
+                            Previous
                         </button>
 
                         <span className="text-sm text-gray-600">

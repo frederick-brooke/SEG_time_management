@@ -12,6 +12,7 @@ import UserManagement from "@/components/admin/userManagement";
 import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
 import { useFilters } from "@/hooks/useFilters";
+import AdminStatistics from "@/components/admin/admin-statistics";
 
 export default function AdminPage() {
   //User management states
@@ -37,7 +38,14 @@ export default function AdminPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
 
   const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: []};  //user search parameters
-  const { filters: userFilters, setFilters: setUserFilters, reset: resetUserFilters,} = useFilters(defaultUserFilters); 
+
+  const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
+  const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
+  
+  function resetUserFilters(){
+    setDraftUserFilters(defaultUserFilters);
+    setAppliedUserFilters(defaultUserFilters);
+  }
 
   const reportFilters = {
     page: currentReportPage,
@@ -53,7 +61,7 @@ export default function AdminPage() {
     totalUserPages,
     totalUsers,
     loading
-  } = useAdminStats(userFilters);
+  } = useAdminStats(appliedUserFilters);
 
   const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(reportFilters);
 
@@ -72,6 +80,9 @@ export default function AdminPage() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
+      {/* admin statistics */}
+      <AdminStatistics totalUsers={totalUsers} reports={reports} appeals={appeals}/>
+
       {/* Container for the user reporting system*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <UserManagement
@@ -81,8 +92,8 @@ export default function AdminPage() {
           setIsUserFilterOpen={setIsUserFilterOpen}
           selectedUser={selectedUser}
           setSelectedUser={setSelectedUser}
-          filters={userFilters}
-          setFilters={setUserFilters}
+          filters={appliedUserFilters}
+          setFilters={setAppliedUserFilters}
           resetFilters={resetUserFilters}
         />
 
@@ -112,10 +123,16 @@ export default function AdminPage() {
       
       {isUserFilterOpen && (
         <UserFilter 
-          filters={userFilters}
-          setFilters={setUserFilters}
+          filters={draftUserFilters}
+          setFilters={setDraftUserFilters}
           onClose={() => setIsUserFilterOpen(false)}
-          resetFilters={resetUserFilters}              
+          applyFilters={() => {
+            setAppliedUserFilters(draftUserFilters);
+            setIsUserFilterOpen(false);
+          }}
+          resetFilters={() => {
+            setAppliedUserFilters(defaultUserFilters);
+          }}              
         />
       )} 
         

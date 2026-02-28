@@ -1,4 +1,4 @@
-export default function UserFilter({ filters, setFilters, onClose, resetFilters}) {
+export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters}) {
 
     return (
     <div
@@ -125,15 +125,21 @@ export default function UserFilter({ filters, setFilters, onClose, resetFilters}
             ))}
         </div>
 
+        <button onClick={applyFilters}
+            className="w-full bg-blue-800 text-white py-2 rounded hover:bg-gray-700 transition"
+        >
+            Apply Filters
+        </button>
+
         <button onClick={resetFilters}
-            className="mt-6 w-full bg-red-800 text-white py-2 rounded hover:bg-gray-700 transition"
+            className="w-full bg-red-800 text-white py-2 rounded hover:bg-gray-700 transition"
         >
             Reset Filters
         </button>
 
         <button
           onClick={onClose}
-          className="mt-6 w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-700 transition"
+          className="w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-700 transition"
         >
           Close
         </button>

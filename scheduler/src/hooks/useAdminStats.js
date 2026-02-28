@@ -27,7 +27,6 @@ export function useAdminStats(filters) {
 
             const data = await res.json();
 
-            // IMPORTANT: match your API shape here
             setUsers(data.users ?? []);
             setTotalUserPages(data.totalUserPages ?? 1);
             setTotalUsers(data.totalUsers ?? 0);
