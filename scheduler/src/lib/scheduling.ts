@@ -90,7 +90,7 @@ export function findFreeSlots(
  * Schedule a single task: find its first free slot and create an Event row
  * with category "Task". Also marks task.status = "scheduled".
  */
-export async function scheduleTask(taskId: string, userId: string) {
+export async function scheduleTask(taskId: string, userId: string, extraBlocked: { start: Date; end: Date }[] = []) {
   const task = await prisma.task.findFirst({ where: { id: taskId, userId } });
   if (!task) throw new Error("Task not found");
   if (!task.duration || task.duration === 0)
@@ -104,13 +104,15 @@ export async function scheduleTask(taskId: string, userId: string) {
   const existingEvents = await prisma.event.findMany({
     where: {
       userId,
-      start: { gte: now },
-      end: { lte: searchUntil },
+      start: { lt: searchUntil },
+      end: { gt: now },
     },
     select: { start: true, end: true },
   });
 
-  const slots = findFreeSlots(now, searchUntil, existingEvents, task.duration);
+  const allEvents = [...existingEvents, ...extraBlocked];
+
+  const slots = findFreeSlots(now, searchUntil, allEvents, task.duration);
   if (slots.length === 0) return null;
 
   const chosen = slots[0];
@@ -167,14 +169,21 @@ export async function scheduleAllTasks(userId: string) {
 
   const results: { taskId: string; title: string; scheduled: boolean; event?: any }[] = [];
 
-  for (const task of tasks) {
+    const scheduledSlots: { start: Date; end: Date }[] = [];
+
+    for (const task of tasks) {
     try {
-      const event = await scheduleTask(task.id, userId);
-      results.push({ taskId: task.id, title: task.title, scheduled: !!event, event });
+        const event = await scheduleTask(task.id, userId, scheduledSlots);
+        if (event) {
+        scheduledSlots.push({ start: event.start, end: event.end });
+        results.push({ taskId: task.id, title: task.title, scheduled: true, event });
+        } else {
+        results.push({ taskId: task.id, title: task.title, scheduled: false });
+        }
     } catch {
-      results.push({ taskId: task.id, title: task.title, scheduled: false });
+        results.push({ taskId: task.id, title: task.title, scheduled: false });
     }
-  }
+    }
 
   return results;
 }
