@@ -22,9 +22,11 @@ const CATEGORY_COLORS: Record<string, string> = {
 function SchedulerPanel({
   onScheduled,
   userId,
+  onRegisterRefresh,
 }: {
   onScheduled: () => void;
   userId: string;
+  onRegisterRefresh: (fn: () => void) => void;
 }) {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,9 @@ function SchedulerPanel({
   };
 
   useEffect(() => { fetchTasks(); }, []);
+  useEffect(() => {
+    onRegisterRefresh(fetchTasks);
+  }, []);
 
   const scheduleOne = async (taskId: string) => {
     setScheduling(taskId);
@@ -253,6 +258,7 @@ export default function CalendarView({
   const [lastDeletedEvent, setLastDeletedEvent] = useState<any | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const schedulerRefreshRef = useRef<(() => void) | null>(null);
   const [showScheduler, setShowScheduler] = useState(false);
 
   const EventComponent = ({ event }: any) => {
@@ -300,6 +306,7 @@ export default function CalendarView({
       if (!res.ok) return;
       const data = await res.json();
       setEvents(data.map((e: any) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })));
+      if (schedulerRefreshRef.current) schedulerRefreshRef.current();
     } catch (err) {
       console.error("Failed to refresh events:", err);
     }
@@ -660,7 +667,7 @@ export default function CalendarView({
 
       {showScheduler && (
         <div className="w-[300px] flex-shrink-0 bg-white rounded-xl shadow-md border border-gray-100 p-4 flex flex-col min-h-[700px]">
-          <SchedulerPanel onScheduled={refreshEvents} userId={userId} />
+          <SchedulerPanel onScheduled={refreshEvents} userId={userId} onRegisterRefresh={(fn) => { schedulerRefreshRef.current = fn; }} />
         </div>
       )}
     </div>
