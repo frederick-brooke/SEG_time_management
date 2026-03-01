@@ -1,5 +1,4 @@
 import QuoteBlock from "components/wellbeing/quote_block";
-import BreathTrack from "components/wellbeing/breath_tracker";
 
 import TimerController from "components/wellbeing/timer_controller";
 

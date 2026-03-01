@@ -30,7 +30,7 @@ export default function Timer({storageKey, onTick}) {
 
     useEffect(() => {
         if(
-            reminderFireAt !== null && remainingMs <= reminderFireAtMs
+            reminderFireAt !== null && remainingMs <= reminderFireAt
         ){
             setReminderFired(true);
             setReminderOffsetMs(null);

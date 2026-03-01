@@ -9,12 +9,11 @@ export default function TimerController() {
     const [reminderAtTime, setReminderAtTime] = useState(null); //when the 
     const [showReminderModal, setShowReminderModal] = useState(false);
     const {wellbeingOpen, setWellbeingOpen} = useUI();      //shared global state via the UI
-
-
     const reminder_fired_ref = useRef(false);
 
     const handleTick = (remainingMs) => {
         if (
+            remainingMs !== null &&
             remainingMs <= reminderAtTime &&
             !reminder_fired_ref.current
         ) {
