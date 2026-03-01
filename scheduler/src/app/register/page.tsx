@@ -56,7 +56,7 @@ export default function RegisterPage() {
     });
 
     if (loginResult?.ok) {
-        window.location.href = '/dashboard'; 
+        window.location.href = '/quiz'; // Redirect to quiz if login successful
     } else {
         setIsLoading(false);
         setError('Account created, but login failed. Please try signing in manually.');
