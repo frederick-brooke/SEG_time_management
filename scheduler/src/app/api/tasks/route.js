@@ -17,6 +17,9 @@ export async function GET(request) {
     // Queries the database to get multiple tasks. prisma.task refers to your Task table in MongoDB
     const tasks = await prisma.task.findMany({
       where: { userId }, // only get the tasks where the userId field matches. each user sees their own tasks.
+      include: {
+        exam: true,
+      },
       orderBy: { createdAt: "desc" }, // orders tasks so that the newest tasks are first
     });
     return NextResponse.json({ tasks }); //Sends the tasks back to the client as JSON
@@ -42,9 +45,11 @@ export async function POST(request) {
         dueDate: new Date(body.dueDate),
         userId: body.userId,
         completed: false,
+        completedAt: null,
         priority: body.priority || "Low",
         duration: body.duration || 0,
         subtasks: body.subtasks || [],
+        examId: body.examId && body.examId !== "none" ? body.examId : null,
       },
     });
     

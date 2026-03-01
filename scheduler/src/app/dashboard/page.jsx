@@ -14,6 +14,10 @@ import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
 import { ComingSoonCard } from "@/src/components/coming-up-soon";
 
 import { ComingUpSoon } from "@/src/components/coming-up-soon";
+import { getSystemErrorMap } from "util";
+
+import { getMyExams } from "@/src/app/actions/examActions";
+import { UpcomingExams } from "../../components/upcoming-exams";
 
 export default function Page() {
   const { data: session, status } = useSession();
@@ -23,6 +27,16 @@ export default function Page() {
 
   const [wellbeingOpen, setWellbeingOpen] = useState(false);
 
+  const [exams, setExams] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await getMyExams();
+      setExams(data);
+    }
+    loadData();
+  }, []);
+  
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -109,9 +123,16 @@ export default function Page() {
         </div>
 
         <div className="flex flex-1 flex-col p-4 gap-6">
+          {/* Tasks Coming Up Soon */}
           <div>
             <ComingUpSoon userId={session?.user?.id} />
           </div>
+
+          {/* Upcoming Exams */}
+          <div>
+            <UpcomingExams exams={exams} />
+          </div>
+
         </div>
 
         <button

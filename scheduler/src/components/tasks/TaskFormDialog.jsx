@@ -26,6 +26,7 @@ export function TaskFormDialog({
   formData,
   onFormChange,
   onSubmit,
+  exams = [],
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -51,7 +52,7 @@ export function TaskFormDialog({
             <Input
               id="task-name"
               placeholder="Enter task name"
-              value={formData.name}
+              value={formData.name || ""}
               onChange={(e) => onFormChange({ name: e.target.value })}
             />
           </div>
@@ -61,7 +62,7 @@ export function TaskFormDialog({
             <Input
               id="task-description"
               placeholder="Enter task description"
-              value={formData.description}
+              value={formData.description || ""}
               onChange={(e) => onFormChange({ description: e.target.value })}
             />
           </div>
@@ -71,9 +72,30 @@ export function TaskFormDialog({
             <Input
               id="task-due-date"
               type="date"
-              value={formData.dueDate}
+              value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0]: ""}
               onChange={(e) => onFormChange({ dueDate: e.target.value })}
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlForm="task-url">Study Resource URL</Label>
+            <div className="flex gap-2">
+              <Input
+                id="task-url"
+                placeholder="No URL attached"
+                value={formData.url || ""}
+                onChange={(e) => onFormChange({ url: e.target.value })}
+                className="bg-muted"
+              />
+
+              {formData.url && (
+                <Button variant="outline" size="icon" asChild>
+                  <a href={formData.url} target="_blank" rel="noopener noreferrer">
+                    🔗
+                  </a>
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -81,7 +103,7 @@ export function TaskFormDialog({
             <Input
               id="subtasks"
               placeholder="e.g. Research, Edit"
-              value={formData.subtasks}
+              value={formData.subtasks || ""}
               onChange={(e) => onFormChange({ subtasks: e.target.value })}
             />
           </div>
@@ -137,6 +159,26 @@ export function TaskFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="exam-link">Link to Exam (Optional)</Label>
+            <Select
+              value={formData.examId || "none"}
+              onValueChange={(value) => onFormChange({ examId: value })}
+            >
+              <SelectTrigger id="exam-link">
+                <SelectValue placeholder="Select and exam" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">General Task (No Exam)</SelectItem>
+                {exams.map((exam) => (
+                  <SelectItem key={exam.id} value={exam.id}>
+                    {exam.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid gap-2">

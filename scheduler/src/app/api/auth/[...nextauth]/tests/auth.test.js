@@ -1,3 +1,5 @@
+import { GET, POST } from "../route";
+import { authOptions } from "@/src/lib/auth";
 
 jest.mock('jose', () => ({
   jwtVerify: jest.fn(),
@@ -15,8 +17,6 @@ jest.mock('next-auth', () => ({
     auth: jest.fn(),
   })),
 }));
-
-import { authOptions, GET, POST } from "../route";
 
 describe("Auth API Route", () => {
   it("should export GET and POST handlers", () => {
