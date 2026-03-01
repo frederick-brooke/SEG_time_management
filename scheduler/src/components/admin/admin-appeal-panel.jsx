@@ -54,6 +54,7 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
                   className="bg-green-500 text-white px-4 py-2 rounded"
                 >
                   Approve & Unban
+                  {/* Create a notifioation saying the user has been unbanned */}
                 </button>
 
               <button

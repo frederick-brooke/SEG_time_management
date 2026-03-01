@@ -22,6 +22,12 @@ export async function middleware(req) {
     );
   }
 
+    if (req.nextUrl.pathname.startsWith("/admin")) {
+      if (!token || token.role !== "SUPERUSER") {
+        return NextResponse.redirect(new URL("/unauthorised", req.url));
+      }
+    }
+
   return NextResponse.next();
 }
 

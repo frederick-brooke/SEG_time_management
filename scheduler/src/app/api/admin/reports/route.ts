@@ -49,15 +49,15 @@ export async function GET(req: Request) {
     //pagination of the queries and combines adll searches
     const reports = await prisma.report.findMany({
         include: {
-        reportedUser: {
-            select: { id: true, username: true },
-        },
-        reportedBy: {
-            select: { id: true, username: true },
-        },
-        handledBy: {
-            select: { id: true, username: true },
-        },
+            reportedUser: {
+                select: { id: true, username: true, isBanned:true, banExpires:true },
+            },
+            reportedBy: {
+                select: { id: true, username: true },
+            },
+            handledBy: {
+                select: { id: true, username: true },
+            },
         },
 
         orderBy: {

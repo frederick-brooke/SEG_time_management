@@ -46,6 +46,7 @@ model User {
   banExpires DateTime?
 
   appeals Appeal[]
+  handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
 }
 
 enum Role {
@@ -149,6 +150,9 @@ model Appeal {
 
   user   User   @relation(fields: [userId], references: [id])
   report Report @relation(fields: [reportId], references: [id])
+
+  handledById String? @db.ObjectId
+  handledBy   User?   @relation("ModeratorHandledAppeals", fields: [handledById], references: [id])
 }
 
 enum AppealStatus {

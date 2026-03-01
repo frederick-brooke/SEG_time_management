@@ -50,6 +50,18 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
             <p><strong>Reported By: </strong> {report.reportedBy.username}</p>
             <p><strong>Description: </strong> {report.description}</p>
             <p><strong>Status: </strong> {report.status}</p>
+            <p>
+                <strong>Handled By:</strong>{" "}
+                {report.handledBy ? report.handledBy.username : "Not handled yet"}
+            </p>
+            {report.reportedUser.isBanned && (
+                <p>
+                    <strong>Ban Expires:</strong>{" "}
+                    {report.reportedUser.banExpires
+                    ? new Date(report.reportedUser.banExpires).toLocaleString()
+                    : "Permanent"}
+                </p>
+            )}
             </div>
 
             {/* load the action panel for the responses */}
