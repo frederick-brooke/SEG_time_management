@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import BannedPage from "@/components/ban-message-page";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const [showBannedInfo, setShowBannedInfo] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -64,6 +67,16 @@ export default function LoginPage() {
         router.push("/dashboard");
       } else {
         router.push("/quiz");
+      }
+    }
+
+    if (result?.error) {
+      if (result.error === "Banned") {
+        setError("Your account has been banned.");
+        //display the banned page
+        setShowBannedInfo(true);
+      } else {
+        setError("Invalid email or password");
       }
     }
   };
@@ -121,6 +134,8 @@ export default function LoginPage() {
           </Link>
         </div>
       </form>
+
+      {showBannedInfo && <BannedPage/>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import ProfilePageClient from './ProfilePageClient';
+import '@testing-library/jest-dom';
 
 // 1. Mock Next.js and React features so they don't break the test
 jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);

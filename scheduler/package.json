@@ -2,6 +2,7 @@
   "name": "scheduler",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "npx prisma generate && next dev",
     "build": "next build",
@@ -71,6 +72,8 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.0",
     "@types/next-auth": "^3.13.0",
     "@types/node": "25.0.10",
     "@types/react": "19.2.10",
@@ -82,6 +85,8 @@
     "jest-environment-jsdom": "^29.7.0",
     "prisma": "^6.19.2",
     "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
     "whatwg-fetch": "^3.6.20"
   }
 }

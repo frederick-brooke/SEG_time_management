@@ -24,7 +24,8 @@
       "components/*": ["src/components/*"],
       "ui/*": ["src/components/ui/*"],
       "hooks/*": ["src/hooks/*"],
-      "utils/*": ["src/lib/utils/*"]
+      "utils/*": ["src/lib/utils/*"],
+      "@/*": ["./src/*"]
     },
     "plugins": [
       {
@@ -38,8 +39,11 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts",
     "**/*.ts",
-    "**/*.tsx"
-, "src/app/api/preferences/check/route.js"  ],
+    "**/*.tsx", 
+    "src/app/api/preferences/check/route.js", 
+    "scripts/fix-role.js", 
+    "src/app/api/admin/users/[id]/ban/route.js"  
+  ],
   "exclude": [
     "node_modules"
   ]

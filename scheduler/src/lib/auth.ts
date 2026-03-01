@@ -1,3 +1,4 @@
+// lib/auth.ts
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -18,24 +19,33 @@ declare module "next-auth" {
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+
   session: {
     strategy: "jwt",
   },
+
   providers: [
+    // Credentials login
     CredentialsProvider({
       name: "Email",
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
+
       async authorize(credentials) {
+        console.log("Authorize called", credentials?.email);
+
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: {
+            reportsReceived: true, // or whatever your relation is called
+          },
         });
 
-        if (!user) return null;
+        if (!user || !user.passwordHash) return null;
 
         const isValid = await verifyPassword(
           credentials.password,
@@ -44,13 +54,36 @@ export const authOptions: NextAuthOptions = {
 
         if (!isValid) return null;
 
+        if(user.isBanned){
+          //permanent ban
+          if(!user.banExpires){
+            return user;
+          }
+          //temporary ban still active
+          if (new Date() < user.banExpires) {
+            return user;
+          }
+          //Ban expired 
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { isBanned: false, banExpires: null },
+          });
+
+          user.isBanned = false;
+        }
+
+        // Return only the required fields
         return {
-          id: user.id,
+          id: user.id.toString(),
           email: user.email,
           name: user.username,
+          role: user.role, 
+          isBanned: user.isBanned,
         };
       },
     }),
+
+    // Google login
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -65,8 +98,24 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+
   callbacks: {
-    async signIn({ account }) {
+    async signIn({ user, account, profile }) {
+      // For Google OAuth, fetch or set the role
+      if (account?.provider === "google") {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+          select: { role: true },
+        });
+        
+        if (dbUser) {
+          user.role = dbUser.role;
+        } else {
+          // Set a default role for new users
+          user.role = "BASIC";
+        }
+      }
+      
       return true;
     },
 
@@ -130,12 +179,76 @@ export const authOptions: NextAuthOptions = {
       } else if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.role = user.role;
+        token.isBanned = user.isBanned;
+
+        return token;
+      }
+
+      // Subsequent requests
+      if (!token.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+
+        token.role = dbUser?.role;
+      }
+
+      // Handle Google account linking (optional)
+      if (account?.provider === "google" && token.sub) {
+        const existingAccount = await prisma.account.findUnique({
+          where: {
+            provider_providerAccountId: {
+              provider: "google",
+              providerAccountId: account.providerAccountId,
+            },
+          },
+        });
+
+        if (existingAccount && existingAccount.userId !== token.sub) {
+          throw new Error("GoogleAccountTaken");
+        }
+
+        // Only create or update account, role is already set in user object
+        await prisma.account.upsert({
+          where: {
+            provider_providerAccountId: {
+              provider: "google",
+              providerAccountId: account.providerAccountId,
+            },
+          },
+          update: {
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            expires_at: account.expires_at,
+            scope: account.scope,
+            token_type: account.token_type,
+            id_token: account.id_token,
+            refresh_token_expires_in:
+              account.refresh_token_expires_in as number,
+          },
+          create: {
+            userId: token.sub,
+            type: account.type,
+            provider: "google",
+            providerAccountId: account.providerAccountId,
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            expires_at: account.expires_at,
+            scope: account.scope,
+            token_type: account.token_type,
+            id_token: account.id_token,
+            refresh_token_expires_in:
+              account.refresh_token_expires_in as number,
+          },
+        });
       }
 
       return token;
     },
 
-    async session({ session, token }) {
+    async session({ session, token}) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
 
@@ -153,8 +266,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+
   pages: {
     signIn: "/login",
     error: "/dashboard",
   },
 };
+
