@@ -140,13 +140,13 @@ function SchedulerPanel({
         </div>
         {unscheduled.length > 0 && (
           <button
-            onClick={scheduleAll}
-            disabled={scheduling === "all"}
-            className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
-          >
-            {scheduling === "all" ? <span className="animate-spin">↻</span> : <span>⚡</span>}
-            Schedule All
-          </button>
+          onClick={scheduleAll}
+          disabled={scheduling === "all"}
+          className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
+        >
+          {scheduling === "all" && <span className="animate-spin">↻</span>}
+          Schedule All
+        </button>
         )}
       </div>
 
@@ -493,21 +493,21 @@ export default function CalendarView({
               </div>
             )}
           </div>
-              <button
-                onClick={() => setShowScheduler((v) => !v)}
-                className={`flex-shrink-0 flex items-center gap-2 px-4 h-full rounded-2xl border font-bold text-sm transition-all shadow-sm ${
-                  showScheduler
-                    ? "bg-sky-500 text-white border-sky-500"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-sky-300 hover:text-sky-500"
-                }`}
-              >
-                <span>⚡</span>
-                <span className="hidden sm:inline">Auto-Schedule</span>
-              </button>
             </>
           )}
         </div>
-
+        <div className="mb-3">
+          <button
+            onClick={() => setShowScheduler((v) => !v)}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-2xl border font-bold text-sm transition-all shadow-sm ${
+              showScheduler
+                ? "bg-sky-500 text-white border-sky-500"
+                : "bg-white text-gray-600 border-gray-200 hover:border-sky-300 hover:text-sky-500"
+            }`}
+          >
+            <span>Auto-Schedule</span>
+          </button>
+        </div>
         {/* Category filters */}
         <div className="flex flex-wrap gap-2 mb-6">
           {["All", "Lecture", "Individual Study", "Exam", "Personal", "Lab", "Task"].map((cat) => (
