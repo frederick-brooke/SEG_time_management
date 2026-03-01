@@ -153,7 +153,6 @@ model Appeal {
 
   handledById String? @db.ObjectId
   handledBy   User?   @relation("ModeratorHandledAppeals", fields: [handledById], references: [id])
-  result      String
 }
 
 enum AppealStatus {
