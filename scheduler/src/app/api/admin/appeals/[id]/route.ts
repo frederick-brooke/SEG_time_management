@@ -1,12 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user.role !== "SUPERUSER") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   const { id } = await params;
-  const { action } = await req.json(); // APPROVE or REJECT
+  const { action } = await req.json(); // approve or reject
 
   try {
     const appeal = await prisma.appeal.findUnique({
@@ -20,7 +29,7 @@ export async function PATCH(
       );
     }
 
-    // APPROVE → unban user
+    // unbans the user if they were alredy banned
     if (action === "APPROVE") {
       await prisma.user.update({
         where: { id: appeal.userId },
@@ -32,11 +41,11 @@ export async function PATCH(
 
       await prisma.appeal.update({
         where: { id },
-        data: { status: "APPROVED" },
+        data: { status: "APPROVED", handledById: session.user.id },
       });
     }
 
-    // REJECT → keep banned
+    // reject to keep them banned
     if (action === "REJECT") {
       await prisma.appeal.update({
         where: { id },

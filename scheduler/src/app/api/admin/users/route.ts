@@ -88,6 +88,11 @@ export async function GET(req: Request) {
         },
         skip: (page - 1) * limit,
         take: limit,
+        include: {  //for relations to be displayed on the user panel
+            reportsMade: true,
+            reportsReceived: true,
+            appeals: true,
+        },
     });
 
     return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalMatchingUsers/limit), totalMatchingUsers});

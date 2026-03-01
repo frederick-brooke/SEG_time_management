@@ -1,10 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function PATCH(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
+    req: Request, { params }: { params: Promise<{ id: string }> }
 ) {
+    const session = await getServerSession(authOptions);
+
+    if (!session || session.user.role !== "SUPERUSER") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
     const { id } = await params;
     const { type, durationDays, reportId } = await req.json();
 
@@ -48,10 +55,15 @@ export async function PATCH(
             });
         }
 
-        await prisma.report.update({
+        if (reportId) {
+            await prisma.report.update({
             where: { id: reportId },
-            data: { status: "RESOLVED" }
-        });
+            data: {
+                status: "RESOLVED",
+                handledById: session.user.id,
+            },
+            });
+        }
     }
     catch(e){
         console.error(e);

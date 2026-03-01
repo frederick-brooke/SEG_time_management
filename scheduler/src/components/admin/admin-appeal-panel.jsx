@@ -46,11 +46,21 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
           {appeal.description}
         </p>
 
+        <p>
+          <strong>Handled By:</strong>{" "}
+          {appeal.handledBy ? appeal.handledBy.username : "Not handled yet"}
+        </p>
+
+        
+
         <div className="flex gap-2 mt-6">
           {appeal.status === "PENDING" && (
             <>
                 <button
-                  onClick={() => handleAction("APPROVE")}
+                  onClick={() => {
+                    handleAction("APPROVE");
+                    alert("Successfully unbanned the affected user!")
+                  }}
                   className="bg-green-500 text-white px-4 py-2 rounded"
                 >
                   Approve & Unban
@@ -58,7 +68,10 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
                 </button>
 
               <button
-                onClick={() => handleAction("REJECT")}
+                onClick={() => {
+                  handleAction("REJECT");
+                  alert("Successfully unbanned the affected user!")
+                }}
                 className="bg-red-500 text-white px-4 py-2 rounded"
               >
                 Reject Appeal

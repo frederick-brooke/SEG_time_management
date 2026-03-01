@@ -55,12 +55,12 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                 </form>
                 
                 <div className="space-y-2 flex-1 overflow-y-auto">
-                {users.map((user) => (
-                    <div key={user.id} 
-                    onClick={() => setSelectedUser(user)}
-                    className="border-b py-1 cursor-pointer">
-                        {user.username}
-                    </div>
+                    {users.map((user) => (
+                        <div key={user.id} 
+                            onClick={() => setSelectedUser(user)}
+                            className={`border-b py-1 cursor-pointer transition ${user.isBanned ? "bg-red-100 text-red-700" : "hover:bg-gray-100"}`}>
+                            {user.username}
+                        </div>
                     ))}
                 </div>
 

@@ -54,7 +54,8 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
                 <strong>Handled By:</strong>{" "}
                 {report.handledBy ? report.handledBy.username : "Not handled yet"}
             </p>
-            {report.reportedUser.isBanned && (
+            
+            {report.status === "RESOLVED" && report.reportedUser.isBanned && (
                 <p>
                     <strong>Ban Expires:</strong>{" "}
                     {report.reportedUser.banExpires

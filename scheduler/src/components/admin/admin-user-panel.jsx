@@ -19,6 +19,14 @@ export default function UserPanel({ user, onClose }) {
           <p><strong>Username:</strong> {user.username}</p>
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Role:</strong> {user.role}</p>
+          <p><strong>Created at:</strong> {user.createdAt}</p>
+          <p><strong>Total Reports made:</strong> {user.reportsMade.length}</p>
+          <p><strong>Total Reports received:</strong> {user.reportsReceived.length}</p>
+          <p><strong>Total Reports received:</strong> {user.reportsReceived.length}</p>
+          <p><strong>Total Appeals made:</strong> {user.appeals.length}</p>
+          <p><strong>Is banned:</strong> {String(user.isBanned)}</p>
+
+
         </div>
 
         <button
