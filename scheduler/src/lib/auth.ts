@@ -12,6 +12,7 @@ declare module "next-auth" {
       id: string;
       googleConnected: boolean;
     } & DefaultSession["user"];
+    accessToken?: string;
   }
 }
 
@@ -69,66 +70,70 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-async jwt({ token, user, account }) {
-  if (user) {
-    token.sub = user.id;
-  }
-
-  if (account?.provider === "google") {
-    const userId = token.sub ?? user?.id; 
-    
-    if (userId) {
-      const existingAccount = await prisma.account.findUnique({
-        where: {
-          provider_providerAccountId: {
-            provider: "google",
-            providerAccountId: account.providerAccountId,
-          },
-        },
-      });
-
-      if (existingAccount && existingAccount.userId !== userId) {
-        throw new Error("GoogleAccountTaken");
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.sub = user.id;
       }
 
-      await prisma.account.upsert({
-        where: {
-          provider_providerAccountId: {
-            provider: "google",
-            providerAccountId: account.providerAccountId,
-          },
-        },
-        update: {
-          access_token: account.access_token,
-          refresh_token: account.refresh_token,
-          expires_at: account.expires_at,
-          scope: account.scope,
-          token_type: account.token_type,
-          id_token: account.id_token,
-          refresh_token_expires_in: account.refresh_token_expires_in as number,
-        },
-        create: {
-          userId,  
-          type: account.type,
-          provider: "google",
-          providerAccountId: account.providerAccountId,
-          access_token: account.access_token,
-          refresh_token: account.refresh_token,
-          expires_at: account.expires_at,
-          scope: account.scope,
-          token_type: account.token_type,
-          id_token: account.id_token,
-          refresh_token_expires_in: account.refresh_token_expires_in as number,
-        },
-      });
-    }
-  } else if (user) {
-    token.id = user.id;
-    token.email = user.email;
-  }
+      if (account?.access_token) {
+        token.accessToken = account.access_token;
+      }
 
-  return token;
-},
+      if (account?.provider === "google") {
+        const userId = token.sub ?? user?.id; 
+        
+        if (userId) {
+          const existingAccount = await prisma.account.findUnique({
+            where: {
+              provider_providerAccountId: {
+                provider: "google",
+                providerAccountId: account.providerAccountId,
+              },
+            },
+          });
+
+          if (existingAccount && existingAccount.userId !== userId) {
+            throw new Error("GoogleAccountTaken");
+          }
+
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: "google",
+                providerAccountId: account.providerAccountId,
+              },
+            },
+            update: {
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              scope: account.scope,
+              token_type: account.token_type,
+              id_token: account.id_token,
+              refresh_token_expires_in: account.refresh_token_expires_in as number,
+            },
+            create: {
+              userId,  
+              type: account.type,
+              provider: "google",
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              scope: account.scope,
+              token_type: account.token_type,
+              id_token: account.id_token,
+              refresh_token_expires_in: account.refresh_token_expires_in as number,
+            },
+          });
+        }
+      } else if (user) {
+        token.id = user.id;
+        token.email = user.email;
+      }
+
+      return token;
+    },
 
     async session({ session, token }) {
       if (session.user && token.sub) {
@@ -140,6 +145,11 @@ async jwt({ token, user, account }) {
 
         session.user.googleConnected = !!googleAccount;
       }
+
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
+      }
+
       return session;
     },
   },
