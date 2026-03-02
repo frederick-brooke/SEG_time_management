@@ -3,20 +3,22 @@
 import * as React from "react"
 import {
   IconCamera,
+  IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
   IconFileDescription,
   IconFileWord,
+  IconFolder,
   IconHelp,
   IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
+  IconUsers,
+  IconHeart,
   IconUserCog,
-  IconUser,
-  IconTrophy,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "components/nav-documents"
@@ -32,7 +34,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "components/ui/sidebar"
-import { GraduationCap } from "lucide-react"
 
 const data = {
   user: {
@@ -47,24 +48,24 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Tasks",
-      url: "/tasks",
+      title: "Lifecycle",
+      url: "#",
       icon: IconListDetails,
     },
     {
-      title: "Exam Planner",
-      url: "/exam-planner",
-      icon: GraduationCap,
+      title: "Analytics",
+      url: "#",
+      icon: IconChartBar,
     },
     {
-      title: "Profile",
-      url: "/profile",
-      icon: IconUser,
+      title: "Projects",
+      url: "#",
+      icon: IconFolder,
     },
     {
-      title: "Leaderboard",
-      url: "/leaderboard",
-      icon: IconTrophy,
+      title: "Team",
+      url: "#",
+      icon: IconUsers,
     },
     {
       title: "Admin",

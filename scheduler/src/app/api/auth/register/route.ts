@@ -2,22 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "lib/password";
 import { prisma } from "lib/prisma";
 
-
-/**
- * helper function to validate username, only allow letters, numbers, underscores and hyphens
- * 3-20 chars
- * @param username the user made to validate
- * @returns boolean value 
- */
-function isValidUsername(username: string): boolean {
-  const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
-  return usernameRegex.test(username);
-}
-/**
- * Handles user registration
- * @param req - the request object containing username, email, password
- * @returns JSON response with user data or error
- */
 export async function POST(req: NextRequest) {
   try {
     const { username, email, password, fname = "", lname = "" } = await req.json();
@@ -25,20 +9,9 @@ export async function POST(req: NextRequest) {
     if (!email || !password || !username) {
       return NextResponse.json({ error: "Username, email, and password are required" }, { status: 400 });
     }
-    //validate username format
-    if (!isValidUsername(username)){
-      return NextResponse.json({ error: "Username must be 3-20 characters and contain only letters, numbers, underscores, or hyphens" }, { status: 400 });
-    }
 
-    // Check if username already exists
-    const existingUsername = await prisma.user.findUnique({ where: { username } });
-    if (existingUsername){
-      return NextResponse.json({error: "Username already taken"}, {status:409});
-    }
-
-    //check if email already exists
-    const existingEmail = await prisma.user.findUnique({ where: { email } });
-    if (existingEmail) {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
       return NextResponse.json({ error: "Email already exists" }, { status: 409 });
     }
 

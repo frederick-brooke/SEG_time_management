@@ -1,4 +1,7 @@
+"use client";
+
 import "./globals.css";
+import {useState} from "react";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
 
@@ -7,6 +10,7 @@ import {
   SidebarProvider,
   SidebarInset,
 } from "@/src/components/ui/sidebar";
+import NotificationModal from "./components/NotificationModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,13 +21,6 @@ const geistMono = GeistMono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export const metadata = {
-  title: "Scheduler",
-  description: "Time management app",
-  title: "Scheduler",
-  description: "Time management app",
-};
 
 export default function RootLayout({ children }) {
   return (
