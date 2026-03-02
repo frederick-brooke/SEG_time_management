@@ -39,7 +39,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-, "src/app/api/preferences/check/route.js"  ],
+, "src/app/dashboard/page.tsx"  ],
   "exclude": [
     "node_modules"
   ]

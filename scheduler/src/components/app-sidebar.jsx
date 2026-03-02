@@ -46,9 +46,9 @@ const data = {
       icon: IconListDetails,
     },
     {
-      title: "Exam Planner",
-      url: "/exam-planner",
-      icon: GraduationCap,
+      title: "Analytics",
+      url: "#",
+      icon: IconChartBar,
     },
     {
       title: "Map",
