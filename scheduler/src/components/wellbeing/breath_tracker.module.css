@@ -1,0 +1,121 @@
+.breath-container {
+    --size: 120px;
+
+    left: 30%;
+    top: 10%;
+    height: var(--size); 
+    width: var(--size);
+    position: relative; 
+    transform: scale(1);
+}
+
+.gradient-circle {
+    background: conic-gradient( 
+        #55b7a4 0%, 
+        #56a595 21%,
+        #ffffff 21%, 
+        #ffffff 58%, 
+        #0f3830 58%, 
+        #1f5046 100% 
+    ); 
+    width: calc(var(--size) * 1.08);
+    height: calc(var(--size) * 1.08);
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    z-index: -2; 
+    border-radius: 50%; 
+    position: absolute;
+
+    outline: 2px solid rgba(0, 0, 0, 0.6);
+
+}
+
+.circle {
+    background-color: #7cabd7; 
+    height: 100%; 
+    width: 100%; 
+    top: 0; 
+    left: 0; 
+    border-radius: 50%;
+    z-index: -1;
+}
+
+.text {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 3;
+    pointer-events: none;
+
+    text-align: center;
+    font-size: 12px;
+    color: white;
+}
+
+.pointer-container{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    animation: rotate 19s linear infinite;
+    transform-origin: bottom center;
+}
+
+.pointer{
+    background-color:#ffffff;
+    border-radius: 50%;
+    top: 0;
+    left: 50%;
+    position: absolute;
+    transform:
+        translate(-50%, -50%)
+        translateY(calc(var(--size) * -0.5));
+
+    width: calc(var(--size) * 0.07);
+    height: calc(var(--size) * 0.07);
+}
+
+@keyframes rotate{
+    from {
+        transform: rotate(0deg) ;
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes grow{
+    from {
+        transform: scale(1) ;
+    }
+
+    to {
+        transform: scale(1.2);
+    }
+}
+
+@keyframes shrink{
+    from {
+        transform: scale(1.2) ;
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.grow {
+    animation: grow 4s linear forwards;
+}
+
+.shrink {
+    animation: shrink 8s linear forwards;
+}
