@@ -1,7 +1,16 @@
+"use client";
+
 import "./globals.css";
+import {useState} from "react";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
-import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
+
+import { AppSidebar } from "@/src/components/app-sidebar";
+import {
+  SidebarProvider,
+  SidebarInset,
+} from "@/src/components/ui/sidebar";
+import NotificationModal from "./components/NotificationModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,22 +22,13 @@ const geistMono = GeistMono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Scheduler",
-  description: "Time management app",
-  title: "Scheduler",
-  description: "Time management app",
-};
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
         <Providers>
-          <UIProvider>
-            {children}
-            <div id="modal-root"></div>
-          </UIProvider>          
+          {children}
+          <div id="modal-root"></div>
         </Providers>
       </body>
     </html>

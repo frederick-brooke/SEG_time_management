@@ -1,174 +1,106 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import Timer from "../timer";
 
-// --------------------
-// Mock useTimer
-// --------------------
+jest.useFakeTimers();
 
-const mockStartTimer = jest.fn();
-const mockPauseTimer = jest.fn();
-const mockResumeTimer = jest.fn();
-const mockStopTimer = jest.fn();
+// ---- mocks ----
+global.fetch = jest.fn();
 
-let mockTimerState = {
-  time: { hours: 0, minutes: 0, seconds: 0 },
-  isRunning: false,
-  hasStarted: false,
-  remainingMs: 0,
-};
+beforeEach(() => {
+  jest.clearAllMocks();
+  localStorage.clear();
 
-jest.mock("hooks/useTimer", () => ({
-  useTimer: () => ({
-    ...mockTimerState,
-    startTimer: mockStartTimer,
-    pauseTimer: mockPauseTimer,
-    resumeTimer: mockResumeTimer,
-    stopTimer: mockStopTimer,
-  }),
-}));
+  fetch.mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      endTime: Date.now() + 5000,
+    }),
+  });
+});
 
-// --------------------
-// Mock Reminders
-// --------------------
-
-jest.mock("../reminders", () => ({
-  __esModule: true,
-  default: () => <div>MockReminders</div>,
-}));
-
-// --------------------
-// Global fetch mock
-// --------------------
-
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    json: () =>
-      Promise.resolve({
-        endTime: Date.now() + 10000,
-      }),
-  })
-);
-
-// --------------------
-// Tests
-// --------------------
-
-describe("Timer Component", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    mockTimerState = {
-      time: { hours: 0, minutes: 0, seconds: 0 },
-      isRunning: false,
-      hasStarted: false,
-      remainingMs: 0,
-    };
+describe("Timer component", () => {
+  test("renders initial time", () => {
+    render(<Timer />);
+    // match any element that contains '00:00:00' ignoring splitting
+    expect(screen.getByText((content) => content.replace(/\s/g, '') === '00:00:00')).toBeInTheDocument();
   });
 
-  test("renders time input when timer has not started", () => {
+  test("starts timer when Start is clicked", async () => {
     render(<Timer />);
 
-    expect(screen.getByDisplayValue("00:00:00")).toBeInTheDocument();
-    expect(screen.getByText("Start")).toBeInTheDocument();
-  });
-
-  test("submits time and starts timer", async () => {
-    render(<Timer />);
-
-    const input = screen.getByDisplayValue("00:00:00");
-
-    fireEvent.change(input, {
-      target: { value: "00:00:10" },
+    // Find Start button
+    await act(async () => {
+      fireEvent.click(screen.getByText("Start"));
     });
 
-    fireEvent.click(screen.getByText("Start"));
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        "/api/wellbeing/timer",
-        expect.objectContaining({
-          method: "POST",
-        })
-      );
-    });
-
-    expect(mockStartTimer).toHaveBeenCalled();
+    // match the displayed text after starting
+    expect(screen.getByText((content) => content.replace(/\s/g, '').includes("00:00:05"))).toBeInTheDocument();
   });
 
-  test("shows pause button when running", () => {
-    mockTimerState = {
-      ...mockTimerState,
-      hasStarted: true,
-      isRunning: true,
-    };
-
+  test("counts down every second", async () => {
     render(<Timer />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Start"));
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(screen.getByText((content) => content.replace(/\s/g, '').includes("00:00:04"))).toBeInTheDocument();
+  });
+
+  test("pauses timer", async () => {
+    render(<Timer />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Start"));
+    });
+
+    fireEvent.click(screen.getByText("Pause"));
+
+    const stored = JSON.parse(localStorage.getItem("wellbeing_timer"));
+    expect(stored.isRunning).toBe(false);
+  });
+
+  test("resumes timer", async () => {
+    render(<Timer />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Start"));
+    });
+
+    fireEvent.click(screen.getByText("Pause"));
+    fireEvent.click(screen.getByText("Resume"));
 
     expect(screen.getByText("Pause")).toBeInTheDocument();
   });
 
-  test("calls pauseTimer when Pause clicked", () => {
-    mockTimerState = {
-      ...mockTimerState,
-      hasStarted: true,
-      isRunning: true,
-    };
-
+  test("stops and resets timer", async () => {
     render(<Timer />);
 
-    fireEvent.click(screen.getByText("Pause"));
-
-    expect(mockPauseTimer).toHaveBeenCalled();
-  });
-
-  test("shows resume button when paused", () => {
-    mockTimerState = {
-      ...mockTimerState,
-      hasStarted: true,
-      isRunning: false,
-    };
-
-    render(<Timer />);
-
-    expect(screen.getByText("Resume")).toBeInTheDocument();
-  });
-
-  test("calls resumeTimer when Resume clicked", () => {
-    mockTimerState = {
-      ...mockTimerState,
-      hasStarted: true,
-      isRunning: false,
-    };
-
-    render(<Timer />);
-
-    fireEvent.click(screen.getByText("Resume"));
-
-    expect(mockResumeTimer).toHaveBeenCalled();
-  });
-
-  test("calls stopTimer when Stop clicked", () => {
-    mockTimerState = {
-      ...mockTimerState,
-      hasStarted: true,
-    };
-
-    render(<Timer />);
+    await act(async () => {
+      fireEvent.click(screen.getByText("Start"));
+    });
 
     fireEvent.click(screen.getByText("Stop"));
 
-    expect(mockStopTimer).toHaveBeenCalled();
+    expect(screen.getByText((content) => content.replace(/\s/g, '') === '00:00:00')).toBeInTheDocument();
+    expect(localStorage.getItem("wellbeing_timer")).toBeNull();
   });
 
-  test("renders countdown display when started", () => {
-    mockTimerState = {
-      ...mockTimerState,
-      hasStarted: true,
-      time: { hours: 0, minutes: 1, seconds: 5 },
-    };
+  test("restores paused timer from localStorage", () => {
+    localStorage.setItem(
+      "wellbeing_timer",
+      JSON.stringify({
+        endTime: null,
+        remainingMs: 4000,
+        isRunning: false,
+      })
+    );
 
     render(<Timer />);
-
-    expect(screen.getByText("00:01:05")).toBeInTheDocument();
+    expect(screen.getByText((content) => content.replace(/\s/g, '') === '00:00:04')).toBeInTheDocument();
   });
 });

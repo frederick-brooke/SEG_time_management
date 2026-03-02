@@ -1,0 +1,14 @@
+.quote-wrapper {
+  position: relative; /* THIS is the key */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.text {
+  font-size: 12px;
+  background: #ffffff;
+  padding: 1em;
+  color: black;
+  margin-top: 1rem;
+}

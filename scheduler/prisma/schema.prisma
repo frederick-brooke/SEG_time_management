@@ -9,52 +9,32 @@ generator client {
 }
 
 datasource db {
-  provider  = "mongodb"
-  url       = env("DATABASE_URL")
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
   directUrl = env("DATABASE_URL")
 }
 
 model User {
-  id           String  @id @default(auto()) @map("_id") @db.ObjectId
-  email        String  @unique
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
   passwordHash String?
-  username     String  @unique
+  username     String   @unique
 
-  fname String?
-  lname String?
+  fname        String?
+  lname        String?
 
-  bio String?
-  pfp String?
+  bio        String?
+  pfp        String?
 
   accounts     Account[]
   tasks        Task[]
-  preferences  UserPreferences?
-  events       Event[]
-  exams        Exam[]
+  notifications Notification[]
 
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  role Role @default(BASIC)
-
-  reportsMade     Report[] @relation("UserReportsMade")
-  reportsReceived Report[] @relation("UserReportsReceived")
-
-  handledReports Report[] @relation("ModeratorHandledReports")
-
-  isBanned   Boolean   @default(false)
-  banExpires DateTime?
-
-  appeals Appeal[]
-  handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
-}
-
-enum Role {
-  BASIC
-  SUPERUSER
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Account {
@@ -70,6 +50,7 @@ model Account {
   scope                    String?
   id_token                 String? @db.String
   session_state            String?
+  
   refresh_token_expires_in Int?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -78,18 +59,18 @@ model Account {
 }
 
 model FriendRequest {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  senderId String @db.ObjectId
-  sender   User   @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
-
-  receiverId String @db.ObjectId
-  receiver   User   @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  status FriendStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  
+  senderId   String   @db.ObjectId
+  sender     User     @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  receiverId String   @db.ObjectId
+  receiver   User     @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  status     FriendStatus @default(PENDING)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([senderId, receiverId])
 }
@@ -104,149 +85,33 @@ model Task {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
-  dueDate     DateTime?
+  dueDate     DateTime
   completed   Boolean  @default(false)
-  completedAt DateTime?
-  status      String   @default("todo")
-  duration    Int      @default(0)
-  durationHours String?
-  durationMins  String?
-  subtasks    String[] @default([])
-  priority    String   @default("Low")
-  url         String?
-
+  user        User     @relation(fields: [userId], references: [id])
   userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  examId      String?  @db.ObjectId
-  exam        Exam?    @relation(fields: [examId], references: [id])
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model UserPreferences {
-  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId                String    @unique @db.ObjectId
-  user                  User      @relation(fields: [userId], references: [id])
-  workStartTime         String
-  workEndTime           String
-  daysOff               String[]
-  sessionLength         Int
-  breakLength           Int
-  breaksPerDay          Int
-  taskOrder             String
-  maxTasksPerDay        Int
-  defaultTaskDuration   Int
-  reminderDays          Int
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
 }
-
-model Exam {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String    @db.ObjectId
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  title             String
-  examDate          DateTime
-  maxTimePerDay     Int
-  unavailableDays   DateTime[]
-
-  tasks             Task[]
-  revisionMaterials RevisionMaterial[]
-
-  createdAt         DateTime  @default(now())
-}
-
-model RevisionMaterial {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-
-  examId   String @db.ObjectId
-  exam     Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
-
-  title    String
-  type     String
-  duration Int
-  url      String?
-}
-
-model Event {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-
-  userId            String   @db.ObjectId
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  title             String
-  description       String?
-  start             DateTime
-  end               DateTime
-  allDay            Boolean  @default(false)
-  category          String
-
-  startCoords       Json?
-  destinationCoords Json?
-  travelDuration    Int?
-  startLocationName String?
-  destLocationName  String?
-  transportMode     String?
-
-  recurrence        Json?
-  exceptions        String[] @default([])
-
-  googleEventId     String?
-  lastSyncedAt      DateTime?
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  
-}
-model Report {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  reportedUserId String @db.ObjectId
-  reportedUser   User   @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
-
-  reportedById String @db.ObjectId
-  reportedBy   User   @relation("UserReportsMade", fields: [reportedById], references: [id])
-
-  reason      String
-  description String?
-
-  status ReportStatus @default(PENDING)
-
-  handledById String? @db.ObjectId
-  handledBy   User?   @relation("ModeratorHandledReports", fields: [handledById], references: [id])
-
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String  @db.ObjectId
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean  @default(false)
+  link      String?  
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  appeals Appeal[]
-}
-
-enum ReportStatus {
-  PENDING
-  UNDER_REVIEW
-  RESOLVED
-  REJECTED
-}
-
-model Appeal {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  reportId    String   @db.ObjectId
-  description String
-  createdAt   DateTime @default(now())
-  status      AppealStatus @default(PENDING)
-
-  user   User   @relation(fields: [userId], references: [id])
-  report Report @relation(fields: [reportId], references: [id])
-
-  handledById String? @db.ObjectId
-  handledBy   User?   @relation("ModeratorHandledAppeals", fields: [handledById], references: [id])
-}
-
-enum AppealStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  expiresAt DateTime? 
+  
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
 }
