@@ -12,7 +12,7 @@ import { AppSidebar } from "@/src/components/app-sidebar";
 import { SectionCards } from "@/src/components/section-cards";
 import { SiteHeader } from "@/src/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
-import { ComingSoonCard } from "@/src/components/coming-up-soon";
+// import { ComingSoonCard } from "@/src/components/coming-up-soon";
 
 import { ComingUpSoon } from "@/src/components/coming-up-soon";
 import { getSystemErrorMap } from "util";
@@ -21,16 +21,18 @@ import { getMyExams } from "@/src/app/actions/examActions";
 import { UpcomingExams } from "../../components/upcoming-exams";
 
 import Panel from "@/src/components/panel";
+import NotificationModal from "../components/NotificationModal";
 
 export default function Page() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const {wellbeingOpen, setWellbeingOpen} = useUI();
-
   const [exams, setExams] = useState([]);
+  const [notiShowModal, setShowNotiModal] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -40,6 +42,11 @@ export default function Page() {
     loadData();
   }, []);
   
+
+  const handleShowModal = () => {
+    setShowNotiModal(!notiShowModal);
+  };
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -65,15 +72,20 @@ export default function Page() {
     });
   };
 
+  
+
   return (
     <SidebarProvider
+      open={sidebarOpen}
+      onOpenChange={setSidebarOpen}
+      className=""
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
       }}
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="">
         <SiteHeader />
 
         {errorMessage && (
@@ -144,6 +156,16 @@ export default function Page() {
         >
           ❤️
         </button>
+
+        <button 
+          onClick={handleShowModal}
+          className="fixed bottom-6 right-24 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg hover:bg-indigo-700 transition"
+          aria-label="Open notification"
+        >
+          📢
+        </button>
+
+        {notiShowModal && <NotificationModal handleShowModal={handleShowModal} isOpen={notiShowModal} />}
 
         <Panel
                 open={wellbeingOpen}

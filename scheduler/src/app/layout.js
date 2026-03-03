@@ -1,7 +1,11 @@
+"use client";
+
 import "./globals.css";
+import {useState} from "react";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
 import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
+import NotificationModal from "./components/NotificationModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,14 +17,20 @@ const geistMono = GeistMono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Scheduler",
-  description: "Time management app",
-  title: "Scheduler",
-  description: "Time management app",
-};
+// export const metadata = {
+//   title: "Scheduler",
+//   description: "Time management app",
+//   title: "Scheduler",
+//   description: "Time management app",
+// };
 
 export default function RootLayout({ children }) {
+  // const [notiShowModal, setShowModal] = useState(false);
+
+  // const handleShowModal = () => {
+  //   setShowModal(!notiShowModal);
+  // };
+
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">

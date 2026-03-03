@@ -31,6 +31,7 @@ model User {
   preferences  UserPreferences?
   events       Event[]
   exams        Exam[]
+  notifications Notification[]
 
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
@@ -123,6 +124,29 @@ model Task {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String  @db.ObjectId
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean  @default(false)
+  link      String?  
+  createdAt DateTime @default(now())
+  expiresAt DateTime? 
+  
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
 }
 
 model UserPreferences {
