@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
 
-export default function ExamFormDialog({ onExamAdded, onExamUpdated, editingExam }) {
+export default function ExamFormDialog({ onExamAdde, onExamUpdated, editingExam }) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSubmit = async (e) => {
