@@ -1,9 +1,22 @@
 "use client";
 import { ToDoList } from "@/src/components/to-do-list";
 import { useSession } from "next-auth/react";
+import { getMyExams } from "@/src/app/actions/examActions";
+import { useState, useEffect } from "react";
 
 export default function TasksPage() {
   const { data: session, status } = useSession();
+  const [exams, setExams] = useState([]);
+
+  useEffect(() => {
+    async function loadExams() {
+      if (session?.user?.id) {
+        const data = await getMyExams();
+        setExams(data);
+      }
+    }
+    loadExams();
+  }, [session]);
 
   // Show loading state while checking authentication
   if (status === "loading") {
@@ -34,7 +47,7 @@ export default function TasksPage() {
       </div>
 
       {/* To-Do List Component */}
-      <ToDoList userId={session.user.id} />
+      <ToDoList userId={session.user.id} exams={exams} />
     </div>
   );
 }
