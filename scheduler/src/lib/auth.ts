@@ -5,7 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
-import NextAuth, { DefaultSession } from "next-auth";
+import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
@@ -25,7 +25,6 @@ export const authOptions: NextAuthOptions = {
   },
 
   providers: [
-    // Credentials login
     CredentialsProvider({
       name: "Email",
       credentials: {
@@ -41,9 +40,12 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
           include: {
-            reportsReceived: true, // or whatever your relation is called
+            reportsReceived: true,
           },
         });
+
+        console.log("User found:", !!user);
+        console.log("Has passwordHash:", !!user?.passwordHash);
 
         if (!user || !user.passwordHash) return null;
 
@@ -52,38 +54,49 @@ export const authOptions: NextAuthOptions = {
           user.passwordHash || "",
         );
 
+        console.log("Password valid:", isValid);
+
         if (!isValid) return null;
 
-        if(user.isBanned){
-          //permanent ban
-          if(!user.banExpires){
-            return user;
+        if (user.isBanned) {
+          // permanent ban
+          if (!user.banExpires) {
+            return {
+              id: user.id.toString(),
+              email: user.email,
+              name: user.username,
+              role: user.role,
+              isBanned: true,
+            };
           }
-          //temporary ban still active
+          // temporary ban still active
           if (new Date() < user.banExpires) {
-            return user;
+            return {
+              id: user.id.toString(),
+              email: user.email,
+              name: user.username,
+              role: user.role,
+              isBanned: true,
+            };
           }
-          //Ban expired 
+          // ban expired
           await prisma.user.update({
             where: { id: user.id },
             data: { isBanned: false, banExpires: null },
           });
-
           user.isBanned = false;
         }
 
-        // Return only the required fields
         return {
           id: user.id.toString(),
           email: user.email,
           name: user.username,
-          role: user.role, 
+          role: user.role,
           isBanned: user.isBanned,
         };
       },
     }),
 
-    // Google login
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -100,22 +113,20 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // For Google OAuth, fetch or set the role
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email! },
           select: { role: true },
         });
-        
+
         if (dbUser) {
           user.role = dbUser.role;
         } else {
-          // Set a default role for new users
           user.role = "BASIC";
         }
       }
-      
+
       return true;
     },
 
@@ -129,8 +140,8 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account?.provider === "google") {
-        const userId = token.sub ?? user?.id; 
-        
+        const userId = token.sub ?? user?.id;
+
         if (userId) {
           const existingAccount = await prisma.account.findUnique({
             where: {
@@ -159,10 +170,11 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              refresh_token_expires_in: account.refresh_token_expires_in as number,
+              refresh_token_expires_in:
+                account.refresh_token_expires_in as number,
             },
             create: {
-              userId,  
+              userId,
               type: account.type,
               provider: "google",
               providerAccountId: account.providerAccountId,
@@ -172,7 +184,8 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              refresh_token_expires_in: account.refresh_token_expires_in as number,
+              refresh_token_expires_in:
+                account.refresh_token_expires_in as number,
             },
           });
         }
@@ -185,7 +198,6 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      // Subsequent requests
       if (!token.role && token.sub) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -195,7 +207,6 @@ export const authOptions: NextAuthOptions = {
         token.role = dbUser?.role;
       }
 
-      // Handle Google account linking (optional)
       if (account?.provider === "google" && token.sub) {
         const existingAccount = await prisma.account.findUnique({
           where: {
@@ -210,7 +221,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("GoogleAccountTaken");
         }
 
-        // Only create or update account, role is already set in user object
         await prisma.account.upsert({
           where: {
             provider_providerAccountId: {
@@ -248,7 +258,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    async session({ session, token}) {
+    async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
 
@@ -272,4 +282,3 @@ export const authOptions: NextAuthOptions = {
     error: "/dashboard",
   },
 };
-
