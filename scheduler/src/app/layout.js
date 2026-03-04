@@ -1,7 +1,4 @@
-"use client";
-
 import "./globals.css";
-import {useState} from "react";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
 import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
@@ -33,7 +30,7 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <Providers>
           <UIProvider>
             {children}

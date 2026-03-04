@@ -64,6 +64,9 @@ export default function QuizPage() {
         }),
       });
 
+      const responseText = await res.clone().text();
+      console.log("Status:", res.status, "Response:", responseText);
+
       if (!res.ok) {
         throw new Error("Failed to save preferences");
       }
@@ -130,7 +133,10 @@ export default function QuizPage() {
 
               {/* Work End Time */}
               <div>
-                <label htmlFor="workEndTime" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="workEndTime"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   When would you like to stop working?
                 </label>
                 <input
@@ -144,7 +150,10 @@ export default function QuizPage() {
 
               {/* Days off */}
               <div>
-                <label htmlFor="daysOff" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="daysOff"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Which days are you off?
                 </label>
                 <div className="space-y-2">
@@ -186,7 +195,10 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Session Length */}
               <div>
-                <label htmlFor="sessionLength" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="sessionLength"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   How long do you work before taking a break? (minutes)
                 </label>
                 <input
@@ -204,7 +216,10 @@ export default function QuizPage() {
 
               {/* Break Length */}
               <div>
-                <label htmlFor="breakLength" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="breakLength"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   How long are your breaks? (minutes)
                 </label>
                 <input
@@ -222,7 +237,10 @@ export default function QuizPage() {
 
               {/* Breaks Per Day */}
               <div>
-                <label htmlFor="breaksPerDay" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="breaksPerDay"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   How many breaks do you take per day?
                 </label>
                 <input
@@ -244,7 +262,10 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Task Order */}
               <div>
-                <label htmlFor="taskOrder" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="taskOrder"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Do you prefer to tackle hard tasks first or easy tasks first?
                 </label>
                 <div className="space-y-2">
@@ -279,7 +300,10 @@ export default function QuizPage() {
 
               {/* Max tasks per day */}
               <div>
-                <label htmlFor="maxTasksPerDay" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="maxTasksPerDay"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   How many tasks can you handle per day?
                 </label>
                 <input
@@ -297,7 +321,10 @@ export default function QuizPage() {
 
               {/* Default task duration */}
               <div>
-                <label htmlFor="defaultTaskDuration" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="defaultTaskDuration"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Default task duration? (minutes)
                 </label>
                 <input
@@ -322,7 +349,10 @@ export default function QuizPage() {
             <div className="space-y-4">
               {/* Reminder Days */}
               <div>
-                <label htmlFor="reminderDays" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="reminderDays"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   How many days before a deadline should we remind you?
                 </label>
                 <input

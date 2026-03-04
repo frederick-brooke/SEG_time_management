@@ -5,7 +5,7 @@ import { SiteHeader } from "@/src/components/site-header";
 import {
   SidebarProvider,
   SidebarInset,
-} from "@/src/components/ui/sidebar";
+} from "@/src/components/animate-ui/components/radix/sidebar";
 
 export function AppShell({ children }) {
   return (
