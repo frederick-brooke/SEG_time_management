@@ -51,14 +51,14 @@ model User {
 
   appeals Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
+
+  conversations ConversationParticipant[]
+  sentMessages  Message[]
 }
 
 enum Role {
   BASIC
   SUPERUSER
-
-  conversations ConversationParticipant[]
-  sentMessages  Message[]
 }
 
 model Account {
