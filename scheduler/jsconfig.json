@@ -10,5 +10,5 @@
       "hooks/*": ["src/hooks/*"]
     }
   },
-  "include": ["src", "**/*.js", "**/*.jsx"]
+  "include": ["src", "**/*.js", "**/*.jsx", "scripts/fix-roles.ts", "jest.config.cjs"]
 }

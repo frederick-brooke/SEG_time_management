@@ -40,12 +40,7 @@ export default function MapView({ events }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !containerRef.current ||
-      mapRef.current
-    )
-      return;
+    if (typeof window === "undefined" || !containerRef.current || mapRef.current) return;
 
     if (!document.getElementById("leaflet-css")) {
       const link = document.createElement("link");
@@ -58,18 +53,15 @@ export default function MapView({ events }) {
     import("leaflet").then((L) => {
       delete L.Icon.Default.prototype._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
         iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
       const allCoords = events.flatMap((e) => {
         const pts = [];
         if (e.startCoords) pts.push([e.startCoords.lat, e.startCoords.lng]);
-        if (e.destinationCoords)
-          pts.push([e.destinationCoords.lat, e.destinationCoords.lng]);
+        if (e.destinationCoords) pts.push([e.destinationCoords.lat, e.destinationCoords.lng]);
         return pts;
       });
 
@@ -81,13 +73,11 @@ export default function MapView({ events }) {
             ]
           : [51.505, -0.09];
 
-      if (mapRef.current) return;
       const map = L.map(containerRef.current).setView(center, 12);
       mapRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
       }).addTo(map);
 
@@ -133,9 +123,7 @@ export default function MapView({ events }) {
             popupAnchor: [0, -42],
           });
 
-          L.marker([event.destinationCoords.lat, event.destinationCoords.lng], {
-            icon: destIcon,
-          })
+          L.marker([event.destinationCoords.lat, event.destinationCoords.lng], { icon: destIcon })
             .addTo(map)
             .bindPopup(popupContent, { maxWidth: 280 });
 
@@ -145,7 +133,7 @@ export default function MapView({ events }) {
                 [event.startCoords.lat, event.startCoords.lng],
                 [event.destinationCoords.lat, event.destinationCoords.lng],
               ],
-              { color, weight: 2, opacity: 0.5, dashArray: "6, 6" },
+              { color, weight: 2, opacity: 0.5, dashArray: "6, 6" }
             ).addTo(map);
           }
         }
@@ -168,10 +156,7 @@ export default function MapView({ events }) {
       <div className="flex flex-wrap gap-3 p-3 bg-white border rounded-lg">
         {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
           <div key={cat} className="flex items-center gap-1.5">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: color }}
-            />
+            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
             <span className="text-xs text-gray-600">{cat}</span>
           </div>
         ))}
@@ -192,36 +177,24 @@ export default function MapView({ events }) {
         {events.map((event) => {
           const color = CATEGORY_COLORS[event.category] || "#6b7280";
           return (
-            <div
-              key={event.id}
-              className="bg-white border rounded-lg p-3 shadow-sm"
-            >
+            <div key={event.id} className="bg-white border rounded-lg p-3 shadow-sm">
               <div className="flex items-start gap-2">
                 <div
                   className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
                   style={{ backgroundColor: color }}
                 />
                 <div className="min-w-0">
-                  <p className="font-semibold text-sm text-gray-800 truncate">
-                    {event.title}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {formatDate(event.start)}
-                  </p>
+                  <p className="font-semibold text-sm text-gray-800 truncate">{event.title}</p>
+                  <p className="text-xs text-gray-400">{formatDate(event.start)}</p>
                   {event.startLocationName && (
-                    <p className="text-xs text-gray-500 truncate mt-1">
-                      🔵 {event.startLocationName}
-                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-1">🔵 {event.startLocationName}</p>
                   )}
                   {event.destLocationName && (
-                    <p className="text-xs text-gray-500 truncate">
-                      🔴 {event.destLocationName}
-                    </p>
+                    <p className="text-xs text-gray-500 truncate">🔴 {event.destLocationName}</p>
                   )}
                   {event.travelDuration && (
                     <p className="text-xs font-medium text-blue-600 mt-1">
-                      {TRANSPORT_ICONS[event.transportMode || ""] || "⏱️"}{" "}
-                      {event.travelDuration} mins
+                      {TRANSPORT_ICONS[event.transportMode || ""] || "⏱️"} {event.travelDuration} mins
                     </p>
                   )}
                 </div>

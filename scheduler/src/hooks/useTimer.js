@@ -25,6 +25,7 @@ export function useTimer( {storageKey, onTick} = {}) {
     const [hasStarted, setHasStarted] = useState(false);    //tracks if timer has been started at least once before
 
     const remainingMsRef = useRef(0);   //remaining miliseconds, referenced through refreshes
+    const [remainingMs, setRemainingMs] = useState(0);
 
     const startTimer = (durationMs) => {
         remainingMsRef.current = durationMs //initialise remaining time
@@ -48,11 +49,14 @@ export function useTimer( {storageKey, onTick} = {}) {
         intervalRef.current = setInterval(() => {
             // decrement the time by 1 second each call
             remainingMsRef.current -= 1000;
+            setRemainingMs(remainingMsRef.current);
+
             //stops timer when countdown reaches 0
             if(remainingMsRef.current <= 0){
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
                 remainingMsRef.current = 0;
+                setRemainingMs(0);
             }
 
             onTick?.(remainingMsRef.current);
@@ -121,7 +125,7 @@ export function useTimer( {storageKey, onTick} = {}) {
             remainingMsRef.current = remainingMs;
             //update the displayed time values
             setHasStarted(true);
-            updateDisplay;
+            updateDisplay(remainingMs);
             setIsRunning(false);    //set as paused
         }
     }
@@ -142,6 +146,6 @@ export function useTimer( {storageKey, onTick} = {}) {
         pauseTimer,
         resumeTimer,
         stopTimer,
-        remainingMs: remainingMsRef.current,
+        remainingMs,
     };
 }

@@ -1,13 +1,24 @@
 "use client"
 import * as React from "react"
 import {
+  IconCamera,
   IconDashboard,
+  IconDatabase,
+  IconFileAi,
+  IconFileDescription,
+  IconFileWord,
+  IconHelp,
+  IconInnerShadowTop,
   IconListDetails,
   IconCalendar,
   IconMap,
   IconTrophy,
   IconUser,
   IconSearch,
+  IconSettings,
+  IconUserCog,
+  IconUser,
+  IconTrophy,
 } from "@tabler/icons-react"
 import { GraduationCap } from "lucide-react"
 import { NavMain } from "components/nav-main"
@@ -22,6 +33,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "components/ui/sidebar"
+import { GraduationCap } from "lucide-react"
 
 const data = {
   user: {
@@ -36,36 +48,77 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Calendar",
-      url: "/calendar",
-      icon: IconCalendar,
-    },
-    {
       title: "Tasks",
       url: "/tasks",
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
+      title: "Exam Planner",
+      url: "/exam-planner",
+      icon: GraduationCap,
     },
     {
-      title: "Map",
-      url: "/map",
-      icon: IconMap,
+      title: "Profile",
+      url: "/profile",
+      icon: IconUser,
     },
-  ],
-  navOther: [
     {
       title: "Leaderboard",
       url: "/leaderboard",
       icon: IconTrophy,
     },
     {
-      title: "My Profile",
-      url: "/profile",
-      icon: IconUser,
+      title: "Admin",
+      url: "/admin",
+      icon: IconUserCog,
+    }
+  ],
+  navClouds: [
+    {
+      title: "Capture",
+      icon: IconCamera,
+      isActive: true,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Proposal",
+      icon: IconFileDescription,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
+    },
+    {
+      title: "Prompts",
+      icon: IconFileAi,
+      url: "#",
+      items: [
+        {
+          title: "Active Proposals",
+          url: "#",
+        },
+        {
+          title: "Archived",
+          url: "#",
+        },
+      ],
     },
   ],
   navSecondary: [

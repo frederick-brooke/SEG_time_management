@@ -35,7 +35,7 @@ export default function ReminderPicker({ onConfirm, initialDuration }){
             />
 
             <button onClick={submit}>
-                Set Reminder
+                Change Time
             </button>
         </div>
     );
