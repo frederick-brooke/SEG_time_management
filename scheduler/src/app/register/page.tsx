@@ -14,6 +14,11 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * handles the registration form submission
+   * @param e , the form submission event
+   * @returns registers user and redirects to dashboard on success
+   */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
@@ -51,7 +56,7 @@ export default function RegisterPage() {
     });
 
     if (loginResult?.ok) {
-        window.location.href = '/dashboard'; 
+        window.location.href = '/quiz'; // Redirect to quiz if login successful
     } else {
         setIsLoading(false);
         setError('Account created, but login failed. Please try signing in manually.');
@@ -79,6 +84,9 @@ export default function RegisterPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="johndoe"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                3-20 characters. Letters, numbers, underscores and hyphens only.
+              </p>
             </div>
 
             <div>
