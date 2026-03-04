@@ -3,7 +3,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import Modal from "components/ui/modal";
+import Panel from "@/components/panel";
 import WellbeingPage from "../wellbeing/page";
 import { useSession, signIn, signOut } from "next-auth/react";
 
@@ -12,12 +12,14 @@ import { ComingUpSoon } from "@/src/components/coming-up-soon";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
 
+import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
+
 export default function Page() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState("");
-  const [wellbeingOpen, setWellbeingOpen] = useState(false);
+  const {wellbeingOpen, setWellbeingOpen} = useUI();
   const [exams, setExams] = useState([]);
 
   useEffect(() => {
@@ -105,16 +107,19 @@ export default function Page() {
       </div>
 
       <button
-        onClick={() => setWellbeingOpen(true)}
-        className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-indigo-700 transition"
-        aria-label="Open wellbeing"
-      >
-        ❤️
-      </button>
+          onClick={() => setWellbeingOpen(true)}
+          className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-pink-700 transition"
+        >
+          ❤️
+        </button>
 
-      <Modal open={wellbeingOpen} onClose={() => setWellbeingOpen(false)} title="For Your Wellbeing">
-        <WellbeingPage />
-      </Modal>
+        <Panel
+                open={wellbeingOpen}
+                onClose={() => setWellbeingOpen(false)}
+                title="For Your Wellbeing"
+            >
+            <WellbeingPage />
+        </Panel> 
     </>
   );
 }
