@@ -88,6 +88,7 @@ export async function getMyProfile() {
       receivedRequests: {
         where: { status: 'PENDING' },
         select: { 
+          id: true,
           sender: { 
             select: { id: true, username: true, fname: true, lname: true, pfp: true } 
           } 
@@ -96,6 +97,7 @@ export async function getMyProfile() {
       sentRequests: {
         where: { status: 'ACCEPTED' },
         select: { 
+          id: true,
           receiver: { 
             select: { id: true, username: true, fname: true, lname: true, pfp: true } 
           } 
