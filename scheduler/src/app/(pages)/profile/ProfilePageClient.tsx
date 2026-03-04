@@ -382,7 +382,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
                  </h2>
                  <div className="space-y-3">
                     {profile.receivedRequests.map((req: any) => (
-                        <div key={req.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                      <div key={req.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
                                      {req.sender.pfp ? (
