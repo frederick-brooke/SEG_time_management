@@ -31,7 +31,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("/api/user/profile");
+        const res = await fetch(`/api/profile/${session?.user?.name}`);
         
         if (!res.ok) {
           throw new Error("Failed to fetch profile");
