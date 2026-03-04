@@ -1,5 +1,4 @@
 import "./globals.css";
-import {useState} from "react";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
 import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
