@@ -43,22 +43,22 @@ function CreateGroupModal({
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
 
-  const handleCreate = async () => {
-    if (!name.trim() || selected.length === 0) return;
-    setLoading(true);
-    try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, memberIds: selected, isGroup: true }),
-      });
-      const conv = await res.json();
-      onCreated(conv);
-      onClose();
-    } finally {
-      setLoading(false);
-    }
-  };
+    const handleCreate = async () => {
+      if (!name.trim() || selected.length === 0) return;
+      setLoading(true);
+      try {
+        const res = await fetch("/api/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, memberIds: selected, isGroup: true }),
+        });
+        const conv = await res.json();
+        onCreated(conv);
+        onClose();
+      } finally {
+        setLoading(false);
+      }
+    };
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -214,7 +214,10 @@ export default function ConversationList() {
           friends={friends}
           onClose={() => setShowModal(false)}
           onCreated={(conv) => {
-            setConversations((prev) => [conv, ...prev]);
+            setConversations((prev) => {
+              const exists = prev.some((c) => c.id === conv.id);
+              return exists ? prev : [conv, ...prev];
+            });
             router.push(`/messages/${conv.id}`);
           }}
         />
