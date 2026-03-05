@@ -9,20 +9,34 @@ export async function POST(req: NextRequest) {
 
   const { targetUserId } = await req.json();
 
-  // Check if a conversation already exists
-  const existing = await prisma.conversation.findFirst({
+  // Fetch all non-group conversations the current user is in
+  const candidates = await prisma.conversation.findMany({
     where: {
-      AND: [
-        { participants: { some: { userId: session.user.id } } },
-        { participants: { some: { userId: targetUserId } } },
-      ],
+      isGroup: false,
+      participants: { some: { userId: session.user.id } },
+    },
+    include: {
+      participants: true,
     },
   });
 
-  if (existing) return NextResponse.json(existing);
+  // Find one with exactly 2 participants: current user + target only
+  const existing = candidates.find((c) => {
+    const ids = c.participants.map((p) => p.userId);
+    return (
+      ids.length === 2 &&
+      ids.includes(session.user.id) &&
+      ids.includes(targetUserId)
+    );
+  });
+
+  if (existing) {
+    return NextResponse.json(existing);
+  }
 
   const conversation = await prisma.conversation.create({
     data: {
+      isGroup: false,
       participants: {
         create: [{ userId: session.user.id }, { userId: targetUserId }],
       },
