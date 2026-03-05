@@ -1,100 +1,198 @@
 import { prisma } from "@/src/lib/prisma";
 
-const SLEEP_START = 22; // 10 PM
-const SLEEP_END = 7; // 7 AM
-const BUFFER_MINS = 15; // gap between events
+const DEFAULT_SLEEP_START = 22;
+const DEFAULT_SLEEP_END = 7;
+const DEFAULT_BUFFER_MINS = 15;
 
 interface Slot {
   start: Date;
   end: Date;
 }
 
-function isDuringSleep(date: Date): boolean {
+interface SchedulingPrefs {
+  workStartTime: string;
+  workEndTime: string;
+  daysOff: number[];
+  sessionLength: number;
+  breakLength: number;
+  breaksPerDay: number;
+  maxTasksPerDay: number;
+}
+
+function parseHour(time: string): number {
+  return parseInt(time.split(":")[0], 10);
+}
+
+function parseMins(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function isDuringSleep(date: Date, sleepStart: number, sleepEnd: number): boolean {
   const h = date.getHours();
-  if (SLEEP_START > SLEEP_END) return h >= SLEEP_START || h < SLEEP_END;
-  return h >= SLEEP_START && h < SLEEP_END;
+  if (sleepStart > sleepEnd) return h >= sleepStart || h < sleepEnd;
+  return h >= sleepStart && h < sleepEnd;
 }
 
-function skipSleep(d: Date): Date {
-  if (!isDuringSleep(d)) return d;
-  const wakeUp = new Date(d);
-  if (d.getHours() < SLEEP_END) {
-    wakeUp.setHours(SLEEP_END, 0, 0, 0);
-  } else {
-    wakeUp.setDate(wakeUp.getDate() + 1);
-    wakeUp.setHours(SLEEP_END, 0, 0, 0);
+function skipToWorkStart(d: Date, prefs: SchedulingPrefs | null, sleepEnd: number): Date {
+  const workStartMins = prefs ? parseMins(prefs.workStartTime) : sleepEnd * 60;
+  const workEndMins = prefs ? parseMins(prefs.workEndTime) : DEFAULT_SLEEP_START * 60;
+  const currentMins = d.getHours() * 60 + d.getMinutes();
+
+  if (currentMins < workStartMins) {
+    const result = new Date(d);
+    result.setHours(Math.floor(workStartMins / 60), workStartMins % 60, 0, 0);
+    return result;
   }
-  return wakeUp;
+
+  if (currentMins >= workEndMins) {
+    const result = new Date(d);
+    result.setDate(result.getDate() + 1);
+    result.setHours(Math.floor(workStartMins / 60), workStartMins % 60, 0, 0);
+    // Skip days off
+    if (prefs) {
+      while (prefs.daysOff.includes(result.getDay())) {
+        result.setDate(result.getDate() + 1);
+      }
+    }
+    return result;
+  }
+
+  return d;
 }
 
-function buildSleepBlocks(from: Date, to: Date): Slot[] {
+function buildBlockedPeriods(from: Date, to: Date, prefs: SchedulingPrefs | null): Slot[] {
   const blocks: Slot[] = [];
   const cursor = new Date(from);
   cursor.setHours(0, 0, 0, 0);
 
+  const sleepStart = DEFAULT_SLEEP_START;
+  const sleepEnd = DEFAULT_SLEEP_END;
+  const workStartMins = prefs ? parseMins(prefs.workStartTime) : sleepEnd * 60;
+  const workEndMins = prefs ? parseMins(prefs.workEndTime) : sleepStart * 60;
+
   while (cursor <= to) {
-    const sleepStart = new Date(cursor);
-    sleepStart.setHours(SLEEP_START, 0, 0, 0);
+    const dayOfWeek = cursor.getDay();
 
-    const sleepEnd = new Date(cursor);
-    sleepEnd.setDate(sleepEnd.getDate() + 1);
-    sleepEnd.setHours(SLEEP_END, 0, 0, 0);
+    // Block entire day if it's a day off
+    if (prefs?.daysOff.includes(dayOfWeek)) {
+      blocks.push({
+        start: new Date(cursor),
+        end: new Date(new Date(cursor).setHours(23, 59, 59, 999)),
+      });
+      cursor.setDate(cursor.getDate() + 1);
+      continue;
+    }
 
-    blocks.push({ start: sleepStart, end: sleepEnd });
+    const dayStart = new Date(cursor);
+    const workStart = new Date(cursor);
+    workStart.setHours(Math.floor(workStartMins / 60), workStartMins % 60, 0, 0);
+    blocks.push({ start: dayStart, end: new Date(workStart) });
+
+    const workEnd = new Date(cursor);
+    workEnd.setHours(Math.floor(workEndMins / 60), workEndMins % 60, 0, 0);
+    const dayEnd = new Date(cursor);
+    dayEnd.setHours(23, 59, 59, 999);
+    blocks.push({ start: new Date(workEnd), end: dayEnd });
+
     cursor.setDate(cursor.getDate() + 1);
   }
+
   return blocks;
+}
+
+function buildDailyTaskCounts(events: Slot[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const e of events) {
+    const key = e.start.toISOString().slice(0, 10);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
 }
 
 export function findFreeSlots(
   from: Date,
   to: Date,
   existingEvents: { start: Date; end: Date }[],
-  durationMins: number
+  durationMins: number,
+  prefs: SchedulingPrefs | null = null
 ): Slot[] {
-  const bufferMs = BUFFER_MINS * 60_000;
-  const durationMs = durationMins * 60_000;
+  const bufferMs = (prefs?.breakLength ?? DEFAULT_BUFFER_MINS) * 60_000;
 
-  const sleepBlocks = buildSleepBlocks(from, to);
+  const effectiveDuration = prefs?.sessionLength
+    ? Math.min(durationMins, prefs.sessionLength)
+    : durationMins;
+  const durationMs = effectiveDuration * 60_000;
+
+  const blockedPeriods = buildBlockedPeriods(from, to, prefs);
   const allBlocked: Slot[] = [
     ...existingEvents.map((e) => ({ start: new Date(e.start), end: new Date(e.end) })),
-    ...sleepBlocks,
+    ...blockedPeriods,
   ].sort((a, b) => a.start.getTime() - b.start.getTime());
 
+  const taskEventsByDay = buildDailyTaskCounts(existingEvents);
+
   const freeSlots: Slot[] = [];
-  let cursor = skipSleep(new Date(from));
+  let cursor = skipToWorkStart(new Date(from), prefs, DEFAULT_SLEEP_END);
 
   for (const block of allBlocked) {
     if (block.start > to) break;
     if (cursor < block.start) {
       const gapEnd = new Date(block.start.getTime() - bufferMs);
       if (gapEnd.getTime() - cursor.getTime() >= durationMs) {
-        freeSlots.push({ start: new Date(cursor), end: gapEnd });
+        const dayKey = cursor.toISOString().slice(0, 10);
+        const tasksToday = taskEventsByDay.get(dayKey) ?? 0;
+        if (!prefs?.maxTasksPerDay || tasksToday < prefs.maxTasksPerDay) {
+          freeSlots.push({ start: new Date(cursor), end: gapEnd });
+          taskEventsByDay.set(dayKey, tasksToday + 1);
+        }
       }
     }
     if (block.end > cursor) {
-      cursor = skipSleep(new Date(block.end.getTime() + bufferMs));
+      cursor = skipToWorkStart(
+        new Date(block.end.getTime() + bufferMs),
+        prefs,
+        DEFAULT_SLEEP_END
+      );
     }
   }
 
-  // Remaining time after all blocks
   if (cursor < to && to.getTime() - cursor.getTime() >= durationMs) {
-    freeSlots.push({ start: new Date(cursor), end: new Date(to) });
+    const dayKey = cursor.toISOString().slice(0, 10);
+    const tasksToday = taskEventsByDay.get(dayKey) ?? 0;
+    if (!prefs?.maxTasksPerDay || tasksToday < prefs.maxTasksPerDay) {
+      freeSlots.push({ start: new Date(cursor), end: new Date(to) });
+    }
   }
 
   return freeSlots;
 }
 
+async function getUserPrefs(userId: string): Promise<SchedulingPrefs | null> {
+  const p = await prisma.userPreferences.findUnique({ where: { userId } });
+  if (!p) return null;
+  return {
+    workStartTime: p.workStartTime ?? "07:00",
+    workEndTime: p.workEndTime ?? "22:00",
+    daysOff: (p.daysOff as number[]) ?? [],
+    sessionLength: p.sessionLength ?? 0,
+    breakLength: p.breakLength ?? DEFAULT_BUFFER_MINS,
+    breaksPerDay: p.breaksPerDay ?? 0,
+    maxTasksPerDay: p.maxTasksPerDay ?? 0,
+  };
+}
 
-/**
- * Schedule a single task: find its first free slot and create an Event row
- * with category "Task". Also marks task.status = "scheduled".
- */
-export async function scheduleTask(taskId: string, userId: string, extraBlocked: { start: Date; end: Date }[] = []) {
+export async function scheduleTask(
+  taskId: string,
+  userId: string,
+  extraBlocked: { start: Date; end: Date }[] = []
+) {
   const task = await prisma.task.findFirst({ where: { id: taskId, userId } });
   if (!task) throw new Error("Task not found");
   if (!task.duration || task.duration === 0)
     throw new Error("Task has no duration set");
+
+  const prefs = await getUserPrefs(userId);
 
   const now = new Date();
   const searchUntil = task.dueDate
@@ -111,13 +209,17 @@ export async function scheduleTask(taskId: string, userId: string, extraBlocked:
   });
 
   const allEvents = [...existingEvents, ...extraBlocked];
-
-  const slots = findFreeSlots(now, searchUntil, allEvents, task.duration);
+  const slots = findFreeSlots(now, searchUntil, allEvents, task.duration, prefs);
   if (slots.length === 0) return null;
 
   const chosen = slots[0];
   const eventStart = chosen.start;
-  const eventEnd = new Date(eventStart.getTime() + task.duration * 60_000);
+
+  const effectiveDuration =
+    prefs?.sessionLength && prefs.sessionLength > 0
+      ? Math.min(task.duration, prefs.sessionLength)
+      : task.duration;
+  const eventEnd = new Date(eventStart.getTime() + effectiveDuration * 60_000);
 
   const [event] = await prisma.$transaction([
     prisma.event.create({
@@ -148,7 +250,9 @@ export async function scheduleAllTasks(userId: string) {
     Low: 3,
   };
 
-  const tasks = await prisma.task.findMany({
+  const prefs = await getUserPrefs(userId);
+
+  let tasks = await prisma.task.findMany({
     where: {
       userId,
       status: { not: "scheduled" },
@@ -158,6 +262,13 @@ export async function scheduleAllTasks(userId: string) {
   });
 
   tasks.sort((a, b) => {
+    if (prefs?.taskOrder === "dueDate") {
+      if (a.dueDate && b.dueDate) return a.dueDate.getTime() - b.dueDate.getTime();
+      if (a.dueDate) return -1;
+      if (b.dueDate) return 1;
+      return 0;
+    }
+    
     const pa = PRIORITY_ORDER[a.priority] ?? 99;
     const pb = PRIORITY_ORDER[b.priority] ?? 99;
     if (pa !== pb) return pa - pb;
@@ -168,22 +279,21 @@ export async function scheduleAllTasks(userId: string) {
   });
 
   const results: { taskId: string; title: string; scheduled: boolean; event?: any }[] = [];
+  const scheduledSlots: { start: Date; end: Date }[] = [];
 
-    const scheduledSlots: { start: Date; end: Date }[] = [];
-
-    for (const task of tasks) {
+  for (const task of tasks) {
     try {
-        const event = await scheduleTask(task.id, userId, scheduledSlots);
-        if (event) {
+      const event = await scheduleTask(task.id, userId, scheduledSlots);
+      if (event) {
         scheduledSlots.push({ start: event.start, end: event.end });
         results.push({ taskId: task.id, title: task.title, scheduled: true, event });
-        } else {
+      } else {
         results.push({ taskId: task.id, title: task.title, scheduled: false });
-        }
+      }
     } catch {
-        results.push({ taskId: task.id, title: task.title, scheduled: false });
+      results.push({ taskId: task.id, title: task.title, scheduled: false });
     }
-    }
+  }
 
   return results;
 }
