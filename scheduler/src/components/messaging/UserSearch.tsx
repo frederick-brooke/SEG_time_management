@@ -98,7 +98,7 @@ export default function UserSearch() {
             </>
           )}
 
-          {/* Groups */}
+          {/* Groupchats */}
           {filteredGroups.length > 0 && (
             <>
               <p className="text-xs text-gray-400 font-medium px-4 pt-2 pb-1 uppercase tracking-wide">Groups</p>
