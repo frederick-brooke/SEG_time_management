@@ -122,3 +122,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* frosted glass */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+}
+
+/* text glow */
+.text-glow {
+  text-shadow: 0 0 35px rgba(120, 170, 255, 0.18);
+}
+
+/* moon glow */
+.moon-glow {
+  filter: drop-shadow(0 0 40px rgba(140, 180, 255, 0.18));
+}
