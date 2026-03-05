@@ -31,14 +31,69 @@ export async function POST(req: Request) {
   const { name, memberIds, isGroup } = await req.json();
 
   if (!isGroup && memberIds.length === 1) {
-    const existing = await prisma.conversation.findFirst({
+    const friendId = memberIds[0];
+
+    const candidates = await prisma.conversation.findMany({
       where: {
-        isGroup: false,
-        participants: { every: { userId: { in: [session.user.id, memberIds[0]] } } },
+        participants: { some: { userId: session.user.id } },
       },
-      include: { participants: { include: { user: true } } },
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
+          },
+        },
+      },
     });
+
+    console.log("candidates:", candidates.map(c => ({
+      id: c.id,
+      isGroup: c.isGroup,
+      participantCount: c.participants.length,
+      participantIds: c.participants.map(p => p.userId),
+    })));
+
+    const existing = candidates.find((c) => {
+      const participantIds = c.participants.map((p) => p.userId);
+      const match = (
+        participantIds.length === 2 &&
+        participantIds.includes(session.user.id) &&
+        participantIds.includes(friendId)
+      );
+      console.log(`conv ${c.id}: length=${participantIds.length}, isGroup=${c.isGroup}, match=${match}`);
+      return match;
+    });
+
     if (existing) return NextResponse.json(existing);
+  }
+
+  if (isGroup) {
+    const allMemberIds = [...new Set([session.user.id, ...memberIds])] as string[];
+
+    const existingGroups = await prisma.conversation.findMany({
+      where: {
+        isGroup: true,
+        participants: { some: { userId: session.user.id } },
+      },
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
+          },
+        },
+      },
+    });
+
+    const duplicate = existingGroups.find((g) => {
+      const existingIds = g.participants.map((p) => p.userId).sort();
+      const newIds = [...allMemberIds].sort();
+      return (
+        existingIds.length === newIds.length &&
+        existingIds.every((id, i) => id === newIds[i])
+      );
+    });
+
+    if (duplicate) return NextResponse.json(duplicate);
   }
 
   const allMemberIds: string[] = [...new Set([session.user.id, ...memberIds])];
