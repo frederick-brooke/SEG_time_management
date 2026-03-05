@@ -1,29 +1,13 @@
-'use client'
+import Navbar from "components/landing/Navbar";
+import HeroSection from "components/landing/HeroSection";
+import FeaturesSection from "components/landing/FeaturesSection";
 
-import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-
-export default function HomePage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (status === 'loading') return // Still checking auth status
-
-    if (session) {
-      // User is logged in → go to dashboard
-      router.push('/dashboard')
-    } else {
-      // User is NOT logged in → go to login
-      router.push('/login')
-    }
-  }, [session, status, router])
-
-  // Show loading while checking auth and redirecting
+export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <div className="min-h-screen bg-gray-950 text-white">
+      <Navbar />
+      <HeroSection />
+      <FeaturesSection />
     </div>
-  )
+  );
 }

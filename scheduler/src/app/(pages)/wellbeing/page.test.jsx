@@ -1,22 +1,27 @@
 import { render, screen } from "@testing-library/react";
-import WellbeingPage from "../WellbeingPage";
+import WellbeingPage from "./page";
 
-// Mock all child components
-jest.mock("../../components/wellbeing/timer", () => () => <div>Timer</div>);
-jest.mock("../../components/wellbeing/quote_block", () => () => <div>QuoteBlock</div>);
-jest.mock("../../components/wellbeing/breath_tracker", () => () => <div>BreathTrack</div>);
-jest.mock("./view_buttons", () => () => <div>ViewButtons</div>);
-jest.mock("../../components/wellbeing/character_background", () => () => <div>LoadCharacter</div>);
+// Mock child components
+jest.mock("components/wellbeing/quote_block", () => () => (
+  <div data-testid="quote-block">QuoteBlock</div>
+));
+
+jest.mock("components/wellbeing/timer_controller", () => () => (
+  <div data-testid="timer-controller">TimerController</div>
+));
 
 describe("WellbeingPage", () => {
-  test("renders all main blocks", () => {
+  test("renders without crashing", () => {
     render(<WellbeingPage />);
+  });
 
-    expect(screen.getByText("Timer")).toBeInTheDocument();
-    expect(screen.getByText("QuoteBlock")).toBeInTheDocument();
-    expect(screen.getByText("BreathTrack")).toBeInTheDocument();
-    expect(screen.getByText("ViewButtons")).toBeInTheDocument();
-    expect(screen.getByText("LoadCharacter")).toBeInTheDocument();
-    expect(screen.getByText("For Your Wellbeing and Care")).toBeInTheDocument();
+  test("renders QuoteBlock component", () => {
+    render(<WellbeingPage />);
+    expect(screen.getByTestId("quote-block")).toBeInTheDocument();
+  });
+
+  test("renders TimerController component", () => {
+    render(<WellbeingPage />);
+    expect(screen.getByTestId("timer-controller")).toBeInTheDocument();
   });
 });
