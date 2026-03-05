@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import PusherClient from "pusher-js";
 
@@ -14,6 +14,11 @@ type Message = {
     username: string;
     pfp: string | null;
   };
+};
+
+type Conversation = {
+  isGroup: boolean;
+  name: string | null;
 };
 
 const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -66,6 +71,7 @@ function TypingBubble() {
 export default function ConversationPage() {
   const { conversationId } = useParams();
   const { data: session } = useSession();
+  const router = useRouter();
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -73,6 +79,7 @@ export default function ConversationPage() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationDetails, setConversationDetails] = useState<Conversation | null>(null);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -103,6 +110,10 @@ export default function ConversationPage() {
     fetchMessages().then((data) => {
       if (data) setMessages(data);
     });
+
+    fetch(`/api/conversations/${conversationId}/details`)
+      .then((r) => r.json())
+      .then(setConversationDetails);
   }, [conversationId, fetchMessages]);
 
   useEffect(() => {
@@ -143,7 +154,6 @@ export default function ConversationPage() {
     return () => { if (el) observer.unobserve(el); };
   }, [loadMore]);
 
-
   useEffect(() => {
     if (!conversationId) return;
     const channel = pusher.subscribe(`conversation-${conversationId}`);
@@ -154,18 +164,15 @@ export default function ConversationPage() {
         const withoutOptimistic = prev.filter((m) => !m.id.startsWith("temp-"));
         return [...withoutOptimistic, newMessage];
       });
-      setTypingUser(null); 
+      setTypingUser(null);
       setTimeout(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 50);
     });
 
     channel.bind("typing", ({ userId, username, isTyping }: { userId: string; username: string; isTyping: boolean }) => {
- 
       if (userId === session?.user?.id) return;
       setTypingUser(isTyping ? username : null);
-
-
       if (isTyping) {
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
@@ -178,7 +185,6 @@ export default function ConversationPage() {
     };
   }, [conversationId, session?.user?.id]);
 
-
   useEffect(() => {
     if (typingUser) {
       setTimeout(() => {
@@ -189,15 +195,11 @@ export default function ConversationPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
-
-
     fetch(`/api/conversations/${conversationId}/typing`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isTyping: true }),
     }).catch(() => {});
-
-
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       fetch(`/api/conversations/${conversationId}/typing`, {
@@ -210,8 +212,6 @@ export default function ConversationPage() {
 
   const sendMessage = async () => {
     if (!input.trim() || !session?.user?.id) return;
-
- 
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     fetch(`/api/conversations/${conversationId}/typing`, {
       method: "POST",
@@ -261,6 +261,14 @@ export default function ConversationPage() {
     }
   };
 
+  const handleLeave = () => {
+    if (!confirm("Leave this group chat?")) return;
+    router.push("/messages");
+    fetch(`/api/conversations/${conversationId}/members`, {
+      method: "DELETE",
+    }).catch(() => {});
+  };
+
   const grouped = messages.map((msg, i) => {
     const prev = messages[i - 1];
     const next = messages[i + 1];
@@ -276,6 +284,19 @@ export default function ConversationPage() {
 
   return (
     <div className="flex flex-col h-full bg-white">
+
+      {conversationDetails?.isGroup && (
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
+          <p className="text-sm font-semibold text-gray-800">{conversationDetails.name}</p>
+          <button
+            onClick={handleLeave}
+            className="text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+          >
+            Leave group
+          </button>
+        </div>
+      )}
+
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-2">
         <div ref={topRef} className="flex justify-center py-3">
           {loadingMore && (
@@ -342,9 +363,7 @@ export default function ConversationPage() {
           );
         })}
 
-        {/* Typing indicator */}
         {typingUser && <TypingBubble />}
-
         <div ref={bottomRef} />
       </div>
 
