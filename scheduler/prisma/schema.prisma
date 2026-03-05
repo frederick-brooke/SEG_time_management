@@ -286,6 +286,10 @@ model Conversation {
   lastMessageAt DateTime?
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
+
+  isGroup      Boolean                   @default(false)
+  name         String?
+  createdById  String?                   @db.ObjectId
 }
 
 model ConversationParticipant {
@@ -295,6 +299,8 @@ model ConversationParticipant {
   userId         String       @db.ObjectId
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  role           String       @default("member") // "admin" | "member"
+
   @@unique([conversationId, userId])
 }
 
