@@ -8,7 +8,20 @@ export async function GET(
   const { conversationId } = await params;
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
-    select: { id: true, isGroup: true, name: true },
+    select: {
+      id: true,
+      isGroup: true,
+      name: true,
+      participants: {
+        select: {
+          userId: true,
+          role: true,
+          joinedAt: true,
+          user: { select: { id: true, username: true, fname: true, pfp: true } },
+        },
+        orderBy: { joinedAt: "asc" },
+      },
+    },
   });
   return NextResponse.json(conversation);
 }
