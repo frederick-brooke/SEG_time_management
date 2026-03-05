@@ -5,7 +5,7 @@ import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
 
 import ReportFilter from "@/components/admin/report-filter-panel";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useUsers } from "@/hooks/useUsers";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { useAdminAppeals } from "@/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
@@ -49,7 +49,7 @@ export default function AdminPage() {
 
   const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  //open and close the panel
 
-  const {users, totalUserPages, totalUsers, loading} = useAdminStats(appliedUserFilters);
+  const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters);
 
   const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(appliedReportFilters);
 

@@ -1,9 +1,9 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { useAdminStats } from "../useAdminStats";
+import { useUsers } from "../useUsers";
 
 global.fetch = jest.fn();
 
-describe("useAdminStats", () => {
+describe("useUsers", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -19,7 +19,7 @@ describe("useAdminStats", () => {
     });
 
     const { result } = renderHook(() =>
-      useAdminStats({ page: "1", limit: "10" })
+      useUsers({ page: "1", limit: "10" })
     );
 
     await waitFor(() => {
@@ -42,7 +42,7 @@ describe("useAdminStats", () => {
     });
 
     const { result } = renderHook(() =>
-      useAdminStats({ page: "1" })
+      useUsers({ page: "1" })
     );
 
     await waitFor(() => {
@@ -61,7 +61,7 @@ describe("useAdminStats", () => {
     });
 
     const { result } = renderHook(() =>
-      useAdminStats({ page: "1" })
+      useUsers({ page: "1" })
     );
 
     await waitFor(() => {
@@ -77,7 +77,7 @@ describe("useAdminStats", () => {
     );
 
     const { result } = renderHook(() =>
-      useAdminStats({ page: "1" })
+      useUsers({ page: "1" })
     );
 
     await waitFor(() => {
@@ -98,7 +98,7 @@ describe("useAdminStats", () => {
     });
 
     const { rerender } = renderHook(
-      ({ filters }) => useAdminStats(filters),
+      ({ filters }) => useUsers(filters),
       {
         initialProps: { filters: { page: "1" } },
       }
