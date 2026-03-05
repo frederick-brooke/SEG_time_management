@@ -19,7 +19,7 @@ async function main() {
 
   const passwordHash = await bcrypt.hash('Password123', 10)
 
-  // --- Users ---
+  // Users
   console.log('Creating users...')
   const userCount = 20
   const users = []
@@ -43,7 +43,7 @@ async function main() {
   }
   console.log(`Created ${users.length} users.`)
 
-  // --- Tasks (currently 3 per user) ---
+  // Tasks (currently 3 per user)
   console.log('Creating tasks...')
   for (const user of users) {
     for (let t = 0; t < 3; t++) {
@@ -69,7 +69,7 @@ async function main() {
     }
   }
 
-  // --- Events (currently 6 per user) ---
+  // Events (currently 6 per user)
   console.log('Creating events...')
   for (const user of users) {
     for (let e = 0; e < 6; e++) {
@@ -98,7 +98,7 @@ async function main() {
     }
   }
 
-  // --- Friend Requests (Followers) (currently 5 per user) ---
+  // Friend Requests (Followers) (currently 5 per user)
   console.log('Creating friendships...')
   for (let i = 0; i < users.length; i++) {
     const user = users[i]
