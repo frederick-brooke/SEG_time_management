@@ -26,6 +26,11 @@ model User {
   bio String?
   pfp String?
 
+  // Location fields for friends map
+  city     String?
+  country  String?
+  location Json? // { lat: number, lng: number }
+
   accounts     Account[]
   tasks        Task[]
   preferences  UserPreferences?
