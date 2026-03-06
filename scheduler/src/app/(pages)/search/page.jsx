@@ -30,6 +30,8 @@ export default function SearchPage() {
 
     //do the same for all of the tasks and events etc...
 
+    //share the same input of the searchbar across each one as a global state
+
 
     const tabs = {
         users: (

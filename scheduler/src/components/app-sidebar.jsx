@@ -114,7 +114,7 @@ const data = {
   navSecondary: [
     {
       title: "Search",
-      url: "#",
+      url: "/search",
       icon: IconSearch,
     },
   ],
