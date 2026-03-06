@@ -43,6 +43,7 @@ model User {
   preferences    UserPreferences?
 
   progress       UserProgress?
+  inventory UserInventory[]
 
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
@@ -102,6 +103,13 @@ model UserProgress {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   transactions PointTransaction[]
+  equippedTitle  String?
+
+  equippedFrame  String?
+  xpBoostExpires DateTime?
+  streakShields  Int       @default(0)
+
+inventory UserInventory[]
 }
 
 model PointTransaction {
@@ -368,4 +376,38 @@ enum AppealStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum ShopItemType {
+  TITLE
+  FRAME
+  FUNCTIONAL
+}
+
+model ShopItem {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       @unique
+  description String
+  type        ShopItemType
+  price       Int
+  value       String
+  icon        String
+  rarity      String       @default("common")
+  isActive    Boolean      @default(true)
+
+  inventory UserInventory[]
+}
+
+model UserInventory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  itemId      String   @db.ObjectId
+  progressId  String   @db.ObjectId
+  purchasedAt DateTime @default(now())
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item     ShopItem     @relation(fields: [itemId], references: [id])
+  progress UserProgress @relation(fields: [progressId], references: [id])
+
+  @@unique([userId, itemId])
 }
