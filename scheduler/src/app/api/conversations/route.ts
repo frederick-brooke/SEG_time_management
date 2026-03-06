@@ -21,7 +21,15 @@ export async function GET() {
     orderBy: { lastMessageAt: "desc" },
   });
 
-  return NextResponse.json(conversations);
+  // Hide conversations where the user has cleared their history and no new messages have arrived since
+  const filtered = conversations.filter((conv) => {
+    const participant = conv.participants.find((p) => p.userId === session.user.id);
+    if (!participant?.deletedAt) return true;
+    // Keep it only if a new message arrived after they cleared it
+    return conv.lastMessageAt && new Date(conv.lastMessageAt) > new Date(participant.deletedAt);
+  });
+
+  return NextResponse.json(filtered);
 }
 
 export async function POST(req: Request) {
@@ -32,7 +40,6 @@ export async function POST(req: Request) {
 
   if (!isGroup && memberIds.length === 1) {
     const friendId = memberIds[0];
-
     const candidates = await prisma.conversation.findMany({
       where: {
         participants: { some: { userId: session.user.id } },
@@ -46,11 +53,11 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log("candidates:", candidates.map(c => ({
+    console.log("candidates:", candidates.map((c) => ({
       id: c.id,
       isGroup: c.isGroup,
       participantCount: c.participants.length,
-      participantIds: c.participants.map(p => p.userId),
+      participantIds: c.participants.map((p) => p.userId),
     })));
 
     const existing = candidates.find((c) => {
@@ -64,12 +71,18 @@ export async function POST(req: Request) {
       return match;
     });
 
-    if (existing) return NextResponse.json(existing);
+    if (existing) {
+      // If they had previously cleared this conversation, reset deletedAt so it reappears
+      await prisma.conversationParticipant.updateMany({
+        where: { conversationId: existing.id, userId: session.user.id },
+        data: { deletedAt: null },
+      });
+      return NextResponse.json(existing);
+    }
   }
 
   if (isGroup) {
     const allMemberIds = [...new Set([session.user.id, ...memberIds])] as string[];
-
     const existingGroups = await prisma.conversation.findMany({
       where: {
         isGroup: true,
