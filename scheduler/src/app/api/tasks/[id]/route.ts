@@ -1,111 +1,81 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/src/lib/prisma";
+import prisma from "@/src/lib/prisma";
+import { awardTaskPoints, revokeTaskPoints } from "@/src/lib/points";
 
 // Delete task
-export async function DELETE(request, { params }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await prisma.task.delete({
-      where: { id },
-    });
+
+    await prisma.task.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to delete task" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to delete task" }, { status: 500 });
   }
 }
 
-// Points per level threshold - 100 XP per level
-const XP_PER_LEVEL = 100;
-
-/**
- * Calculates the new level based on total experience points
- */
-function calculateLevel(totalExperience: number): number {
-  return Math.floor(totalExperience / XP_PER_LEVEL) + 1;
-}
-
-export async function PATCH(request, { params }) {
+// Patch (update) task
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json();
-    
-    console.log("=== PATCH CALLED ===");
-    console.log("Task ID:", id);
-    console.log("Body received:", JSON.stringify(body));
 
-    const currentTask = await prisma.task.findUnique({
-      where: { id },
-      select: { completed: true, userId: true, priority: true, title: true }
-    });
-
-    console.log("Current task:", JSON.stringify(currentTask));
-    console.log("body.completed:", body.completed, "| currentTask.completed:", currentTask?.completed);
-    console.log("isCompleting would be:", body.completed === true && currentTask?.completed === false);
-
-    if (!currentTask) {
+    // Fetch the current task so we know its previous state + owner
+    const existingTask = await prisma.task.findUnique({ where: { id } });
+    if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // 2. Only award points if task is going from incomplete → complete
-    const isCompleting = body.completed === true && currentTask.completed === false;
+    const wasCompleted = existingTask.completed;
 
-    // 3. Points map based on priority
-    const pointsMap: Record<string, number> = { High: 50, Medium: 25, Low: 10 };
-    const xpGained = pointsMap[currentTask.priority] ?? 10;
+    // Build update data
+    const updateData: Record<string, unknown> = {};
 
-    // 4. Run everything in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Update the task itself
-      const updatedTask = await tx.task.update({
-        where: { id },
-        data: body,
-      });
+    if (body.title !== undefined) updateData.title = body.title;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.dueDate !== undefined) updateData.dueDate = new Date(body.dueDate);
+    if (body.priority !== undefined) updateData.priority = body.priority;
+    if (body.duration !== undefined) updateData.duration = body.duration;
+    if (body.subtasks !== undefined) updateData.subtasks = body.subtasks;
+    if (body.url !== undefined) updateData.url = body.url;
 
-      if (isCompleting) {
-        // Fetch the user's current experience BEFORE incrementing
-        const user = await tx.user.findUnique({
-          where: { id: currentTask.userId },
-          select: { experience: true, points: true, level: true }
-        });
-
-        if (!user) throw new Error(`User ${currentTask.userId} not found`);
-
-        const newExperience = user.experience + xpGained;
-        const newLevel = calculateLevel(newExperience);
-
-        console.log(`>>> Awarding ${xpGained} XP to user ${currentTask.userId}`);
-        console.log(`>>> XP: ${user.experience} → ${newExperience} | Level: ${user.level} → ${newLevel}`);
-
-        // Update user: points, experience, AND level
-        await tx.user.update({
-          where: { id: currentTask.userId },
-          data: {
-            points:     { increment: xpGained },
-            experience: { increment: xpGained },
-            level:      newLevel,   // ← set directly, not incremented
-          }
-        });
-
-        // Record the transaction
-        await tx.pointTransaction.create({
-          data: {
-            userId: currentTask.userId,
-            amount: xpGained,
-            reason: `TASK_COMPLETED: ${currentTask.title}`,
-            taskId: id,
-          }
-        });
+    // Handle status updates and sync with completed field
+    if (body.status !== undefined) {
+      updateData.status = body.status;
+      if (body.status === "completed") {
+        updateData.completed = true;
+        updateData.completedAt = new Date();
+      } else {
+        updateData.completed = false;
+        updateData.completedAt = null;
       }
+    }
 
-      return updatedTask;
-    });
+    // Handle direct completed toggles
+    if (body.completed !== undefined) {
+      updateData.completed = body.completed;
+      updateData.completedAt = body.completed ? new Date() : null;
+      updateData.status = body.completed ? "completed" : "todo";
+    }
 
-    return NextResponse.json(result);
+    const task = await prisma.task.update({ where: { id }, data: updateData });
+
+    // ── POINTS LOGIC ──────────────────────────────────────────────
+    const isNowCompleted = task.completed;
+    const priority = task.priority ?? "Low";
+
+    if (!wasCompleted && isNowCompleted) {
+      // Task was just completed → award points
+      await awardTaskPoints(task.userId, task.id, priority);
+    } else if (wasCompleted && !isNowCompleted) {
+      // Task was un-completed → revoke points
+      await revokeTaskPoints(task.userId, task.id, priority);
+    }
+    // ──────────────────────────────────────────────────────────────
+
+    return NextResponse.json({ task });
   } catch (error) {
-    console.error("PATCH ERROR:", error);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    console.error("Failed to update task:", error);
+    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
   }
 }

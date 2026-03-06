@@ -70,27 +70,43 @@ export function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="text-sm font-bold text-gray-900">Priority</Label>
-              <p className="text-sm mt-1">
-                <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}
-                >
-                  {task.priority}
-                </span>
-              </p>
-            </div>
-            <div>
-              <Label className="text-sm font-bold text-gray-900">Estimated Time</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                {task.duration > 0
-                  ? `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`
-                  : "No estimate"}
-              </p>
-            </div>
+          <div>
+            <Label className="text-sm font-medium">Priority</Label>
+            <p className="text-sm mt-1">
+              <span
+                className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}
+              >
+                {task.priority}
+              </span>
+            </p>
           </div>
 
+          <div>
+            <Label className="text-sm font-medium">Estimated Time</Label>
+            <p className="text-sm text-muted-foreground mt-1">
+              {task.duration > 0
+                ? `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`
+                : "No estimate set"}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <h4 className="text-sm font-semibold text-foreground">Study Resource</h4>
+            {task.url ? (
+              <a
+                href={task.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View Resource
+              </a>
+            ) : (
+              <p className="text-sm text-muted-foreground">No resource attached</p>
+            )}
+          </div>
+          
           <div>
             <Label className="text-sm font-bold text-gray-900">Due Date</Label>
             <p className="text-sm text-muted-foreground mt-1">
@@ -101,6 +117,13 @@ export function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
                     year: "numeric",
                   })
                 : "No due date set"}
+            </p>
+          </div>
+
+          <div className="grid gap-1">
+            <p className="text-sm font-semibold">Linked Exams</p>
+            <p className="text-sm text-muted-foreground">
+              {task.exam?.title || "Not linked to an exam"}
             </p>
           </div>
 

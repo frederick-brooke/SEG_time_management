@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import styles from "./timer.module.css"
 import { useTimer } from "hooks/useTimer";
 
 import Reminders from "./reminders";
@@ -31,7 +30,7 @@ export default function Timer({storageKey, onTick}) {
 
     useEffect(() => {
         if(
-            reminderFireAt !== null && remainingMs <= reminderFireAtMs
+            reminderFireAt !== null && remainingMs <= reminderFireAt
         ){
             setReminderFired(true);
             setReminderOffsetMs(null);
@@ -84,8 +83,10 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
     return (
         //jsx representation of the entire timer component
-        <div className={styles["timer"]}>
-            <div className={styles["time-text"]}>
+        <div className="w-[380px] rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 p-6 shadow-xl text-white flex flex-col items-center gap-6">
+
+            {/* Time display */}
+            <div className="text-4xl font-semibold tracking-wider text-center">
                 {!hasStarted ? (
                     //Display thbe time input if the timer hasn't started
                     <input
@@ -93,24 +94,38 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
                         step="1"
                         value={timeInput}
                         onChange={(e) => setTimeInput(e.target.value)}
+                        className="bg-white/20 backdrop-blur-sm text-white text-center text-2xl rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-white/70"
                     />
                 ) 
                 :   //display the countdown when the timer has started
-                ( <div className={styles["time-text"]}> 
+                ( <div className="font-mono text-5xl"> 
                         {format(hours)}:{format(minutes)}:{format(seconds)}
                     </div>
                 )}
             </div>            
+            
+            {/* Timer buttons */}
+            <div className="flex gap-4">
                 
-            <div className={styles["timer-buttons"]}>
-                <div className={styles["timer-control"]}>
-                    {!hasStarted && <button onClick={submitTime}> Start</button>}
-                    {isRunning && <button onClick={pauseTimer}> Pause</button>}
-                    {(hasStarted && !isRunning) && <button onClick={resumeTimer}> Resume </button> }
-                </div>
-                <div className={styles["timer-stop"]}>
-                    {hasStarted && <button onClick={stopTimer}> Stop</button>}
-                </div>               
+                {!hasStarted && <button onClick={submitTime}
+                    className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition">
+                        Start
+                </button>}
+
+                {isRunning && <button onClick={pauseTimer}
+                    className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition">
+                    Pause
+                </button>}
+
+                {(hasStarted && !isRunning) && <button onClick={resumeTimer}
+                    className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition">
+                    Resume 
+                </button> }
+                
+                {hasStarted && <button onClick={stopTimer}
+                    className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition"> 
+                    Stop
+                </button>}
             </div>            
         </div>
     );

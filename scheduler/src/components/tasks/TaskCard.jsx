@@ -66,6 +66,12 @@ export function TaskCard({
           >
             {task.priority}
           </span>
+
+          {task.exam && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full border bg-blue-50 text-blue-700 border-blue-100 font-medium">
+              {task.exam.title}
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">

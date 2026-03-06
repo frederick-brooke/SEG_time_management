@@ -62,7 +62,9 @@ export default function EventForm({
   defaultUntil.setMonth(defaultUntil.getMonth() + 1);
 
   const [recurrenceUntil, setRecurrenceUntil] = useState(
-    initialEvent?.recurrence?.until ? formatDate(new Date(initialEvent.recurrence.until)) : formatDate(defaultUntil)
+    initialEvent?.recurrence?.until
+      ? formatDate(new Date(initialEvent.recurrence.until))
+      : formatDate(defaultUntil)
   );
   const [recurrenceDays, setRecurrenceDays] = useState<string[]>(
     initialEvent?.recurrence?.days || []
@@ -71,6 +73,28 @@ export default function EventForm({
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
 
+  const [searchQuery, setSearchQuery] = useState({
+    start: initialEvent?.startLocationName || (initialEvent?.startCoords ? "Stored Location" : ""),
+    dest: initialEvent?.destLocationName || (initialEvent?.destCoords ? "Stored Location" : ""),
+  });
+
+  const [suggestions, setSuggestions] = useState<{ start: any[]; dest: any[] }>({ start: [], dest: [] });
+
+  const [startCoords, setStartCoords] = useState(initialEvent?.startCoords ?? null);
+  const [destCoords, setDestCoords] = useState(
+    initialEvent?.destinationCoords ?? initialEvent?.destCoords ?? null
+  );
+
+  const [transportMode, setTransportMode] = useState<"walking" | "cycling" | "driving" >(
+    initialEvent?.transportMode || "walking"
+  );
+
+  const [travelPreview, setTravelPreview] = useState<number | null>(
+    initialEvent?.travelDuration || null
+  );
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // --- EFFECTS ---
   useEffect(() => {
     if (recurrenceType === "weekly" && recurrenceDays.length === 0) {
       const dayIndex = new Date(startDate).getDay();
@@ -78,6 +102,32 @@ export default function EventForm({
       setRecurrenceDays([map[dayIndex]]);
     }
   }, [recurrenceType, startDate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchPreview = async () => {
+      if (startCoords && destCoords) {
+        setIsCalculating(true);
+        try {
+          const s = encodeURIComponent(JSON.stringify(startCoords));
+          const d = encodeURIComponent(JSON.stringify(destCoords));
+          const res = await fetch(
+            `/api/travel/preview?mode=${transportMode}&start=${s}&dest=${d}`
+          );
+          const data = await res.json();
+          if (!cancelled) setTravelPreview(data.duration);
+        } catch (err) {
+          if (!cancelled) console.error(err);
+        } finally {
+          if (!cancelled) setIsCalculating(false);
+        }
+      }
+    };
+
+    fetchPreview();
+    return () => { cancelled = true; };
+  }, [startCoords, destCoords, transportMode]);
 
   // --- HANDLERS ---
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,9 +139,10 @@ export default function EventForm({
 
     if (end <= start) return alert("End time must be after start time");
 
-    const recurrenceUntilISO = recurrenceUntil && !isNaN(Date.parse(recurrenceUntil))
-      ? new Date(recurrenceUntil).toISOString()
-      : undefined;
+    const recurrenceUntilISO =
+      recurrenceUntil && !isNaN(Date.parse(recurrenceUntil))
+        ? new Date(recurrenceUntil).toISOString()
+        : undefined;
 
     const payload = {
       id: initialEvent?.id,
@@ -106,6 +157,12 @@ export default function EventForm({
       recurrenceType,
       recurrenceDays: recurrenceType === "weekly" ? recurrenceDays : undefined,
       recurrenceUntil: recurrenceUntilISO,
+      startCoords: startCoords?.lat ? { lat: startCoords.lat, lng: startCoords.lng } : null,
+      destCoords: destCoords?.lat ? { lat: destCoords.lat, lng: destCoords.lng } : null,
+      travelDuration: travelPreview || 0,
+      startLocationName: searchQuery.start,
+      destLocationName: searchQuery.dest,
+      transportMode,
     };
 
     const conflict = existingEvents.find((ev: any) => {
@@ -142,45 +199,95 @@ export default function EventForm({
   const handleDelete = async () => {
     if (!initialEvent?.id || isGoogle) return;
 
-    const confirmMsg = editMode === "single"
-      ? "Are you sure you want to delete this specific occurrence?"
-      : "Are you sure you want to delete the entire series?";
+    const confirmMsg =
+      editMode === "single"
+        ? "Are you sure you want to delete this specific occurrence?"
+        : "Are you sure you want to delete the entire series?";
 
     if (!confirm(confirmMsg)) return;
 
     const realId = initialEvent.id;
-
     if (!realId || !/^[a-f\d]{24}$/i.test(realId)) {
       alert(`Invalid event ID: "${realId}". Cannot delete.`);
-      console.error("Bad realId:", realId, "Full event:", initialEvent);
       return;
     }
-    const dateToSend = new Date(initialEvent.start).toISOString();
 
     const params = new URLSearchParams({
       id: realId,
       mode: editMode,
-      date: dateToSend,
+      date: new Date(initialEvent.start).toISOString(),
     });
 
-    console.log("EventForm DELETE params:", Object.fromEntries(params)); 
-
     try {
-      const res = await fetch(`/api/calendar/events?${params.toString()}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/calendar/events?${params.toString()}`, { method: "DELETE" });
       if (res.ok) {
         onSuccess();
       } else {
         const error = await res.json();
-        console.error("EventForm delete error:", error);
         alert(error.message || "Failed to delete");
       }
     } catch (err) {
-      console.error("Delete Error:", err);
       alert("An error occurred while deleting.");
     }
+  };
+const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+const handleLocationSearch = (text: string, type: "start" | "dest") => {
+  setSearchQuery((prev) => ({ ...prev, [type]: text }));
+
+  if (debounceTimer) clearTimeout(debounceTimer);
+
+  const timer = setTimeout(async () => {
+    if (text.length < 3) {
+      setSuggestions((prev) => ({ ...prev, [type]: [] }));
+      return;
+    }
+
+    try {
+        const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
+
+        if (!res.ok) {
+          console.error("Search failed:", res.status);
+          setSuggestions((prev) => ({ ...prev, [type]: [] }));
+          return;
+        }
+
+        const data = await res.json();
+
+      setSuggestions((prev) => ({
+        ...prev,
+        [type]: Array.isArray(data) ? data : [],
+      }));
+    } catch (err) {
+      console.error("Location search failed", err);
+    }
+  }, 400); // 400ms delay
+
+  setDebounceTimer(timer);
+};
+useEffect(() => {
+  return () => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+  };
+}, [debounceTimer]);
+
+  const selectLocation = (feature: any, type: "start" | "dest") => {
+    if (!feature?.geometry?.coordinates) return;
+    const lng = parseFloat(feature.geometry.coordinates[0]);
+    const lat = parseFloat(feature.geometry.coordinates[1]);
+    const name = feature.properties.name;
+
+    setSearchQuery((prev) => ({ ...prev, [type]: name }));
+    if (type === "start") setStartCoords({ lat, lng });
+    else setDestCoords({ lat, lng });
+    setSuggestions((prev) => ({ ...prev, [type]: [] }));
+  };
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) return alert("Geolocation not supported");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setStartCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      setSearchQuery((prev) => ({ ...prev, start: "📍 My Current Location" }));
+    });
   };
 
   // --- RENDER ---
@@ -191,8 +298,12 @@ export default function EventForm({
         <h4 className="text-xl font-bold text-gray-800 mb-2">Schedule Conflict</h4>
         <p className="text-gray-500 mb-6">This overlaps with another event. Proceed?</p>
         <div className="flex flex-col gap-3 w-full">
-          <button onClick={() => saveEvent(pendingPayload)} className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold">Ignore & Save</button>
-          <button onClick={() => setShowConflictWarning(false)} className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold">Go Back</button>
+          <button onClick={() => saveEvent(pendingPayload)} className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold">
+            Ignore & Save
+          </button>
+          <button onClick={() => setShowConflictWarning(false)} className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold">
+            Go Back
+          </button>
         </div>
       </div>
     );
@@ -206,6 +317,7 @@ export default function EventForm({
         </div>
       )}
 
+      {/* Single vs Series toggle */}
       {initialEvent && isRecurring && !isGoogle && (
         <div className="flex bg-gray-100 p-1 rounded-lg">
           <button
@@ -229,6 +341,7 @@ export default function EventForm({
         </div>
       )}
 
+      {/* Title */}
       <input
         type="text"
         placeholder="Event Title"
@@ -239,6 +352,7 @@ export default function EventForm({
         className="border p-2 rounded text-black outline-blue-500 disabled:opacity-50"
       />
 
+      {/* Category */}
       <div>
         <label className="text-sm font-semibold text-gray-600">Category</label>
         <div className="flex flex-wrap gap-2 mt-2">
@@ -251,7 +365,7 @@ export default function EventForm({
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
                 category === cat.label ? "border-black scale-105" : "border-transparent opacity-40"
               }`}
-              style={{ backgroundColor: cat.color, color: "white" }}
+              style={{ backgroundColor: cat.color }}
             >
               {cat.label}
             </button>
@@ -259,6 +373,7 @@ export default function EventForm({
         </div>
       </div>
 
+      {/* Date & Time */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-bold text-gray-400">START</label>
@@ -272,6 +387,7 @@ export default function EventForm({
         </div>
       </div>
 
+      {/* Recurrence */}
       {!isGoogle && editMode === "series" && (
         <div className="border-t pt-4">
           <label className="text-sm font-semibold text-gray-600">Repeat</label>
@@ -308,24 +424,146 @@ export default function EventForm({
                 </div>
               )}
               <label className="text-xs text-gray-400">Until</label>
-              <input type="date" value={recurrenceUntil} onChange={(e) => setRecurrenceUntil(e.target.value)} className="w-full border p-2 rounded mt-1" />
+              <input
+                type="date"
+                value={recurrenceUntil}
+                onChange={(e) => setRecurrenceUntil(e.target.value)}
+                className="w-full border p-2 rounded mt-1"
+              />
             </div>
           )}
         </div>
       )}
 
+      {/* Location Section */}
+      <div className="space-y-4 border-t pt-4 mt-4">
+
+        {/* STARTING POINT */}
+        <div className="relative">
+          <div className="flex justify-between items-center">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Starting Point</label>
+            <button
+              type="button"
+              onClick={useCurrentLocation}
+              className="text-[10px] text-blue-600 font-bold hover:text-blue-800 transition-colors"
+            >
+              📍 Use My Location
+            </button>
+          </div>
+          <input
+            type="text"
+            placeholder="Where are you coming from?"
+            value={searchQuery.start}
+            onChange={(e) => handleLocationSearch(e.target.value, "start")}
+            className="w-full border p-2 rounded-lg mt-1 text-black bg-white"
+          />
+          {suggestions.start.length > 0 && (
+            <div className="absolute z-[100] w-full bg-white border border-gray-200 rounded-lg shadow-2xl mt-1 max-h-48 overflow-auto">
+              {suggestions.start.map((s: any, i) => (
+                <button
+                  key={`start-${i}`}
+                  type="button"
+                  onClick={() => selectLocation(s, "start")}
+                  className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0 text-gray-700"
+                >
+                  <span className="font-semibold">{s.properties.name}</span>
+                  {s.properties.city && (
+                    <span className="text-gray-400 ml-1">({s.properties.city})</span>
+                  )}
+                  <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* DESTINATION */}
+        <div className="relative">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Destination</label>
+          <input
+            type="text"
+            placeholder="Search destination address..."
+            value={searchQuery.dest}
+            onChange={(e) => handleLocationSearch(e.target.value, "dest")}
+            className="w-full border p-2 rounded-lg mt-1 text-black bg-white"
+          />
+          {suggestions.dest.length > 0 && (
+            <div className="absolute z-[100] w-full bg-white border border-gray-200 rounded-lg shadow-2xl mt-1 max-h-48 overflow-auto">
+              {suggestions.dest.map((s: any, i) => (
+                <button
+                  key={`dest-${i}`}
+                  type="button"
+                  onClick={() => selectLocation(s, "dest")}
+                  className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0 text-gray-700"
+                >
+                  <span className="font-semibold">{s.properties.name}</span>
+                  {s.properties.city && (
+                    <span className="text-gray-400 ml-1">({s.properties.city})</span>
+                  )}
+                  <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* Transport Mode */}
+      <div className="mt-4">
+        <label className="text-sm font-semibold text-gray-600">Mode of Transport</label>
+        <select
+          value={transportMode}
+          onChange={(e) => setTransportMode(e.target.value as any)}
+          className="w-full border p-2 rounded mt-1"
+        >
+          <option value="walking">Walking</option>
+          <option value="cycling">Cycling</option>
+          <option value="driving">Driving</option>
+        </select>
+      </div>
+
+      {/* Travel Preview */}
+      {startCoords && destCoords && (
+        <div className="mt-2 p-2 bg-blue-50 rounded-lg flex items-center gap-2">
+          <span className="text-blue-600">{isCalculating ? "🔄" : "⏱️"}</span>
+          <span className="text-sm font-medium text-blue-800">
+            {isCalculating ? (
+              "Calculating new route..."
+            ) : travelPreview !== null ? (
+              <>Estimated {transportMode} time: <strong>{travelPreview} mins</strong></>
+            ) : (
+              "No route found for this mode"
+            )}
+          </span>
+        </div>
+      )}
+
+      {/* Submit */}
       <button
         type="submit"
-        disabled={isGoogle}
-        className={`w-full p-3 rounded-xl font-bold text-white transition-all active:scale-95 shadow-lg ${
-          isGoogle ? "bg-gray-300" : editMode === "single" ? "bg-amber-600 hover:bg-amber-700" : "bg-blue-600 hover:bg-blue-700"
+        disabled={isGoogle || isCalculating}
+        className={`w-full p-3 rounded-xl font-bold text-white transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 ${
+          isGoogle
+            ? "bg-gray-300 cursor-not-allowed"
+            : isCalculating
+            ? "bg-gray-400 cursor-wait"
+            : editMode === "single"
+            ? "bg-amber-600 hover:bg-amber-700"
+            : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
-        {initialEvent
-          ? (editMode === "single" ? "Update Only This Day" : "Update Series")
+        {isCalculating && <span className="animate-spin text-lg">⏳</span>}
+        {isCalculating
+          ? "Calculating Travel..."
+          : initialEvent
+          ? editMode === "single"
+            ? "Update Only This Day"
+            : "Update Series"
           : "Create Event"}
       </button>
 
+      {/* Delete */}
       {initialEvent && !isGoogle && (
         <button
           type="button"

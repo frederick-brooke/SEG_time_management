@@ -98,8 +98,8 @@ export default function ProfilePageClient({ profile, isOwnProfile }: ProfilePage
   const [isPending, startTransition] = useTransition();
   
   // Gamification Logic
-  const level = profile.level || 1;
-  const totalPoints = profile.points || 0;
+  const level = profile.progress?.level ?? 1;
+  const totalPoints = profile.progress?.points ?? 0;
   const xpProgress = totalPoints % 100; // Assuming 100XP per level
 
   /**
