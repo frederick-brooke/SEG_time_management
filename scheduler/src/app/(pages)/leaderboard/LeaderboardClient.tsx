@@ -18,19 +18,18 @@ interface LeaderboardUser {
 export default function LeaderboardClient({ initialData }: { initialData: LeaderboardUser[] }) {
   const [sortBy, setSortBy] = useState<'streak' | 'focusTime' | 'completionRate'>('streak');
 
-  // Sort the data dynamically based on the dropdown selection
   const sortedData = [...initialData].sort((a, b) => {
     if (sortBy === 'streak') {
       if (b.streak !== a.streak) return b.streak - a.streak;
-      return b.focusTimeRaw - a.focusTimeRaw; // Tie-breaker
+      return b.focusTimeRaw - a.focusTimeRaw; 
     }
     if (sortBy === 'focusTime') {
       if (b.focusTimeRaw !== a.focusTimeRaw) return b.focusTimeRaw - a.focusTimeRaw;
-      return b.streak - a.streak; // Tie-breaker
+      return b.streak - a.streak; 
     }
     if (sortBy === 'completionRate') {
       if (b.completionRate !== a.completionRate) return b.completionRate - a.completionRate;
-      return b.focusTimeRaw - a.focusTimeRaw; // Tie-breaker
+      return b.focusTimeRaw - a.focusTimeRaw; 
     }
     return 0;
   });

@@ -37,7 +37,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);     // clears any previous error messages
+    setError(null);     
 
     const result = await signIn("credentials", {    // stores whether login succeeded or failed
       redirect: false,    // dont automatically redirect, let us handle it
