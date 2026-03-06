@@ -300,6 +300,7 @@ model ConversationParticipant {
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           String       @default("member") // "admin" | "member"
   joinedAt       DateTime     @default(now())
+  deletedAt      DateTime?
   
   @@unique([conversationId, userId])
 }
