@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import SearchUsers from "@/components/search-page/searchUsers";
 import { useUsers } from "@/hooks/useUsers";
+import UserFilter from "@/components/admin/user-filter-panel";
 
 export default function SearchPage() {
     //User management states
@@ -22,22 +23,33 @@ export default function SearchPage() {
     
 
     return(
-        <SearchUsers
-            users={users}
-            totalUsers={totalUsers}
-            totalUserPages={totalUserPages}
-            setIsUserFilterOpen={setIsUserFilterOpen}
-            selectedUser={selectedUser}
-            setSelectedUser={setSelectedUser}
-            filters={appliedUserFilters}
-            setFilters={setAppliedUserFilters}
-            resetFilters={resetUserFilters}
-        />
+        <>
+            <SearchUsers
+                users={users}
+                totalUsers={totalUsers}
+                totalUserPages={totalUserPages}
+                setIsUserFilterOpen={setIsUserFilterOpen}
+                selectedUser={selectedUser}
+                setSelectedUser={setSelectedUser}
+                filters={appliedUserFilters}
+                setFilters={setAppliedUserFilters}
+                resetFilters={resetUserFilters}
+            />
+
+            {isUserFilterOpen && (
+                <UserFilter 
+                filters={draftUserFilters}
+                setFilters={setDraftUserFilters}
+                onClose={() => setIsUserFilterOpen(false)}
+                applyFilters={() => {
+                    setAppliedUserFilters(draftUserFilters);
+                    setIsUserFilterOpen(false);
+                }}
+                resetFilters={() => {
+                    setAppliedUserFilters(defaultUserFilters);
+                }}              
+                />
+            )}        
+        </>       
     );
-
-
-
-
-
-
 }
