@@ -1,6 +1,6 @@
 'use client';
 
-import { updateProfile, acceptFriendRequest, rejectFriendRequest, sendFriendRequest, removeFriend, cancelFriendRequest } from "@/src/app/actions/profile";
+import { updateProfile, acceptFriendRequest, rejectFriendRequest, sendFriendRequest, removeFriend, cancelFriendRequest } from "../../actions/profile";
 import { AppSidebar } from "components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
 import { SiteHeader } from "components/site-header";
@@ -8,7 +8,7 @@ import { Check, X, Users, Trophy, Target, CheckCircle, UserPlus, UserCheck, Cloc
 import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import ReportModal from "@/src/components/admin/report-modal";
+import ReportModal from "components/admin/report-modal";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
