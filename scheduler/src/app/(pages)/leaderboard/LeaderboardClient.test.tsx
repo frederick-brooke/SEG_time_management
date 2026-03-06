@@ -2,6 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import LeaderboardClient from './LeaderboardClient';
 import '@testing-library/jest-dom';
 
+jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);
+
 describe('LeaderboardClient Component', () => {
   it('renders the empty state correctly', () => {
     render(<LeaderboardClient initialData={[]} />);
@@ -21,6 +23,8 @@ describe('LeaderboardClient Component', () => {
     
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByAltText('alice')).toBeInTheDocument(); 
+    
+    expect(screen.getByText('Alice').closest('a')).toHaveAttribute('href', '/profile/alice');
     
     const select = screen.getByRole('combobox');
     
