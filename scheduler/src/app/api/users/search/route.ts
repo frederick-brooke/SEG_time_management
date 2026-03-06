@@ -35,7 +35,11 @@ export async function GET(req: Request) {
     const totalUsers = await prisma.user.count(); //fixed number of users
 
     //dynamically build the query set
-    const where: any = {};
+    const where: any = {
+        username:{
+            not: session.user.username
+        }
+    };
 
     if (search && search.trim() !== "") {
         where.username = {
@@ -69,11 +73,21 @@ export async function GET(req: Request) {
 
     // total matching search
     const totalMatchingUsers = await prisma.user.count({
-        where,
+        where: {
+            ...where,
+            username: {
+                not: session?.user?.username,
+            },
+        },
     });
 
     const users = await prisma.user.findMany({
-        where,
+        where: {
+            ...where,
+            username: {
+                not: session?.user?.username,
+            },
+        },
         orderBy: {
             [sortBy]: order,        //lowercase comes after upercase always
         },

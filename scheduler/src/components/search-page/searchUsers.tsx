@@ -9,6 +9,7 @@ import UserCard from "./user-cards";
 export default function SearchUsers({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
 {
     const [inputValue, setInputValue] = useState(filters.search ?? "");   // typed value
+    const [limit] = useState(10);   //from the API 
 
     return(
         <div className="p-6">
@@ -65,29 +66,25 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                 </div>
 
                 <div className="mt-4 flex justify-center">
-                {users.length !== 0 && (
-                    <p className="text-sm text-gray-600">
-                    Showing{" "}
-                    <span className="font-semibold text-gray-900">
-                        {users.length == 0. && (
-                            totalUsers
-                        )}
+                    {users.length !== 0 && (
+                        <p className="text-sm text-gray-600">
+                            Showing{" "}
+                        <span className="font-semibold text-gray-900">
+                            {(filters.page - 1) * limit + 1}
+                        </span>{" "}
+                        to{" "}
+                        <span className="font-semibold text-gray-900">
+                            {(filters.page - 1) * limit + users.length}   
+                        </span>{" "}
+                            users
+                        </p>
+                    )}           
 
-                        {users.length}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-semibold text-gray-900">
-                        {totalUsers}    
-                    </span>{" "}
-                    users
-                    </p>
-                )}           
-
-                {users.length === 0 && (
-                    <p className="text-sm text-gray-500 mt-4">
-                    No users found.
-                    </p>
-                )}
+                    {users.length === 0 && (
+                        <p className="text-sm text-gray-500 mt-4">
+                        No users found.
+                        </p>
+                    )}
                 </div>
 
                 {totalUserPages >= 1 && (

@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SearchUsers from "@/components/search-page/searchUsers";
 import { useUsers } from "@/hooks/useUsers";
 import UserFilter from "@/components/admin/user-filter-panel";

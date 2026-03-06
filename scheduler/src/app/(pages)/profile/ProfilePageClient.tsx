@@ -9,6 +9,7 @@ import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import ReportModal from "@/src/components/admin/report-modal";
+import { isObject } from "framer-motion";
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
@@ -184,12 +185,14 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
               </div>
               <FriendRequestButton />
 
-              <button
-                onClick={() => setShowReport(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border border-red-200"
-              >
-                <Flag/> Report User
-              </button>
+              {!isOwnProfile && (
+                <button
+                  onClick={() => setShowReport(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border border-red-200"
+                >
+                  <Flag/> Report User
+                </button>
+              )}
             </div>
 
             {showReport && (
