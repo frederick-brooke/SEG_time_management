@@ -36,16 +36,20 @@ export async function GET(req: Request) {
 
     //dynamically build the query set
     const where: any = {
-        username:{
-            not: session.user.username
-        }
+        AND: [{
+            username:{
+                not: session.user.username
+            }}     
+        ]
     };
 
     if (search && search.trim() !== "") {
-        where.username = {
-            contains: search,
-            mode: "insensitive",
-        };
+        where.AND.push({
+            username: {
+                contains: search,
+                mode: "insensitive"
+            }
+        });
     }
 
     //date filtering of theusers
@@ -73,21 +77,11 @@ export async function GET(req: Request) {
 
     // total matching search
     const totalMatchingUsers = await prisma.user.count({
-        where: {
-            ...where,
-            username: {
-                not: session?.user?.username,
-            },
-        },
+        where
     });
 
     const users = await prisma.user.findMany({
-        where: {
-            ...where,
-            username: {
-                not: session?.user?.username,
-            },
-        },
+        where,
         orderBy: {
             [sortBy]: order,        //lowercase comes after upercase always
         },

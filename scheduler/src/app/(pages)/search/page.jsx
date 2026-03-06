@@ -4,9 +4,11 @@ import SearchUsers from "@/components/search-page/searchUsers";
 import { useUsers } from "@/hooks/useUsers";
 import UserFilter from "@/components/admin/user-filter-panel";
 
+import SearchControls from "@/components/search-page/search-controls";
+
 export default function SearchPage() {
     //User management states
-    const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1};  //user search parameters
+    const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1};  //user search parameters
 
     const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
     const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
@@ -25,12 +27,13 @@ export default function SearchPage() {
 
     //manage users, tasks, events search 
     //determine which filter panel and reset button to load up
-    const [isSearchUsers, setIsSearchUsers] = useState(true);   //by default
-    const [isSearchTasks, setIsSearchTasks] = useState(false);
-    const [isSearchEvents, setIsSearchEvents] = useState(false);
+
+    //do the same for all of the tasks and events etc...
+
 
     const tabs = {
         users: (
+            <>
             <SearchUsers
                 users={users}
                 totalUsers={totalUsers}
@@ -42,6 +45,8 @@ export default function SearchPage() {
                 setFilters={setAppliedUserFilters}
                 resetFilters={resetUserFilters}
             />
+        </>
+            
         ),
     
         tasks:(
@@ -56,6 +61,16 @@ export default function SearchPage() {
     return(
         <>
             <div>
+                {currentTab=="users" && (
+                    <SearchControls
+                        filters={appliedUserFilters}
+                        setFilters={setAppliedUserFilters}
+                        resetFilters={resetUserFilters}
+                        onOpenFilter={() => setIsUserFilterOpen(true)}
+                        placeholder="Search users..."
+                    />
+                )}
+
                 {/* tabs header title */}
                 <div className="flex border-b mb-4">
                     <button

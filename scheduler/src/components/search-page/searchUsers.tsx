@@ -3,7 +3,6 @@
 import { useState } from "react";
 import UserPanel from "@/components/admin/admin-user-panel";
 import {FunnelXIcon } from "lucide-react";
-import { useRouter } from "next/router";
 import UserCard from "./user-cards";
 
 export default function SearchUsers({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
@@ -17,49 +16,6 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                 <h2 className="text-2xl font-semibold mb-4">Search</h2>
                 
                 <div>
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            setFilters(saved_result => ({
-                                ...saved_result,
-                                search: inputValue,
-                                page: 1,
-                            }));
-                        }}
-                        className="flex flex wrap items-center gap-2 mb-6"
-                    >
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-                        />
-
-                        <button
-                            type="submit"
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
-                        >
-                            Search
-                        </button>
-
-                        <button
-                            type="button"
-                            className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
-                            onClick={() => setIsUserFilterOpen(true)}
-                        >
-                            Filter
-                        </button>
-
-                        <button 
-                            type="button" 
-                            className="bg-gray-200 text-gray-700 px-3 py-2 rounded hover:bg-gray-300 transition flex items-center"
-                            onClick={() => {setInputValue(""); resetFilters()}}
-                        >
-                            <FunnelXIcon size={16} className="mr-1"/> Reset
-                        </button>
-                    </form>
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {users.map((user) => (
                             <UserCard key={user.id} user={user} onClick={() => window.location.href = `/profile/${user.username}`} />// navigate to profile
