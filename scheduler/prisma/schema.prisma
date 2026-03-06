@@ -51,6 +51,9 @@ model User {
 
   appeals Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
+
+  conversations ConversationParticipant[]
+  sentMessages  Message[]
 }
 
 enum Role {
@@ -273,4 +276,41 @@ enum AppealStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model Conversation {
+  id           String                    @id @default(auto()) @map("_id") @db.ObjectId
+  participants ConversationParticipant[]
+  messages     Message[]
+  lastMessage  String?
+  lastMessageAt DateTime?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  isGroup      Boolean                   @default(false)
+  name         String?
+  createdById  String?                   @db.ObjectId
+}
+
+model ConversationParticipant {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String       @db.ObjectId
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("member") // "admin" | "member"
+  joinedAt       DateTime     @default(now())
+  deletedAt      DateTime?
+  
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String       @db.ObjectId
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime     @default(now())
 }
