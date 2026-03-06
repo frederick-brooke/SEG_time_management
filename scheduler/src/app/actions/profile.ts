@@ -86,6 +86,9 @@ export async function getMyProfile() {
       email: true,
       bio: true,
       pfp: true,
+      city: true,
+      country: true,
+      location: true,
       createdAt: true,
   
       progress: {
@@ -252,20 +255,22 @@ export async function getProfile(username: string) {
   };
 }
 
-export async function updateProfile(formData: FormData) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) throw new Error("Unauthorized");
+// OUTDATED
+//
+// export async function updateProfile(formData: FormData) {
+//   const session = await getServerSession(authOptions);
+//   if (!session?.user?.email) throw new Error("Unauthorized");
 
-  await prisma.user.update({
-    where: { email: session.user.email },
-    data: {
-      fname: formData.get("fname") as string,
-      lname: formData.get("lname") as string,
-      bio: formData.get("bio") as string,
-    },
-  });
-  revalidatePath("/profile");
-}
+//   await prisma.user.update({
+//     where: { email: session.user.email },
+//     data: {
+//       fname: formData.get("fname") as string,
+//       lname: formData.get("lname") as string,
+//       bio: formData.get("bio") as string,
+//     },
+//   });
+//   revalidatePath("/profile");
+// }
 
 export async function sendFriendRequest(targetUserId: string) {
   const session = await getServerSession(authOptions);
@@ -337,5 +342,42 @@ export async function cancelFriendRequest(requestUserId: string) {
     }
   });
   
+  revalidatePath("/profile");
+}
+
+export async function updateProfile(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const fname = formData.get("fname") as string;
+  const lname = formData.get("lname") as string;
+  const bio = formData.get("bio") as string;
+  const city = formData.get("city") as string;
+  const country = formData.get("country") as string;
+  const locationLat = formData.get("locationLat") as string;
+  const locationLng = formData.get("locationLng") as string;
+
+  const updateData: any = {
+    fname: fname || null,
+    lname: lname || null,
+    bio: bio || null,
+    city: city || null,
+    country: country || null,
+  };
+
+  if (locationLat && locationLng) {
+    updateData.location = {
+      lat: parseFloat(locationLat),
+      lng: parseFloat(locationLng),
+    };
+  } else {
+    updateData.location = null;
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: updateData,
+  });
+
   revalidatePath("/profile");
 }

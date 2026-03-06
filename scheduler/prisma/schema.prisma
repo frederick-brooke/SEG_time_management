@@ -59,6 +59,12 @@ model User {
   lname        String?
   bio          String?
   pfp          String?
+
+  // Location fields for friends map
+  city     String?
+  country  String?
+  location Json? // { lat: number, lng: number }
+
   role         Role    @default(BASIC)
   isBanned     Boolean  @default(false)
   banExpires   DateTime?
@@ -66,6 +72,7 @@ model User {
   tasks         Task[]
   exams         Exam[]
   events        Event[]
+  
   notifications Notification[]
   preferences   UserPreferences?
   progress      UserProgress?
