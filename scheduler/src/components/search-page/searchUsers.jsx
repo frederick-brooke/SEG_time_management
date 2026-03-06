@@ -2,14 +2,14 @@ import { useState } from "react";
 import UserPanel from "@/components/admin/admin-user-panel";
 import {FunnelXIcon } from "lucide-react";
 
-export default function UserManagement({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
+export default function SearchUsers({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
 {
     const [inputValue, setInputValue] = useState(filters.search ?? "");   // typed value
 
     return(
         <div>
             <section className="mb-4 bg-white shadow rounded p-6">
-                <h2 className="text-2xl font-semibold mb-4">User Management</h2>
+                <h2 className="text-2xl font-semibold mb-4">Search</h2>
                 
                 <form
                     onSubmit={(e) => {

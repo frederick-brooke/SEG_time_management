@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 
+//fetches a list of users based on passed in filters at that point
 export async function GET(req: Request) {
     // Debug: Check if cookies are being received
     const cookieStore = await cookies();
@@ -80,5 +81,5 @@ export async function GET(req: Request) {
         take: limit,
     });
 
-    return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalMatchingUsers/limit), totalMatchingUsers});
+    return NextResponse.json({users, totalUsers, totalUserPages: Math.ceil(totalMatchingUsers/limit)});
 }

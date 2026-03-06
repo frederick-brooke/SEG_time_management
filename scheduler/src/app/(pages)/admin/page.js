@@ -16,7 +16,7 @@ import AppealFilter from "@/components/admin/appeal-filter-panel";
 
 export default function AdminPage() {
   //User management states
-  const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: []};  //user search parameters
+  const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page:1};  //user search parameters
 
   const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
   const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
@@ -49,7 +49,7 @@ export default function AdminPage() {
 
   const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  //open and close the panel
 
-  const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters);
+  const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters, "/api/admin/users");
 
   const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(appliedReportFilters);
 
