@@ -20,10 +20,17 @@ export default function SearchPage() {
     const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  //search values to be checked and filtered for the usesrs
 
     const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters, "/api/users/search");
-    
 
-    return(
-        <>
+    const [currentTab, setCurrentTab] = useState("users");  //display the current search being done
+
+    //manage users, tasks, events search 
+    //determine which filter panel and reset button to load up
+    const [isSearchUsers, setIsSearchUsers] = useState(true);   //by default
+    const [isSearchTasks, setIsSearchTasks] = useState(false);
+    const [isSearchEvents, setIsSearchEvents] = useState(false);
+
+    const tabs = {
+        users: (
             <SearchUsers
                 users={users}
                 totalUsers={totalUsers}
@@ -35,6 +42,44 @@ export default function SearchPage() {
                 setFilters={setAppliedUserFilters}
                 resetFilters={resetUserFilters}
             />
+        ),
+    
+        tasks:(
+            <p>Tasks</p>
+        ),
+
+        events:(
+            <p>Events</p>
+        ),
+    }
+    
+    return(
+        <>
+            <div>
+                {/* tabs header title */}
+                <div className="flex border-b mb-4">
+                    <button
+                        onClick={() => setCurrentTab("users")}
+                        className={`px-4 py-2 font-medium ${
+                            currentTab === "users" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
+                        }`}
+                    >
+                    Users
+                    </button>
+
+                    <button
+                        onClick={() => setCurrentTab("tasks")}
+                        className={`px-4 py-2 font-medium ${
+                            currentTab === "tasks" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
+                        }`}
+                    >
+                    Tasks
+                    </button>
+                </div>
+
+                {/* render the active tab */}
+                {tabs[currentTab]}
+            </div>
 
             {isUserFilterOpen && (
                 <UserFilter 
