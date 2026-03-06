@@ -35,7 +35,6 @@ model User {
 
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
-  events   Event[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
