@@ -42,7 +42,8 @@
     "**/*.tsx", 
     "src/app/api/preferences/check/route.js", 
     "scripts/fix-role.js", 
-    "src/app/api/admin/users/[id]/ban/route.js"  
+    "src/app/api/admin/users/[id]/ban/route.js",
+    "src/types/**/*.d.ts"
 , "src/app/dashboard/page.tsx"  ],
   "exclude": [
     "node_modules"

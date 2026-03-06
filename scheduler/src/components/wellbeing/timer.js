@@ -110,7 +110,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
                 {!hasStarted && <button onClick={submitTime}
                     className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition">
                         Start
-                    </button>}
+                </button>}
 
                 {isRunning && <button onClick={pauseTimer}
                     className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition">

@@ -1,6 +1,8 @@
 import { DefaultSession } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
 
+type Test = import("next-auth").Session;
+
 declare module "next-auth" {
   interface User {
     id: string;
@@ -15,6 +17,8 @@ declare module "next-auth" {
       isBanned: boolean;
       googleConnected?: boolean;
     } & DefaultSession["user"];
+
+    accessToken?: string; 
   }
 }
 
@@ -23,5 +27,6 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: "BASIC" | "SUPERUSER";
     isBanned?: boolean;
+    accessToken?: string; 
   }
 }

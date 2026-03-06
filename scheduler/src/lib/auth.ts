@@ -5,17 +5,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
-import { DefaultSession } from "next-auth";
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      googleConnected: boolean;
-    } & DefaultSession["user"];
-    accessToken?: string;
-  }
-}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -133,6 +122,8 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
+        token.role = user.role;
+        token.isBanned = user.isBanned;
       }
 
       if (account?.access_token) {
@@ -261,6 +252,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
+        session.user.role = token.role;
+        session.user.isBanned = token.isBanned as boolean;
 
         const googleAccount = await prisma.account.findFirst({
           where: { userId: token.sub, provider: "google" },
@@ -270,7 +263,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
+        session.accessToken = token.accessToken;
       }
 
       return session;
