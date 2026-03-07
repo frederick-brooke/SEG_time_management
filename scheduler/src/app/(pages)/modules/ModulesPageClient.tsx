@@ -68,25 +68,6 @@ export default function ModulesPageClient({ modules: initialModules }: ModulesPa
                 <span className="text-4xl">📚</span>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">No modules yet</h3>
-              <p className="text-gray-500 mb-6">
-                Create your first module or join an existing one using a PIN
-              </p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={() => setShowJoin(true)}
-                  className="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                >
-                  <LogIn size={18} />
-                  <span>Join Module</span>
-                </button>
-                <button
-                  onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                >
-                  <Plus size={18} />
-                  <span>Create Module</span>
-                </button>
-              </div>
             </div>
           )}
 
