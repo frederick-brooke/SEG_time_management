@@ -53,6 +53,28 @@ export const examPlannerLogic = {
         }
 
         return plan;
+    },
+
+    getAvailableDates: (startDate: Date, endDate: Date, unavailableDays: Date[]) => {
+        const availableDates: Date[] = [];
+        let currentDate = new Date(startDate);
+        currentDate.setHours(0, 0, 0, 0);
+
+        const targetDate = new Date(endDate);
+        targetDate.setHours(0, 0, 0, 0);
+
+        while (currentDate < targetDate) {
+            const isUnavailable = unavailableDays.some(
+                d => new Date(d).toDateString() === currentDate.toDateString()
+            );
+
+            if (!isUnavailable) {
+                availableDates.push(new Date(currentDate));
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        return availableDates
     }
 
 };
