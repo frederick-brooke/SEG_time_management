@@ -1,5 +1,4 @@
 "use client";
-import * as React from "react";
 import {
   IconCamera,
   IconDashboard,
@@ -62,11 +61,6 @@ const data = {
       title: "Leaderboard",
       url: "/leaderboard",
       icon: IconTrophy,
-    },
-    {
-      title:"Modules",
-      url: "/modules",
-      icon: BookOpen,
     },
     {
       title: "Admin",
