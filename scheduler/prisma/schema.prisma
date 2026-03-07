@@ -51,6 +51,8 @@ model User {
 
   appeals Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
+
+  lastCheckIn   DateTime?
 }
 
 enum Role {
@@ -102,28 +104,37 @@ enum FriendStatus {
 }
 
 model Task {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  dueDate     DateTime?
-  completed   Boolean  @default(false)
-  completedAt DateTime?
-  status      String   @default("todo")
-  duration    Int      @default(0)
-  durationHours String?
-  durationMins  String?
-  subtasks    String[] @default([])
-  priority    String   @default("Low")
-  url         String?
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  title               String
+  description         String?
+  dueDate             DateTime?
+  completed           Boolean  @default(false)
+  completedAt         DateTime?
+  status              String   @default("todo")
+  duration            Int      @default(0)
+  durationHours       String?
+  durationMins        String?
+  subtasks            String[] @default([])
+  priority            String   @default("Low")
+  url                 String?
 
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId              String   @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  examId      String?  @db.ObjectId
-  exam        Exam?    @relation(fields: [examId], references: [id])
+  examId              String?  @db.ObjectId
+  exam                Exam?    @relation(fields: [examId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  eventId             String?  @db.ObjectId
+  event               Event?   @relation(fields: [eventId], references: [id])
+  recurrence          Json?    
+  scheduledDate       DateTime?
+  ScheduledTime       DateTime?
+  isRecurring         Boolean  @default(false)
+  missedAt            DateTime?
+  carriedFrom         String?  @db.ObjectId
 }
 
 enum NotificationType {
@@ -221,6 +232,8 @@ model Event {
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  tasks              Task[]
 
   
 }
