@@ -1,5 +1,12 @@
+interface Topic {
+    title: string;
+    duration: number;
+}
+
 export const examPlannerLogic = {
     calculateDaysRequired: (topics: { duration: number }[], maxTimePerDay: number) => {
+        if (maxTimePerDay <= 0) return 0;
+        
         let dailyTimeSpent = 0;
         let daysRequired = 1;
 
@@ -15,11 +22,17 @@ export const examPlannerLogic = {
     },
 
     calculateDaysUntil: (examDate: Date, today: Date) => {
-        const diffInMins = examDate.getTime() - today.getTime();
+        const d1 = new Date(examDate);
+        const d2 = new Date(today);
+
+        d1.setHours(0, 0, 0, 0);
+        d2.setHours(0, 0, 0, 0);
+
+        const diffInMins = d1.getTime() - d2.getTime();
         return Math.ceil(diffInMins / (1000 * 60 * 60 * 24));
     },
 
-    calculatePlan: (topics: any[], maxTimePerDay: number, availableDates: Date[]) => {
+    calculatePlan: (topics: Topic[], maxTimePerDay: number, availableDates: Date[]) => {
         let dateIndex = 0;
         let dailyTimeSpent = 0;
         const plan = [];
