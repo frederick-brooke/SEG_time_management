@@ -27,6 +27,50 @@ const RARITY_CONFIG: Record<string, { label: string; bg: string; text: string; b
   legendary: { label: "Legendary", bg: "bg-yellow-50",   text: "text-yellow-600", border: "border-yellow-300", glow: "hover:shadow-yellow-100" },
 };
 
+// Static star positions — pre-computed to avoid SSR/hydration mismatch from Math.random()
+const STARS = [
+  { size: "2px", top: "8%",  left: "12%",  opacity: 0.6 },
+  { size: "2px", top: "23%", left: "34%",  opacity: 0.4 },
+  { size: "3px", top: "5%",  left: "55%",  opacity: 0.8 },
+  { size: "2px", top: "41%", left: "78%",  opacity: 0.5 },
+  { size: "2px", top: "67%", left: "91%",  opacity: 0.7 },
+  { size: "3px", top: "14%", left: "7%",   opacity: 0.9 },
+  { size: "2px", top: "82%", left: "23%",  opacity: 0.4 },
+  { size: "2px", top: "31%", left: "47%",  opacity: 0.6 },
+  { size: "2px", top: "56%", left: "63%",  opacity: 0.5 },
+  { size: "3px", top: "73%", left: "82%",  opacity: 0.8 },
+  { size: "2px", top: "19%", left: "88%",  opacity: 0.4 },
+  { size: "2px", top: "90%", left: "41%",  opacity: 0.6 },
+  { size: "2px", top: "46%", left: "15%",  opacity: 0.7 },
+  { size: "3px", top: "3%",  left: "72%",  opacity: 0.5 },
+  { size: "2px", top: "61%", left: "38%",  opacity: 0.9 },
+  { size: "2px", top: "77%", left: "59%",  opacity: 0.4 },
+  { size: "2px", top: "35%", left: "96%",  opacity: 0.6 },
+  { size: "3px", top: "52%", left: "28%",  opacity: 0.7 },
+  { size: "2px", top: "88%", left: "5%",   opacity: 0.5 },
+  { size: "2px", top: "11%", left: "43%",  opacity: 0.8 },
+  { size: "2px", top: "27%", left: "67%",  opacity: 0.4 },
+  { size: "3px", top: "95%", left: "87%",  opacity: 0.6 },
+  { size: "2px", top: "43%", left: "52%",  opacity: 0.5 },
+  { size: "2px", top: "70%", left: "18%",  opacity: 0.7 },
+  { size: "2px", top: "16%", left: "81%",  opacity: 0.9 },
+  { size: "3px", top: "84%", left: "70%",  opacity: 0.4 },
+  { size: "2px", top: "38%", left: "3%",   opacity: 0.6 },
+  { size: "2px", top: "59%", left: "93%",  opacity: 0.5 },
+  { size: "2px", top: "7%",  left: "29%",  opacity: 0.8 },
+  { size: "3px", top: "92%", left: "55%",  opacity: 0.4 },
+  { size: "2px", top: "48%", left: "74%",  opacity: 0.7 },
+  { size: "2px", top: "22%", left: "19%",  opacity: 0.5 },
+  { size: "2px", top: "65%", left: "46%",  opacity: 0.6 },
+  { size: "3px", top: "79%", left: "33%",  opacity: 0.9 },
+  { size: "2px", top: "33%", left: "61%",  opacity: 0.4 },
+  { size: "2px", top: "55%", left: "8%",   opacity: 0.7 },
+  { size: "2px", top: "97%", left: "77%",  opacity: 0.5 },
+  { size: "3px", top: "25%", left: "98%",  opacity: 0.6 },
+  { size: "2px", top: "71%", left: "14%",  opacity: 0.8 },
+  { size: "2px", top: "44%", left: "37%",  opacity: 0.4 },
+]
+
 const TYPE_TABS = [
   { key: "ALL",        label: "All Items",  icon: ShoppingBag },
   { key: "TITLE",      label: "Titles",     icon: Crown },
@@ -53,7 +97,7 @@ interface ShopPageClientProps {
     points: number;
     equippedTitle: string | null;
     equippedFrame: string | null;
-    xpBoostExpires: string | null;
+    xpBoostExpires: string | Date | null;
     streakShields: number;
   };
 }
@@ -256,13 +300,16 @@ export default function ShopPageClient({ initialData }: ShopPageClientProps) {
   return (
     <SidebarProvider
       defaultOpen={true}
+      open={undefined}
+      onOpenChange={undefined}
+      className=""
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
       } as React.CSSProperties}
     >
       <AppSidebar variant="inset" />
-      <SidebarInset>
+      <SidebarInset className="">
         <SiteHeader />
 
         <div className="flex flex-1 flex-col p-6 pt-0">
@@ -270,18 +317,18 @@ export default function ShopPageClient({ initialData }: ShopPageClientProps) {
 
             {/* ── HERO BANNER ── */}
             <div className="relative bg-gray-900 rounded-3xl p-8 overflow-hidden">
-              {/* Star field background */}
+              {/* Star field — static positions to avoid SSR/client hydration mismatch */}
               <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                {[...Array(40)].map((_, i) => (
+                {STARS.map((star, i) => (
                   <div
                     key={i}
                     className="absolute rounded-full bg-white"
                     style={{
-                      width: Math.random() > 0.8 ? "3px" : "2px",
-                      height: Math.random() > 0.8 ? "3px" : "2px",
-                      top: `${Math.random() * 100}%`,
-                      left: `${Math.random() * 100}%`,
-                      opacity: Math.random() * 0.7 + 0.3,
+                      width: star.size,
+                      height: star.size,
+                      top: star.top,
+                      left: star.left,
+                      opacity: star.opacity,
                     }}
                   />
                 ))}
