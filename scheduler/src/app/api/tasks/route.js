@@ -37,8 +37,6 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    console.log("=== POST REQUEST ===");
-    console.log("Full body:", JSON.stringify(body, null, 2));
     
     const task = await prisma.task.create({
       data: {

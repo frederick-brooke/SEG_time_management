@@ -360,3 +360,5 @@ cookies.txt
 # - README.md
 # - requirements.txt (Python)
 # - .env.example (example env file - safe to commit)
+
+!scheduler/src/lib/
