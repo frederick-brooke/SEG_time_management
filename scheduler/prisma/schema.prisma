@@ -54,6 +54,9 @@ model User {
 
   conversations ConversationParticipant[]
   sentMessages  Message[]
+
+  createdModules  Module[]        @relation("ModuleCreator")
+  moduleMembers   ModuleMember[]
 }
 
 enum Role {
@@ -313,4 +316,42 @@ model Message {
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   content        String
   createdAt      DateTime     @default(now())
+}
+
+model Module {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  maxMembers  Int      @default(50)  // Max users allowed
+  joinPin     String   @unique       // 6-character unique code
+  
+  creatorId   String   @db.ObjectId
+  creator     User     @relation("ModuleCreator", fields: [creatorId], references: [id])
+  
+  members     ModuleMember[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ModuleMember {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  
+  moduleId  String   @db.ObjectId
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role      ModuleRole @default(MEMBER)
+  
+  joinedAt  DateTime @default(now())
+  
+  @@unique([moduleId, userId])  // User can only join each module once
+}
+
+enum ModuleRole {
+  OWNER    // Creator (full control)
+  ADMIN    // Can manage members
+  MEMBER   // Regular participant
 }

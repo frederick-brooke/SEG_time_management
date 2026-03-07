@@ -64,6 +64,11 @@ const data = {
       icon: IconTrophy,
     },
     {
+      title:"Modules",
+      url: "/modules",
+      icon: BookOpen,
+    },
+    {
       title: "Admin",
       url: "/admin",
       icon: IconUserCog,
