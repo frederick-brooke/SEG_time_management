@@ -146,6 +146,8 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
             
         }
 
+        revalidatePath(`/exam-planner`);
+        revalidatePath(`/exam-hub`);
         revalidatePath(`/exam-planner/${examId}`);
         return { success: true };
 
