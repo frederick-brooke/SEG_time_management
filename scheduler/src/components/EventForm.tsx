@@ -32,31 +32,43 @@ export default function EventForm({
   const now = new Date();
   const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
   const isGoogle = !!initialEvent?.isGoogleEvent;
-  const isRecurring = !!(initialEvent?.recurrence && initialEvent.recurrence.type !== "none");
+  const isRecurring = !!(
+    initialEvent?.recurrence && initialEvent.recurrence.type !== "none"
+  );
 
   // --- STATE ---
   const [title, setTitle] = useState(initialEvent?.title || "");
-  const [description, setDescription] = useState(initialEvent?.description || "");
+  const [description, setDescription] = useState(
+    initialEvent?.description || "",
+  );
   const [category, setCategory] = useState(initialEvent?.category || "Lecture");
 
-  const [editMode, setEditMode] = useState<"single" | "series">(isRecurring ? "single" : "series");
+  const [editMode, setEditMode] = useState<"single" | "series">(
+    isRecurring ? "single" : "series",
+  );
 
   const [startDate, setStartDate] = useState(
-    initialEvent ? formatDate(new Date(initialEvent.start)) : initialStartDate || formatDate(now)
+    initialEvent
+      ? formatDate(new Date(initialEvent.start))
+      : initialStartDate || formatDate(now),
   );
   const [startTime, setStartTime] = useState(
-    initialEvent ? formatTime(new Date(initialEvent.start)) : formatTime(now)
+    initialEvent ? formatTime(new Date(initialEvent.start)) : formatTime(now),
   );
   const [endDate, setEndDate] = useState(
-    initialEvent ? formatDate(new Date(initialEvent.end)) : initialStartDate || formatDate(now)
+    initialEvent
+      ? formatDate(new Date(initialEvent.end))
+      : initialStartDate || formatDate(now),
   );
   const [endTime, setEndTime] = useState(
-    initialEvent ? formatTime(new Date(initialEvent.end)) : formatTime(oneHourLater)
+    initialEvent
+      ? formatTime(new Date(initialEvent.end))
+      : formatTime(oneHourLater),
   );
 
-  const [recurrenceType, setRecurrenceType] = useState<"none" | "daily" | "weekly" | "monthly">(
-    initialEvent?.recurrence?.type || "none"
-  );
+  const [recurrenceType, setRecurrenceType] = useState<
+    "none" | "daily" | "weekly" | "monthly"
+  >(initialEvent?.recurrence?.type || "none");
 
   const defaultUntil = new Date();
   defaultUntil.setMonth(defaultUntil.getMonth() + 1);
@@ -64,35 +76,51 @@ export default function EventForm({
   const [recurrenceUntil, setRecurrenceUntil] = useState(
     initialEvent?.recurrence?.until
       ? formatDate(new Date(initialEvent.recurrence.until))
-      : formatDate(defaultUntil)
+      : formatDate(defaultUntil),
   );
   const [recurrenceDays, setRecurrenceDays] = useState<string[]>(
-    initialEvent?.recurrence?.days || []
+    initialEvent?.recurrence?.days || [],
   );
 
   const [showConflictWarning, setShowConflictWarning] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
 
   const [searchQuery, setSearchQuery] = useState({
-    start: initialEvent?.startLocationName || (initialEvent?.startCoords ? "Stored Location" : ""),
-    dest: initialEvent?.destLocationName || (initialEvent?.destCoords ? "Stored Location" : ""),
+    start:
+      initialEvent?.startLocationName ||
+      (initialEvent?.startCoords ? "Stored Location" : ""),
+    dest:
+      initialEvent?.destLocationName ||
+      (initialEvent?.destCoords ? "Stored Location" : ""),
   });
 
-  const [suggestions, setSuggestions] = useState<{ start: any[]; dest: any[] }>({ start: [], dest: [] });
+  const [suggestions, setSuggestions] = useState<{ start: any[]; dest: any[] }>(
+    { start: [], dest: [] },
+  );
 
-  const [startCoords, setStartCoords] = useState(initialEvent?.startCoords ?? null);
+  const [startCoords, setStartCoords] = useState(
+    initialEvent?.startCoords ?? null,
+  );
   const [destCoords, setDestCoords] = useState(
-    initialEvent?.destinationCoords ?? initialEvent?.destCoords ?? null
+    initialEvent?.destinationCoords ?? initialEvent?.destCoords ?? null,
   );
 
-  const [transportMode, setTransportMode] = useState<"walking" | "cycling" | "driving" >(
-    initialEvent?.transportMode || "walking"
-  );
+  const [transportMode, setTransportMode] = useState<
+    "walking" | "cycling" | "driving"
+  >(initialEvent?.transportMode || "walking");
 
   const [travelPreview, setTravelPreview] = useState<number | null>(
-    initialEvent?.travelDuration || null
+    initialEvent?.travelDuration || null,
   );
   const [isCalculating, setIsCalculating] = useState(false);
+
+  const [showTaskPrompt, setShowTaskPrompt] = useState(false);
+  const [createdEventId, setCreatedEventId] = useState<String | null>(null);
+  const [linkedTasks, setLinkedTasks] = useState<any[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskOffset, setNewTaskOffset] = useState("-1");
+  const [newTaskDuration, setNewTaskDuration] = useState("60");
+  const [newTaskPriority, setNewTaskPriority] = useState("Medium");
 
   // --- EFFECTS ---
   useEffect(() => {
@@ -113,7 +141,7 @@ export default function EventForm({
           const s = encodeURIComponent(JSON.stringify(startCoords));
           const d = encodeURIComponent(JSON.stringify(destCoords));
           const res = await fetch(
-            `/api/travel/preview?mode=${transportMode}&start=${s}&dest=${d}`
+            `/api/travel/preview?mode=${transportMode}&start=${s}&dest=${d}`,
           );
           const data = await res.json();
           if (!cancelled) setTravelPreview(data.duration);
@@ -126,7 +154,9 @@ export default function EventForm({
     };
 
     fetchPreview();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [startCoords, destCoords, transportMode]);
 
   // --- HANDLERS ---
@@ -157,8 +187,12 @@ export default function EventForm({
       recurrenceType,
       recurrenceDays: recurrenceType === "weekly" ? recurrenceDays : undefined,
       recurrenceUntil: recurrenceUntilISO,
-      startCoords: startCoords?.lat ? { lat: startCoords.lat, lng: startCoords.lng } : null,
-      destCoords: destCoords?.lat ? { lat: destCoords.lat, lng: destCoords.lng } : null,
+      startCoords: startCoords?.lat
+        ? { lat: startCoords.lat, lng: startCoords.lng }
+        : null,
+      destCoords: destCoords?.lat
+        ? { lat: destCoords.lat, lng: destCoords.lng }
+        : null,
       travelDuration: travelPreview || 0,
       startLocationName: searchQuery.start,
       destLocationName: searchQuery.dest,
@@ -181,7 +215,6 @@ export default function EventForm({
 
   const saveEvent = async (payload: any) => {
     const method = initialEvent?.id ? "PATCH" : "POST";
-
     const res = await fetch("/api/calendar/events", {
       method,
       headers: { "Content-Type": "application/json" },
@@ -189,7 +222,14 @@ export default function EventForm({
     });
 
     if (res.ok) {
-      onSuccess();
+      const data = await res.json();
+      if (!initialEvent?.id) {
+        // new event — ask about tasks
+        setCreatedEventId(data.id);
+        setShowTaskPrompt(true);
+      } else {
+        onSuccess();
+      }
     } else {
       const errorData = await res.json();
       alert(errorData.message || "Failed to save event");
@@ -219,7 +259,9 @@ export default function EventForm({
     });
 
     try {
-      const res = await fetch(`/api/calendar/events?${params.toString()}`, { method: "DELETE" });
+      const res = await fetch(`/api/calendar/events?${params.toString()}`, {
+        method: "DELETE",
+      });
       if (res.ok) {
         onSuccess();
       } else {
@@ -230,20 +272,24 @@ export default function EventForm({
       alert("An error occurred while deleting.");
     }
   };
-const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
-const handleLocationSearch = (text: string, type: "start" | "dest") => {
-  setSearchQuery((prev) => ({ ...prev, [type]: text }));
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const handleLocationSearch = (text: string, type: "start" | "dest") => {
+    setSearchQuery((prev) => ({ ...prev, [type]: text }));
 
-  if (debounceTimer) clearTimeout(debounceTimer);
+    if (debounceTimer) clearTimeout(debounceTimer);
 
-  const timer = setTimeout(async () => {
-    if (text.length < 3) {
-      setSuggestions((prev) => ({ ...prev, [type]: [] }));
-      return;
-    }
+    const timer = setTimeout(async () => {
+      if (text.length < 3) {
+        setSuggestions((prev) => ({ ...prev, [type]: [] }));
+        return;
+      }
 
-    try {
-        const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
+      try {
+        const res = await fetch(
+          `/api/location/search?q=${encodeURIComponent(text)}`,
+        );
 
         if (!res.ok) {
           console.error("Search failed:", res.status);
@@ -253,22 +299,22 @@ const handleLocationSearch = (text: string, type: "start" | "dest") => {
 
         const data = await res.json();
 
-      setSuggestions((prev) => ({
-        ...prev,
-        [type]: Array.isArray(data) ? data : [],
-      }));
-    } catch (err) {
-      console.error("Location search failed", err);
-    }
-  }, 400); // 400ms delay
+        setSuggestions((prev) => ({
+          ...prev,
+          [type]: Array.isArray(data) ? data : [],
+        }));
+      } catch (err) {
+        console.error("Location search failed", err);
+      }
+    }, 400); // 400ms delay
 
-  setDebounceTimer(timer);
-};
-useEffect(() => {
-  return () => {
-    if (debounceTimer) clearTimeout(debounceTimer);
+    setDebounceTimer(timer);
   };
-}, [debounceTimer]);
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+    };
+  }, [debounceTimer]);
 
   const selectLocation = (feature: any, type: "start" | "dest") => {
     if (!feature?.geometry?.coordinates) return;
@@ -290,18 +336,174 @@ useEffect(() => {
     });
   };
 
+  const handleSaveLinkedTasks = async () => {
+    if (linkedTasks.length > 0) {
+      await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: linkedTasks }),
+      });
+    }
+    onSuccess();
+  };
+
+  const handleAddLinkedTask = () => {
+    if (!newTaskTitle.trim()) return;
+    setLinkedTasks((prev) => [
+      ...prev,
+      {
+        title: newTaskTitle,
+        userId: userId,
+        eventId: createdEventId,
+        offsetDays: parseInt(newTaskOffset),
+        duration: parseInt(newTaskDuration),
+        priority: newTaskPriority,
+        isRecurring: recurrenceType !== "none",
+        recurrence:
+          recurrenceType !== "none"
+            ? {
+                type: recurrenceType,
+                days: recurrenceDays,
+                until: recurrenceUntil,
+                offsetDays: parseInt(newTaskOffset),
+              }
+            : null,
+      },
+    ]);
+    setNewTaskTitle("");
+  };
+
+  if (showTaskPrompt) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="bg-indigo-50 p-4 rounded-xl">
+          <h3 className="font-bold text-gray-900 mb-1">Add related tasks?</h3>
+          <p className="text-sm text-gray-500">Link tasks to this event</p>
+        </div>
+
+        {linkedTasks.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {linkedTasks.map((t, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-gray-50 p-3 rounded-xl"
+              >
+                <div>
+                  <p className="font-semibold text-sm">{t.title}</p>
+                  <p className="text-xs text-gray-400">
+                    {t.offsetDays === 0
+                      ? "Same day as event"
+                      : t.offsetDays < 0
+                        ? `${Math.abs(t.offsetDays)} day(s) before`
+                        : `${t.offset} day(s) after`}{" "}
+                    · {t.duration} mins · {t.priority}
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    setLinkedTasks((prev) => prev.filter((_, j) => j !== i))
+                  }
+                  className="text-red-400 hover:text-red-600 text-lg"
+                >
+                  ✕{" "}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="border rounded-xl p-4 flex flex-col gap-3">
+          <input
+            type="text"
+            placeholder="Task Title"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            className="border p-2 rounded-lg text-sm"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-sm font-bold text-gray-400">When?</label>
+              <select
+                value={newTaskOffset}
+                onChange={(e) => setNewTaskOffset(e.target.value)}
+                className="w-full border p-2 rounded-lg text-sm mt-1"
+              >
+                <option value="-3">3 days before</option>
+                <option value="-2">2 days before</option>
+                <option value="-1">1 days before</option>
+                <option value="0">Same day</option>
+                <option value="1">1 day after</option>
+                <option value="2">2 days after</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-400">
+                Duration(mins)
+              </label>
+              <input
+                type="number"
+                value={newTaskDuration}
+                onChange={(e) => setNewTaskDuration(e.target.value)}
+                className="w-full border p-2 rounded-lg text-sm mt-1"
+                min="5"
+                step="5"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-400">Priority</label>
+            <select
+              value={newTaskPriority}
+              onChange={(e) => setNewTaskPriority(e.target.value)}
+              className="w-full border p-2 rounded-lg text-sm mt-1"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddLinkedTask}
+            className="w-full bg-indigo-600 text-white py-2 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
+          >
+            + Add Task
+          </button>
+        </div>
+        <div className="flex flex-col gap-2 mt-2">
+          <button
+            onClick={handleSaveLinkedTasks}
+            className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+          >
+            {linkedTasks.length > 0 ? "Save Tasks & Finish" : "Skip — No Tasks"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // --- RENDER ---
   if (showConflictWarning) {
     return (
       <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
         <div className="bg-amber-100 p-4 rounded-full mb-4">⚠️</div>
-        <h4 className="text-xl font-bold text-gray-800 mb-2">Schedule Conflict</h4>
-        <p className="text-gray-500 mb-6">This overlaps with another event. Proceed?</p>
+        <h4 className="text-xl font-bold text-gray-800 mb-2">
+          Schedule Conflict
+        </h4>
+        <p className="text-gray-500 mb-6">
+          This overlaps with another event. Proceed?
+        </p>
         <div className="flex flex-col gap-3 w-full">
-          <button onClick={() => saveEvent(pendingPayload)} className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold">
+          <button
+            onClick={() => saveEvent(pendingPayload)}
+            className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold"
+          >
             Ignore & Save
           </button>
-          <button onClick={() => setShowConflictWarning(false)} className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold">
+          <button
+            onClick={() => setShowConflictWarning(false)}
+            className="w-full bg-gray-100 text-gray-600 p-3 rounded-xl font-bold"
+          >
             Go Back
           </button>
         </div>
@@ -324,7 +526,9 @@ useEffect(() => {
             type="button"
             onClick={() => setEditMode("single")}
             className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
-              editMode === "single" ? "bg-white shadow-sm text-amber-600" : "text-gray-500"
+              editMode === "single"
+                ? "bg-white shadow-sm text-amber-600"
+                : "text-gray-500"
             }`}
           >
             Move Only This Day
@@ -333,7 +537,9 @@ useEffect(() => {
             type="button"
             onClick={() => setEditMode("series")}
             className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${
-              editMode === "series" ? "bg-white shadow-sm text-blue-600" : "text-gray-500"
+              editMode === "series"
+                ? "bg-white shadow-sm text-blue-600"
+                : "text-gray-500"
             }`}
           >
             Edit Entire Series
@@ -363,7 +569,9 @@ useEffect(() => {
               disabled={isGoogle}
               onClick={() => setCategory(cat.label)}
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                category === cat.label ? "border-black scale-105" : "border-transparent opacity-40"
+                category === cat.label
+                  ? "border-black scale-105"
+                  : "border-transparent opacity-40"
               }`}
               style={{ backgroundColor: cat.color }}
             >
@@ -377,13 +585,37 @@ useEffect(() => {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-xs font-bold text-gray-400">START</label>
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded" />
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded mt-1" />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            disabled={isGoogle}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            disabled={isGoogle}
+            className="w-full border p-2 rounded mt-1"
+          />
         </div>
         <div>
           <label className="text-xs font-bold text-gray-400">END</label>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded" />
-          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={isGoogle} className="w-full border p-2 rounded mt-1" />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            disabled={isGoogle}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            disabled={isGoogle}
+            className="w-full border p-2 rounded mt-1"
+          />
         </div>
       </div>
 
@@ -406,21 +638,25 @@ useEffect(() => {
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
               {recurrenceType === "weekly" && (
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <label key={day} className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={recurrenceDays.includes(day)}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setRecurrenceDays((prev) =>
-                            checked ? [...prev, day] : prev.filter((d) => d !== day)
-                          );
-                        }}
-                      />
-                      <span className="text-xs">{day}</span>
-                    </label>
-                  ))}
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (day) => (
+                      <label key={day} className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={recurrenceDays.includes(day)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setRecurrenceDays((prev) =>
+                              checked
+                                ? [...prev, day]
+                                : prev.filter((d) => d !== day),
+                            );
+                          }}
+                        />
+                        <span className="text-xs">{day}</span>
+                      </label>
+                    ),
+                  )}
                 </div>
               )}
               <label className="text-xs text-gray-400">Until</label>
@@ -437,11 +673,12 @@ useEffect(() => {
 
       {/* Location Section */}
       <div className="space-y-4 border-t pt-4 mt-4">
-
         {/* STARTING POINT */}
         <div className="relative">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Starting Point</label>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              Starting Point
+            </label>
             <button
               type="button"
               onClick={useCurrentLocation}
@@ -468,9 +705,13 @@ useEffect(() => {
                 >
                   <span className="font-semibold">{s.properties.name}</span>
                   {s.properties.city && (
-                    <span className="text-gray-400 ml-1">({s.properties.city})</span>
+                    <span className="text-gray-400 ml-1">
+                      ({s.properties.city})
+                    </span>
                   )}
-                  <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {s.properties.display}
+                  </p>
                 </button>
               ))}
             </div>
@@ -479,7 +720,9 @@ useEffect(() => {
 
         {/* DESTINATION */}
         <div className="relative">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Destination</label>
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Destination
+          </label>
           <input
             type="text"
             placeholder="Search destination address..."
@@ -498,20 +741,25 @@ useEffect(() => {
                 >
                   <span className="font-semibold">{s.properties.name}</span>
                   {s.properties.city && (
-                    <span className="text-gray-400 ml-1">({s.properties.city})</span>
+                    <span className="text-gray-400 ml-1">
+                      ({s.properties.city})
+                    </span>
                   )}
-                  <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {s.properties.display}
+                  </p>
                 </button>
               ))}
             </div>
           )}
         </div>
-
       </div>
 
       {/* Transport Mode */}
       <div className="mt-4">
-        <label className="text-sm font-semibold text-gray-600">Mode of Transport</label>
+        <label className="text-sm font-semibold text-gray-600">
+          Mode of Transport
+        </label>
         <select
           value={transportMode}
           onChange={(e) => setTransportMode(e.target.value as any)}
@@ -531,7 +779,10 @@ useEffect(() => {
             {isCalculating ? (
               "Calculating new route..."
             ) : travelPreview !== null ? (
-              <>Estimated {transportMode} time: <strong>{travelPreview} mins</strong></>
+              <>
+                Estimated {transportMode} time:{" "}
+                <strong>{travelPreview} mins</strong>
+              </>
             ) : (
               "No route found for this mode"
             )}
@@ -547,20 +798,20 @@ useEffect(() => {
           isGoogle
             ? "bg-gray-300 cursor-not-allowed"
             : isCalculating
-            ? "bg-gray-400 cursor-wait"
-            : editMode === "single"
-            ? "bg-amber-600 hover:bg-amber-700"
-            : "bg-blue-600 hover:bg-blue-700"
+              ? "bg-gray-400 cursor-wait"
+              : editMode === "single"
+                ? "bg-amber-600 hover:bg-amber-700"
+                : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
         {isCalculating && <span className="animate-spin text-lg">⏳</span>}
         {isCalculating
           ? "Calculating Travel..."
           : initialEvent
-          ? editMode === "single"
-            ? "Update Only This Day"
-            : "Update Series"
-          : "Create Event"}
+            ? editMode === "single"
+              ? "Update Only This Day"
+              : "Update Series"
+            : "Create Event"}
       </button>
 
       {/* Delete */}
@@ -570,10 +821,11 @@ useEffect(() => {
           onClick={handleDelete}
           className="w-full mt-2 p-3 rounded-xl font-bold text-red-600 border border-red-200 hover:bg-red-50 transition-all"
         >
-          {editMode === "single" ? "Delete This Day Only" : "Delete Entire Event"}
+          {editMode === "single"
+            ? "Delete This Day Only"
+            : "Delete Entire Event"}
         </button>
       )}
-
     </form>
   );
 }
