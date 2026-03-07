@@ -1,14 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const CATEGORIES = [
-  { label: "Lecture", color: "#6366f1" },
-  { label: "Individual Study", color: "#10b981" },
-  { label: "Exam", color: "#ef4444" },
-  { label: "Personal", color: "#f59e0b" },
-  { label: "Lab", color: "#8b5cf6" },
-];
-
 const isOverlapping = (s1: Date, e1: Date, s2: Date, e2: Date) => {
   return s1 < e2 && s2 < e1;
 };
@@ -121,6 +113,7 @@ export default function EventForm({
   const [newTaskOffset, setNewTaskOffset] = useState("-1");
   const [newTaskDuration, setNewTaskDuration] = useState("60");
   const [newTaskPriority, setNewTaskPriority] = useState("Medium");
+  const [categories, setCategories] = useState<any[]>([]);
 
   // --- EFFECTS ---
   useEffect(() => {
@@ -130,6 +123,12 @@ export default function EventForm({
       setRecurrenceDays([map[dayIndex]]);
     }
   }, [recurrenceType, startDate]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => setCategories(data.categories || []));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -562,25 +561,24 @@ export default function EventForm({
       <div>
         <label className="text-sm font-semibold text-gray-600">Category</label>
         <div className="flex flex-wrap gap-2 mt-2">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
-              key={cat.label}
+              key={cat.id}
               type="button"
               disabled={isGoogle}
-              onClick={() => setCategory(cat.label)}
+              onClick={() => setCategory(cat.name)}
               className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                category === cat.label
+                category === cat.name
                   ? "border-black scale-105"
                   : "border-transparent opacity-40"
               }`}
-              style={{ backgroundColor: cat.color }}
+              style={{ backgroundColor: cat.color, color: "white" }}
             >
-              {cat.label}
+              {cat.name}
             </button>
           ))}
         </div>
       </div>
-
       {/* Date & Time */}
       <div className="grid grid-cols-2 gap-4">
         <div>
