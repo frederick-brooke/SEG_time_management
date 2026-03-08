@@ -52,25 +52,28 @@ export async function GET(req: Request) {
 
     //date filtering of theusers
     if (startDate || endDate) {
-        where.createdAt = {};
+        const dateFilter: any = {};
 
         if (startDate) {
-            where.createdAt.gte = new Date(startDate);
+            dateFilter.gte = new Date(startDate);
         }
 
         if (endDate) {
-            where.createdAt.lte = new Date(endDate);
+            dateFilter.lte = new Date(endDate);
         }
+
+        where.AND.push({
+            createdAt: dateFilter
+        });
     }
+
     //category filtering
     if (categories) {
-        const categoryArray = categories
-            .split(",")
-            .map(c => c.trim().toUpperCase());
+        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase());
             
-        where.role = {
-            in: categoryArray,
-        };
+        where.AND.push({
+            role: { in: categoryArray }
+        });
     }
 
     //count number of users in one page and the total *matching* users in parallel

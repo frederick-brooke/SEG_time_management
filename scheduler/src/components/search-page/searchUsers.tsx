@@ -36,7 +36,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                         </span>{" "}
                         to{" "}
                         <span className="font-semibold text-gray-900">
-                            {Math.min(filters.page * limit, totalUsers-1)}  
+                            {Math.min(filters.page * limit, totalUsers)}  
                             {/* subtract 1 to account for the own user not appearing inside the same list */}
                         </span>{" "}
                             users

@@ -78,7 +78,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                         </span>{" "}
                         of{" "}
                         <span className="font-semibold text-gray-900">
-                            {totalUsers - 1}
+                            {totalUsers}
                         </span>{" "}
                         users
                         </p>
