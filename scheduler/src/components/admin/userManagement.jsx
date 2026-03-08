@@ -6,6 +6,11 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 {
     const [inputValue, setInputValue] = useState(filters.search ?? "");   // typed value
 
+    const start = (filters.page - 1) * filters.limit + 1;
+    const end = Math.min(filters.page * filters.limit, totalUsers);
+
+    console.log(filters);
+
     return(
         <div>
             <section className="mb-4 bg-white shadow rounded p-6">
@@ -65,29 +70,23 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                 </div>
 
                 <div className="mt-4 flex justify-center">
-                {users.length !== 0 && (
-                    <p className="text-sm text-gray-600">
-                    Showing{" "}
-                    <span className="font-semibold text-gray-900">
-                        {users.length == 0. && (
-                            totalUsers
-                        )}
-
-                        {users.length}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-semibold text-gray-900">
-                        {totalUsers}    
-                    </span>{" "}
-                    users
-                    </p>
-                )}           
-
-                {users.length === 0 && (
-                    <p className="text-sm text-gray-500 mt-4">
-                    No users found.
-                    </p>
-                )}
+                    {users.length !== 0 ? (
+                        <p className="text-sm text-gray-600">
+                        Showing{" "}
+                        <span className="font-semibold text-gray-900">
+                            {start}-{end}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-semibold text-gray-900">
+                            {totalUsers - 1}
+                        </span>{" "}
+                        users
+                        </p>
+                    ) : (
+                        <p className="text-sm text-gray-500 mt-4">
+                        No users found.
+                        </p>
+                    )}
                 </div>
 
                 {totalUserPages >= 1 && (

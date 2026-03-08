@@ -8,7 +8,7 @@ import SearchControls from "@/components/search-page/search-controls";
 
 export default function SearchPage() {
     //User management states
-    const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1};  //user search parameters
+    const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1, limit:10 };  //user search parameters
 
     const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
     const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);

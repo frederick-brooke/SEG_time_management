@@ -27,12 +27,10 @@ export async function GET(req: Request) {
     const order = searchParams.get("order") === "asc" ? "asc" : "desc";
     //by default it is given in descending order
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "12");      //forces a default of max 12 users on the page at all times
+    const limit = parseInt(searchParams.get("limit") || "10");      //forces a default of max 12 users on the page at all times
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const categories = searchParams.get("categories");
-
-    const totalUsers = await prisma.user.count(); //fixed number of users
 
     //dynamically build the query set
     const where: any = {
@@ -75,19 +73,18 @@ export async function GET(req: Request) {
         };
     }
 
-    // total matching search
-    const totalMatchingUsers = await prisma.user.count({
-        where
-    });
+    //count number of users in one page and the total *matching* users in parallel
+    //symbols -> Uppercase -> Lowercase ordering by default
+    const [users, totalMatchingUsers] = await Promise.all([
+        prisma.user.findMany({
+            where,
+            orderBy: { [sortBy]: order },
+            skip: (page - 1) * limit,
+            take: limit,
+        }),
 
-    const users = await prisma.user.findMany({
-        where,
-        orderBy: {
-            [sortBy]: order,        //lowercase comes after upercase always
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-    });
+        prisma.user.count({ where })
+    ]);
 
-    return NextResponse.json({users, totalUsers, totalUserPages: Math.ceil(totalMatchingUsers/limit)});
+    return NextResponse.json({users, totalUsers: totalMatchingUsers, totalUserPages: Math.ceil(totalMatchingUsers/limit)});
 }

@@ -109,13 +109,17 @@ export default function UserFilter({ filters, setFilters, onClose, applyFilters,
                     type="checkbox"
                     value={cat}
                     checked={filters.categories.includes(cat)}
-                    onChange={(newCategories) =>
-                        setFilters(saved_result => ({
-                            ...saved_result,
-                            categories: newCategories,
+                    onChange={(e) => {
+                        const checked = e.target.checked;
+
+                        setFilters(saved_results => ({
+                            ...saved_results,
+                            categories: checked
+                                ? [...saved_results.categories, cat] // add category
+                                : saved_results.categories.filter(c => c !== cat), // remove category
                             page: 1,
-                        }))
-                    }
+                        }));
+                    }}
                 />
                     <span>
                         {cat === "SUPERUSER" && "Admin"}

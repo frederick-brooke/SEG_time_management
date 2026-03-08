@@ -17,9 +17,20 @@ export function useUsers(filters, endpoint) {
         try {
             setLoading(true);
 
-            const query = new URLSearchParams(filters);
-            //filter objects parsed by user is converted into query string
-            const res = await fetch(`${endpoint}?${query.toString()}`);
+            const params = new URLSearchParams({
+                sortBy: filters.sortBy ?? "createdAt",
+                order: filters.order ?? "desc",
+                page: filters.page ?? 1,
+                limit: 10,
+                startDate: filters.startDate ?? "",
+                endDate: filters.endDate ?? "",
+            });
+
+            if (filters.categories && filters.categories.length > 0) {
+                params.append("categories", filters.categories.join(","));
+            }
+
+            const res = await fetch(`${endpoint}?${params.toString()}`);
 
             if (!res.ok) {
                 const err = await res.json();
