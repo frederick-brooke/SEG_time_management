@@ -8,19 +8,47 @@ import { Calendar } from "lucide-react";
 import ModuleEventForm from "components/modules/ModuleEventForm";
 import { ListTodo } from "lucide-react";
 import ModuleTaskForm from "components/modules/ModuleTaskForm";
+import { Calendar as CalendarIcon, CheckCircle, Circle } from "lucide-react";
+
 
 
 
 interface ModuleDetailClientProps {
   module: any;
+  events: any[];
+  tasks: any[];
+}
+/**
+ * Formats date to readable string
+ */
+function formatEventDate(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', { 
+    weekday: 'short', 
+    day: 'numeric', 
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
+/**
+ * Formats task due date
+ */
+function formatTaskDate(dateString: string) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', { 
+    day: 'numeric', 
+    month: 'short',
+    year: 'numeric'
+  });
+}
 /**
  * Client component for module detail page
  * @param {ModuleDetailClientProps} props - Module data
  * @return {JSX.Element} - Module detail view
  */
-export default function ModuleDetailClient({ module }: ModuleDetailClientProps) {
+export default function ModuleDetailClient({ module, events, tasks}: ModuleDetailClientProps) {
   const [copied, setCopied] = useState(false);
   const isOwner = module.userRole === 'OWNER';
   const [showEventForm, setShowEventForm] = useState(false);
@@ -189,11 +217,104 @@ export default function ModuleDetailClient({ module }: ModuleDetailClientProps) 
             </div>
           </div>
 
-          {/* Placeholder for future features */}
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-12 text-center mt-6">
-            <p className="text-gray-500">
-              📅 Module tasks and events coming soon!
-            </p>
+          {/* Module Events */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mt-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <CalendarIcon size={20} className="text-green-600" />
+              Upcoming Events ({events.length})
+            </h2>
+
+            {events.length > 0 ? (
+              <div className="space-y-2">
+                {events.map((event: any) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-white border border-green-100 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{event.title}</h3>
+                      {event.description && (
+                        <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xs text-gray-500">
+                          📅 {formatEventDate(event.start)}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                          {event.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                No events scheduled yet. {isOwner && "Create one using the button above!"}
+              </p>
+            )}
+          </div>
+
+          {/* Module Tasks */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mt-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <ListTodo size={20} className="text-purple-600" />
+              Module Tasks ({tasks.length})
+            </h2>
+
+            {tasks.length > 0 ? (
+              <div className="space-y-2">
+                {tasks.map((task: any) => (
+                  <div
+                    key={task.id}
+                    className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
+                      task.completed 
+                        ? 'bg-gray-50 border-gray-200' 
+                        : 'bg-gradient-to-r from-purple-50 to-white border-purple-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      {task.completed ? (
+                        <CheckCircle size={20} className="text-green-600 shrink-0" />
+                      ) : (
+                        <Circle size={20} className="text-purple-600 shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <h3 className={`font-semibold ${task.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+                          {task.title}
+                        </h3>
+                        {task.description && (
+                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 flex-wrap">
+                          {task.dueDate && (
+                            <span className="text-xs text-gray-500">
+                              📅 Due: {formatTaskDate(task.dueDate)}
+                            </span>
+                          )}
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                            task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-gray-100 text-gray-700'
+                          }`}>
+                            {task.priority}
+                          </span>
+                          {task.duration > 0 && (
+                            <span className="text-xs text-gray-500">
+                              ⏱️ {task.duration < 60 ? `${task.duration}m` : `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                No tasks assigned yet. {isOwner && "Create one using the button above!"}
+              </p>
+            )}
           </div>
 
         </div>

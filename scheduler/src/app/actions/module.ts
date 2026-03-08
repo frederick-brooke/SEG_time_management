@@ -129,7 +129,7 @@ export async function joinModule(joinPin: string) {
     }
     await syncModuleEventsToNewMember(module.id, session.user.id);
     await syncModuleTasksToNewMember(module.id, session.user.id);
-    
+
     await prisma.moduleMember.create({
       data: {
         moduleId: module.id,
@@ -208,7 +208,7 @@ export async function getModuleDetails(moduleId: string) {
             }
           },
           orderBy: [
-            { role: 'asc' },
+            { role: 'desc' },
             { joinedAt: 'asc' }
           ]
         }
@@ -598,5 +598,63 @@ async function syncModuleTasksToNewMember(moduleId: string, userId: string) {
     console.log(`✅ Synced ${existingTasks.length} tasks to new member`);
   } catch (error) {
     console.error("Failed to sync tasks to new member:", error);
+  }
+}
+
+/**
+ * Gets all events for a specific module
+ * @param {string} moduleId - Module ID
+ * @return {Promise<Array>} - List of module events
+ */
+export async function getModuleEvents(moduleId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return [];
+
+    // Get all unique module events (distinct by title and start time)
+    const events = await prisma.event.findMany({
+      where: {
+        moduleId,
+        isModuleEvent: true
+      },
+      distinct: ['title', 'start'],
+      orderBy: { start: 'asc' },
+      take: 10 // Limit to next 10 events
+    });
+
+    return events;
+  } catch (error) {
+    console.error("Failed to fetch module events:", error);
+    return [];
+  }
+}
+
+/**
+ * Gets all tasks for a specific module
+ * @param {string} moduleId - Module ID
+ * @return {Promise<Array>} - List of module tasks
+ */
+export async function getModuleTasks(moduleId: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return [];
+
+    // Get all unique module tasks (distinct by title)
+    const tasks = await prisma.task.findMany({
+      where: {
+        moduleId,
+        isModuleTask: true,
+        userId: session.user.id // Only show current user's version
+      },
+      orderBy: [
+        { completed: 'asc' }, // Incomplete first
+        { dueDate: 'asc' }
+      ]
+    });
+
+    return tasks;
+  } catch (error) {
+    console.error("Failed to fetch module tasks:", error);
+    return [];
   }
 }

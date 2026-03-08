@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { redirect } from "next/navigation";
-import { getModuleDetails } from "@/src/app/actions/module";
+import { getModuleDetails, getModuleEvents, getModuleTasks } from "@/src/app/actions/module";
 import ModuleDetailClient from "./ModuleDetailClient";
 
 /**
@@ -37,5 +37,9 @@ export default async function ModuleDetailPage({
     );
   }
 
-  return <ModuleDetailClient module={module} />;
+  // Fetch module events and tasks
+  const events = await getModuleEvents(moduleId);
+  const tasks = await getModuleTasks(moduleId);
+
+  return <ModuleDetailClient module={module} events={events} tasks={tasks} />;
 }
