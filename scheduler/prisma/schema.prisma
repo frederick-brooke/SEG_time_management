@@ -108,6 +108,7 @@ model UserProgress {
   equippedFrame  String?
   xpBoostExpires DateTime?
   streakShields  Int       @default(0)
+  shieldUsedDate DateTime?
 
 inventory UserInventory[]
 }

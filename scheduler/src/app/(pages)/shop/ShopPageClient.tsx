@@ -2,9 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { purchaseItem, equipItem, unequipItem } from "@/src/app/actions/shop";
-import { AppSidebar } from "components/app-sidebar";
-import { SidebarInset, SidebarProvider } from "components/ui/sidebar";
-import { SiteHeader } from "components/site-header";
 import { Zap, Shield, Crown, Sparkles, ShoppingBag, CheckCircle, Package } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -298,21 +295,7 @@ export default function ShopPageClient({ initialData }: ShopPageClientProps) {
   const ownedItems = data.items.filter(i => i.owned);
 
   return (
-    <SidebarProvider
-      defaultOpen={true}
-      open={undefined}
-      onOpenChange={undefined}
-      className=""
-      style={{
-        "--sidebar-width": "calc(var(--spacing) * 72)",
-        "--header-height": "calc(var(--spacing) * 12)",
-      } as React.CSSProperties}
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset className="">
-        <SiteHeader />
-
-        <div className="flex flex-1 flex-col p-6 pt-0">
+    <div className="flex flex-1 flex-col p-6 pt-0">
           <div className="max-w-6xl w-full mx-auto py-8 space-y-8">
 
             {/* ── HERO BANNER ── */}
@@ -478,7 +461,6 @@ export default function ShopPageClient({ initialData }: ShopPageClientProps) {
             )}
 
           </div>
-        </div>
 
         {/* ── TOAST ── */}
         {toast && (
@@ -490,8 +472,6 @@ export default function ShopPageClient({ initialData }: ShopPageClientProps) {
             {toast.message}
           </div>
         )}
-
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }
