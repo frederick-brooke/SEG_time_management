@@ -4,6 +4,7 @@ import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
+import { consumeStreakShield } from "@/src/lib/points";
 
 async function getFriendCount(userId: string) {
   return await prisma.friendRequest.count({
@@ -19,11 +20,7 @@ async function getFriendCount(userId: string) {
 
 export async function calculateStreak(userId: string): Promise<number> {
   const tasks = await prisma.task.findMany({
-    where: {
-      userId,
-      completed: true,
-      completedAt: { not: null }
-    },
+    where: { userId, completed: true, completedAt: { not: null } },
     orderBy: { completedAt: 'desc' },
     select: { completedAt: true }
   });
@@ -43,23 +40,29 @@ export async function calculateStreak(userId: string): Promise<number> {
     .filter((date): date is number => date !== null);
 
   const uniqueDates = [...new Set(completionDates)].sort((a, b) => b - a);
-
   if (uniqueDates.length === 0) return 0;
 
   const mostRecentDate = new Date(uniqueDates[0]);
   const daysDiff = Math.floor((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (daysDiff > 1) return 0;
+  // If missed more than 1 day, streak is broken — no shield can help
+  if (daysDiff > 2) return 0;
+
+  // If missed exactly 1 day, try to consume a streak shield
+  if (daysDiff === 2) {
+    const shieldUsed = await consumeStreakShield(userId);
+    if (!shieldUsed) return 0; // No shield available, streak broken
+    // Shield consumed — continue counting as if yesterday was completed
+  }
 
   let streak = 0;
   let expectedDate = today.getTime();
-  
+
   for (const dateTimestamp of uniqueDates) {
     const diff = Math.floor((expectedDate - dateTimestamp) / (1000 * 60 * 60 * 24));
-    
     if (diff === 0 || diff === 1) {
       streak++;
-      expectedDate = dateTimestamp - (1000 * 60 * 60 * 24); 
+      expectedDate = dateTimestamp - (1000 * 60 * 60 * 24);
     } else {
       break;
     }
@@ -84,23 +87,51 @@ export async function getMyProfile() {
       bio: true,
       pfp: true,
       createdAt: true,
-      tasks: { select: { completed: true, completedAt: true} },
-      receivedRequests: {
-        where: { status: 'PENDING' },
-        select: { 
-          id: true,
-          sender: { 
-            select: { id: true, username: true, fname: true, lname: true, pfp: true } 
-          } 
+  
+      progress: {
+        select: {
+          points: true,
+          level: true,
+          experience: true
         }
       },
-      sentRequests: {
-        where: { status: 'ACCEPTED' },
-        select: { 
+  
+      tasks: {
+        select: {
+          completed: true,
+          completedAt: true
+        }
+      },
+  
+      receivedRequests: {
+        where: { status: "PENDING" },
+        select: {
           id: true,
-          receiver: { 
-            select: { id: true, username: true, fname: true, lname: true, pfp: true } 
-          } 
+          sender: {
+            select: {
+              id: true,
+              username: true,
+              fname: true,
+              lname: true,
+              pfp: true
+            }
+          }
+        }
+      },
+  
+      sentRequests: {   // ← add this back
+        where: { status: "ACCEPTED" },
+        select: {
+          id: true,
+          receiver: {
+            select: {
+              id: true,
+              username: true,
+              fname: true,
+              lname: true,
+              pfp: true
+            }
+          }
         }
       }
     }
