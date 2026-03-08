@@ -1,5 +1,5 @@
 "use client";
-
+//reusable component for user searching
 import { useEffect, useState } from "react";
 
 //fetches and manages user statistics from the admin API route
@@ -44,7 +44,6 @@ export function useUsers(filters, endpoint) {
         users,
         totalUserPages,
         totalUsers,
-        loading,
         fetchUsers
     };
 }
