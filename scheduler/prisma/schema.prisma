@@ -27,6 +27,15 @@ model User {
 
   isBanned   Boolean   @default(false)
   banExpires DateTime?
+  accounts      Account[]
+  tasks         Task[]
+  preferences   UserPreferences?
+  events        Event[]
+  exams         Exam[]
+  notifications Notification[]
+
+  sentRequests     FriendRequest[] @relation("sender")
+  receivedRequests FriendRequest[] @relation("receiver")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,8 +62,17 @@ model User {
 
   handledReports Report[] @relation("ModeratorHandledReports")
 
+  isBanned   Boolean   @default(false)
+  banExpires DateTime?
+
   appeals        Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
+
+  conversations ConversationParticipant[]
+  sentMessages  Message[]
+
+  createdModules Module[]       @relation("ModuleCreator")
+  moduleMembers  ModuleMember[]
 }
 
 enum Role {
@@ -174,6 +192,81 @@ model Exam {
   title    String
   examDate DateTime
 
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String?
+  dueDate       DateTime?
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  status        String    @default("todo")
+  duration      Int       @default(0)
+  durationHours String?
+  durationMins  String?
+  subtasks      String[]  @default([])
+  priority      String    @default("Low")
+  url           String?
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  examId String? @db.ObjectId
+  exam   Exam?   @relation(fields: [examId], references: [id])
+
+  moduleId     String? @db.ObjectId
+  module       Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleTask Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Notification {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String           @db.ObjectId
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+  expiresAt DateTime?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model UserPreferences {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String   @unique @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id])
+  workStartTime       String
+  workEndTime         String
+  daysOff             String[]
+  sessionLength       Int
+  breakLength         Int
+  breaksPerDay        Int
+  taskOrder           String
+  maxTasksPerDay      Int
+  defaultTaskDuration Int
+  reminderDays        Int
+}
+
+model Exam {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title           String
+  examDate        DateTime
   maxTimePerDay   Int
   unavailableDays DateTime[]
 
@@ -213,6 +306,16 @@ model Event {
   allDay Boolean @default(false)
 
   category String
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime
+  allDay      Boolean  @default(false)
+  category    String
 
   startCoords       Json?
   destinationCoords Json?
@@ -324,6 +427,20 @@ model UserPreferences {
 // REPORT SYSTEM
 //////////////////////////
 
+  recurrence Json?
+  exceptions String[] @default([])
+
+  googleEventId String?
+  lastSyncedAt  DateTime?
+
+  moduleId      String? @db.ObjectId
+  module        Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleEvent Boolean @default(false) // Flag for quick filtering
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Report {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
@@ -363,6 +480,12 @@ model Appeal {
   description String
 
   status AppealStatus @default(PENDING)
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  reportId    String       @db.ObjectId
+  description String
+  createdAt   DateTime     @default(now())
+  status      AppealStatus @default(PENDING)
 
   user   User   @relation(fields: [userId], references: [id])
   report Report @relation(fields: [reportId], references: [id])
@@ -411,4 +534,80 @@ model UserInventory {
   progress UserProgress @relation(fields: [progressId], references: [id])
 
   @@unique([userId, itemId])
+}
+model Conversation {
+  id            String                    @id @default(auto()) @map("_id") @db.ObjectId
+  participants  ConversationParticipant[]
+  messages      Message[]
+  lastMessage   String?
+  lastMessageAt DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  isGroup     Boolean @default(false)
+  name        String?
+  createdById String? @db.ObjectId
+}
+
+model ConversationParticipant {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String       @db.ObjectId
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("member") // "admin" | "member"
+  joinedAt       DateTime     @default(now())
+  deletedAt      DateTime?
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String       @db.ObjectId
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime     @default(now())
+}
+
+model Module {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  maxMembers  Int     @default(50) // Max users allowed
+  joinPin     String  @unique // 6-character unique code
+
+  creatorId String @db.ObjectId
+  creator   User   @relation("ModuleCreator", fields: [creatorId], references: [id])
+
+  members ModuleMember[]
+  events  Event[]
+  tasks   Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ModuleMember {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  moduleId String @db.ObjectId
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role ModuleRole @default(MEMBER)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([moduleId, userId]) // User can only join each module once
+}
+
+enum ModuleRole {
+  OWNER // Creator (full control)
+  ADMIN // Can manage members
+  MEMBER // Regular participant
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Medal, Flame, Clock, Target } from "lucide-react";
+import Link from "next/link";
 
 interface LeaderboardUser {
   id: string;
@@ -18,19 +19,18 @@ interface LeaderboardUser {
 export default function LeaderboardClient({ initialData }: { initialData: LeaderboardUser[] }) {
   const [sortBy, setSortBy] = useState<'streak' | 'focusTime' | 'completionRate'>('streak');
 
-  // Sort the data dynamically based on the dropdown selection
   const sortedData = [...initialData].sort((a, b) => {
     if (sortBy === 'streak') {
       if (b.streak !== a.streak) return b.streak - a.streak;
-      return b.focusTimeRaw - a.focusTimeRaw; // Tie-breaker
+      return b.focusTimeRaw - a.focusTimeRaw; 
     }
     if (sortBy === 'focusTime') {
       if (b.focusTimeRaw !== a.focusTimeRaw) return b.focusTimeRaw - a.focusTimeRaw;
-      return b.streak - a.streak; // Tie-breaker
+      return b.streak - a.streak; 
     }
     if (sortBy === 'completionRate') {
       if (b.completionRate !== a.completionRate) return b.completionRate - a.completionRate;
-      return b.focusTimeRaw - a.focusTimeRaw; // Tie-breaker
+      return b.focusTimeRaw - a.focusTimeRaw; 
     }
     return 0;
   });
@@ -90,21 +90,26 @@ export default function LeaderboardClient({ initialData }: { initialData: Leader
 
                 {/* User Info */}
                 <div className="col-span-4 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden shrink-0 border border-gray-200">
-                    {user.pfp ? (
-                      <img src={user.pfp} alt={user.username} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-600 font-bold text-sm">
-                        {user.name?.[0] || user.username[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-gray-900 truncate">
-                      {user.name} {user.isCurrentUser && <span className="text-xs font-normal text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full ml-2">You</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">@{user.username}</p>
-                  </div>
+                  <Link 
+                    href={`/profile/${user.username}`} 
+                    className="flex items-center gap-3 group hover:opacity-80 transition-all"
+                  >
+                    <div className="w-10 h-10 bg-gray-200 rounded-full overflow-hidden shrink-0 border border-gray-200 group-hover:border-blue-300">
+                      {user.pfp ? (
+                        <img src={user.pfp} alt={user.username} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-600 font-bold text-sm group-hover:text-blue-600 group-hover:bg-blue-50">
+                          {user.name?.[0] || user.username[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        {user.name} {user.isCurrentUser && <span className="text-xs font-normal text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full ml-2">You</span>}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">@{user.username}</p>
+                    </div>
+                  </Link>
                 </div>
 
                 {/* Current Streak */}

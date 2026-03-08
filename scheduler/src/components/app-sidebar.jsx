@@ -1,8 +1,8 @@
 "use client";
-import * as React from "react";
 import {
   IconCamera,
   IconDashboard,
+  IconMessages,
   IconFileAi,
   IconFileDescription,
   IconListDetails,
@@ -10,6 +10,7 @@ import {
   IconUser,
   IconSearch,
   IconUserCog,
+  IconBook
 } from "@tabler/icons-react";
 import { GraduationCap } from "lucide-react";
 import { NavMain } from "components/nav-main";
@@ -38,6 +39,11 @@ const data = {
       icon: IconDashboard,
     },
     {
+      title: "Messages",
+      url: "/messages",
+      icon: IconMessages,
+    },
+    {
       title: "Tasks",
       url: "/tasks",
       icon: IconListDetails,
@@ -56,6 +62,11 @@ const data = {
       title: "Leaderboard",
       url: "/leaderboard",
       icon: IconTrophy,
+    },
+    {
+      title: "Modules",
+      url: "/modules",
+      icon: IconBook,
     },
     {
       title: "Admin",
