@@ -151,7 +151,8 @@ export default function AdminPage() {
           }}
           resetFilters={() => {
             setAppliedUserFilters(defaultUserFilters);
-          }}              
+          }} 
+          type={"admin"} /* needed to show admin category sorting etc*/           
         />
       )} 
         

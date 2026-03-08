@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     const order = searchParams.get("order") === "asc" ? "asc" : "desc";
     //by default it is given in descending order
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");      //forces a default of max 12 users on the page at all times
+    const limit = parseInt(searchParams.get("limit") || "12");      //forces a default of max 12 users on the page at all times
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const categories = searchParams.get("categories");

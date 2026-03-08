@@ -8,7 +8,7 @@ import SearchControls from "@/components/search-page/search-controls";
 
 export default function SearchPage() {
     //User management states
-    const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1, limit:10 };  //user search parameters
+    const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1, limit:12 };  //user search parameters
 
     const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
     const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
@@ -100,16 +100,17 @@ export default function SearchPage() {
 
             {isUserFilterOpen && (
                 <UserFilter 
-                filters={draftUserFilters}
-                setFilters={setDraftUserFilters}
-                onClose={() => setIsUserFilterOpen(false)}
-                applyFilters={() => {
-                    setAppliedUserFilters(draftUserFilters);
-                    setIsUserFilterOpen(false);
-                }}
-                resetFilters={() => {
-                    setAppliedUserFilters(defaultUserFilters);
-                }}              
+                    filters={draftUserFilters}
+                    setFilters={setDraftUserFilters}
+                    onClose={() => setIsUserFilterOpen(false)}
+                    applyFilters={() => {
+                        setAppliedUserFilters(draftUserFilters);
+                        setIsUserFilterOpen(false);
+                    }}
+                    resetFilters={() => {
+                        setAppliedUserFilters(defaultUserFilters);
+                    }} 
+                    type={"search"} /* needed to hide admin category sorting etc*/              
                 />
             )}        
         </>       
