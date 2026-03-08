@@ -11,7 +11,7 @@ export default function ReportManagement({reports, totalReports, totalReportPage
     const end =reports.length === 0 ? 0 : Math.min((page - 1) * max_reports + reports.length, totalReports);
 
     return(
-        <section className="mb-10 bg-white shadow rounded p-6 flex flex-col">
+        <section className="mb-10 bg-white shadow rounded p-6 flex flex-col h-[600px]">
             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 {/*Header with name and filtering button */}
                 <h2 className="text-2xl font-semibold">
@@ -27,7 +27,7 @@ export default function ReportManagement({reports, totalReports, totalReportPage
                 </button>
             </div>
             
-                <ul className="space-y-2 flex-1 overflow-y-auto">
+                <ul className="space-y-2 flex-1 overflow-y-auto min-h-0">
                 {reports.map((report) => (
                     <li
                     key={report.id}

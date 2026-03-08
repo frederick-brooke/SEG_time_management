@@ -13,12 +13,12 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
 
     return(
         <div className="p-6">
-            <section className="mb-4 bg-white shadow rounded p-6">
+            <section className="mb-4 bg-white shadow rounded p-6 flex flex-col h-[700px]">
                 <h2 className="text-2xl font-semibold mb-4">Search</h2>
 
                 <p className="flex justify-center p-3"> " {totalUsers || 0} Users Found " </p>
                 
-                <div>
+                <div className="flex-1 overflow-y-auto min-h-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {users.map((user) => (
                             <UserCard key={user.id} user={user} onClick={() => window.location.href = `/profile/${user.username}`} />// navigate to profile
@@ -28,7 +28,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                 </div>
                 
 
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex justify-center flex-shrink-0">
                     {users.length !== 0 ? (
                         <p className="text-sm text-gray-600">
                         Showing{" "}

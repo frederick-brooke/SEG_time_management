@@ -10,7 +10,7 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
     : Math.min((page - 1) * PAGE_SIZE + appeals.length, totalAppeals);
 
   return (
-    <section className="mb-10 bg-white shadow rounded p-6 flex flex-col">
+    <section className="mb-10 bg-white shadow rounded p-6 flex flex-col h-[600px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h2 className="text-2xl font-semibold">
@@ -29,7 +29,7 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
       </div>
 
       {/* List */}
-      <ul className="space-y-2 flex-1 overflow-y-auto">
+      <ul className="space-y-2 flex-1 overflow-y-auto min-h-0">
         {appeals.map((appeal) => (
           <li
             key={appeal.id}
