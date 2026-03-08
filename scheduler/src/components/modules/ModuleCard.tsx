@@ -62,16 +62,6 @@ export function ModuleCard({ module }: ModuleCardProps) {
             <span>{module.memberCount}/{module.maxMembers}</span>
           </div>
 
-          {/* Show PIN only to owner */}
-          {isOwner && module.joinPin && (
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-gray-400">PIN:</span>
-              <code className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded border">
-                {module.joinPin}
-              </code>
-            </div>
-          )}
-
           <span className="text-[10px] text-gray-400">
             by @{module.creator.username}
           </span>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ModuleCard } from "@/src/components/modules/ModuleCard";
 import CreateModule from "@/src/components/modules/CreateModule";
 import JoinModule from "@/src/components/modules/JoinModule";
-import { SiteHeader } from "components/site-header";
 import { Plus, LogIn } from "lucide-react";
 
 interface ModulesPageClientProps {
@@ -22,7 +21,6 @@ export default function ModulesPageClient({ modules: initialModules }: ModulesPa
 
   return (
     <>
-      <SiteHeader />
       
       <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
         <div className="max-w-5xl w-full mx-auto py-8">
