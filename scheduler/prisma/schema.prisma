@@ -1,24 +1,21 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "mongodb"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
+
+//////////////////////////
+// USER
+//////////////////////////
 
 model User {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
   email        String  @unique
-  passwordHash String?
   username     String  @unique
+  passwordHash String?
 
   fname String?
   lname String?
@@ -26,6 +23,10 @@ model User {
   bio String?
   pfp String?
 
+  role Role @default(BASIC)
+
+  isBanned   Boolean   @default(false)
+  banExpires DateTime?
   accounts      Account[]
   tasks         Task[]
   preferences   UserPreferences?
@@ -38,6 +39,23 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  //////////////////////
+  // RELATIONS
+  //////////////////////
+
+  accounts       Account[]
+  tasks          Task[]
+  exams          Exam[]
+  events         Event[]
+  notifications  Notification[]
+  preferences    UserPreferences?
+
+  progress       UserProgress?
+  inventory UserInventory[]
+
+  sentRequests     FriendRequest[] @relation("sender")
+  receivedRequests FriendRequest[] @relation("receiver")
 
   role Role @default(BASIC)
 
@@ -64,6 +82,10 @@ enum Role {
   SUPERUSER
 }
 
+//////////////////////////
+// AUTH ACCOUNTS
+//////////////////////////
+
 model Account {
   id                       String  @id @default(auto()) @map("_id") @db.ObjectId
   userId                   String  @db.ObjectId
@@ -78,36 +100,113 @@ model Account {
   id_token                 String? @db.String
   session_state            String?
   refresh_token_expires_in Int?
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+
+  type              String
+  provider          String
+  providerAccountId String
+
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
-model FriendRequest {
+//////////////////////////
+// GAMIFICATION
+//////////////////////////
+
+model UserProgress {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+
+  points     Int @default(0)
+  level      Int @default(1)
+  experience Int @default(0)
+
+  streak Int @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions PointTransaction[]
+  equippedTitle  String?
+
+  equippedFrame  String?
+  xpBoostExpires DateTime?
+  streakShields  Int       @default(0)
+  shieldUsedDate DateTime?
+
+inventory UserInventory[]
+}
+
+model PointTransaction {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  senderId String @db.ObjectId
-  sender   User   @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  progressId String @db.ObjectId
+  progress   UserProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
 
-  receiverId String @db.ObjectId
-  receiver   User   @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  amount Int
+  reason String
 
-  status FriendStatus @default(PENDING)
+  taskId String? @db.ObjectId
+
+  createdAt DateTime @default(now())
+}
+
+//////////////////////////
+// TASKS
+//////////////////////////
+
+model Task {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  title       String
+  description String?
+
+  dueDate DateTime?
+
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+
+  status   String  @default("todo")
+  priority String  @default("Low")
+
+  duration Int @default(0)
+
+  subtasks String[] @default([])
+
+  url String?
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  examId String? @db.ObjectId
+  exam   Exam?   @relation(fields: [examId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([senderId, receiverId])
 }
 
-enum FriendStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-}
+//////////////////////////
+// EXAMS / REVISION
+//////////////////////////
 
-model Task {
+model Exam {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title    String
+  examDate DateTime
+
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   title         String
   description   String?
@@ -204,8 +303,24 @@ model RevisionMaterial {
   url      String?
 }
 
+//////////////////////////
+// EVENTS / CALENDAR
+//////////////////////////
+
 model Event {
   id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+
+  start  DateTime
+  end    DateTime
+  allDay Boolean @default(false)
+
+  category String
 
   userId String @db.ObjectId
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -219,10 +334,113 @@ model Event {
 
   startCoords       Json?
   destinationCoords Json?
-  travelDuration    Int?
+
+  travelDuration Int?
+
   startLocationName String?
   destLocationName  String?
-  transportMode     String?
+
+  transportMode String?
+
+  recurrence Json?
+  exceptions String[] @default([])
+
+  googleEventId String?
+  lastSyncedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//////////////////////////
+// SOCIAL
+//////////////////////////
+
+model FriendRequest {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  senderId String @db.ObjectId
+  sender   User   @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId String @db.ObjectId
+  receiver   User   @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  status FriendStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([senderId, receiverId])
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+//////////////////////////
+// NOTIFICATIONS
+//////////////////////////
+
+model Notification {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  title   String
+  message String
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  link String?
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+
+  @@index([userId, isRead])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+//////////////////////////
+// USER PREFERENCES
+//////////////////////////
+
+model UserPreferences {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @unique @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  workStartTime String
+  workEndTime   String
+
+  daysOff String[]
+
+  sessionLength Int
+  breakLength   Int
+  breaksPerDay  Int
+
+  taskOrder String
+
+  maxTasksPerDay      Int
+  defaultTaskDuration Int
+
+  reminderDays Int
+}
+
+//////////////////////////
+// REPORT SYSTEM
+//////////////////////////
 
   recurrence Json?
   exceptions String[] @default([])
@@ -269,6 +487,14 @@ enum ReportStatus {
 }
 
 model Appeal {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId   String @db.ObjectId
+  reportId String @db.ObjectId
+
+  description String
+
+  status AppealStatus @default(PENDING)
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
   userId      String       @db.ObjectId
   reportId    String       @db.ObjectId
@@ -281,6 +507,8 @@ model Appeal {
 
   handledById String? @db.ObjectId
   handledBy   User?   @relation("ModeratorHandledAppeals", fields: [handledById], references: [id])
+
+  createdAt DateTime @default(now())
 }
 
 enum AppealStatus {
@@ -289,6 +517,39 @@ enum AppealStatus {
   REJECTED
 }
 
+enum ShopItemType {
+  TITLE
+  FRAME
+  FUNCTIONAL
+}
+
+model ShopItem {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       @unique
+  description String
+  type        ShopItemType
+  price       Int
+  value       String
+  icon        String
+  rarity      String       @default("common")
+  isActive    Boolean      @default(true)
+
+  inventory UserInventory[]
+}
+
+model UserInventory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  itemId      String   @db.ObjectId
+  progressId  String   @db.ObjectId
+  purchasedAt DateTime @default(now())
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item     ShopItem     @relation(fields: [itemId], references: [id])
+  progress UserProgress @relation(fields: [progressId], references: [id])
+
+  @@unique([userId, itemId])
+}
 model Conversation {
   id            String                    @id @default(auto()) @map("_id") @db.ObjectId
   participants  ConversationParticipant[]

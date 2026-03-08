@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx prisma generate && next dev",
+    "dev": "npx prisma generate && next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -94,6 +94,7 @@
     "prisma": "^6.19.2",
     "tailwindcss": "^4.1.18",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "whatwg-fetch": "^3.6.20"
   }
