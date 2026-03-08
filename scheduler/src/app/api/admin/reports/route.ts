@@ -42,34 +42,37 @@ export async function GET(req: Request) {
         where.status = status.toUpperCase();
     }
 
-    const totalMatchingReports = await prisma.report.count({
-        where,
-    });
-
     //pagination of the queries and combines adll searches
-    const reports = await prisma.report.findMany({
-        include: {
-            reportedUser: {
-                select: { id: true, username: true, isBanned:true, banExpires:true },
+    const [reports, totalMatchingReports, totalReports] = await Promise.all([
+        prisma.report.findMany({
+            where,
+            include: {
+                reportedUser: {
+                    select: { id: true, username: true, isBanned: true, banExpires: true },
+                },
+                reportedBy: {
+                    select: { id: true, username: true },
+                },
+                handledBy: {
+                    select: { id: true, username: true },
+                },
             },
-            reportedBy: {
-                select: { id: true, username: true },
+            orderBy: {
+                [sortBy]: order,
             },
-            handledBy: {
-                select: { id: true, username: true },
-            },
-        },
+            skip: (page - 1) * limit,
+            take: limit,
+        }),
 
-        orderBy: {
-            [sortBy]: order,
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-    });
+        prisma.report.count({ where }), // filtered count
+
+        prisma.report.count(), // total reports in database
+    ]);
 
     return NextResponse.json({ 
         reports,
         totalPages: Math.ceil(totalMatchingReports / limit),
-        totalMatchingReports, 
+        totalReports, 
+        totalMatchingReports
     });
 }

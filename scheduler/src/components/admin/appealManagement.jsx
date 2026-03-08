@@ -1,17 +1,14 @@
 import AppealPanel from "./admin-appeal-panel";
 
-export default function AppealsManagement({
-    appeals,
-    totalAppeals,
-    totalAppealPages,
-    currentAppealPage,
-    setCurrentAppealPage,
-    selectedAppeal,
-    setSelectedAppeal,
-    fetchAppeals,
-    setIsAppealFilterOpen,
+export default function AppealsManagement({appeals, totalAppeals, totalAppealPages, currentAppealPage, setCurrentAppealPage, selectedAppeal, setSelectedAppeal, fetchAppeals, setIsAppealFilterOpen, filters, setFilters, resetFilters}) {
+  const PAGE_SIZE = 5;
+  const page = filters.page ?? 1;
 
-}) {
+  const start = appeals.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const end = appeals.length === 0
+    ? 0
+    : Math.min((page - 1) * PAGE_SIZE + appeals.length, totalAppeals);
+
   return (
     <section className="mb-10 bg-white shadow rounded p-6 flex flex-col">
       {/* Header */}
@@ -58,25 +55,23 @@ export default function AppealsManagement({
 
       {/* Count Display (same as reports) */}
       <div className="mt-4 flex justify-center">
-        {appeals.length !== 0 && (
-          <p className="text-sm text-gray-600">
-            Showing{" "}
-            <span className="font-semibold text-gray-900">
-              {appeals.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-semibold text-gray-900">
-              {totalAppeals}
-            </span>{" "}
-            appeal(s)
-          </p>
-        )}
-
-        {appeals.length === 0 && (
-          <p className="text-sm text-gray-500 mt-4">
-            No appeals found.
-          </p>
-        )}
+          {appeals.length !== 0 ? (
+              <p className="text-sm text-gray-600">
+                Showing{" "}
+              <span className="font-semibold text-gray-900">
+                  {start}-{end}
+              </span>{" "}
+                of{" "}
+              <span className="font-semibold text-gray-900">
+                  {totalAppeals}
+              </span>{" "}
+                appeals
+              </p>
+          ) : (
+              <p className="text-sm text-gray-500 mt-4">
+              No appeals found.
+              </p>
+          )}
       </div>
 
       {/* pagination of the appeals */}

@@ -33,26 +33,31 @@ export default function AdminPage() {
   const [currentReportPage, setCurrentReportPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
-
   //report filter states
-  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"" };
-
+  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12 };
   const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
   const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
+
+  function resetReportFilters(){
+    setDraftReportFilters(defaultReportFilters);
+    setAppliedReportFilters(defaultReportFilters);
+  }
 
   const [currentAppealPage, setCurrentAppealPage] = useState(1);
   const [selectedAppeal, setSelectedAppeal] = useState(null);
   
-  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:""};
+  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12};
   const [appliedAppealFilters, setAppliedAppealFilters] = useState(defaultAppealFilters);
   const [draftAppealFilters, setDraftAppealFilters] = useState(defaultAppealFilters);
-
   const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  //open and close the panel
 
+  function resetAppealFilters(){
+    setDraftAppealFilters(defaultAppealFilters);
+    setAppliedAppealFilters(defaultAppealFilters);
+  }
+
   const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters, "/api/admin/users");
-
   const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(appliedReportFilters);
-
   const { appeals, totalAppealPages, totalAppeals, fetchAppeals,} = useAdminAppeals(appliedAppealFilters);
 
   const [currentTab, setCurrentTab] = useState("reports");  //display the current system, defaults on the reports subsection
@@ -73,6 +78,9 @@ export default function AdminPage() {
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           fetchReports={fetchReports}
+          filters={appliedReportFilters}
+          setFilters={setAppliedReportFilters}
+          resetFilters={resetReportFilters}
         />
     ),
 
@@ -87,6 +95,9 @@ export default function AdminPage() {
           setSelectedAppeal={setSelectedAppeal}
           fetchAppeals={fetchAppeals}
           setIsAppealFilterOpen={setIsAppealFilterOpen}
+          filters={appliedAppealFilters}
+          setFilters={setAppliedAppealFilters}
+          resetFilters={resetAppealFilters}
         />
     )
   }
