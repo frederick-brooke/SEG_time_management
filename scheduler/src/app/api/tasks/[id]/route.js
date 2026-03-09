@@ -40,6 +40,7 @@ export async function PATCH(request, { params }) {
     if (body.priority !== undefined) updateData.priority = body.priority;
     if (body.duration !== undefined) updateData.duration = body.duration;
     if (body.subtasks !== undefined) updateData.subtasks = body.subtasks;
+    if (body.bufferDays !== undefined) updateData.bufferDays = body.bufferDays
     //handle status updates and synce with completed field
     if (body.status !== undefined){
       updateData.status = body.status;

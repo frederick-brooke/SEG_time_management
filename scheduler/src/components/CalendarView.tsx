@@ -1,7 +1,14 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay, addMinutes } from "date-fns";
+import {
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  addMinutes,
+  addDays,
+} from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import EventForm from "./EventForm";
@@ -171,11 +178,13 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
 export default function CalendarView({
   events: initialEvents,
   tasks: initialTasks = [],
+  allTasks = [],
   userId,
   googleconnected,
 }: {
   events: any[];
   tasks: any[];
+  allTasks?: any[];
   userId: string;
   googleconnected?: boolean;
 }) {
@@ -187,11 +196,15 @@ export default function CalendarView({
       _type: "event",
     })),
   );
+  // Initial state
   const [tasks, setTasks] = useState(
     initialTasks.map((t) => ({
       ...t,
-      start: new Date(t.scheduledDate),
-      end: addMinutes(new Date(t.scheduledDate), t.duration || 60),
+      start: new Date(t.scheduledTime || t.scheduledDate),
+      end: addMinutes(
+        new Date(t.scheduledTime || t.scheduledDate),
+        t.duration || 60,
+      ),
       _type: "task",
     })),
   );
@@ -220,6 +233,18 @@ export default function CalendarView({
   const [categoryFilters, setCategoryFilters] = useState<
     Record<string, boolean>
   >({});
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [scheduleMode, setScheduleMode] = useState<"day" | "week">("day");
+  const [scheduleDate, setScheduleDate] = useState(
+    format(new Date(), "yyyy-MM-dd"),
+  );
+  const [scheduleWeekStart, setScheduleWeekStart] = useState(
+    format(startOfWeek(new Date()), "yyyy-MM-dd"),
+  );
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([]);
+  const [scheduleWarnings, setScheduleWarnings] = useState<any[]>([]);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [alreadyScheduled, setAlreadyScheduled] = useState(false);
 
   const fetchCategories = async () => {
     const res = await fetch("/api/categories");
@@ -340,8 +365,11 @@ export default function CalendarView({
           .filter((t: any) => t.scheduledDate)
           .map((t: any) => ({
             ...t,
-            start: new Date(t.scheduledDate),
-            end: addMinutes(new Date(t.scheduledDate), t.duration || 60),
+            start: new Date(t.scheduledTime || t.scheduledDate),
+            end: addMinutes(
+              new Date(t.scheduledTime || t.scheduledDate),
+              t.duration || 60,
+            ),
             _type: "task",
           })),
       );
@@ -508,6 +536,78 @@ export default function CalendarView({
     }
   };
 
+  const openScheduleDialog = (mode: "day" | "week") => {
+    setScheduleMode(mode);
+    setScheduleWarnings([]);
+
+    const today = new Date();
+    const dateStr = format(today, "yyyy-MM-dd");
+    const weekStr = format(startOfWeek(today), "yyyy-MM-dd");
+
+    setScheduleDate(dateStr);
+    setScheduleWeekStart(weekStr);
+
+    // pre-select tasks due on that day/week + unscheduled tasks with that due date
+    const targetDays =
+      mode === "day"
+        ? [today]
+        : Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(today), i));
+
+    const preSelected = allTasks
+      .filter((t) => {
+        if (!t.dueDate) return false;
+        const due = new Date(t.dueDate);
+        return targetDays.some((d) => d.toDateString() === due.toDateString());
+      })
+      .map((t) => t.id);
+
+    setSelectedTaskIds(preSelected);
+
+    // check if already scheduled
+    const hasScheduled = tasks.some((t) => {
+      const tDate = new Date(t.scheduledDate);
+      return targetDays.some((d) => d.toDateString() === tDate.toDateString());
+    });
+    setAlreadyScheduled(hasScheduled);
+    setShowScheduleDialog(true);
+  };
+
+  const handleSchedule = async () => {
+    if (selectedTaskIds.length === 0) return;
+    setIsScheduling(true);
+
+    const days =
+      scheduleMode === "day"
+        ? [new Date(scheduleDate).toISOString()]
+        : Array.from({ length: 7 }, (_, i) =>
+            addDays(new Date(scheduleWeekStart), i).toISOString(),
+          );
+
+    const res = await fetch("/api/schedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ taskIds: selectedTaskIds, days }),
+    });
+
+    const data = await res.json();
+    setIsScheduling(false);
+
+    if (data.warnings?.length > 0) {
+      setScheduleWarnings(data.warnings);
+    } else {
+      setShowScheduleDialog(false);
+      refreshTasks();
+    }
+  };
+
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTaskIds((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId],
+    );
+  };
+
   return (
     <div className="flex gap-6">
       {/* Filter sidebar */}
@@ -611,6 +711,21 @@ export default function CalendarView({
 
       {/* Main calendar area */}
       <div className="flex-1 min-w-0">
+        {/* Schedule buttons */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => openScheduleDialog("day")}
+            className="flex-1 bg-gray-900 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-black transition-all"
+          >
+            📅 Schedule My Day
+          </button>
+          <button
+            onClick={() => openScheduleDialog("week")}
+            className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
+          >
+            🗓 Schedule My Week
+          </button>
+        </div>
         <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative">
           {/* Top bar: undo notification or search */}
           <div className="h-14 mb-4 relative">
@@ -912,6 +1027,189 @@ export default function CalendarView({
                 }}
               />
             </div>
+          </div>
+        </div>
+      )}
+      {showScheduleDialog && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
+          onClick={() => setShowScheduleDialog(false)}
+        >
+          <div
+            className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowScheduleDialog(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-black text-xl"
+            >
+              ✕
+            </button>
+            <h3 className="text-2xl font-black mb-2 text-gray-900">
+              {scheduleMode === "day" ? "Schedule My Day" : "Schedule My Week"}
+            </h3>
+
+            {/* Already scheduled warning */}
+            {alreadyScheduled && scheduleWarnings.length === 0 && (
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium">
+                ⚠️ This {scheduleMode} already has scheduled tasks. Continuing
+                will reschedule them.
+              </div>
+            )}
+
+            {/* Date picker */}
+            <div className="mb-4">
+              {scheduleMode === "day" ? (
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase">
+                    Select Day
+                  </label>
+                  <input
+                    type="date"
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                    className="w-full border p-2 rounded-xl mt-1 text-sm"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase">
+                    Week Starting
+                  </label>
+                  <input
+                    type="date"
+                    value={scheduleWeekStart}
+                    onChange={(e) => setScheduleWeekStart(e.target.value)}
+                    className="w-full border p-2 rounded-xl mt-1 text-sm"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Task selector */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-gray-400 uppercase">
+                  Select Tasks
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setSelectedTaskIds(allTasks.map((t) => t.id))
+                    }
+                    className="text-xs text-indigo-600 font-bold"
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => setSelectedTaskIds([])}
+                    className="text-xs text-gray-400 font-bold"
+                  >
+                    None
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
+                {allTasks.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-4">
+                    No incomplete tasks found.
+                  </p>
+                ) : (
+                  allTasks.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => toggleTaskSelection(t.id)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        selectedTaskIds.includes(t.id)
+                          ? "border-indigo-400 bg-indigo-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                          selectedTaskIds.includes(t.id)
+                            ? "bg-indigo-600 border-indigo-600"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {selectedTaskIds.includes(t.id) && (
+                          <span className="text-white text-[10px] font-bold">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">
+                          {t.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span
+                            className={`text-xs font-bold ${
+                              t.priority === "High"
+                                ? "text-red-500"
+                                : t.priority === "Medium"
+                                  ? "text-orange-500"
+                                  : "text-green-500"
+                            }`}
+                          >
+                            {t.priority}
+                          </span>
+                          {t.dueDate && (
+                            <span className="text-xs text-gray-400">
+                              Due {format(new Date(t.dueDate), "MMM d")}
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-400">
+                            {t.duration} mins
+                          </span>
+                        </div>
+                      </div>
+                      {t.scheduledDate && (
+                        <span className="text-xs text-indigo-500 font-medium flex-shrink-0">
+                          Scheduled
+                        </span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Deadline warnings */}
+            {scheduleWarnings.length > 0 && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <p className="text-sm font-bold text-red-700 mb-2">
+                  ⚠️ These tasks couldn't be scheduled before their deadline:
+                </p>
+                {scheduleWarnings.map((w) => (
+                  <p key={w.taskId} className="text-xs text-red-600">
+                    • {w.title}
+                  </p>
+                ))}
+                <button
+                  onClick={() => {
+                    refreshTasks();
+                    setShowScheduleDialog(false);
+                  }}
+                  className="mt-3 w-full bg-red-600 text-white py-2 rounded-xl font-bold text-sm hover:bg-red-700"
+                >
+                  Schedule Anyway & Close
+                </button>
+              </div>
+            )}
+
+            {/* Action button */}
+            {scheduleWarnings.length === 0 && (
+              <button
+                onClick={handleSchedule}
+                disabled={isScheduling || selectedTaskIds.length === 0}
+                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isScheduling
+                  ? "Scheduling..."
+                  : `Schedule ${selectedTaskIds.length} Task${selectedTaskIds.length !== 1 ? "s" : ""}`}
+              </button>
+            )}
           </div>
         </div>
       )}

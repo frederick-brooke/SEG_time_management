@@ -84,6 +84,7 @@ export async function POST(request) {
         isRecurring: body.isRecurring || false,
         recurrence: body.recurrence || null,
         scheduledDate: body.scheduledDate ? new Date(body.scheduledDate) : null,
+        bufferDays: body.bufferDays ?? null,
       },
     });
 
