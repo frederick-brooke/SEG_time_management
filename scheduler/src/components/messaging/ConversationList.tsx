@@ -24,7 +24,13 @@ type Friend = {
   pfp: string | null;
 };
 
-// ── Three-dot menu ────────────────────────────────────────────────────────────
+/**
+ * A three-dot overflow menu shown on each conversation row.
+ * Exposes a "Delete" action.
+ *
+ * @param conversationId - The ID of the conversation this menu belongs to.
+ * @param onDeleted - Callback invoked with the conversation ID after a successful deletion.
+ */
 function ConversationMenu({
   conversationId,
   onDeleted,
@@ -36,7 +42,7 @@ function ConversationMenu({
   const [loading, setLoading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
+  /** Close the dropdown when the user clicks outside of it. */
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -48,6 +54,9 @@ function ConversationMenu({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
+  /**
+   * Sends a DELETE request for the conversation after confirmation.
+   */
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm("Delete this conversation? This cannot be undone.")) return;
@@ -107,7 +116,16 @@ function ConversationMenu({
   );
 }
 
-// ── Create Group Modal ─────────────────────────────────────────────────────────
+// Create Group Modal
+
+/**
+ * Modal dialog for creating a new group conversation.
+ * Allows the user to set a group name and select members from their friends list.
+ *
+ * @param friends - The current user's friends that they can add to the group.
+ * @param onClose - Callback to dismiss the modal without creating a group.
+ * @param onCreated - Callback invoked with the newly created conversation on success.
+ */
 function CreateGroupModal({
   friends,
   onClose,
@@ -121,11 +139,21 @@ function CreateGroupModal({
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Toggles a friend's selection state.
+   * If already selected, removes them; otherwise adds them.
+   *
+   * @param id - The user ID of the friend to toggle.
+   */
   const toggle = (id: string) =>
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
 
+  /**
+   * Submits the form to create the group conversation via the API.
+   * Requires both a non-empty name and at least one selected member.
+   */
   const handleCreate = async () => {
     if (!name.trim() || selected.length === 0) return;
     setLoading(true);
@@ -203,7 +231,11 @@ function CreateGroupModal({
   );
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+// Main Component
+
+/**
+ * Sidebar list of all conversations for the current user.
+ */
 export default function ConversationList() {
   const { data: session } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -211,8 +243,11 @@ export default function ConversationList() {
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
   const params = useParams();
+
+  /** The conversation ID from the URL to highlight the active row. */
   const activeId = params?.conversationId as string;
 
+  /** Fetches the full conversation list from the API and updates state. */
   const fetchConversations = useCallback(() => {
     fetch("/api/conversations").then((r) => r.json()).then(setConversations);
   }, []);
@@ -220,17 +255,29 @@ export default function ConversationList() {
   useEffect(() => {
     fetchConversations();
     fetch("/api/user/search?q=").then((r) => r.json()).then(setFriends);
+
     window.addEventListener("focus", fetchConversations);
     return () => window.removeEventListener("focus", fetchConversations);
   }, [session, fetchConversations]);
 
+  /**
+   * Returns the other participant's user object for a 1-to-1 conversation.
+   * Returns `undefined` for group conversations.
+   *
+   * @param convo - The conversation to inspect.
+   */
   const getOtherUser = (convo: Conversation) =>
     convo.participants.find((p) => p.user.id !== session?.user?.id)?.user;
 
+  /**
+   * Removes a deleted conversation from the list.
+   * If the deleted conversation is currently active, navigates back to /messages.
+   *
+   * @param id - The ID of the conversation that was deleted.
+   */
   const handleDeleted = useCallback(
     (id: string) => {
       setConversations((prev) => prev.filter((c) => c.id !== id));
-      // If the deleted convo was active, navigate away
       if (activeId === id) router.push("/messages");
     },
     [activeId, router]
@@ -272,7 +319,7 @@ export default function ConversationList() {
                 activeId === convo.id ? "bg-blue-50" : "hover:bg-gray-50"
               }`}
             >
-              {/* Clickable area */}
+              {/* Clickable area — navigates to the conversation */}
               <button
                 onClick={() => router.push(`/messages/${convo.id}`)}
                 className="flex items-center gap-3 flex-1 min-w-0 text-left"
@@ -301,7 +348,7 @@ export default function ConversationList() {
                 </div>
               </button>
 
-              {/* Three-dot menu */}
+              {/* Three-dot overflow menu — hidden until the row is hovered */}
               <ConversationMenu
                 conversationId={convo.id}
                 onDeleted={handleDeleted}
