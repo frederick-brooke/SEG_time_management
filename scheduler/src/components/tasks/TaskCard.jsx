@@ -135,9 +135,9 @@ export function TaskCard({
       </div>
 
       <TaskActions
-        onView={() => onView(task)}
-        onEdit={() => onEdit(task.id)}
-        onDelete={() => onDelete(task.id)}
+        onView={onView}
+        onEdit={onEdit}
+        onDelete={onDelete}
       />
     </div>
   );

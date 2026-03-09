@@ -9,7 +9,7 @@ import {
 import { Label } from "components/ui/label";
 import { Button } from "components/ui/button";
 
-export function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
+export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
   if (!task) return null;
 
   return (

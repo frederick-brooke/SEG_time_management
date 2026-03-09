@@ -9,7 +9,7 @@ import {
 import { Calendar } from "lucide-react";
 import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
-import { TaskViewDialog } from "./tasks/TaskViewDialog";
+import  TaskViewDialog  from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 

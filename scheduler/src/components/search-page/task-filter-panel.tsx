@@ -13,7 +13,7 @@ export default function TaskFilter({
     >
 
       <div
-        className="p-6 space-y-6"
+        className="p-6 space-y-6 h-full overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
 

@@ -1,6 +1,6 @@
 import { TaskCard } from "@/src/components/tasks/TaskCard";
 
-export default function SearchTaskCard({ task, onClick }) {
+export default function SearchTaskCard({ task, onView, onEdit, onDelete }) {
 
   const getPriorityStyle = (priority) => {
     switch (priority) {
@@ -16,15 +16,13 @@ export default function SearchTaskCard({ task, onClick }) {
   };
 
   return (
-    <div onClick={onClick}>
-      <TaskCard
-        task={task}
-        getPriorityStyle={getPriorityStyle}
-        onToggle={() => {}}
-        onView={() => onClick(task)}
-        onEdit={() => {}}
-        onDelete={() => {}}
-      />
-    </div>
+    <TaskCard
+      task={task}
+      getPriorityStyle={getPriorityStyle}
+      onToggle={() => {}}
+      onView={onView}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
   );
 }
