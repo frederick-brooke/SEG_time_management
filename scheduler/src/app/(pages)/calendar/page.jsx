@@ -14,11 +14,18 @@ export default async function CalendarPage() {
   });
 
   const tasks = await prisma.task.findMany({
-    where: {
-      userId: session.user.id,
-      scheduledDate: { not: null },
-    },
+    where: { userId: session.user.id, scheduledDate: { not: null } },
     orderBy: { scheduledDate: "asc" },
+  });
+
+  const unscheduledTasks = await prisma.task.findMany({
+    where: { userId: session.user.id, scheduledDate: null, completed: false },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const allTasks = await prisma.task.findMany({
+    where: { userId: session.user.id, completed: false },
+    orderBy: { dueDate: "asc" },
   });
 
   return (
@@ -27,22 +34,47 @@ export default async function CalendarPage() {
         <h1 className="text-2xl font-bold">My Schedule</h1>
         <GoogleLinkButton isConnected={session.user.googleConnected} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-3">
+      <div className="flex gap-6">
+        {/* Calendar — takes up most of the space */}
+        <div className="flex-1 min-w-0">
           <CalendarView
             events={events}
             tasks={tasks}
+            allTasks={allTasks}
             userId={session.user.id}
             googleConnected={session.user.googleConnected}
           />
         </div>
-        <div className="bg-gray-50 p-4 rounded-lg border h-fit">
-          <h2 className="font-semibold mb-2">Sync Settings</h2>
-          <p className="text-sm text-gray-600">
-            {session.user.googleConnected
-              ? "Your events are ready to sync with Google."
-              : "Connect your Google account to sync these events to your mobile device."}
-          </p>
+
+        {/* Right sidebar */}
+        <div className="w-64 flex-shrink-0 flex flex-col gap-4">
+          {/* Unscheduled tasks */}
+          <div className="bg-white rounded-2xl border p-4 shadow-sm">
+            <h2 className="font-bold text-gray-900 mb-3">Unscheduled Tasks</h2>
+            {unscheduledTasks.length === 0 ? (
+              <p className="text-xs text-gray-400">All tasks are scheduled 🎉</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {unscheduledTasks.map((t) => (
+                  <div key={t.id} className="p-3 bg-gray-50 rounded-xl border">
+                    <p className="text-sm font-semibold text-gray-800">{t.title}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        t.priority === "High" ? "bg-red-100 text-red-600" :
+                        t.priority === "Medium" ? "bg-orange-100 text-orange-600" :
+                        "bg-green-100 text-green-600"
+                      }`}>{t.priority}</span>
+                      {t.dueDate && (
+                        <span className="text-xs text-gray-400">
+                          Due {new Date(t.dueDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </main>

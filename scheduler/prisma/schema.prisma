@@ -118,6 +118,7 @@ model Task {
   subtasks            String[] @default([])
   priority            String   @default("Low")
   url                 String?
+  bufferDays          Int?
 
   userId              String   @db.ObjectId
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -132,7 +133,7 @@ model Task {
   event               Event?   @relation(fields: [eventId], references: [id])
   recurrence          Json?    
   scheduledDate       DateTime?
-  ScheduledTime       DateTime?
+  scheduledTime       DateTime?
   isRecurring         Boolean  @default(false)
   missedAt            DateTime?
   carriedFrom         String?  @db.ObjectId
