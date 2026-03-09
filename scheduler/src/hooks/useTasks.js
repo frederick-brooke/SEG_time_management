@@ -16,6 +16,7 @@ export function useTasks(userId) {
     durationMinutes: "0",
     priority: "Low",
     examId: "none",
+    bufferDays: "0",
   });
 
   // View/Delete state
@@ -81,7 +82,7 @@ export function useTasks(userId) {
 
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {
     const task = tasks.find((t) => t.id === taskId);
-   
+
     if (!task) return;
 
     let nextStatus = forcedStatus;
@@ -118,6 +119,7 @@ export function useTasks(userId) {
       durationMinutes: "0",
       priority: "Low",
       examId: "none",
+      bufferDays: "0",
     });
     setEditingTaskId(null);
   };
@@ -145,6 +147,7 @@ export function useTasks(userId) {
       subtasks: subtasksArray,
       userId: userId,
       examId: formData.examId === "none" ? null : formData.examId,
+      bufferDays: formData.bufferDays ?? "0",
     };
 
     try {
@@ -174,6 +177,7 @@ export function useTasks(userId) {
         priority: task.priority,
         examId: task.examId || "none",
         url: task.url || "",
+        bufferDays: task.bufferDays ?? "0",
       });
       setIsDialogOpen(true);
     }

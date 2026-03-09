@@ -72,7 +72,11 @@ export function TaskFormDialog({
             <Input
               id="task-due-date"
               type="date"
-              value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0]: ""}
+              value={
+                formData.dueDate
+                  ? new Date(formData.dueDate).toISOString().split("T")[0]
+                  : ""
+              }
               onChange={(e) => onFormChange({ dueDate: e.target.value })}
             />
           </div>
@@ -90,7 +94,11 @@ export function TaskFormDialog({
 
               {formData.url && (
                 <Button variant="outline" size="icon" asChild>
-                  <a href={formData.url} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={formData.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     🔗
                   </a>
                 </Button>
@@ -193,6 +201,30 @@ export function TaskFormDialog({
               <ToggleGroupItem value="Medium">Medium</ToggleGroupItem>
               <ToggleGroupItem value="High">High</ToggleGroupItem>
             </ToggleGroup>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="bufferDays">
+              How many days before deadline would you prefer to finish this
+              task?
+            </Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="bufferDays"
+                type="number"
+                min="0"
+                max="35"
+                placeholder="0"
+                value={formData.bufferDays ?? ""}
+                onChange={(e) =>
+                  onFormChange({ bufferDays: parseInt(e.target.value) || 0 })
+                }
+                className="w-24"
+              />
+              <span className="text-sm text-muted-foreground">
+                days before due date
+              </span>
+            </div>
           </div>
         </div>
 
