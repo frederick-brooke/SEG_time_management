@@ -11,108 +11,116 @@ import { useUsers } from "@/hooks/useUsers";
 import { useTaskSearch } from "@/hooks/useTaskSearch";
 
 export default function SearchPanel({ open, onClose }) {
+    const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:12 };
+    const defaultTaskFilters = { search:"", sortBy:"createdAt", order:"desc", startDate:"", endDate:"", status:[], priority:[], completed:"", page:1, limit:12 };
 
-  const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:12 };
-  const defaultTaskFilters = { search:"", sortBy:"createdAt", order:"desc", startDate:"", endDate:"", status:[], priority:[], completed:"", page:1, limit:12 };
+    const [currentTab,setCurrentTab] = useState("users");
 
-  const [currentTab,setCurrentTab] = useState("users");
+    const [appliedUserFilters,setAppliedUserFilters] = useState(defaultUserFilters);
+    const [draftUserFilters,setDraftUserFilters] = useState(defaultUserFilters);
 
-  const [appliedUserFilters,setAppliedUserFilters] = useState(defaultUserFilters);
-  const [draftUserFilters,setDraftUserFilters] = useState(defaultUserFilters);
+    function resetUserFilters(){
+        setDraftUserFilters(defaultUserFilters);
+        setAppliedUserFilters(defaultUserFilters);
+    }
 
-  const [appliedTaskFilters,setAppliedTaskFilters] = useState(defaultTaskFilters);
-  const [draftTaskFilters,setDraftTaskFilters] = useState(defaultTaskFilters);
+    const [appliedTaskFilters,setAppliedTaskFilters] = useState(defaultTaskFilters);
+    const [draftTaskFilters,setDraftTaskFilters] = useState(defaultTaskFilters);
 
-  const [isUserFilterOpen,setIsUserFilterOpen] = useState(false);
-  const [isTaskFilterOpen,setIsTaskFilterOpen] = useState(false);
+    const [isUserFilterOpen,setIsUserFilterOpen] = useState(false);
+    const [isTaskFilterOpen,setIsTaskFilterOpen] = useState(false);
 
-  const {users,totalUserPages,totalUsers} = useUsers(appliedUserFilters,"/api/users/search");
-  const {tasks,totalTaskPages,totalTasks} = useTaskSearch(appliedTaskFilters,"/api/tasks/search");
+    function resetTaskFilters(){
+        setDraftTaskFilters(defaultTaskFilters);
+        setAppliedTaskFilters(defaultTaskFilters);
+    }
 
-  if (!open) return null;
+    const {users,totalUserPages,totalUsers} = useUsers(appliedUserFilters,"/api/users/search");
+    const {tasks,totalTaskPages,totalTasks} = useTaskSearch(appliedTaskFilters,"/api/tasks/search");
 
-  return (
+    if (!open) return null;
+
+    return (
     <>
       {/* backdrop */}
       <div
         onClick={onClose}
-        className="fixed inset-0 bg-black/20 z-40"
+        className="fixed inset-0 bg-black/5 z-40"
       />
 
       {/* drawer */}
-      <div className="fixed left-16 top-0 h-full w-[420px] bg-white z-50 shadow-xl border-r flex flex-col">
+        <div className={`fixed top-0 left-0 h-screen w-[500px] bg-white border-r shadow-xl z-50 transform transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}>
+            {/* header */}
+            <div className="p-5 border-b">
+            <h2 className="text-xl font-semibold">Search</h2>
+            </div>
 
-        {/* header */}
-        <div className="p-5 border-b">
-          <h2 className="text-xl font-semibold">Search</h2>
+            {/* search controls */}
+            <div className="p-4 border-b">
+                {currentTab === "users" && (
+                    <SearchControls
+                        filters={appliedUserFilters}
+                        setFilters={setAppliedUserFilters}
+                        placeholder="Search users..."
+                        onOpenFilter={() => setIsUserFilterOpen(true)}
+                        resetFilters={resetUserFilters}
+                    />
+                )}
+
+                {currentTab === "tasks" && (
+                    <SearchControls
+                    filters={appliedTaskFilters}
+                    setFilters={setAppliedTaskFilters}
+                    placeholder="Search tasks..."
+                    onOpenFilter={() => setIsTaskFilterOpen(true)}
+                    resetFilters={resetTaskFilters}
+                    />
+                )}
+            </div>
+
+            {/* tabs */}
+            <div className="flex border-b">
+                {["users","tasks","modules"].map(tab => (
+                    <button
+                    key={tab}
+                    onClick={() => setCurrentTab(tab)}
+                    className={`flex-1 py-3 text-sm font-medium capitalize
+                    ${currentTab === tab
+                        ? "border-b-2 border-black text-black"
+                        : "text-gray-500"}
+                    `}
+                    >
+                    {tab}
+                    </button>
+                ))}
+            </div>
+
+            {/* content */}
+            <div className="flex-1 overflow-y-auto p-4">
+
+                {currentTab === "users" && (
+                    <SearchUsers
+                    users={users}
+                    totalUsers={totalUsers}
+                    totalUserPages={totalUserPages}
+                    setIsUserFilterOpen={setIsUserFilterOpen}
+                    filters={appliedUserFilters}
+                    setFilters={setAppliedUserFilters}
+                    />
+                )}
+
+                {currentTab === "tasks" && (
+                    <SearchTasks
+                    tasks={tasks}
+                    totalTasks={totalTasks}
+                    totalTaskPages={totalTaskPages}
+                    setIsTaskFilterOpen={setIsTaskFilterOpen}
+                    filters={appliedTaskFilters}
+                    setFilters={setAppliedTaskFilters}
+                    />
+                )}
+            </div>
         </div>
-
-        {/* search controls */}
-        <div className="p-4 border-b">
-          {currentTab === "users" && (
-            <SearchControls
-              filters={appliedUserFilters}
-              setFilters={setAppliedUserFilters}
-              placeholder="Search users..."
-              onOpenFilter={() => setIsUserFilterOpen(true)}
-            />
-          )}
-
-          {currentTab === "tasks" && (
-            <SearchControls
-              filters={appliedTaskFilters}
-              setFilters={setAppliedTaskFilters}
-              placeholder="Search tasks..."
-              onOpenFilter={() => setIsTaskFilterOpen(true)}
-            />
-          )}
-        </div>
-
-        {/* tabs */}
-        <div className="flex border-b">
-          {["users","tasks","modules"].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setCurrentTab(tab)}
-              className={`flex-1 py-3 text-sm font-medium capitalize
-              ${currentTab === tab
-                ? "border-b-2 border-black text-black"
-                : "text-gray-500"}
-              `}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* content */}
-        <div className="flex-1 overflow-y-auto p-4">
-
-          {currentTab === "users" && (
-            <SearchUsers
-              users={users}
-              totalUsers={totalUsers}
-              totalUserPages={totalUserPages}
-              setIsUserFilterOpen={setIsUserFilterOpen}
-              filters={appliedUserFilters}
-              setFilters={setAppliedUserFilters}
-            />
-          )}
-
-          {currentTab === "tasks" && (
-            <SearchTasks
-              tasks={tasks}
-              totalTasks={totalTasks}
-              totalTaskPages={totalTaskPages}
-              setIsTaskFilterOpen={setIsTaskFilterOpen}
-              filters={appliedTaskFilters}
-              setFilters={setAppliedTaskFilters}
-            />
-          )}
-
-        </div>
-
-      </div>
 
       {/* filters */}
       {isUserFilterOpen && (

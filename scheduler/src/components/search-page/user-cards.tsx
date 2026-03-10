@@ -1,26 +1,37 @@
 "use client";
 
-export default function UserCard( {user, onClick} ) {
-
+export default function UserCard({ user, onClick }) {
   return (
     <div
       onClick={onClick}
-      className={`border rounded-lg p-4 shadow hover:shadow-lg transition cursor-pointer bg-white relative`}
+      className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer transition"
     >
-      <div className="w-32 h-32 shrink-0 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-500 overflow-hidden border-4 border-white shadow-md">
+      {/* profile image */}
+      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 overflow-hidden">
         {user.pfp ? (
-          <img src={user.pfp} alt="Profile" className="w-full h-full object-cover" />
+          <img
+            src={user.pfp}
+            alt="Profile"
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <span>{user.fname?.[0] ?? user.username?.[0] ?? ""}{user.lname?.[0] ?? ""}</span>
+          <span>
+            {user.fname?.[0] ?? user.username?.[0] ?? ""}
+            {user.lname?.[0] ?? ""}
+          </span>
         )}
       </div>
 
-      <h3 className="font-semibold text-lg mb-2">{user.username}</h3>
-      {user.fname && user.lname && (
-        <p className="text-sm text-gray-500 mb-1">
-          {user.fname} {user.lname}
-        </p>
-      )}
+      {/* user info */}
+      <div className="flex flex-col">
+        <span className="font-medium text-sm">{user.username}</span>
+
+        {user.fname && user.lname && (
+          <span className="text-xs text-gray-500">
+            {user.fname} {user.lname}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -5,21 +5,18 @@ import UserPanel from "@/components/admin/admin-user-panel";
 import UserCard from "./user-cards";
 
 export default function SearchUsers({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
-{
-    const [inputValue, setInputValue] = useState(filters.search ?? "");   // typed value
-    
+{    
     const start = (filters.page - 1) * filters.limit + 1;
     const end = Math.min(filters.page * filters.limit, totalUsers);
 
     return(
         <div className="p-6">
             <section className="mb-4 bg-white shadow rounded p-6 flex flex-col h-[700px]">
-                <h2 className="text-2xl font-semibold mb-4">Search</h2>
 
                 <p className="flex justify-center p-3"> " {totalUsers || 0} Users Found " </p>
                 
                 <div className="flex-1 overflow-y-auto min-h-0">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="flex flex-col">
                         {users.map((user) => (
                             <UserCard key={user.id} user={user} onClick={() => window.location.href = `/profile/${user.username}`} />// navigate to profile
                         ))}
