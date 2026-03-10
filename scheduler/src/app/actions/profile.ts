@@ -78,99 +78,104 @@ export async function getMyProfile() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: {
-      id: true,
-      username: true,
-      fname: true,
-      lname: true,
-      email: true,
-      bio: true,
-      pfp: true,
-      city: true,
-      country: true,
-      location: true,
-      createdAt: true,
-  
-      progress: {
-        select: {
-          points: true,
-          level: true,
-          experience: true
-        }
-      },
-  
-      tasks: {
-        select: {
-          completed: true,
-          completedAt: true
-        }
-      },
-  
-      receivedRequests: {
-        where: { status: "PENDING" },
-        select: {
-          id: true,
-          sender: {
-            select: {
-              id: true,
-              username: true,
-              fname: true,
-              lname: true,
-              pfp: true
-            }
-          }
-        }
-      },
-  
-      sentRequests: {   // ← add this back
-        where: { status: "ACCEPTED" },
-        select: {
-          id: true,
-          receiver: {
-            select: {
-              id: true,
-              username: true,
-              fname: true,
-              lname: true,
-              pfp: true
-            }
-          }
-        }
-      }
-    }
   });
 
   if (!user) return null;
 
-  const friendCount = await getFriendCount(user.id);
-  
-  const receivedFriendRequests = await prisma.friendRequest.findMany({
-    where: {
-      receiverId: user.id,
-      status: 'ACCEPTED'
-    },
-    include: {
-      sender: { 
-        select: { id: true, username: true, fname: true, lname: true, pfp: true } 
-      }
-    }
-  });
+  const [
+    progress,
+    tasks,
+    pendingReceivedRequests,
+    sentAcceptedRequests,
+    receivedAcceptedRequests,
+    friendCount,
+  ] = await Promise.all([
+    prisma.userProgress.findUnique({
+      where: { userId: user.id },
+      select: {
+        points: true,
+        level: true,
+        experience: true,
+      },
+    }),
+    prisma.task.findMany({
+      where: { userId: user.id },
+      select: {
+        completed: true,
+        completedAt: true,
+      },
+    }),
+    prisma.friendRequest.findMany({
+      where: {
+        receiverId: user.id,
+        status: "PENDING",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            pfp: true,
+          },
+        },
+      },
+    }),
+    prisma.friendRequest.findMany({
+      where: {
+        senderId: user.id,
+        status: "ACCEPTED",
+      },
+      include: {
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            pfp: true,
+          },
+        },
+      },
+    }),
+    prisma.friendRequest.findMany({
+      where: {
+        receiverId: user.id,
+        status: "ACCEPTED",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            pfp: true,
+          },
+        },
+      },
+    }),
+    getFriendCount(user.id),
+  ]);
 
   const friends = [
-    ...user.sentRequests.map(req => req.receiver),
-    ...receivedFriendRequests.map(req => req.sender)
+    ...sentAcceptedRequests.map((req) => req.receiver),
+    ...receivedAcceptedRequests.map((req) => req.sender),
   ];
 
-  const completedTasks = user.tasks.filter(t => t.completed).length;
-  const totalTasks = user.tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const totalTasks = tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const streak = await calculateStreak(user.id);
-  
+
   return {
     ...user,
+    progress: progress ?? null,
+    receivedRequests: pendingReceivedRequests,
     friends,
     stats: { completedTasks, totalTasks, completionRate, friendCount, streak },
-    friendStatus: "ME"
+    friendStatus: "ME",
   };
 }
 
@@ -354,8 +359,6 @@ export async function updateProfile(formData: FormData) {
   const bio = formData.get("bio") as string;
   const city = formData.get("city") as string;
   const country = formData.get("country") as string;
-  const locationLat = formData.get("locationLat") as string;
-  const locationLng = formData.get("locationLng") as string;
 
   const updateData: any = {
     fname: fname || null,
@@ -365,13 +368,44 @@ export async function updateProfile(formData: FormData) {
     country: country || null,
   };
 
-  if (locationLat && locationLng) {
-    updateData.location = {
-      lat: parseFloat(locationLat),
-      lng: parseFloat(locationLng),
-    };
-  } else {
+  // If city and country are provided, attempt to geocode them into coordinates.
+  // Always update the location when the user supplies city/country: if geocoding
+  // fails or returns no result, we explicitly clear the stored location so we
+  // don't keep stale coordinates for a new textual location.
+  if (city && country) {
     updateData.location = null;
+    try {
+      const apiKey = process.env.OPENCAGE_API_KEY;
+
+      if (!apiKey) {
+        console.warn("OPENCAGE_API_KEY is not set; skipping geocoding.");
+      } else {
+        const query = encodeURIComponent(`${city}, ${country}`);
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${query}&key=${apiKey}&limit=1`;
+
+        const response = await fetch(url);
+
+        if (response.ok) {
+          const data = await response.json();
+          const firstResult = data?.results?.[0];
+
+          if (
+            firstResult?.geometry &&
+            firstResult.geometry.lat != null &&
+            firstResult.geometry.lng != null
+          ) {
+            updateData.location = {
+              lat: firstResult.geometry.lat,
+              lng: firstResult.geometry.lng,
+            };
+          }
+        } else {
+          console.error("Geocoding request failed with status:", response.status);
+        }
+      }
+    } catch (error) {
+      console.error("Error while geocoding city/country:", error);
+    }
   }
 
   await prisma.user.update({

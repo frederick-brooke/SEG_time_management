@@ -531,9 +531,6 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
                 </div>
               </div>
 
-              <input type="hidden" name="locationLat" value={profile.location?.lat || ""} />
-              <input type="hidden" name="locationLng" value={profile.location?.lng || ""} />
-
               <div className="flex justify-end pt-4 border-t border-gray-100">
                 <SubmitButton text="Save Changes" loadingText="Saving..." />
               </div>

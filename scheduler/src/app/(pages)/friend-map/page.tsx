@@ -5,7 +5,7 @@ import { FriendMap } from "@/src/components/friend-map/map";
 
 export default async function FriendMapPage() {
   const session = await getServerSession(authOptions);
-  if (!session) throw new Error("Not authenticated");
+  if (!session?.user?.id) throw new Error("Not authenticated");
 
   // Get user's friends (accepted friend requests)
   const friends = await prisma.friendRequest.findMany({
