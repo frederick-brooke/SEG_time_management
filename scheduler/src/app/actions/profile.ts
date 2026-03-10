@@ -78,6 +78,19 @@ export async function getMyProfile() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
+    select: {
+      id: true,
+      username: true,
+      fname: true,
+      lname: true,
+      email: true,
+      bio: true,
+      pfp: true,
+      city: true,
+      country: true,
+      location: true,
+      createdAt: true,
+    },
   });
 
   if (!user) return null;
@@ -359,6 +372,11 @@ export async function updateProfile(formData: FormData) {
   const bio = formData.get("bio") as string;
   const city = formData.get("city") as string;
   const country = formData.get("country") as string;
+<<<<<<< HEAD
+=======
+  const locationLat = formData.get("locationLat") as string;
+  const locationLng = formData.get("locationLng") as string;
+>>>>>>> ebe8bca61bc66fdf9f867075b401f4b221f01552
 
   const updateData: any = {
     fname: fname || null,
@@ -368,6 +386,7 @@ export async function updateProfile(formData: FormData) {
     country: country || null,
   };
 
+<<<<<<< HEAD
   // If city and country are provided, attempt to geocode them into coordinates.
   // Always update the location when the user supplies city/country: if geocoding
   // fails or returns no result, we explicitly clear the stored location so we
@@ -406,6 +425,15 @@ export async function updateProfile(formData: FormData) {
     } catch (error) {
       console.error("Error while geocoding city/country:", error);
     }
+=======
+  if (locationLat && locationLng) {
+    updateData.location = {
+      lat: parseFloat(locationLat),
+      lng: parseFloat(locationLng),
+    };
+  } else {
+    updateData.location = null;
+>>>>>>> ebe8bca61bc66fdf9f867075b401f4b221f01552
   }
 
   await prisma.user.update({

@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "mongodb"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 enum Role {
@@ -65,29 +66,35 @@ model User {
   country  String?
   location Json? // { lat: number, lng: number }
 
-  role         Role    @default(BASIC)
-  isBanned     Boolean  @default(false)
-  banExpires   DateTime?
+  role       Role    @default(BASIC)
+  isBanned   Boolean @default(false)
+  banExpires DateTime?
+
   accounts      Account[]
   tasks         Task[]
   exams         Exam[]
   events        Event[]
-  
   notifications Notification[]
   preferences   UserPreferences?
-  progress      UserProgress?
-  inventory     UserInventory[]
+
+  progress  UserProgress?
+  inventory UserInventory[]
+
   sentRequests     FriendRequest[] @relation("sender")
   receivedRequests FriendRequest[] @relation("receiver")
+
   reportsMade     Report[] @relation("UserReportsMade")
   reportsReceived Report[] @relation("UserReportsReceived")
   handledReports  Report[] @relation("ModeratorHandledReports")
+
   appeals        Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
-  conversations ConversationParticipant[]
-  sentMessages  Message[]
-  createdModules Module[]       @relation("ModuleCreator")
-  moduleMembers  ModuleMember[]
+
+  conversations   ConversationParticipant[]
+  sentMessages    Message[]
+  createdModules  Module[]       @relation("ModuleCreator")
+  moduleMembers   ModuleMember[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
