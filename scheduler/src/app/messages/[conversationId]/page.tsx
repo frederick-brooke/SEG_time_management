@@ -44,10 +44,13 @@ function TypingBubble() {
   return (
     <div className="flex items-end gap-2 mt-2">
       <div className="w-7" />
-      <div className="bg-gray-100 rounded-2xl px-4 py-3 flex gap-1 items-center">
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+      <div
+        className="rounded-2xl px-4 py-3 flex gap-1 items-center"
+        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
+      >
+        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
+        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
+        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />
       </div>
     </div>
   );
@@ -207,7 +210,7 @@ export default function ConversationPage() {
 
   /**
    * Adds message to the UI and sends it to the API
-   * Replaces temp message with the real one on success and removes it on failure.
+   * Replaces temporary message with the real one on success and removes it on failure.
    * @returns void
    */
   const sendMessage = async () => {
@@ -311,7 +314,7 @@ export default function ConversationPage() {
   });
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
       {convDetails?.isGroup && (
         <GroupHeader
           name={convDetails.name}
@@ -337,13 +340,13 @@ export default function ConversationPage() {
         <div ref={topRef} className="flex justify-center py-3">
           {loadingMore && (
             <div className="flex gap-1 items-center">
-              <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.4)", animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.4)", animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.4)", animationDelay: "300ms" }} />
             </div>
           )}
           {!hasMore && messages.length > 0 && (
-            <span className="text-xs text-gray-400">Beginning of conversation</span>
+            <span className="text-xs" style={{ color: "rgba(148,163,255,0.35)" }}>Beginning of conversation</span>
           )}
         </div>
 
