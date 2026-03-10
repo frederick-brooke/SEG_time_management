@@ -79,13 +79,12 @@ function ConversationMenu({
   return (
     <div className="relative" ref={menuRef}>
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
+        className="p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+        style={{ color: "rgba(148,163,255,0.4)" }}
+        onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.8)")}
+        onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.4)")}
         title="More options"
-        aria-label="More options"
       >
         {/* Three-dot icon */}
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -96,11 +95,22 @@ function ConversationMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-7 z-50 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[140px]">
+        <div
+          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px]"
+          style={{
+            background: "rgba(15,20,40,0.95)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          }}
+        >
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors disabled:opacity-50"
+            style={{ color: "rgba(255,100,100,0.8)" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,80,80,0.08)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
@@ -172,41 +182,57 @@ function CreateGroupModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl mx-4">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">New Group Chat</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+      <div
+        className="rounded-2xl p-6 w-full max-w-sm mx-4"
+        style={{
+          background: "rgba(12,16,32,0.98)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+        }}
+      >
+        <h2 className="text-base font-semibold mb-4" style={{ color: "rgba(220,225,255,0.9)" }}>New Group Chat</h2>
 
         <input
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+          className="w-full rounded-lg px-3 py-2 mb-4 text-sm outline-none transition-colors"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            color: "rgba(210,220,255,0.85)",
+            caretColor: "rgba(99,111,255,0.8)",
+          }}
           placeholder="Group name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,111,255,0.4)")}
+          onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
         />
 
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Add members</p>
-        <div className="space-y-0.5 max-h-48 overflow-y-auto mb-5 border border-gray-100 rounded-lg">
+        <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: "rgba(148,163,255,0.4)" }}>Add members</p>
+        <div
+          className="space-y-0.5 max-h-48 overflow-y-auto mb-5 rounded-lg"
+          style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+        >
           {friends.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-6">No friends to add</p>
+            <p className="text-xs text-center py-6" style={{ color: "rgba(148,163,255,0.35)" }}>No friends to add</p>
           )}
           {friends.map((f) => (
             <label
               key={f.id}
-              className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-lg"
+              className="flex items-center gap-3 px-3 py-2 cursor-pointer rounded-lg transition-colors"
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <input
-                type="checkbox"
-                checked={selected.includes(f.id)}
-                onChange={() => toggle(f.id)}
-                className="accent-purple-600"
-              />
+              <input type="checkbox" checked={selected.includes(f.id)} onChange={() => toggle(f.id)} className="accent-indigo-500" />
               {f.pfp ? (
                 <Image src={f.pfp} alt={f.username} width={28} height={28} className="rounded-full object-cover" />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 text-xs font-semibold flex items-center justify-center">
+                <div className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center"
+                  style={{ background: "rgba(88,101,242,0.2)", color: "rgba(148,163,255,0.8)" }}>
                   {f.username[0].toUpperCase()}
                 </div>
               )}
-              <span className="text-sm text-gray-800">{f.fname ?? f.username}</span>
+              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{f.fname ?? f.username}</span>
             </label>
           ))}
         </div>
@@ -214,14 +240,18 @@ function CreateGroupModal({
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600"
+            className="px-4 py-2 text-sm rounded-lg transition-colors"
+            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(148,163,255,0.6)" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
             Cancel
           </button>
           <button
             onClick={handleCreate}
             disabled={!name.trim() || selected.length === 0 || loading}
-            className="px-4 py-2 text-sm rounded-lg bg-purple-600 text-white disabled:opacity-40 hover:bg-purple-700"
+            className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40"
+            style={{ background: "linear-gradient(135deg, rgba(88,101,242,0.8), rgba(139,92,246,0.7))", color: "rgba(230,235,255,0.95)" }}
           >
             {loading ? "Creating..." : "Create"}
           </button>
@@ -231,7 +261,6 @@ function CreateGroupModal({
   );
 }
 
-// Main Component
 
 /**
  * Sidebar list of all conversations for the current user.
@@ -255,7 +284,6 @@ export default function ConversationList() {
   useEffect(() => {
     fetchConversations();
     fetch("/api/user/search?q=").then((r) => r.json()).then(setFriends);
-
     window.addEventListener("focus", fetchConversations);
     return () => window.removeEventListener("focus", fetchConversations);
   }, [session, fetchConversations]);
@@ -286,10 +314,13 @@ export default function ConversationList() {
   return (
     <>
       <div className="flex items-center justify-between px-3 pt-3 pb-1">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Messages</p>
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(148,163,255,0.35)" }}>Messages</p>
         <button
           onClick={() => setShowModal(true)}
-          className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1"
+          className="text-xs font-medium flex items-center gap-1 transition-colors"
+          style={{ color: "rgba(148,163,255,0.6)" }}
+          onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
+          onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.6)")}
           title="New group chat"
         >
           <span className="text-base leading-none">+</span> Group
@@ -311,15 +342,19 @@ export default function ConversationList() {
             : (other!.username[0] ?? "?").toUpperCase();
 
           const avatarSrc = !isGroup ? other!.pfp : null;
+          const isActive = activeId === convo.id;
 
           return (
             <div
               key={convo.id}
-              className={`group flex items-center gap-3 px-3 py-2 rounded-xl transition-colors w-full ${
-                activeId === convo.id ? "bg-blue-50" : "hover:bg-gray-50"
-              }`}
+              className="group flex items-center gap-3 px-3 py-2 rounded-xl transition-colors w-full"
+              style={{
+                background: isActive ? "rgba(88,101,242,0.12)" : "transparent",
+                border: isActive ? "1px solid rgba(88,101,242,0.2)" : "1px solid transparent",
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
-              {/* Clickable area — navigates to the conversation */}
               <button
                 onClick={() => router.push(`/messages/${convo.id}`)}
                 className="flex items-center gap-3 flex-1 min-w-0 text-left"
@@ -327,32 +362,35 @@ export default function ConversationList() {
                 {avatarSrc ? (
                   <Image src={avatarSrc} alt={displayName ?? ""} width={40} height={40} className="rounded-full object-cover shrink-0" />
                 ) : (
-                  <div className={`w-10 h-10 rounded-full font-semibold flex items-center justify-center text-sm shrink-0 ${
-                    isGroup ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"
-                  }`}>
+                  <div
+                    className="w-10 h-10 rounded-full font-semibold flex items-center justify-center text-sm shrink-0"
+                    style={{
+                      background: isGroup ? "rgba(139,92,246,0.2)" : "rgba(88,101,242,0.2)",
+                      color: isGroup ? "rgba(167,139,250,0.9)" : "rgba(148,163,255,0.9)",
+                    }}
+                  >
                     {avatarLetter}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: "rgba(220,225,255,0.85)" }}>{displayName}</p>
                     {isGroup && (
-                      <span className="text-xs text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded-full shrink-0">
+                      <span
+                        className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
+                        style={{ background: "rgba(139,92,246,0.15)", color: "rgba(167,139,250,0.8)" }}
+                      >
                         Group
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 truncate">
+                  <p className="text-xs truncate" style={{ color: "rgba(148,163,255,0.4)" }}>
                     {convo.lastMessage ?? "Start a conversation"}
                   </p>
                 </div>
               </button>
 
-              {/* Three-dot overflow menu — hidden until the row is hovered */}
-              <ConversationMenu
-                conversationId={convo.id}
-                onDeleted={handleDeleted}
-              />
+              <ConversationMenu conversationId={convo.id} onDeleted={handleDeleted} />
             </div>
           );
         })}

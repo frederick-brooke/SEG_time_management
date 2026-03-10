@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 
 type Friend = {
@@ -41,36 +40,53 @@ export function AddMemberModal({ conversationId, existingMemberIds, onClose, onA
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl mx-4">
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Add Member</h2>
-        <div className="space-y-0.5 max-h-64 overflow-y-auto border border-gray-100 rounded-lg">
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+      <div
+        className="rounded-2xl p-6 w-full max-w-sm mx-4"
+        style={{
+          background: "rgba(12,16,32,0.98)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+        }}
+      >
+        <h2 className="text-base font-semibold mb-4" style={{ color: "rgba(220,225,255,0.9)" }}>Add Member</h2>
+
+        <div className="space-y-0.5 max-h-64 overflow-y-auto rounded-lg" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
           {friends.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-6">No friends to add</p>
+            <p className="text-xs text-center py-6" style={{ color: "rgba(148,163,255,0.35)" }}>No friends to add</p>
           )}
           {friends.map((f) => (
             <button
               key={f.id}
               onClick={() => handleAdd(f.id)}
               disabled={loading}
-              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 transition-colors rounded-lg"
+              className="w-full flex items-center gap-3 px-3 py-2 transition-colors rounded-lg disabled:opacity-50"
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
               {f.pfp ? (
                 <img src={f.pfp} className="w-7 h-7 rounded-full object-cover" />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-600 text-xs font-semibold flex items-center justify-center">
+                <div
+                  className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center"
+                  style={{ background: "rgba(88,101,242,0.2)", color: "rgba(148,163,255,0.8)" }}
+                >
                   {f.username[0].toUpperCase()}
                 </div>
               )}
-              <span className="text-sm text-gray-800">{f.fname ?? f.username}</span>
-              <span className="ml-auto text-xs text-purple-500 font-medium">Add</span>
+              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{f.fname ?? f.username}</span>
+              <span className="ml-auto text-xs font-medium" style={{ color: "rgba(148,163,255,0.6)" }}>Add</span>
             </button>
           ))}
         </div>
+
         <div className="flex justify-end mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600"
+            className="px-4 py-2 text-sm rounded-lg transition-colors"
+            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(148,163,255,0.6)" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
             Close
           </button>
