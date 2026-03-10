@@ -1,5 +1,7 @@
 "use client";
 import * as React from "react";
+
+import { useState } from "react";
 import {
   IconCamera,
   IconDashboard,
@@ -24,6 +26,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "components/ui/sidebar";
+
+import SearchPanel from "@/components/search-page/search-panel";
+
+const [searchOpen,setSearchOpen] = useState(false);
 
 const data = {
   user: {
@@ -114,7 +120,7 @@ const data = {
   navSecondary: [
     {
       title: "Search",
-      url: "/search",
+      action: "search",
       icon: IconSearch,
     },
   ],
@@ -122,7 +128,7 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <><Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -146,5 +152,12 @@ export function AppSidebar({ ...props }) {
         <NavUser user={data.user} />
       </SidebarFooter>
     </Sidebar>
+    
+    <SearchPanel
+  open={searchOpen}
+  onClose={() => setSearchOpen(false)}
+/>
+    </>
+    
   );
 }
