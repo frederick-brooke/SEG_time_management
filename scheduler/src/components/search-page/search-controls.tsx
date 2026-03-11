@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FunnelXIcon } from "lucide-react";
+import { Value } from "@radix-ui/react-select";
 
 export default function SearchControls({
     filters,
@@ -32,7 +33,16 @@ export default function SearchControls({
                 type="text"
                 placeholder={placeholder}
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                    const value = e.target.value;
+                    setInputValue(value);
+
+                    setFilters(prev => ({
+                        ...prev,
+                        search: value,
+                        page: 1,
+                    }));
+                }}
                 className="border rounded px-3 py-2 flex-1 min-w-[200px]"
             />
 

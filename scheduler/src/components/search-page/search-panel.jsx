@@ -11,7 +11,7 @@ import { useUsers } from "@/hooks/useUsers";
 import { useTaskSearch } from "@/hooks/useTaskSearch";
 
 export default function SearchPanel({ open, onClose }) {
-    const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:12 };
+    const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:6 };
     const defaultTaskFilters = { search:"", sortBy:"createdAt", order:"desc", startDate:"", endDate:"", status:[], priority:[], completed:"", page:1, limit:12 };
 
     const [currentTab,setCurrentTab] = useState("users");
@@ -100,12 +100,12 @@ export default function SearchPanel({ open, onClose }) {
 
                 {currentTab === "users" && (
                     <SearchUsers
-                    users={users}
-                    totalUsers={totalUsers}
-                    totalUserPages={totalUserPages}
-                    setIsUserFilterOpen={setIsUserFilterOpen}
-                    filters={appliedUserFilters}
-                    setFilters={setAppliedUserFilters}
+                        users={users}
+                        totalUsers={totalUsers}
+                        totalUserPages={totalUserPages}
+                        setIsUserFilterOpen={setIsUserFilterOpen}
+                        filters={appliedUserFilters}
+                        setFilters={setAppliedUserFilters}
                     />
                 )}
 
@@ -129,9 +129,13 @@ export default function SearchPanel({ open, onClose }) {
           setFilters={setDraftUserFilters}
           onClose={() => setIsUserFilterOpen(false)}
           applyFilters={()=>{
-            setAppliedUserFilters(draftUserFilters)
+            setAppliedUserFilters(prev => ({
+                ...draftUserFilters,
+                search: prev.search
+            }))
+
             setIsUserFilterOpen(false)
-          }}
+           }}
         />
       )}
 
@@ -141,9 +145,13 @@ export default function SearchPanel({ open, onClose }) {
           setFilters={setDraftTaskFilters}
           onClose={() => setIsTaskFilterOpen(false)}
           applyFilters={()=>{
-            setAppliedTaskFilters(draftTaskFilters)
+            setAppliedTaskFilters(prev => ({
+                ...draftTaskFilters,
+                search: prev.search
+            }))
+            
             setIsTaskFilterOpen(false)
-          }}
+           }}
         />
       )}
 

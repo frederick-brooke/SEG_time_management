@@ -23,6 +23,15 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);  //from the frontend URLSearchParams
 
     const search = searchParams.get("search") || "";
+
+    if (!search.trim()) {
+        return NextResponse.json({
+            users: [],
+            totalUsers: 0,
+            totalUserPages: 0
+        });
+    }
+    
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const order = searchParams.get("order") === "asc" ? "asc" : "desc";
     //by default it is given in descending order
