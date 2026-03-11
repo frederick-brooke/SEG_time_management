@@ -15,10 +15,7 @@ import { Label } from "components/ui/label";
 import { Button } from "components/ui/button";
 import { CheckCircle2 } from "lucide-react"; // Added for a nice icon
 
-export function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
+export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle }) {
   if (!task) return null;
 
   /**

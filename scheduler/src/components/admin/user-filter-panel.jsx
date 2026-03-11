@@ -1,4 +1,4 @@
-export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters}) {
+export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters, type}) {
 
     return (
     <div
@@ -61,69 +61,78 @@ export default function UserFilter({ filters, setFilters, onClose, applyFilters,
                 <option value="desc">Descending</option>
             </select>
         </div>
+    
+        {type=="admin" && (
+            <>
+                <div>
+                    <label className="block text-sm font-medium mb-1">
+                        Creation Date
+                    </label>
+                    <input
+                        type="date"
+                        value={filters.startDate}
+                        onChange={(e) => 
+                            setFilters(saved_result => ({
+                                ...saved_result,
+                                startDate: e.target.value,
+                                page:1,
+                            }))                
+                        }
+                        className="w-full border rounded px-3 py-2"
+                    />
+                </div>
 
-        <div>
-            <label className="block text-sm font-medium mb-1">
-                Start Date
-            </label>
-            <input
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => 
-                    setFilters(saved_result => ({
-                        ...saved_result,
-                        startDate: e.target.value,
-                        page:1,
-                    }))                
-                }
-                className="w-full border rounded px-3 py-2"
-            />
-        </div>
+                <div>
+                    <label className="block text-sm font-medium mb-1">
+                        Last Updated
+                    </label>
+                    <input
+                        type="date"
+                        value={filters.endDate}
+                        onChange={(e) => 
+                            setFilters(saved_result => ({
+                                ...saved_result,
+                                endDate: e.target.value,
+                                page:1,
+                            }))                
+                        }
+                        className="w-full border rounded px-3 py-2"
+                    />
+                </div>
 
-        <div>
-            <label className="block text-sm font-medium mb-1">
-                End Date
-            </label>
-            <input
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => 
-                    setFilters(saved_result => ({
-                        ...saved_result,
-                        endDate: e.target.value,
-                        page:1,
-                    }))                
-                }
-                className="w-full border rounded px-3 py-2"
-            />
-        </div>
+                <div>
+                    <label className="block text-sm font-medium mb-2">
+                        Categories
+                    </label>
 
-        <div>
-            <label className="block text-sm font-medium mb-2">
-                Categories
-            </label>
+                    {["SUPERUSER", "BASIC"].map((cat) => (
+                        <label key={cat} className="flex items-center space-x-2 mb-1">
+                            <input
+                                type="checkbox"
+                                value={cat}
+                                checked={filters.categories.includes(cat)}
+                                onChange={(e) => {
+                                    const checked = e.target.checked;
 
-            {["SUPERUSER", "BASIC"].map((cat) => (
-                <label key={cat} className="flex items-center space-x-2 mb-1">
-                <input
-                    type="checkbox"
-                    value={cat}
-                    checked={filters.categories.includes(cat)}
-                    onChange={(newCategories) =>
-                        setFilters(saved_result => ({
-                            ...saved_result,
-                            categories: newCategories,
-                            page: 1,
-                        }))
-                    }
-                />
-                    <span>
-                        {cat === "SUPERUSER" && "Admin"}
-                        {cat === "BASIC" && "Basic"}
-                    </span>
-                </label>
-            ))}
-        </div>
+                                    setFilters(saved_results => ({
+                                        ...saved_results,
+                                        categories: checked
+                                            ? [...saved_results.categories, cat] // add category
+                                            : saved_results.categories.filter(c => c !== cat), // remove category
+                                        page: 1,
+                                    }));
+                                }}
+                            />
+
+                            <span>
+                                {cat === "SUPERUSER" && "Admin"}
+                                {cat === "BASIC" && "Basic"}
+                            </span>
+                        </label>
+                    ))}
+                </div>
+            </>
+        )}
 
         <button onClick={applyFilters}
             className="w-full bg-blue-800 text-white py-2 rounded hover:bg-gray-700 transition"
