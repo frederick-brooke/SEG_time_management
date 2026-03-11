@@ -1,6 +1,4 @@
 import ReportPanel from "@/components/admin/admin-report-panel";
-import ReportFilter from "@/components/admin/report-filter-panel";
-import { report } from "node:process";
 
 export default function ReportManagement({reports, totalReports, totalReportPages, currentReportPage, setCurrentReportPage,setIsReportFilterOpen, selectedReport, setSelectedReport, fetchReports, filters, setFilters, resetFilters}){
     const max_reports = 5;

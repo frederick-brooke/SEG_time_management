@@ -1,61 +1,88 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "mongodb"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
-}
-
-model User {
-  id           String  @id @default(auto()) @map("_id") @db.ObjectId
-  email        String  @unique
-  passwordHash String?
-  username     String  @unique
-
-  fname String?
-  lname String?
-
-  bio String?
-  pfp String?
-
-  accounts     Account[]
-  tasks        Task[]
-  preferences  UserPreferences?
-  events       Event[]
-  exams        Exam[]
-  notifications Notification[]
-
-  sentRequests     FriendRequest[] @relation("sender")
-  receivedRequests FriendRequest[] @relation("receiver")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  role Role @default(BASIC)
-
-  reportsMade     Report[] @relation("UserReportsMade")
-  reportsReceived Report[] @relation("UserReportsReceived")
-
-  handledReports Report[] @relation("ModeratorHandledReports")
-
-  isBanned   Boolean   @default(false)
-  banExpires DateTime?
-
-  appeals Appeal[]
-  handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
   BASIC
   SUPERUSER
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  REJECTED
+}
+
+enum AppealStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ShopItemType {
+  TITLE
+  FRAME
+  FUNCTIONAL
+}
+
+enum ModuleRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  email        String  @unique
+  username     String  @unique
+  passwordHash String?
+  fname        String?
+  lname        String?
+  bio          String?
+  pfp          String?
+  role         Role    @default(BASIC)
+  isBanned     Boolean  @default(false)
+  banExpires   DateTime?
+  accounts      Account[]
+  tasks         Task[]
+  exams         Exam[]
+  events        Event[]
+  notifications Notification[]
+  preferences   UserPreferences?
+  progress      UserProgress?
+  inventory     UserInventory[]
+  sentRequests     FriendRequest[] @relation("sender")
+  receivedRequests FriendRequest[] @relation("receiver")
+  reportsMade     Report[] @relation("UserReportsMade")
+  reportsReceived Report[] @relation("UserReportsReceived")
+  handledReports  Report[] @relation("ModeratorHandledReports")
+  appeals        Appeal[]
+  handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
+  conversations ConversationParticipant[]
+  sentMessages  Message[]
+  createdModules Module[]       @relation("ModuleCreator")
+  moduleMembers  ModuleMember[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -72,121 +99,102 @@ model Account {
   id_token                 String? @db.String
   session_state            String?
   refresh_token_expires_in Int?
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([provider, providerAccountId])
 }
 
-model FriendRequest {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  senderId String @db.ObjectId
-  sender   User   @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
-
-  receiverId String @db.ObjectId
-  receiver   User   @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  status FriendStatus @default(PENDING)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([senderId, receiverId])
+model UserProgress {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String    @unique @db.ObjectId
+  points         Int       @default(0)
+  level          Int       @default(1)
+  experience     Int       @default(0)
+  streak         Int       @default(0)
+  equippedTitle  String?
+  equippedFrame  String?
+  xpBoostExpires DateTime?
+  streakShields  Int       @default(0)
+  shieldUsedDate DateTime?
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions PointTransaction[]
+  inventory    UserInventory[]
 }
 
-enum FriendStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
+model PointTransaction {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  progressId String       @db.ObjectId
+  progress   UserProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+  amount     Int
+  reason     String
+  taskId     String?  @db.ObjectId
+  createdAt  DateTime @default(now())
+}
+
+model ShopItem {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       @unique
+  description String
+  type        ShopItemType
+  price       Int
+  value       String
+  icon        String
+  rarity      String       @default("common")
+  isActive    Boolean      @default(true)
+  inventory UserInventory[]
+}
+
+model UserInventory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  itemId      String   @db.ObjectId
+  progressId  String   @db.ObjectId
+  purchasedAt DateTime @default(now())
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item     ShopItem     @relation(fields: [itemId], references: [id])
+  progress UserProgress @relation(fields: [progressId], references: [id])
+  @@unique([userId, itemId])
 }
 
 model Task {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
   dueDate     DateTime?
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   completedAt DateTime?
-  status      String   @default("todo")
-  duration    Int      @default(0)
-  durationHours String?
-  durationMins  String?
-  subtasks    String[] @default([])
-  priority    String   @default("Low")
+  status      String    @default("todo")
+  priority    String    @default("Low")
+  duration    Int       @default(0)
+  subtasks    String[]  @default([])
   url         String?
-
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  examId      String?  @db.ObjectId
-  exam        Exam?    @relation(fields: [examId], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-}
-model Notification {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String  @db.ObjectId
-  title     String
-  message   String
-  type      NotificationType
-  isRead    Boolean  @default(false)
-  link      String?  
+  userId       String  @db.ObjectId
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId       String? @db.ObjectId
+  exam         Exam?   @relation(fields: [examId], references: [id])
+  moduleId     String? @db.ObjectId
+  module       Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleTask Boolean @default(false)
   createdAt DateTime @default(now())
-  expiresAt DateTime? 
-  
-  user      User?    @relation(fields: [userId], references: [id])
-  
-  @@index([userId, isRead])
-  @@index([createdAt])
-}
-
-model UserPreferences {
-  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId                String    @unique @db.ObjectId
-  user                  User      @relation(fields: [userId], references: [id])
-  workStartTime         String
-  workEndTime           String
-  daysOff               String[]
-  sessionLength         Int
-  breakLength           Int
-  breaksPerDay          Int
-  taskOrder             String
-  maxTasksPerDay        Int
-  defaultTaskDuration   Int
-  reminderDays          Int
+  updatedAt DateTime @updatedAt
 }
 
 model Exam {
-  id                String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String    @db.ObjectId
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  title             String
-  examDate          DateTime
-  maxTimePerDay     Int
-  unavailableDays   DateTime[]
-
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String     @db.ObjectId
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  examDate        DateTime
+  maxTimePerDay   Int
+  unavailableDays DateTime[]
   tasks             Task[]
   revisionMaterials RevisionMaterial[]
-
-  createdAt         DateTime  @default(now())
+  createdAt DateTime @default(now())
 }
 
 model RevisionMaterial {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
-
   examId   String @db.ObjectId
   exam     Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
-
   title    String
   type     String
   duration Int
@@ -194,83 +202,161 @@ model RevisionMaterial {
 }
 
 model Event {
-  id                String   @id @default(auto()) @map("_id") @db.ObjectId
-
-  userId            String   @db.ObjectId
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String    @db.ObjectId
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   title             String
   description       String?
   start             DateTime
   end               DateTime
-  allDay            Boolean  @default(false)
+  allDay            Boolean   @default(false)
   category          String
-
   startCoords       Json?
   destinationCoords Json?
   travelDuration    Int?
   startLocationName String?
   destLocationName  String?
   transportMode     String?
-
   recurrence        Json?
-  exceptions        String[] @default([])
-
+  exceptions        String[]  @default([])
   googleEventId     String?
   lastSyncedAt      DateTime?
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  
-}
-model Report {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  reportedUserId String @db.ObjectId
-  reportedUser   User   @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
-
-  reportedById String @db.ObjectId
-  reportedBy   User   @relation("UserReportsMade", fields: [reportedById], references: [id])
-
-  reason      String
-  description String?
-
-  status ReportStatus @default(PENDING)
-
-  handledById String? @db.ObjectId
-  handledBy   User?   @relation("ModeratorHandledReports", fields: [handledById], references: [id])
-
+  moduleId          String?   @db.ObjectId
+  module            Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleEvent     Boolean   @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
 
+model FriendRequest {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  senderId   String       @db.ObjectId
+  sender     User         @relation("sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String       @db.ObjectId
+  receiver   User         @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  status     FriendStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  @@unique([senderId, receiverId])
+}
+
+model Notification {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String           @db.ObjectId
+  user      User             @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  link      String?
+  createdAt DateTime         @default(now())
+  expiresAt DateTime?
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+model UserPreferences {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String   @unique @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id])
+  workStartTime       String
+  workEndTime         String
+  daysOff             String[]
+  sessionLength       Int
+  breakLength         Int
+  breaksPerDay        Int
+  taskOrder           String
+  maxTasksPerDay      Int
+  defaultTaskDuration Int
+  reminderDays        Int
+}
+
+model Report {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  reportedUserId String       @db.ObjectId
+  reportedUser   User         @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
+  reportedById   String       @db.ObjectId
+  reportedBy     User         @relation("UserReportsMade", fields: [reportedById], references: [id])
+  reason         String
+  description    String?
+  status         ReportStatus @default(PENDING)
+  handledById    String?      @db.ObjectId
+  handledBy      User?        @relation("ModeratorHandledReports", fields: [handledById], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   appeals Appeal[]
 }
 
-enum ReportStatus {
-  PENDING
-  UNDER_REVIEW
-  RESOLVED
-  REJECTED
-}
-
 model Appeal {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  reportId    String   @db.ObjectId
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  reportId    String       @db.ObjectId
   description String
-  createdAt   DateTime @default(now())
   status      AppealStatus @default(PENDING)
-
-  user   User   @relation(fields: [userId], references: [id])
-  report Report @relation(fields: [reportId], references: [id])
-
-  handledById String? @db.ObjectId
-  handledBy   User?   @relation("ModeratorHandledAppeals", fields: [handledById], references: [id])
+  createdAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id])
+  report      Report       @relation(fields: [reportId], references: [id])
+  handledById String?      @db.ObjectId
+  handledBy   User?        @relation("ModeratorHandledAppeals", fields: [handledById], references: [id])
 }
 
-enum AppealStatus {
-  PENDING
-  APPROVED
-  REJECTED
+model Conversation {
+  id            String                    @id @default(auto()) @map("_id") @db.ObjectId
+  participants  ConversationParticipant[]
+  messages      Message[]
+  lastMessage   String?
+  lastMessageAt DateTime?
+  isGroup       Boolean                   @default(false)
+  name          String?
+  createdById   String?                   @db.ObjectId
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+}
+
+model ConversationParticipant {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String       @db.ObjectId
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("member")
+  joinedAt       DateTime     @default(now())
+  deletedAt      DateTime?
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String       @db.ObjectId
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  createdAt      DateTime     @default(now())
+}
+
+model Module {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  maxMembers  Int     @default(50)
+  joinPin     String  @unique
+  creatorId   String  @db.ObjectId
+  creator     User    @relation("ModuleCreator", fields: [creatorId], references: [id])
+  members ModuleMember[]
+  events  Event[]
+  tasks   Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ModuleMember {
+  id       String     @id @default(auto()) @map("_id") @db.ObjectId
+  moduleId String     @db.ObjectId
+  module   Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userId   String     @db.ObjectId
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     ModuleRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+  @@unique([moduleId, userId])
 }

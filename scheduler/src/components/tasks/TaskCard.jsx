@@ -70,6 +70,12 @@ export function TaskCard({
               {task.exam.title}
             </span>
           )}
+
+          {task.isModuleTask && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-100 font-medium flex items-center gap-1">
+              📚 Module Task
+            </span>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -135,9 +141,10 @@ export function TaskCard({
       </div>
 
       <TaskActions
-        onView={onView}
-        onEdit={onEdit}
-        onDelete={onDelete}
+        onView={() => onView(task)}
+        onEdit={() => onEdit(task.id)}
+        onDelete={() => onDelete(task.id)}
+        canDelete={!task.isModuleTask}
       />
     </div>
   );

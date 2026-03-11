@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"; //used to send HTTP responses back to the client (like JSON data or error messages)
-import prisma from "@/src/lib/prisma"; //This gives you access to interact with your MongoDB database
+import { prisma } from "@/src/lib/prisma"; //This gives you access to interact with your MongoDB database
 
 // Get all tasks for a user
 // In Next.js API routes, functions named GET, POST, DELETE, etc. automatically handle those HTTP methods
