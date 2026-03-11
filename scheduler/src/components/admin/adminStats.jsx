@@ -7,7 +7,7 @@ export default function AdminStats({ totalUsers, reports }){
             <p className="text-xl font-bold">
               {totalUsers}
             </p>
-            <p>Total Users</p>
+            <p>Total pUsers</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded text-center">
             <p className="text-xl font-bold">

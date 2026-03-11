@@ -31,7 +31,16 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                         type="text"
                         placeholder="Search users..."
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setInputValue(value);
+
+                            setFilters(prev => ({
+                                ...prev,
+                                search: value,
+                                page: 1,
+                            }));
+                        }}
                         className="border rounded px-3 py-2 max-w-sm"
                     />
 

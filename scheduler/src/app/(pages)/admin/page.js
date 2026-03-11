@@ -13,6 +13,7 @@ import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
 import AdminStatistics from "@/components/admin/admin-statistics";
 import AppealFilter from "@/components/admin/appeal-filter-panel";
+import { Users } from "lucide-react";
 
 export default function AdminPage() {
   //User management states
@@ -107,7 +108,7 @@ export default function AdminPage() {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
       {/* admin statistics */}
-      <AdminStatistics totalUsers={totalUsers} reports={reports} appeals={appeals}/>
+      <AdminStatistics/>
 
       {/* Container for the user reporting system*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,7 +158,11 @@ export default function AdminPage() {
           setFilters={setDraftUserFilters}
           onClose={() => setIsUserFilterOpen(false)}
           applyFilters={() => {
-            setAppliedUserFilters(draftUserFilters);
+            setAppliedUserFilters(prev => ({
+              ...prev,
+              ...draftUserFilters,
+              page: 1
+            }));
             setIsUserFilterOpen(false);
           }}
           resetFilters={() => {

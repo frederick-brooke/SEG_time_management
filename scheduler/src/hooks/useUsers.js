@@ -17,7 +17,15 @@ export function useUsers(filters, endpoint) {
         try {
             setLoading(true);
 
-            const query = new URLSearchParams(filters);
+            const query = new URLSearchParams();
+
+            Object.entries(filters).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    value.forEach(v => query.append(key, v));
+                } else if (value !== "" && value != null) {
+                    query.append(key, value);
+                }
+            });
             //filter objects parsed by user is converted into query string
             const res = await fetch(`${endpoint}?${query.toString()}`);
 
