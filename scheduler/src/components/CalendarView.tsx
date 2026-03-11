@@ -179,12 +179,14 @@ export default function CalendarView({
   events: initialEvents,
   tasks: initialTasks = [],
   allTasks = [],
+  unscheduledTasks: initialUnscheduledTasks = [],
   userId,
   googleconnected,
 }: {
   events: any[];
   tasks: any[];
   allTasks?: any[];
+  unscheduledTasks?: any[];
   userId: string;
   googleconnected?: boolean;
 }) {
@@ -196,7 +198,6 @@ export default function CalendarView({
       _type: "event",
     })),
   );
-  // Initial state
   const [tasks, setTasks] = useState(
     initialTasks.map((t) => ({
       ...t,
@@ -245,13 +246,24 @@ export default function CalendarView({
   const [scheduleWarnings, setScheduleWarnings] = useState<any[]>([]);
   const [isScheduling, setIsScheduling] = useState(false);
   const [alreadyScheduled, setAlreadyScheduled] = useState(false);
+  const [scheduleLogs, setScheduleLogs] = useState<any[]>([]);
+  const [unscheduledTasks, setUnscheduledTasks] = useState(
+    initialUnscheduledTasks,
+  );
+
+  const refreshUnscheduled = async () => {
+    const res = await fetch(`/api/tasks?userId=${userId}`);
+    const data = await res.json();
+    setUnscheduledTasks(
+      (data.tasks || []).filter((t: any) => !t.scheduledDate && !t.completed),
+    );
+  };
 
   const fetchCategories = async () => {
     const res = await fetch("/api/categories");
     const data = await res.json();
     const cats = data.categories || [];
     setCategories(cats);
-    // initialise all category filters to true
     const filters: Record<string, boolean> = {};
     cats.forEach((c: any) => {
       filters[c.id] = true;
@@ -259,29 +271,36 @@ export default function CalendarView({
     setCategoryFilters(filters);
   };
 
+  const fetchScheduleLogs = async () => {
+    const res = await fetch("/api/schedule-log");
+    const data = await res.json();
+    setScheduleLogs(data.logs || []);
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  const toggleFilter = (key: String) => {
+  useEffect(() => {
+    refreshEvents();
+    refreshTasks();
+    fetchScheduleLogs();
+  }, []);
+
+  const toggleFilter = (key: string) => {
     setActiveFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const getFilteredItems = () => {
     const items: any[] = [];
-
-    // events filtered by category checkboxes
     events.forEach((e) => {
       const cat = categories.find((c) => c.name === e.category);
       if (cat && categoryFilters[cat.id]) {
         items.push(e);
       } else if (!cat && activeFilters.events) {
-        // fallback for events with no matching category
         items.push(e);
       }
     });
-
-    // tasks
     if (activeFilters.tasks) {
       items.push(...tasks.filter((t) => !t.completed && t.priority !== "High"));
     }
@@ -291,7 +310,6 @@ export default function CalendarView({
     if (activeFilters.completed) {
       items.push(...tasks.filter((t) => t.completed));
     }
-
     return items;
   };
 
@@ -311,7 +329,6 @@ export default function CalendarView({
         </div>
       );
     }
-
     const travelMins =
       typeof event.travelDuration === "number" ? event.travelDuration : null;
     return (
@@ -348,6 +365,7 @@ export default function CalendarView({
           ...e,
           start: new Date(e.start),
           end: new Date(e.end),
+          _type: "event",
         })),
       );
     } catch (err) {
@@ -377,11 +395,6 @@ export default function CalendarView({
       console.error("Failed to refresh tasks:", err);
     }
   };
-
-  useEffect(() => {
-    refreshEvents();
-    refreshTasks();
-  }, []);
 
   const triggerUndo = () => {
     setShowUndo(true);
@@ -454,16 +467,14 @@ export default function CalendarView({
 
   const eventPropGetter = (event: any) => {
     if (event._type === "task") {
-      // find linked event's category colour
       const linkedEvent = events.find((e) => e.id === event.eventId);
       const linkedCat = linkedEvent
         ? categories.find((c) => c.name === linkedEvent.category)
         : null;
       const baseColor = linkedCat ? linkedCat.color : "#6b7280";
-
       return {
         style: {
-          backgroundColor: baseColor + "40", // 40 = 25% opacity hex
+          backgroundColor: baseColor + "40",
           border: linkedCat ? `2px solid ${baseColor}` : "3px solid #111827",
           borderRadius: "6px",
           color: "#111827",
@@ -472,10 +483,8 @@ export default function CalendarView({
         },
       };
     }
-
     const cat = categories.find((c) => c.name === event.category);
     const color = cat?.color || "#3b82f6";
-
     return {
       style: {
         backgroundColor: color,
@@ -489,35 +498,35 @@ export default function CalendarView({
     };
   };
 
+  const dayPropGetter = (date: Date) => {
+    const hasScheduledTask = tasks.some(
+      (t) => new Date(t.scheduledDate).toDateString() === date.toDateString(),
+    );
+    if (hasScheduledTask) {
+      return { style: { backgroundColor: "#f0f9ff" } };
+    }
+    return {};
+  };
+
   const handleDelete = async (mode: "single" | "series") => {
     if (!selectedEvent) return;
-
     const eventId = selectedEvent.id;
-
     if (!eventId || !/^[a-f\d]{24}$/i.test(eventId)) {
       alert(`Invalid event ID: "${eventId}". Cannot delete.`);
-      console.error("Bad eventId:", eventId, "Full event:", selectedEvent);
       return;
     }
-
     const confirmMsg =
       mode === "single"
         ? "Remove only this specific occurrence?"
         : "Delete the entire recurring series?";
     if (!confirm(confirmMsg)) return;
-
     setLastDeletedEvent(selectedEvent);
-
     const instanceDate =
       selectedEvent.start instanceof Date
         ? selectedEvent.start.toISOString()
         : new Date(selectedEvent.start).toISOString();
-
     const params = new URLSearchParams({ id: eventId, mode });
     if (mode === "single") params.append("date", instanceDate);
-
-    console.log("DELETE params:", Object.fromEntries(params)); // helpful debug log
-
     try {
       const res = await fetch(`/api/calendar/events?${params}`, {
         method: "DELETE",
@@ -528,7 +537,6 @@ export default function CalendarView({
         triggerUndo();
       } else {
         const errData = await res.json();
-        console.error("Delete API error:", errData);
         alert(`Error: ${errData.message}`);
       }
     } catch (err) {
@@ -539,20 +547,13 @@ export default function CalendarView({
   const openScheduleDialog = (mode: "day" | "week") => {
     setScheduleMode(mode);
     setScheduleWarnings([]);
-
     const today = new Date();
-    const dateStr = format(today, "yyyy-MM-dd");
-    const weekStr = format(startOfWeek(today), "yyyy-MM-dd");
-
-    setScheduleDate(dateStr);
-    setScheduleWeekStart(weekStr);
-
-    // pre-select tasks due on that day/week + unscheduled tasks with that due date
+    setScheduleDate(format(today, "yyyy-MM-dd"));
+    setScheduleWeekStart(format(startOfWeek(today), "yyyy-MM-dd"));
     const targetDays =
       mode === "day"
         ? [today]
         : Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(today), i));
-
     const preSelected = allTasks
       .filter((t) => {
         if (!t.dueDate) return false;
@@ -560,10 +561,7 @@ export default function CalendarView({
         return targetDays.some((d) => d.toDateString() === due.toDateString());
       })
       .map((t) => t.id);
-
     setSelectedTaskIds(preSelected);
-
-    // check if already scheduled
     const hasScheduled = tasks.some((t) => {
       const tDate = new Date(t.scheduledDate);
       return targetDays.some((d) => d.toDateString() === tDate.toDateString());
@@ -575,28 +573,39 @@ export default function CalendarView({
   const handleSchedule = async () => {
     if (selectedTaskIds.length === 0) return;
     setIsScheduling(true);
-
     const days =
       scheduleMode === "day"
         ? [new Date(scheduleDate).toISOString()]
         : Array.from({ length: 7 }, (_, i) =>
             addDays(new Date(scheduleWeekStart), i).toISOString(),
           );
-
     const res = await fetch("/api/schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ taskIds: selectedTaskIds, days }),
     });
-
     const data = await res.json();
     setIsScheduling(false);
-
     if (data.warnings?.length > 0) {
       setScheduleWarnings(data.warnings);
     } else {
+      const dateLabel =
+        scheduleMode === "day"
+          ? format(new Date(scheduleDate), "EEE MMM dd")
+          : `Week of ${format(new Date(scheduleWeekStart), "MMM dd")}`;
+      await fetch("/api/schedule-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: scheduleMode,
+          dateLabel,
+          taskIds: selectedTaskIds,
+        }),
+      });
       setShowScheduleDialog(false);
       refreshTasks();
+      refreshUnscheduled();
+      fetchScheduleLogs();
     }
   };
 
@@ -610,10 +619,9 @@ export default function CalendarView({
 
   return (
     <div className="flex gap-6">
-      {/* Filter sidebar */}
+      {/* ── Left filter sidebar ── */}
       <div className="w-56 flex-shrink-0">
         <div className="bg-white rounded-2xl border p-4 shadow-sm sticky top-4 flex flex-col gap-4">
-          {/* Task filters */}
           <div>
             <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
               Tasks
@@ -638,12 +646,7 @@ export default function CalendarView({
                       backgroundColor: activeFilters[f.key] ? f.color : "white",
                       borderColor: f.color,
                     }}
-                    onClick={() =>
-                      setActiveFilters((prev) => ({
-                        ...prev,
-                        [f.key]: !prev[f.key],
-                      }))
-                    }
+                    onClick={() => toggleFilter(f.key)}
                   >
                     {activeFilters[f.key] && (
                       <span className="text-white text-[10px] font-bold">
@@ -659,7 +662,6 @@ export default function CalendarView({
             </div>
           </div>
 
-          {/* Category filters */}
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">
@@ -709,7 +711,7 @@ export default function CalendarView({
         </div>
       </div>
 
-      {/* Main calendar area */}
+      {/* ── Main calendar area ── */}
       <div className="flex-1 min-w-0">
         {/* Schedule buttons */}
         <div className="flex gap-2 mb-4">
@@ -726,8 +728,9 @@ export default function CalendarView({
             🗓 Schedule My Week
           </button>
         </div>
+
         <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative">
-          {/* Top bar: undo notification or search */}
+          {/* Top bar: undo or search */}
           <div className="h-14 mb-4 relative">
             {showUndo ? (
               <div className="absolute inset-0 bg-gray-900 text-white rounded-2xl shadow-xl flex items-center justify-between px-6 z-[60]">
@@ -834,6 +837,7 @@ export default function CalendarView({
                   setIsModalOpen(true);
                 }}
                 eventPropGetter={eventPropGetter}
+                dayPropGetter={dayPropGetter}
                 components={{ event: EventComponent }}
               />
             </div>
@@ -841,7 +845,117 @@ export default function CalendarView({
         </div>
       </div>
 
-      {/* Modal */}
+      {/* ── Right panel ── */}
+      <div className="w-64 flex-shrink-0 flex flex-col gap-4 sticky top-4 self-start">
+        {/* Unscheduled tasks */}
+        <div className="bg-white rounded-2xl border p-4 shadow-sm">
+          <h2 className="font-bold text-gray-900 mb-3">Unscheduled Tasks</h2>
+          {unscheduledTasks.length === 0 ? (
+            <p className="text-xs text-gray-400">All tasks are scheduled 🎉</p>
+          ) : (
+            <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
+              {unscheduledTasks.map((t: any) => (
+                <div key={t.id} className="p-3 bg-gray-50 rounded-xl border">
+                  <p className="text-sm font-semibold text-gray-800">
+                    {t.title}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        t.priority === "High"
+                          ? "bg-red-100 text-red-600"
+                          : t.priority === "Medium"
+                            ? "bg-orange-100 text-orange-600"
+                            : "bg-green-100 text-green-600"
+                      }`}
+                    >
+                      {t.priority}
+                    </span>
+                    {t.dueDate && (
+                      <span className="text-xs text-gray-400">
+                        Due {new Date(t.dueDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Schedule log */}
+        <div className="bg-white rounded-2xl border p-4 shadow-sm">
+          <h2 className="font-bold text-gray-900 mb-3">Schedule Log</h2>
+          {scheduleLogs.length === 0 ? (
+            <p className="text-xs text-gray-400">No schedules created yet.</p>
+          ) : (
+            <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
+              {scheduleLogs.map((log) => (
+                <div key={log.id} className="p-3 bg-gray-50 rounded-xl border">
+                  <div className="flex items-center justify-between mb-1">
+                    <span
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        log.mode === "day"
+                          ? "bg-gray-900 text-white"
+                          : "bg-indigo-600 text-white"
+                      }`}
+                    >
+                      {log.mode === "day" ? "Day" : "Week"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {format(new Date(log.scheduledAt), "MMM d, h:mm a")}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {log.dateLabel}
+                  </p>
+                  <p className="text-xs text-gray-400 mb-2">
+                    {log.taskIds.length} task
+                    {log.taskIds.length !== 1 ? "s" : ""}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setScheduleMode(log.mode as "day" | "week");
+                        setSelectedTaskIds(log.taskIds);
+                        setScheduleWarnings([]);
+                        if (log.mode === "day") {
+                          setScheduleDate(
+                            format(new Date(log.scheduledAt), "yyyy-MM-dd"),
+                          );
+                        } else {
+                          setScheduleWeekStart(
+                            format(new Date(log.scheduledAt), "yyyy-MM-dd"),
+                          );
+                        }
+                        setShowScheduleDialog(true);
+                      }}
+                      className="flex-1 text-xs bg-gray-900 text-white py-1.5 rounded-lg font-bold hover:bg-black"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await fetch(`/api/schedule-log?id=${log.id}`, {
+                          method: "DELETE",
+                        });
+                        fetchScheduleLogs();
+                        refreshTasks();
+                        refreshUnscheduled();
+                      }}
+                      className="flex-1 text-xs bg-red-50 text-red-600 py-1.5 rounded-lg font-bold hover:bg-red-100"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Event/task detail modal ── */}
       {isModalOpen && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
@@ -967,6 +1081,8 @@ export default function CalendarView({
           </div>
         </div>
       )}
+
+      {/* ── Category manager modal ── */}
       {showCategoryManager && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
@@ -985,7 +1101,6 @@ export default function CalendarView({
             <h3 className="text-2xl font-black mb-6 text-gray-900">
               Categories
             </h3>
-
             <div className="flex flex-col gap-3 mb-6">
               {categories.map((cat) => (
                 <CategoryRow
@@ -993,7 +1108,7 @@ export default function CalendarView({
                   cat={cat}
                   canDelete={categories.length > 1}
                   existingCategories={categories}
-                  onUpdate={async (id, name, color) => {
+                  onUpdate={async (id: string, name: string, color: string) => {
                     await fetch("/api/categories", {
                       method: "PATCH",
                       headers: { "Content-Type": "application/json" },
@@ -1001,7 +1116,7 @@ export default function CalendarView({
                     });
                     fetchCategories();
                   }}
-                  onDelete={async (id) => {
+                  onDelete={async (id: string) => {
                     await fetch(`/api/categories?id=${id}`, {
                       method: "DELETE",
                     });
@@ -1010,14 +1125,13 @@ export default function CalendarView({
                 />
               ))}
             </div>
-
             <div className="border-t pt-4">
               <p className="text-xs font-bold uppercase text-gray-400 mb-3">
                 Add New Category
               </p>
               <AddCategoryForm
                 existingCategories={categories}
-                onAdd={async (name, color) => {
+                onAdd={async (name: string, color: string) => {
                   await fetch("/api/categories", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -1030,6 +1144,8 @@ export default function CalendarView({
           </div>
         </div>
       )}
+
+      {/* ── Schedule dialog ── */}
       {showScheduleDialog && (
         <div
           className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
@@ -1049,7 +1165,6 @@ export default function CalendarView({
               {scheduleMode === "day" ? "Schedule My Day" : "Schedule My Week"}
             </h3>
 
-            {/* Already scheduled warning */}
             {alreadyScheduled && scheduleWarnings.length === 0 && (
               <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium">
                 ⚠️ This {scheduleMode} already has scheduled tasks. Continuing
@@ -1057,7 +1172,6 @@ export default function CalendarView({
               </div>
             )}
 
-            {/* Date picker */}
             <div className="mb-4">
               {scheduleMode === "day" ? (
                 <div>
@@ -1086,7 +1200,6 @@ export default function CalendarView({
               )}
             </div>
 
-            {/* Task selector */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-gray-400 uppercase">
@@ -1175,7 +1288,6 @@ export default function CalendarView({
               </div>
             </div>
 
-            {/* Deadline warnings */}
             {scheduleWarnings.length > 0 && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
                 <p className="text-sm font-bold text-red-700 mb-2">
@@ -1189,6 +1301,7 @@ export default function CalendarView({
                 <button
                   onClick={() => {
                     refreshTasks();
+                    refreshUnscheduled();
                     setShowScheduleDialog(false);
                   }}
                   className="mt-3 w-full bg-red-600 text-white py-2 rounded-xl font-bold text-sm hover:bg-red-700"
@@ -1198,7 +1311,6 @@ export default function CalendarView({
               </div>
             )}
 
-            {/* Action button */}
             {scheduleWarnings.length === 0 && (
               <button
                 onClick={handleSchedule}

@@ -54,6 +54,7 @@ model User {
 
   lastCheckIn   DateTime?
   categories Category[]
+  scheduleLogs ScheduleLog[]
 }
 
 enum Role {
@@ -299,4 +300,14 @@ model Category {
   color  String
 
   createdAt DateTime @default(now())
+}
+
+model ScheduleLog {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  mode        String   // "day" or "week"
+  dateLabel   String   // e.g. "Mon Mar 09" or "Week of Mar 09"
+  taskIds     String[] @db.ObjectId
+  scheduledAt DateTime @default(now())
 }
