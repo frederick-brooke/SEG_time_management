@@ -7,11 +7,11 @@ import { revalidatePath } from "next/cache";
 import { examPlannerLogic  } from "@/src/lib/examPlannerLogic";
 
 /**
- * Creates a new exam entry and associated details
- * @param formData form data containing title, examDate, maxTimePerDay
- * @returns {Promise<Object>} success status and created exam, or error message
+ * Updates specific settings for an existing exam record.
+ * @param {string} examId Unique ID of the exam to update.
+ * @param {Object} data The fields to update (title, maxTimePerDay, examDate).
+ * @returns {Promise<Object>} The updated exam data or an error message.
  */
-
 export async function updateExamSettings(examId: string, data: { title?: string, maxTimePerDay?: number, examDate?: Date}) {
     try {
         const session = await getServerSession(authOptions);
@@ -29,6 +29,11 @@ export async function updateExamSettings(examId: string, data: { title?: string,
     }
 }
 
+/**
+ * Creates a new exam entry and associated details in the database.
+ * @param {FormData} formData Form data containing title, examDate and maxTimePerDay.
+ * @returns {Promise<Object>} Success status and created exam, or error message.
+ */
 export async function createExam(formData: FormData) {
     const session = await getServerSession(authOptions);
 
@@ -61,8 +66,8 @@ export async function createExam(formData: FormData) {
 
 
 /**
- * Fetches all exams belonging to the current authenticated user
- * @returns {Promise<Array>} List of user exams with linked tasks and materials
+ * Fetches all exams belonging to the current authenticated user.
+ * @returns {Promise<Array>} List of user exams with linked tasks and materials.
  */
 
 export async function getMyExams() {
@@ -80,8 +85,8 @@ export async function getMyExams() {
 }
 
 /**
- * Deletes an exam and its associated revision materials and tasks
- * @param examId The database ID of the exam to remove
+ * Deletes an exam and its associated revision materials and tasks.
+ * @param {string} examId The database ID of the exam to remove.
  */
 
 export async function deleteExam(examId: string) {
@@ -101,6 +106,11 @@ export async function deleteExam(examId: string) {
 
 }
 
+/**
+ * Retrieves a single exam by its ID, inluding all of the tasks and materials linked to it.
+ * @param {string} id The database ID of the exam.
+ * @returns {Promise<Object|null\>} The exam record or null if not found or unauthorised.
+ */
 export async function getExamById(id: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) return null;
@@ -114,6 +124,12 @@ export async function getExamById(id: string) {
     });
 }
 
+/**
+ * Automated study plan generator that maps revision topics to available dates.
+ * @param {string} examId The unique ID of the target exam.
+ * @param {Object[]} topics Array of topics containing title, duration and optional URL.
+ * @returns {Promise<Object>} Success status or an error message if generation fails.
+ */
 export async function generateExamPlan(examId: string, topics: { title:string, duration: number, url?: string }[]) {
     try {
         const exam = await prisma.exam.findUnique({
@@ -157,6 +173,12 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
     }
 }
 
+/**
+ * Updates the list of dates the user is unavailable to study for a specific exam.
+ * @param {string} examId The unique ID of the exam
+ * @param {Date[] | undefined} days Array of dates to be marked as unavailable for revision for the specific exam.
+ * @returns {Promise<Object>} Success status and updated exam record.
+ */
 export async function updateExamUnavailableDays(examId: string, days: Date[] | undefined) {
     try {
         const session = await getServerSession(authOptions);
@@ -191,6 +213,13 @@ export async function updateExamUnavailableDays(examId: string, days: Date[] | u
     }
 }
 
+/**
+ * Persists a study topic as a Task and optional RevisionMaterial in the database.
+ * @param {string} examId Linked exam ID
+ * @param {string} userId Owner of the task
+ * @param {any} topic THe topic object containing title, duration and URL
+ * @param {Date} dueDate The scheduled date for this study task.
+ */
 async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDate: Date) {
     const hours = Math.floor(topic.duration / 60);
     const mins = topic.duration % 60;
