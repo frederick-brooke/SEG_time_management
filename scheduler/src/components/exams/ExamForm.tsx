@@ -4,6 +4,15 @@ import React, { useState } from "react";
 import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
 
 
+/**
+ * The core form component for creating or updating exam settings.
+ * @param {Object} props The component properties.
+ * @param {Function} props.onExamAdded Success callback for new exam data.
+ * @param {Function} props.onExamUpdated Success callback for updated exam data.
+ * @param {Object} props.editingExam The exam object being edited, if any.
+ * @param {Function} props.onSuccess Callback to close the parent dialog on successful submissions.
+ * @returns 
+ */
 export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSuccess }) {
     const [serverError, setServerError] = useState("");
     const [isPending, setIsPending] = useState(false);
