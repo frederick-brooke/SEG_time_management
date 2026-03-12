@@ -3,6 +3,11 @@
 import React, { useState } from "react";
 import ExamForm from "./ExamForm";
 
+/**
+ * A dialog wrapper which toggle the visibility of the ExamForm
+ * @param {Object} props The component properties.
+ * @returns {JSX.Element} The rendered dialog and trigger button.
+ */
 export default function ExamFormDialog(props) {
     const [isOpen, setIsOpen] = useState(false);
 
