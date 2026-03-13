@@ -3,7 +3,7 @@ import { IconX } from "@tabler/icons-react";
 
 export default function Panel({ open, onClose, title, children }){
     return (
-        <div className={`fixed inset-0 z-[950] transition-opacity duration-300 ${
+        <div className={`fixed inset-0 z-[950] bg-black/50 transition-opacity duration-300 ${
             open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             onClick={onclose}
         >

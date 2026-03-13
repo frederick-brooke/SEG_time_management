@@ -5,6 +5,7 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import EventForm from "./EventForm";
+import styles from "./CalendarView.module.css";
 
 const locales = { "en-US": enUS };
 const localizer = dateFnsLocalizer({ format, parse, startOfWeek, getDay, locales });
@@ -18,6 +19,285 @@ const CATEGORY_COLORS: Record<string, string> = {
   Google: "#4285F4",
   Task: "#0ea5e9",
 };
+
+// Helper — detect iCal-imported events
+function isImportedEvent(event: any): boolean {
+  return typeof event.googleEventId === "string" && event.googleEventId.startsWith("ical:");
+}
+
+function ManageImportedCalendars({ onRemoved }: { onRemoved: () => void }) {
+  const [feeds, setFeeds] = useState<{ url: string; count: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [removing, setRemoving] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+
+  const showToast = (msg: string, ok: boolean) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const fetchFeeds = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/calendar/import");
+      const data = await res.json();
+      setFeeds(Array.isArray(data) ? data : []);
+    } catch {
+      setFeeds([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchFeeds(); }, []);
+
+  const handleRemove = async (url: string) => {
+    if (!confirm(`Remove all events imported from this calendar?\n\n${url}`)) return;
+    setRemoving(url);
+    try {
+      const res = await fetch("/api/calendar/import", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.message ?? "Failed to remove", false); return; }
+      showToast(data.message, true);
+      onRemoved();
+      fetchFeeds();
+    } catch {
+      showToast("Network error", false);
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6 text-gray-300 text-sm">
+        Loading…
+      </div>
+    );
+  }
+
+  if (feeds.length === 0) {
+    return (
+      <div className="py-4 text-center text-sm text-gray-400">
+        No imported calendars yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {toast && (
+        <div className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 ${toast.ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+          <span>{toast.ok ? "✓" : "✕"}</span>{toast.msg}
+        </div>
+      )}
+      {feeds.map((feed) => {
+        let label = feed.url;
+        try { label = new URL(feed.url).hostname + new URL(feed.url).pathname; } catch {}
+        return (
+          <div
+            key={feed.url}
+            className="flex items-center justify-between gap-3 bg-gray-50 rounded-2xl px-4 py-3"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-800 truncate" title={feed.url}>
+                {label}
+              </p>
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                {feed.count} event{feed.count !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <button
+              onClick={() => handleRemove(feed.url)}
+              disabled={removing === feed.url}
+              className="flex-shrink-0 text-xs font-bold text-red-400 hover:text-red-600 disabled:opacity-40 transition-colors px-3 py-1.5 rounded-xl hover:bg-red-50"
+            >
+              {removing === feed.url ? "…" : "Remove"}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// iCal Import Modal
+function ImportCalendarModal({
+  onClose,
+  onImported,
+}: {
+  onClose: () => void;
+  onImported: () => void;
+}) {
+  const [tab, setTab] = useState<"import" | "manage">("import");
+  const [url, setUrl] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+  const [result, setResult] = useState<{
+    created: number;
+    updated: number;
+    skipped: number;
+    total: number;
+  } | null>(null);
+
+  const handleImport = async () => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    setStatus("loading");
+    setMessage("");
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/calendar/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: trimmed }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setStatus("error"); setMessage(data.message ?? "Import failed."); return; }
+      setStatus("success");
+      setMessage(data.message);
+      setResult({ created: data.created, updated: data.updated, skipped: data.skipped, total: data.total });
+      onImported();
+    } catch {
+      setStatus("error");
+      setMessage("Network error — could not reach the server.");
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-black text-xl">
+          ✕
+        </button>
+
+        <div className="mb-6">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-xl mb-4">
+            📅
+          </div>
+          <h3 className="text-2xl font-black text-gray-900">Calendars</h3>
+        </div>
+
+        <div className="flex gap-1 bg-gray-100 rounded-2xl p-1 mb-6">
+          {(["import", "manage"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all capitalize ${
+                tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"
+              }`}
+            >
+              {t === "import" ? "📥 Import" : "🗂 Manage"}
+            </button>
+          ))}
+        </div>
+
+        {tab === "import" && (
+          <div>
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
+                Calendar URL
+              </label>
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => { setUrl(e.target.value); setStatus("idle"); }}
+                onKeyDown={(e) => e.key === "Enter" && handleImport()}
+                placeholder="https://calendar.example.com/feed.ics"
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm bg-gray-50 placeholder-gray-300"
+                disabled={status === "loading"}
+              />
+              <p className="text-[11px] text-gray-400 mt-1.5 pl-1">
+                Supports iCal feeds, webcal:// links, and public Google Calendar .ics URLs
+              </p>
+            </div>
+
+            {status === "error" && (
+              <div className="mb-4 px-4 py-3 rounded-2xl bg-red-50 border border-red-100 flex items-start gap-2">
+                <span className="text-red-400 mt-0.5 flex-shrink-0">✕</span>
+                <p className="text-sm text-red-700">{message}</p>
+              </div>
+            )}
+
+            {status === "success" && result && (
+              <div className="mb-4 px-4 py-3 rounded-2xl bg-emerald-50 border border-emerald-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-emerald-500">✓</span>
+                  <p className="text-sm font-bold text-emerald-700">Import successful!</p>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-white rounded-xl py-2">
+                    <p className="text-lg font-black text-emerald-600">{result.created}</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Created</p>
+                  </div>
+                  <div className="bg-white rounded-xl py-2">
+                    <p className="text-lg font-black text-sky-600">{result.updated}</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Updated</p>
+                  </div>
+                  <div className="bg-white rounded-xl py-2">
+                    <p className="text-lg font-black text-gray-400">{result.skipped}</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-bold">Skipped</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleImport}
+                disabled={!url.trim() || status === "loading" || status === "success"}
+                className="flex-1 bg-gray-900 hover:bg-black disabled:opacity-40 text-white py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                {status === "loading" ? (
+                  <><span className="animate-spin inline-block">↻</span> Importing…</>
+                ) : status === "success" ? "✓ Done" : "Import Events"}
+              </button>
+              {status === "success" && (
+                <button
+                  onClick={onClose}
+                  className="px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl font-bold text-sm transition-all"
+                >
+                  Close
+                </button>
+              )}
+            </div>
+
+            {status === "idle" && (
+              <div className="mt-5 p-4 bg-gray-50 rounded-2xl">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">How to find your link</p>
+                <ul className="text-xs text-gray-400 space-y-1">
+                  <li><span className="font-semibold text-gray-500">Google Calendar:</span> Settings → your calendar → &quot;Integrate calendar&quot; → copy the iCal URL</li>
+                  <li><span className="font-semibold text-gray-500">Outlook:</span> Settings → Calendar → Shared calendars → Publish → copy ICS link</li>
+                  <li><span className="font-semibold text-gray-500">Apple Calendar:</span> Right-click calendar → Get Info → copy the subscription URL</li>
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "manage" && (
+          <div>
+            <p className="text-sm text-gray-500 mb-4">
+              Remove all events from an imported calendar. This only affects your local schedule — it does not modify the original calendar.
+            </p>
+            <ManageImportedCalendars onRemoved={onImported} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function SchedulerPanel({
   onScheduled,
@@ -140,13 +420,13 @@ function SchedulerPanel({
         </div>
         {unscheduled.length > 0 && (
           <button
-          onClick={scheduleAll}
-          disabled={scheduling === "all"}
-          className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
-        >
-          {scheduling === "all" && <span className="animate-spin">↻</span>}
-          Schedule All
-        </button>
+            onClick={scheduleAll}
+            disabled={scheduling === "all"}
+            className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
+          >
+            {scheduling === "all" && <span className="animate-spin">↻</span>}
+            Schedule All
+          </button>
         )}
       </div>
 
@@ -260,33 +540,25 @@ export default function CalendarView({
   const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
   const schedulerRefreshRef = useRef<(() => void) | null>(null);
   const [showScheduler, setShowScheduler] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const EventComponent = ({ event }: any) => {
     if (event.allDay) {
-      return <div className="font-semibold truncate">{event.title}</div>;
+      return <div className={styles.eventAllDay}>{event.title}</div>;
     }
 
     const travelMins =
-      typeof event.travelDuration === "number"
-        ? event.travelDuration
-        : null;
+      typeof event.travelDuration === "number" ? event.travelDuration : null;
 
     return (
-      <div className="flex flex-col h-full">
+      <div className={styles.eventWrapper}>
         {travelMins !== null && (
-          <div className="mb-1 px-1 py-[2px] rounded bg-white/20 text-[9px] flex items-center gap-1 font-bold">
-            <span>🚗</span>
-            <span>{travelMins} min travel</span>
-          </div>
+          <div className={styles.eventTravel}>{travelMins}m travel</div>
         )}
-
         {event.category === "Task" && (
-          <div className="mb-0.5 text-[9px] font-bold opacity-80">📋 TASK</div>
+          <div className={styles.eventTaskBadge}>📋</div>
         )}
-
-        <div className="font-semibold truncate leading-tight">
-          {event.title}
-        </div>
+        <div className={styles.eventTitle}>{event.title}</div>
       </div>
     );
   };
@@ -373,18 +645,6 @@ export default function CalendarView({
 
   const filteredEvents = filter === "All" ? events : events.filter((e) => e.category === filter);
 
-  const eventStyleGetter = (event: any) => ({
-    style: {
-      backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
-      borderRadius: "6px",
-      border: "none",
-      color: "white",
-      fontSize: "0.85rem",
-      paddingLeft: "5px",
-      cursor: "pointer",
-    },
-  });
-
   const handleDelete = async (mode: "single" | "series") => {
     if (!selectedEvent) return;
 
@@ -392,7 +652,6 @@ export default function CalendarView({
 
     if (!eventId || !/^[a-f\d]{24}$/i.test(eventId)) {
       alert(`Invalid event ID: "${eventId}". Cannot delete.`);
-      console.error("Bad eventId:", eventId, "Full event:", selectedEvent);
       return;
     }
 
@@ -410,8 +669,6 @@ export default function CalendarView({
     const params = new URLSearchParams({ id: eventId, mode });
     if (mode === "single") params.append("date", instanceDate);
 
-    console.log("DELETE params:", Object.fromEntries(params));
-
     try {
       const res = await fetch(`/api/calendar/events?${params}`, { method: "DELETE" });
       if (res.ok) {
@@ -420,7 +677,6 @@ export default function CalendarView({
         triggerUndo();
       } else {
         const errData = await res.json();
-        console.error("Delete API error:", errData);
         alert(`Error: ${errData.message}`);
       }
     } catch (err) {
@@ -430,73 +686,73 @@ export default function CalendarView({
 
   return (
     <div className="flex gap-4">
-      <div className="flex-1 p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative">
+      <div className="flex-1 p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px] relative overflow-hidden">
 
-        {/* Top bar: undo notification or search */}
-      <div className="h-14 mb-4 relative">
-        {showUndo ? (
-          <div className="absolute inset-0 bg-gray-900 text-white rounded-2xl shadow-xl flex items-center justify-between px-6 z-[60]">
-            <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-[10px] font-bold">!</span>
-              <p className="text-sm font-medium">Event deleted</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleUndo}
-                className="bg-blue-500 hover:bg-blue-400 text-white px-5 py-1.5 rounded-lg font-bold text-sm flex items-center gap-2"
-              >
-                <span className="text-lg leading-none">↺</span> Undo
-              </button>
-              <button onClick={() => setShowUndo(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
-            </div>
-          </div>
-        ) : (
-            <>
-          <div className="relative h-full" ref={searchRef}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              onFocus={() => searchQuery && setShowSearchResults(true)}
-              placeholder="Search events..."
-              className="w-full h-full px-4 pl-11 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black shadow-sm bg-white"
-            />
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</div>
-            {searchQuery && (
-              <button onClick={clearSearch} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">✕</button>
-            )}
-            {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-[70] p-2">
-                {searchResults.length > 0 ? (
-                  searchResults.map((event) => (
-                    <button
-                      key={event.occurrenceId || event.id}
-                      onClick={() => handleSearchResultClick(event)}
-                      className="w-full text-left p-3 hover:bg-gray-50 rounded-lg flex items-center gap-3"
-                    >
-                      <div
-                        className="w-1.5 h-8 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6" }}
-                      />
-                      <div>
-                        <div className="font-bold text-gray-900 text-sm">{event.title}</div>
-                        <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                          {format(event.start, "PPP")}
-                          {event.isRecurring && " · Recurring"}
-                        </div>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-sm text-gray-400">No matching events</div>
-                )}
+        {/* Top bar */}
+        <div className="h-14 mb-4 relative">
+          {showUndo ? (
+            <div className="absolute inset-0 bg-gray-900 text-white rounded-2xl shadow-xl flex items-center justify-between px-6 z-[60]">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-[10px] font-bold">!</span>
+                <p className="text-sm font-medium">Event deleted</p>
               </div>
-            )}
-          </div>
-            </>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleUndo}
+                  className="bg-blue-500 hover:bg-blue-400 text-white px-5 py-1.5 rounded-lg font-bold text-sm flex items-center gap-2"
+                >
+                  <span className="text-lg leading-none">↺</span> Undo
+                </button>
+                <button onClick={() => setShowUndo(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative h-full" ref={searchRef}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => searchQuery && setShowSearchResults(true)}
+                placeholder="Search events..."
+                className="w-full h-full px-4 pl-11 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black shadow-sm bg-white"
+              />
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</div>
+              {searchQuery && (
+                <button onClick={clearSearch} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">✕</button>
+              )}
+              {showSearchResults && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-[70] p-2">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((event) => (
+                      <button
+                        key={event.occurrenceId || event.id}
+                        onClick={() => handleSearchResultClick(event)}
+                        className="w-full text-left p-3 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                      >
+                        <div
+                          className="w-1.5 h-8 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6" }}
+                        />
+                        <div>
+                          <div className="font-bold text-gray-900 text-sm">{event.title}</div>
+                          <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                            {format(event.start, "PPP")}
+                            {event.isRecurring && " · Recurring"}
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-sm text-gray-400">No matching events</div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
-        <div className="mb-3">
+
+        {/* Toolbar */}
+        <div className="flex items-center gap-2 mb-3">
           <button
             onClick={() => setShowScheduler((v) => !v)}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-2xl border font-bold text-sm transition-all shadow-sm ${
@@ -505,7 +761,13 @@ export default function CalendarView({
                 : "bg-white text-gray-600 border-gray-200 hover:border-sky-300 hover:text-sky-500"
             }`}
           >
-            <span>Auto-Schedule</span>
+            Auto-Schedule
+          </button>
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-2xl border font-bold text-sm transition-all shadow-sm bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
+          >
+            Import Calendar
           </button>
         </div>
         {/* Category filters */}
@@ -526,7 +788,7 @@ export default function CalendarView({
         </div>
 
         {/* Calendar */}
-        <div className="bg-white p-4 rounded-3xl shadow-md border border-gray-100">
+        <div className="bg-white p-4 rounded-3xl shadow-md border border-gray-100 overflow-hidden">
           <div className="h-[600px]">
             <Calendar
               localizer={localizer}
@@ -547,22 +809,23 @@ export default function CalendarView({
                 setIsEditing(false);
                 setIsModalOpen(true);
               }}
-              eventPropGetter={(event) => ({
+              eventPropGetter={() => ({
                 style: {
-                  backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6",
-                  borderRadius: "6px",
+                  background: "transparent",
                   border: "none",
-                  color: "white",
-                  fontSize: "0.85rem",
-                  padding: "4px",
-                  minHeight:
-                    typeof event.travelDuration === "number"
-                      ? "48px"
-                      : "32px",
+                  padding: 0,
                 },
               })}
               components={{
-                event: EventComponent
+                event: ({ event }: any) => (
+
+                  <div
+                    className={styles.eventPill}
+                    style={{ backgroundColor: CATEGORY_COLORS[event.category] || "#3b82f6" }}
+                  >
+                    <EventComponent event={event} />
+                  </div>
+                ),
               }}
             />
           </div>
@@ -600,8 +863,7 @@ export default function CalendarView({
 
                   {selectedEvent.isRecurring && (
                     <div className="mb-4 px-3 py-2 bg-blue-50 rounded-lg text-xs text-blue-700 font-medium flex items-center gap-2">
-                      <span>🔁</span>
-                      <span>Recurring series</span>
+                      <span>🔁</span><span>Recurring series</span>
                     </div>
                   )}
 
@@ -609,38 +871,59 @@ export default function CalendarView({
                     <p className="text-gray-600 text-sm mb-6">{selectedEvent.description}</p>
                   )}
 
-                  <div className="flex flex-col gap-3">
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
-                    >
-                      Edit
-                    </button>
+                  {isImportedEvent(selectedEvent) ? (
+                    <div className="flex flex-col gap-3">
+                      <div className="w-full px-4 py-4 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-3">
+                        <span className="text-amber-400 text-lg flex-shrink-0">ℹ️</span>
+                        <div>
+                          <p className="text-sm font-bold text-amber-800 mb-1">Read-only event</p>
+                          <p className="text-xs text-amber-700 leading-relaxed">
+                            This event was imported from an external calendar and cannot be edited here.
+                            Make changes in the original calendar app, then re-import to sync updates.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setIsModalOpen(false); setShowImportModal(true); }}
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold text-sm transition-all"
+                      >
+                        Manage Imported Calendars
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+                      >
+                        Edit
+                      </button>
 
-                    {(selectedEvent.recurrence?.type && selectedEvent.recurrence.type !== "none") || selectedEvent.isRecurring ? (
-                      <div className="flex flex-col gap-2">
-                        <button
-                          onClick={() => handleDelete("single")}
-                          className="bg-red-50 text-red-600 py-3 rounded-2xl font-bold hover:bg-red-100 transition-all text-sm"
-                        >
-                          Delete Only This Instance
-                        </button>
+                      {(selectedEvent.recurrence?.type && selectedEvent.recurrence.type !== "none") || selectedEvent.isRecurring ? (
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => handleDelete("single")}
+                            className="bg-red-50 text-red-600 py-3 rounded-2xl font-bold hover:bg-red-100 transition-all text-sm"
+                          >
+                            Delete Only This Instance
+                          </button>
+                          <button
+                            onClick={() => handleDelete("series")}
+                            className="bg-red-600 text-white py-3 rounded-2xl font-bold hover:bg-red-700 transition-all text-sm"
+                          >
+                            Delete Entire Series
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           onClick={() => handleDelete("series")}
-                          className="bg-red-600 text-white py-3 rounded-2xl font-bold hover:bg-red-700 transition-all text-sm"
+                          className="bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all"
                         >
-                          Delete Entire Series
+                          Delete Event
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleDelete("series")}
-                        className="bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all"
-                      >
-                        Delete Event
-                      </button>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -662,13 +945,23 @@ export default function CalendarView({
             </div>
           </div>
         )}
-
       </div>
 
       {showScheduler && (
         <div className="w-[300px] flex-shrink-0 bg-white rounded-xl shadow-md border border-gray-100 p-4 flex flex-col min-h-[700px]">
-          <SchedulerPanel onScheduled={refreshEvents} userId={userId} onRegisterRefresh={(fn) => { schedulerRefreshRef.current = fn; }} />
+          <SchedulerPanel
+            onScheduled={refreshEvents}
+            userId={userId}
+            onRegisterRefresh={(fn) => { schedulerRefreshRef.current = fn; }}
+          />
         </div>
+      )}
+
+      {showImportModal && (
+        <ImportCalendarModal
+          onClose={() => setShowImportModal(false)}
+          onImported={refreshEvents}
+        />
       )}
     </div>
   );

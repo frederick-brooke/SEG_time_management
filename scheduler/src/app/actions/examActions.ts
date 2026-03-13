@@ -1,10 +1,10 @@
 'use server'
 
-import { prisma } from "@/src/lib/prisma"; 
+import { prisma } from "lib/prisma"; 
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
-import { examPlannerLogic  } from "@/src/lib/examPlannerLogic";
+import { examPlannerLogic  } from "lib/examPlannerLogic";
 
 /**
  * Updates specific settings for an existing exam record.
