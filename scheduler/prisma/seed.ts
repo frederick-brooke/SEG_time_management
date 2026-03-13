@@ -161,6 +161,22 @@ async function main() {
     }
   }
 
+  // Exams (1 - 2 per user)
+  console.log('Creating exams...')
+  for (const user of users) {
+    for (let x = 0; x < 2; x++) {
+      await prisma.exam.create({
+        data: {
+          userId: user.id,
+          title: faker.helpers.arrayElement(['CS1 Exam', 'Maths Exam', 'Ethics Exam']),
+          examDate: randomFutureDate(30),
+          maxTimePerDay: faker.helpers.arrayElement([60, 90, 120, 180])
+        },
+      })
+    }
+  }
+}
+
   console.log('\n✅ Seeding complete!')
 }
 
