@@ -78,7 +78,7 @@ export function TaskFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlForm="task-url">Study Resource URL</Label>
+            <Label htmlFor="task-url">Study Resource URL</Label>
             <div className="flex gap-2">
               <Input
                 id="task-url"

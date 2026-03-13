@@ -6,9 +6,14 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 {
     const [inputValue, setInputValue] = useState(filters.search ?? "");   // typed value
 
+    const start = (filters.page - 1) * filters.limit + 1;
+    const end = Math.min(filters.page * filters.limit, totalUsers);
+
+    console.log(filters);
+
     return(
         <div>
-            <section className="mb-4 bg-white shadow rounded p-6">
+            <section className="mb-4 bg-white shadow rounded p-6 flex flex-col h-[660px]">
                 <h2 className="text-2xl font-semibold mb-4">User Management</h2>
                 
                 <form
@@ -26,7 +31,16 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                         type="text"
                         placeholder="Search users..."
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setInputValue(value);
+
+                            setFilters(prev => ({
+                                ...prev,
+                                search: value,
+                                page: 1,
+                            }));
+                        }}
                         className="border rounded px-3 py-2 max-w-sm"
                     />
 
@@ -54,7 +68,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                     </button>
                 </form>
                 
-                <div className="space-y-2 flex-1 overflow-y-auto">
+                <div className="space-y-2 flex-1 overflow-y-auto min-h-0 mt-4">
                     {users.map((user) => (
                         <div key={user.id} 
                             onClick={() => setSelectedUser(user)}
@@ -64,34 +78,28 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                     ))}
                 </div>
 
-                <div className="mt-4 flex justify-center">
-                {users.length !== 0 && (
-                    <p className="text-sm text-gray-600">
-                    Showing{" "}
-                    <span className="font-semibold text-gray-900">
-                        {users.length == 0. && (
-                            totalUsers
-                        )}
-
-                        {users.length}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-semibold text-gray-900">
-                        {totalUsers}    
-                    </span>{" "}
-                    users
-                    </p>
-                )}           
-
-                {users.length === 0 && (
-                    <p className="text-sm text-gray-500 mt-4">
-                    No users found.
-                    </p>
-                )}
+                <div className="mt-4 flex justify-center flex-shrink-0">
+                    {users.length !== 0 ? (
+                        <p className="text-sm text-gray-600">
+                        Showing{" "}
+                        <span className="font-semibold text-gray-900">
+                            {start}-{end}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-semibold text-gray-900">
+                            {totalUsers}
+                        </span>{" "}
+                        users
+                        </p>
+                    ) : (
+                        <p className="text-sm text-gray-500 mt-4">
+                        No users found.
+                        </p>
+                    )}
                 </div>
 
                 {totalUserPages >= 1 && (
-                    <div className="flex items-center justify-between mt-4 border-t flex-shrink-0">
+                    <div className="flex items-center justify-between mt-4 border-t pt-4 flex-shrink-0">
                         <button
                         disabled={filters.page === 1}
 
@@ -113,7 +121,12 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 
                         <button
                             disabled={filters.page === totalUserPages}
-                            onClick={() => setCurrentUserPage((prev) => prev + 1)}
+                            onClick={() => 
+                                setFilters(prev => ({
+                                    ...prev,
+                                    page: prev.page + 1
+                                }))
+                            }
                             className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                         Next
