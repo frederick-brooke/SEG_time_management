@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hashPassword } from "lib/password";
+import { hashPassword, validatePassword } from "lib/password";
 import { prisma } from "lib/prisma";
 
 
@@ -40,6 +40,11 @@ export async function POST(req: NextRequest) {
     const existingEmail = await prisma.user.findUnique({ where: { email } });
     if (existingEmail) {
       return NextResponse.json({ error: "Email already exists" }, { status: 409 });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
     const passwordHash = await hashPassword(password);
