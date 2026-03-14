@@ -56,6 +56,7 @@ export const authOptions: NextAuthOptions = {
               username: user.username,
               role: user.role,
               isBanned: true,
+              isDeleted: user.isDeleted,
             };
           }
           // temporary ban still active
@@ -66,6 +67,7 @@ export const authOptions: NextAuthOptions = {
               username: user.username,
               role: user.role,
               isBanned: true,
+              isDeleted: user.isDeleted,
             };
           }
           // ban expired
@@ -82,6 +84,7 @@ export const authOptions: NextAuthOptions = {
           username: user.username,
           role: user.role,
           isBanned: user.isBanned,
+          isDeleted: user.isDeleted,
         };
       },
     }),
@@ -125,6 +128,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.isBanned = user.isBanned;
         token.username = user.username;
+        token.isDeleted = user.isDeleted
       }
 
       if (!token.username && token.sub) {

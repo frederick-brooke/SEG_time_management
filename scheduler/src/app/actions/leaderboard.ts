@@ -33,7 +33,10 @@ export async function getFriendsLeaderboard() {
   ];
 
   const users = await prisma.user.findMany({
-    where: { id: { in: friendIds } },
+    where: { 
+      id: { in: friendIds },
+      isDeleted: false
+    },
     select: {
       id: true,
       username: true,

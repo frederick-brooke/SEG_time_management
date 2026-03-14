@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
 
     //dynamically build the query set
-    const where: any = {};
+    const where: any = { isDeleted: false };
 
     if (search.trim()) {
         where.username = {
