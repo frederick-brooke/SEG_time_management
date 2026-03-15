@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";
-import {getModuleDetails, getModuleEvents, getModuleTasks, getModuleTasksWithProgress,} from "@/src/app/actions/module";
+import {getModuleDetails, getModuleEvents, getModuleTasks, getModuleTasksWithProgress,} from "@/app/actions/module";
 import ModuleDetailClient from "./ModuleDetailClient";
 import { ModuleRole } from "@prisma/client";
 

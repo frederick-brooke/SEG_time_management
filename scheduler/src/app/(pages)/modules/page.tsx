@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";
 import ModulesPageClient from "./ModulesPageClient";
-import { getMyModules } from "@/src/app/actions/module";
+import { getMyModules } from "@/app/actions/module";
 
 /**
  * Server component that fetches the current user's modules

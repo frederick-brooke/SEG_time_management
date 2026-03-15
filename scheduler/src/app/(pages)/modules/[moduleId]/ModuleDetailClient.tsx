@@ -15,7 +15,7 @@ import {
   deleteModuleTask,
   updateModuleEvent,
   deleteModuleEvent,
-} from "@/src/app/actions/module";
+} from "@/app/actions/module";
 import { TaskFormDialog } from "components/tasks/TaskFormDialog";
 import ModuleEventModal from "components/modules/ModuleEventModal";
 import { formatDuration, formatTaskDate, formatEventDate } from "lib/format";

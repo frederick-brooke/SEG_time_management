@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ModuleCard } from "@/src/components/modules/ModuleCard";
-import CreateModule from "@/src/components/modules/CreateModule";
-import JoinModule from "@/src/components/modules/JoinModule";
+import { ModuleCard } from "components/modules/ModuleCard";
+import CreateModule from "components/modules/CreateModule";
+import JoinModule from "components/modules/JoinModule";
 import { Plus, LogIn, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 
 //types
