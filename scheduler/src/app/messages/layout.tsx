@@ -12,6 +12,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Show sidebar on desktop always; on mobile show sidebar only when no conversation is open
   useEffect(() => {
     const check = () => {
       const mobile = window.innerWidth < 768;

@@ -19,6 +19,7 @@ export function AddMemberModal({ conversationId, existingMemberIds, onClose, onA
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // q= with no value returns all friends from the search endpoint
   useEffect(() => {
     fetch("/api/user/search?q=")
       .then((r) => r.json())

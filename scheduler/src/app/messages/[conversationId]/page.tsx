@@ -37,7 +37,7 @@ const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
 });
 
 /**
- * Displays an animated three-dot bubble to indicate another user is typing.
+ * Displays a three-dot bubble to indicate another user is typing.
  * @returns JSX typing indicator element
  */
 function TypingBubble() {
@@ -98,7 +98,7 @@ export default function ConversationPage() {
   }, [conversationId]);
 
   /**
-   * Fetches a page of messages (optionally from a cursor for pagination).
+   * Fetches a page of messages.
    * @param cursorId - ID of the last message from the previous page (omitted for the initial load)
    * @returns Reversed array of messages (oldest first), or undefined on failure
    */
@@ -125,7 +125,9 @@ export default function ConversationPage() {
     fetch(`/api/conversations/${conversationId}`, { method: "PATCH" }).catch(() => {});
   }, [conversationId]);
 
-  useEffect(() => { initialLoadDone.current = false; }, [conversationId]);
+  useEffect(() => { 
+    initialLoadDone.current = false; 
+  }, [conversationId]);
 
   // Scroll to bottom on initial message load
   useEffect(() => {
@@ -315,6 +317,7 @@ export default function ConversationPage() {
     const showDateDivider = prevDate !== currDate;
     const sameSenderAsPrev = prev?.sender.id === msg.sender.id && !showDateDivider;
     const sameSenderAsNext = next?.sender.id === msg.sender.id && new Date(next.createdAt).toDateString() === currDate;
+    
     return { msg, showDateDivider, isFirst: !sameSenderAsPrev, isLast: !sameSenderAsNext };
   });
 
@@ -355,6 +358,7 @@ export default function ConversationPage() {
           )}
         </div>
 
+        {/* Group consecutive messages by sender and date for visual bubbling */}
         {grouped.map(({ msg, showDateDivider, isFirst, isLast }) => (
           <MessageBubble
             key={msg.id}

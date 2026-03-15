@@ -11,6 +11,11 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+/**
+ * POST /api/conversations/[conversationId]/typing
+ * Broadcasts a typing indicator to all participants in the conversation.
+ * The Pusher trigger doesn't wait before responding.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -23,11 +28,13 @@ export async function POST(
   const { conversationId } = await params;
   const { isTyping } = await req.json();
 
-  pusher.trigger(`conversation-${conversationId}`, "typing", {
-    userId: session.user.id,
-    username: session.user.username,
-    isTyping,
-  }).catch((err) => console.error("Pusher typing error:", err));
+  pusher
+    .trigger(`conversation-${conversationId}`, "typing", {
+      userId: session.user.id,
+      username: session.user.username,
+      isTyping,
+    })
+    .catch((err) => console.error("Pusher typing error:", err));
 
   return NextResponse.json({ ok: true });
 }

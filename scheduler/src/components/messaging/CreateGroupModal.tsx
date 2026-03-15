@@ -36,7 +36,8 @@ export function CreateGroupModal({
       });
       const conv = await res.json();
 
-      // If the conversation was created more than 5 seconds ago, it's a duplicate
+      // The API returns the existing conversation if a duplicate is found
+      // We detect this by checking the age of the conversation (> 5s)
       const ageMs = Date.now() - new Date(conv.createdAt).getTime();
       if (ageMs > 5000) {
         setDuplicate(true);

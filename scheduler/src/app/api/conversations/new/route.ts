@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { prisma } from "lib/prisma";
 
+/**
+ * POST /api/conversations
+ * Finds or creates a 1-to-1 conversation between the current user and `targetUserId`.
+ * Returns the existing conversation if one already exists, avoiding duplicates.
+ */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,7 +25,8 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Find one with exactly 2 participants: current user + target only
+  // Match on exactly 2 participants to rule out any group conversations that
+  // might contain both users
   const existing = candidates.find((c) => {
     const ids = c.participants.map((p) => p.userId);
     return (

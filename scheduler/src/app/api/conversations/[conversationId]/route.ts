@@ -12,6 +12,11 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+/**
+ * POST /api/conversations/[conversationId]/messages
+ * Creates a new message, updates the conversation's last message preview,
+ * and notifies participants via Pusher.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -59,6 +64,7 @@ export async function POST(
       },
     });
 
+    // Message delivery to the open conversation view
     pusher
       .trigger(`conversation-${conversationId}`, "new-message", message)
       .catch((err) => console.error("Pusher error:", err));
@@ -75,6 +81,7 @@ export async function POST(
       senderId: session.user.id,
     };
 
+    // Update each participant's sidebar with the latest message preview
     await Promise.all(
       participants.map((p) =>
         pusher
@@ -90,6 +97,11 @@ export async function POST(
   }
 }
 
+/**
+ * DELETE /api/conversations/[conversationId]/messages
+ * Clears the conversation history for the current user by setting `deletedAt`.
+ * Does not delete messages globally — other participants are unaffected.
+ */
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -123,7 +135,7 @@ export async function DELETE(
       },
     });
 
-    // The user's sidebar should remove the conversation
+    // Remove the conversation from the user's sidebar
     await pusher
       .trigger(`user-${session.user.id}`, "conversation-deleted", { id: conversationId })
       .catch((err) => console.error("Pusher delete error:", err));
@@ -135,6 +147,10 @@ export async function DELETE(
   }
 }
 
+/**
+ * PATCH /api/conversations/[conversationId]/messages
+ * Marks the conversation as read for the current user by updating `lastReadAt`.
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ conversationId: string }> }

@@ -31,6 +31,7 @@ export default function UserSearch() {
       .then((data) => setGroups(data.filter((c: GroupConversation) => c.isGroup)));
   }, []);
 
+  // Only show results after 2 characters to avoid noisy single-letter matches
   const filteredFriends = query.length < 2 ? [] : friends.filter((f) =>
     `${f.fname} ${f.lname} ${f.username}`.toLowerCase().includes(query.toLowerCase())
   );

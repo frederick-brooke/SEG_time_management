@@ -196,8 +196,10 @@ export function MessageBubble({
   const [showReport, setShowReport] = useState(false);
   const [reported, setReported] = useState(false);
 
+  // Optimistic messages are rendered at reduced opacity until confirmed by the API
   const isOptimistic = msg.id.startsWith("temp-");
 
+  // Adjust border radius based on position in a consecutive message group for a chat bubble effect
   const myRadius =
     isFirst && isLast ? "rounded-2xl"
     : isFirst          ? "rounded-2xl rounded-br-md"
@@ -283,7 +285,7 @@ export function MessageBubble({
               {msg.content}
             </div>
 
-            {/* Three-dot button — only on other people's messages, on hover */}
+            {/* Three-dot button — only shown on others' messages */}
             {!isMe && !isOptimistic && (
               <div className="relative">
                 <button

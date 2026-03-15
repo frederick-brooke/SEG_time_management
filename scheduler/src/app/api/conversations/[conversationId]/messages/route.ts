@@ -3,6 +3,12 @@ import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 
+/**
+ * GET /api/conversations/[conversationId]/messages
+ * Returns the 20 most recent messages in a conversation, newest first.
+ * Supports cursor-based pagination via the `cursor` query param.
+ * Messages sent before the user cleared their history are excluded.
+ */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -31,6 +37,7 @@ export async function GET(
     },
     take: 20,
     ...(cursor && {
+      // skip: 1 excludes the cursor message itself from the next page
       skip: 1,
       cursor: { id: cursor },
     }),

@@ -50,11 +50,7 @@ function formatLastMessageTime(iso: string | null): string {
 }
 
 /**
- * A three-dot overflow menu shown on each conversation row.
- * Exposes a "Delete" action.
- *
- * @param conversationId - The ID of the conversation this menu belongs to.
- * @param onDeleted - Callback invoked with the conversation ID after a successful deletion.
+ * Double-tick icon shown next to the last message preview when sent by the current user.
  */
 function DeliveryTick() {
   return (
@@ -65,6 +61,13 @@ function DeliveryTick() {
   );
 }
 
+/**
+ * A three-dot overflow menu shown on each conversation row.
+ * Exposes a "Delete" action.
+ *
+ * @param conversationId - The ID of the conversation this menu belongs to.
+ * @param onDeleted - Callback invoked with the conversation ID after a successful deletion.
+ */
 function ConversationMenu({
   conversationId,
   onDeleted,
@@ -174,6 +177,8 @@ export default function ConversationList() {
   useEffect(() => {
     fetchConversations();
     fetch("/api/user/search?q=").then((r) => r.json()).then(setFriends);
+    
+    // Refetch conversations when the window regains focus to catch updates from other tabs
     window.addEventListener("focus", fetchConversations);
     return () => window.removeEventListener("focus", fetchConversations);
   }, [session, fetchConversations]);
@@ -296,6 +301,7 @@ export default function ConversationList() {
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <button
+                // Optimistically clear unread before navigating so the dot doesn't persist on the active row
                 onClick={() => {
                   setConversations((prev) =>
                     prev.map((c) => c.id === convo.id ? { ...c, hasUnread: false } : c)

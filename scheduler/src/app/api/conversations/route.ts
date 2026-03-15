@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { prisma } from "lib/prisma";
+
+/**
+ * GET /api/conversations
+ * Returns all conversations for the current user, ordered by most recent message.
+ * Conversations the user has cleared are hidden unless a new message has arrived since.
+ * Each conversation is annotated with `hasUnread` and `lastMessageSentByMe`.
+ */
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,6 +23,7 @@ export async function GET() {
           user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
         },
       },
+      // Only fetch the latest message — used for unread detection, not display
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -28,6 +36,8 @@ export async function GET() {
   const filtered = conversations
     .filter((conv) => {
       const participant = conv.participants.find((p) => p.userId === session.user.id);
+      // Show the conversation if the user hasn't cleared it, or if a new message
+      // has arrived since they cleared it
       if (!participant?.deletedAt) return true;
       return conv.lastMessageAt && new Date(conv.lastMessageAt) > new Date(participant.deletedAt);
     })
@@ -47,13 +57,23 @@ export async function GET() {
         ...conv,
         lastMessageSentByMe,
         hasUnread,
-        messages: undefined,
+        messages: undefined, // strip raw messages — callers should use the annotated fields
       };
     });
 
   return NextResponse.json(filtered);
 }
 
+/**
+ * POST /api/conversations
+ * Creates a new 1-to-1 or group conversation.
+ *
+ * For 1-to-1: returns the existing conversation if one already exists. If the
+ * user had previously cleared it, `deletedAt` is reset so it reappears in their sidebar.
+ *
+ * For groups: returns the existing group if one with the exact same members already exists.
+ * The creator is always added as admin; all other members join as members.
+ */
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -82,6 +102,7 @@ export async function POST(req: Request) {
       participantIds: c.participants.map((p) => p.userId),
     })));
 
+    // Match on exactly 2 participants to rule out group conversations containing both users
     const existing = candidates.find((c) => {
       const participantIds = c.participants.map((p) => p.userId);
       const match = (
@@ -94,7 +115,7 @@ export async function POST(req: Request) {
     });
 
     if (existing) {
-      // If they had previously cleared this conversation, reset deletedAt so it reappears
+      // Reset deletedAt so the conversation reappears if the user had cleared it
       await prisma.conversationParticipant.updateMany({
         where: { conversationId: existing.id, userId: session.user.id },
         data: { deletedAt: null },
@@ -119,6 +140,7 @@ export async function POST(req: Request) {
       },
     });
 
+    // Prevent duplicate groups with identical member sets
     const duplicate = existingGroups.find((g) => {
       const existingIds = g.participants.map((p) => p.userId).sort();
       const newIds = [...allMemberIds].sort();
@@ -132,7 +154,6 @@ export async function POST(req: Request) {
   }
 
   const allMemberIds: string[] = [...new Set([session.user.id, ...memberIds])];
-
   const conversation = await prisma.conversation.create({
     data: {
       isGroup: !!isGroup,
