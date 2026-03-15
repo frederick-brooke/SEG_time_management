@@ -25,7 +25,7 @@ export async function POST(
 
   pusher.trigger(`conversation-${conversationId}`, "typing", {
     userId: session.user.id,
-    username: session.user.name,
+    username: session.user.username,
     isTyping,
   }).catch((err) => console.error("Pusher typing error:", err));
 
