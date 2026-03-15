@@ -16,6 +16,7 @@ type Props = {
   isHovered: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
+  onAvatarClick?: (username: string) => void;
 };
 
 function formatTime(iso: string) {
@@ -32,12 +33,33 @@ function formatDate(iso: string) {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function Avatar({ src, username }: { src: string | null; username: string }) {
-  if (src) return <img src={src} alt={username} className="w-7 h-7 rounded-full object-cover flex-shrink-0" />;
+function SenderAvatar({
+  src,
+  username,
+  onClick,
+}: {
+  src: string | null;
+  username: string;
+  onClick?: () => void;
+}) {
+  if (src)
+    return (
+      <img
+        src={src}
+        alt={username}
+        onClick={onClick}
+        className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+        style={{ cursor: onClick ? "pointer" : "default" }}
+      />
+    );
   return (
     <div
+      onClick={onClick}
       className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-      style={{ background: "linear-gradient(135deg, rgba(88,101,242,0.5), rgba(139,92,246,0.5))" }}
+      style={{
+        background: "linear-gradient(135deg, rgba(88,101,242,0.5), rgba(139,92,246,0.5))",
+        cursor: onClick ? "pointer" : "default",
+      }}
     >
       <span className="text-xs font-semibold" style={{ color: "rgba(220,225,255,0.9)" }}>
         {username?.[0]?.toUpperCase() ?? "?"}
@@ -46,7 +68,7 @@ function Avatar({ src, username }: { src: string | null; username: string }) {
   );
 }
 
-export function MessageBubble({ msg, isMe, isFirst, isLast, showDateDivider, isHovered, onMouseEnter, onMouseLeave }: Props) {
+export function MessageBubble({ msg, isMe, isFirst, isLast, showDateDivider, isHovered, onMouseEnter, onMouseLeave, onAvatarClick }: Props) {
   const isOptimistic = msg.id.startsWith("temp-");
 
   const myRadius = isFirst && isLast ? "rounded-2xl"
@@ -62,7 +84,7 @@ export function MessageBubble({ msg, isMe, isFirst, isLast, showDateDivider, isH
   return (
     <>
       {showDateDivider && (
-        <div className="flex items-center gap-3 my-4">
+        <div className="flex items-center gap-3 my-2">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
           <span className="text-xs font-medium px-1" style={{ color: "rgba(148,163,255,0.35)" }}>
             {formatDate(msg.createdAt)}
@@ -72,13 +94,21 @@ export function MessageBubble({ msg, isMe, isFirst, isLast, showDateDivider, isH
       )}
 
       <div
-        className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"} ${isFirst ? "mt-2" : "mt-0.5"}`}
+        className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"} ${isFirst ? "mt-1" : "mt-0.5"}`}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
         {!isMe && (
           <div className="w-7 flex-shrink-0 self-end">
-            {isLast ? <Avatar src={msg.sender.pfp} username={msg.sender.username} /> : <div className="w-7" />}
+            {isLast ? (
+              <SenderAvatar
+                src={msg.sender.pfp}
+                username={msg.sender.username}
+                onClick={() => onAvatarClick?.(msg.sender.username)}
+              />
+            ) : (
+              <div className="w-7" />
+            )}
           </div>
         )}
 
@@ -90,12 +120,18 @@ export function MessageBubble({ msg, isMe, isFirst, isLast, showDateDivider, isH
           )}
 
           <div className={`flex items-center gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
-            <span
-              className={`text-xs whitespace-nowrap transition-opacity duration-150 ${isHovered ? "opacity-100" : "opacity-0"}`}
-              style={{ color: "rgba(148,163,255,0.35)" }}
-            >
-              {formatTime(msg.createdAt)}
-            </span>
+          <span
+            className="text-xs whitespace-nowrap transition-all duration-150"
+            style={{
+              color: "rgba(148,163,255,0.35)",
+              opacity: isHovered ? 1 : 0,
+              width: isHovered ? "auto" : 0,
+              overflow: "hidden",
+              display: "inline-block",
+            }}
+          >
+            {formatTime(msg.createdAt)}
+          </span>
 
             <div
               className={`px-4 py-2 text-sm break-words transition-opacity duration-150 ${isOptimistic ? "opacity-50" : "opacity-100"} ${isMe ? myRadius : theirRadius}`}

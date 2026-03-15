@@ -120,6 +120,11 @@ export default function ConversationPage() {
     fetchDetails();
   }, [conversationId, fetchMessages, fetchDetails]);
 
+  useEffect(() => {
+    if (!conversationId) return;
+    fetch(`/api/conversations/${conversationId}`, { method: "PATCH" }).catch(() => {});
+  }, [conversationId]);
+
   useEffect(() => { initialLoadDone.current = false; }, [conversationId]);
 
   // Scroll to bottom on initial message load
@@ -361,6 +366,7 @@ export default function ConversationPage() {
             isHovered={hoveredId === msg.id}
             onMouseEnter={() => setHoveredId(msg.id)}
             onMouseLeave={() => setHoveredId(null)}
+            onAvatarClick={(username) => router.push(`/profile/${username}`)}
           />
         ))}
 
