@@ -135,3 +135,31 @@ export async function updatePreferences(formData: FormData) {
   revalidatePath("/settings");
   return { success: true };
 }
+
+export async function deleteAccount(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { passwordHash: true }
+  });
+
+  if (!user || !user.passwordHash) throw new Error("User not found or invalid account state.");
+
+  // 1. Always demand and verify the password
+  const password = formData.get("password") as string;
+  if (!password) throw new Error("Password is required to delete your account.");
+  
+  const isValid = await verifyPassword(password, user.passwordHash);
+  if (!isValid) throw new Error("Incorrect password.");
+
+  // 2. Delete the user
+  await prisma.userPreferences.deleteMany({ where: { userId: session.user.id } });
+  
+  await prisma.user.delete({
+    where: { id: session.user.id }
+  });
+
+  return { success: true };
+}

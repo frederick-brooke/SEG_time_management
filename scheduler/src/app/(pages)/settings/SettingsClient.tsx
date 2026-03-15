@@ -1,15 +1,14 @@
 'use client';
 
 import { useState, useTransition } from "react";
-import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences } from "@/src/app/actions/settings";
-import { signIn } from "next-auth/react";
-import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders } from "lucide-react";
+import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/src/app/actions/settings";
+import { signIn, signOut } from "next-auth/react";
+import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle } from "lucide-react";
 
 interface SettingsClientProps {
   user: {
     username: string;
     email: string;
-    hasPassword: boolean;
     hasGoogleConnected: boolean;
     preferences: any;
   }
@@ -20,6 +19,12 @@ export function SettingsClient({ user }: SettingsClientProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Modal State for Deletion
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // Tracking the two steps: initial question -> password entry
+  const [deleteStage, setDeleteStage] = useState<'initial' | 'password'>('initial');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const currentDaysOff = user.preferences?.daysOff || [];
@@ -53,32 +58,41 @@ export function SettingsClient({ user }: SettingsClientProps) {
     });
   };
 
+  const handleDeleteAccount = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setDeleteError(null);
+    const formData = new FormData(e.currentTarget);
+    
+    startTransition(async () => {
+      try {
+        await deleteAccount(formData);
+        await signOut({ callbackUrl: "/login" });
+      } catch (err: any) {
+        setDeleteError(err.message);
+      }
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteStage('initial'); // Reset back to first step
+    setDeleteError(null);
+  }
+
   return (
-    <div className="flex flex-col md:flex-row gap-8">
+    <div className="flex flex-col md:flex-row gap-8 relative">
       {/* Sidebar Navigation */}
       <div className="w-full md:w-64 shrink-0 space-y-2">
-        <button 
-          onClick={() => { setActiveTab('account'); setError(null); setSuccess(null); }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'account' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}
-        >
+        <button onClick={() => { setActiveTab('account'); setError(null); setSuccess(null); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'account' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}>
           <User size={18} /> Account Details
         </button>
-        <button 
-          onClick={() => { setActiveTab('preferences'); setError(null); setSuccess(null); }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'preferences' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}
-        >
+        <button onClick={() => { setActiveTab('preferences'); setError(null); setSuccess(null); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'preferences' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}>
           <Sliders size={18} /> Preferences
         </button>
-        <button 
-          onClick={() => { setActiveTab('security'); setError(null); setSuccess(null); }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'security' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}
-        >
+        <button onClick={() => { setActiveTab('security'); setError(null); setSuccess(null); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'security' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}>
           <Key size={18} /> Security
         </button>
-        <button 
-          onClick={() => { setActiveTab('integrations'); setError(null); setSuccess(null); }}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'integrations' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}
-        >
+        <button onClick={() => { setActiveTab('integrations'); setError(null); setSuccess(null); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'integrations' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-600 hover:bg-gray-100'}`}>
           <Globe size={18} /> Integrations
         </button>
       </div>
@@ -104,23 +118,11 @@ export function SettingsClient({ user }: SettingsClientProps) {
             <form onSubmit={handleAction(updateAccountDetails, "Account details updated successfully.")} className="space-y-6 max-w-md">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Username</label>
-                <input
-                  name="username"
-                  defaultValue={user.username}
-                  required
-                  pattern="^[a-zA-Z0-9_-]{3,20}$"
-                  className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none"
-                />
+                <input name="username" defaultValue={user.username} required pattern="^[a-zA-Z0-9_-]{3,20}$" className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none" />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  defaultValue={user.email}
-                  required
-                  className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none"
-                />
+                <input type="email" name="email" defaultValue={user.email} required className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none" />
               </div>
               <button disabled={isPending} type="submit" className="bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50">
                 {isPending ? "Saving..." : "Save Changes"}
@@ -134,7 +136,6 @@ export function SettingsClient({ user }: SettingsClientProps) {
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Workflow Preferences</h2>
             <form onSubmit={handleAction(updatePreferences, "Preferences saved successfully.")} className="space-y-8">
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Work Start Time</label>
@@ -208,16 +209,13 @@ export function SettingsClient({ user }: SettingsClientProps) {
         {activeTab === 'security' && (
           <div className="animate-in fade-in duration-300">
             <h2 className="text-xl font-bold text-gray-900 mb-2">Security</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              {user.hasPassword ? "Update your password to keep your account secure." : "Set a password so you can log in without Google."}
-            </p>
-            <form onSubmit={handleAction(changePassword, "Password updated successfully.")} className="space-y-6 max-w-md">
-              {user.hasPassword && (
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Current Password</label>
-                  <input type="password" name="currentPassword" required className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none" />
-                </div>
-              )}
+            <p className="text-sm text-gray-500 mb-6">Update your password to keep your account secure.</p>
+            
+            <form onSubmit={handleAction(changePassword, "Password updated successfully.")} className="space-y-6 max-w-md mb-12">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Current Password</label>
+                <input type="password" name="currentPassword" required className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none" />
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">New Password</label>
                 <input type="password" name="newPassword" required minLength={6} className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none" />
@@ -227,9 +225,23 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 <input type="password" name="confirmPassword" required minLength={6} className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black outline-none" />
               </div>
               <button disabled={isPending} type="submit" className="bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50">
-                {isPending ? "Saving..." : (user.hasPassword ? "Update Password" : "Set Password")}
+                {isPending ? "Saving..." : "Update Password"}
               </button>
             </form>
+
+            {/* --- SIMPLIFIED ACCOUNT DELETION SECTION --- */}
+            <div className="pt-8 border-t border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Account Deletion</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Permanently remove your account and all associated data.
+              </p>
+              <button 
+                onClick={() => setShowDeleteModal(true)}
+                className="px-4 py-2 border border-gray-200 bg-gray-50 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+              >
+                Delete Account
+              </button>
+            </div>
           </div>
         )}
 
@@ -265,16 +277,83 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 </button>
               )}
             </div>
-            
-            {!user.hasPassword && user.hasGoogleConnected && (
-               <p className="text-xs text-orange-600 mt-3">
-                 * You must set a password in the Security tab before you can disconnect Google.
-               </p>
-            )}
           </div>
         )}
 
       </div>
+
+      {/* --- TWO-STEP DELETE ACCOUNT CONFIRMATION MODAL --- */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
+            
+            {/* --- STEP 1: ARE YOU SURE? --- */}
+            {deleteStage === 'initial' && (
+              <div className="animate-in fade-in duration-300">
+                <div className="flex items-center gap-3 mb-4 text-gray-900">
+                  <HelpCircle size={28} className="text-gray-500" />
+                  <h2 className="text-xl font-bold">Delete Account?</h2>
+                </div>
+                <p className="text-gray-600 mb-8 lider-relaxed">
+                  Are you absolutely sure you want to delete your account? This will permanently erase your data and cannot be undone.
+                </p>
+                <div className="flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={closeDeleteModal} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors">
+                    No, Cancel
+                  </button>
+                  <button type="button" onClick={() => setDeleteStage('password')} className="px-5 py-2.5 bg-gray-900 text-white hover:bg-gray-800 rounded-lg font-medium transition-colors">
+                    Yes, Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* --- STEP 2: ENTER PASSWORD --- */}
+            {deleteStage === 'password' && (
+              <div className="animate-in fade-in duration-300">
+                <div className="flex items-center gap-3 mb-4 text-red-600">
+                  <AlertTriangle size={28} />
+                  <h2 className="text-xl font-bold">Confirm Deletion</h2>
+                </div>
+                <p className="text-gray-600 mb-6 text-sm">
+                  To proceed, please enter your password. This action is irreversible.
+                </p>
+
+                {deleteError && (
+                  <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-center gap-2">
+                    <AlertCircle size={16} /> {deleteError}
+                  </div>
+                )}
+
+                <form onSubmit={handleDeleteAccount}>
+                  <div className="space-y-2 mb-6">
+                    <label className="text-sm font-semibold text-gray-700">Enter your password</label>
+                    <input 
+                      type="password" 
+                      name="password" 
+                      required 
+                      autoFocus
+                      className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all" 
+                      placeholder="Password"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button type="button" onClick={closeDeleteModal} disabled={isPending} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors">
+                      Cancel
+                    </button>
+                    <button type="submit" disabled={isPending} className="px-5 py-2.5 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2">
+                      {isPending ? "Deleting..." : "Permanently Delete"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+            
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
