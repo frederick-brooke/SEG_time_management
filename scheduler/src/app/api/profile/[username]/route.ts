@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
 
+//gets the route of one specific user and will load up their profile page
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ username: string }> }
@@ -16,7 +17,7 @@ export async function GET(
       );
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: { username },
       select: {
         id: true,
@@ -25,6 +26,9 @@ export async function GET(
         fname: true,
         lname: true,
         createdAt: true,
+        reportsMade: true,
+        reportsReceived: true,
+        appeals: true,
       },
     });
 

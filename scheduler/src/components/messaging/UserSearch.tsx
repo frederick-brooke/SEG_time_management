@@ -64,56 +64,87 @@ export default function UserSearch() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search friends or groups..."
-        className="w-full px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        className="w-full px-4 py-2 rounded-xl text-sm outline-none transition-colors"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          color: "rgba(210,220,255,0.85)",
+          caretColor: "rgba(99,111,255,0.8)",
+        }}
+        onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,111,255,0.4)")}
+        onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
       />
+
       {query.length >= 2 && (
-        <div className="absolute top-full mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+        <div
+          className="absolute top-full mt-1 w-full rounded-xl z-50 overflow-hidden"
+          style={{
+            background: "rgba(12,16,32,0.98)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
+          }}
+        >
           {!hasResults && (
-            <p className="text-xs text-gray-400 px-4 py-2">No results found</p>
+            <p className="text-xs px-4 py-3" style={{ color: "rgba(148,163,255,0.35)" }}>No results found</p>
           )}
 
-          {/* Friends */}
           {filteredFriends.length > 0 && (
             <>
-              <p className="text-xs text-gray-400 font-medium px-4 pt-2 pb-1 uppercase tracking-wide">Friends</p>
+              <p className="text-xs font-medium px-4 pt-2 pb-1 uppercase tracking-wide" style={{ color: "rgba(148,163,255,0.35)" }}>
+                Friends
+              </p>
               {filteredFriends.map((friend) => (
                 <button
                   key={friend.id}
                   onClick={() => startChat(friend.id)}
-                  className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2 transition-colors"
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   {friend.pfp ? (
                     <Image src={friend.pfp} alt={friend.username} width={32} height={32} className="rounded-full" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 text-xs font-semibold flex items-center justify-center">
+                    <div
+                      className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center"
+                      style={{ background: "rgba(88,101,242,0.2)", color: "rgba(148,163,255,0.8)" }}
+                    >
                       {friend.username[0].toUpperCase()}
                     </div>
                   )}
                   <div className="text-left">
-                    <p className="text-sm font-medium text-gray-900">{friend.fname} {friend.lname}</p>
-                    <p className="text-xs text-gray-400">@{friend.username}</p>
+                    <p className="text-sm font-medium" style={{ color: "rgba(220,225,255,0.85)" }}>
+                      {friend.fname} {friend.lname}
+                    </p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,255,0.4)" }}>@{friend.username}</p>
                   </div>
                 </button>
               ))}
             </>
           )}
 
-          {/* Groupchats */}
           {filteredGroups.length > 0 && (
             <>
-              <p className="text-xs text-gray-400 font-medium px-4 pt-2 pb-1 uppercase tracking-wide">Groups</p>
+              <p className="text-xs font-medium px-4 pt-2 pb-1 uppercase tracking-wide" style={{ color: "rgba(148,163,255,0.35)" }}>
+                Groups
+              </p>
               {filteredGroups.map((group) => (
                 <button
                   key={group.id}
                   onClick={() => openGroup(group.id)}
-                  className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2 transition-colors"
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 text-xs font-semibold flex items-center justify-center">
+                  <div
+                    className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center"
+                    style={{ background: "rgba(139,92,246,0.2)", color: "rgba(167,139,250,0.8)" }}
+                  >
                     {group.name?.[0]?.toUpperCase() ?? "G"}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-gray-900">{group.name}</p>
-                    <p className="text-xs text-gray-400">{group.participants.length} members</p>
+                    <p className="text-sm font-medium" style={{ color: "rgba(220,225,255,0.85)" }}>{group.name}</p>
+                    <p className="text-xs" style={{ color: "rgba(148,163,255,0.4)" }}>{group.participants.length} members</p>
                   </div>
                 </button>
               ))}

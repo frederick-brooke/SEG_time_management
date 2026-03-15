@@ -1,4 +1,9 @@
+"use client";
+import { useState } from "react";
+
 import { AppSidebar } from "components/app-sidebar";
+import SearchPanel from "@/components/search-page/search-panel";
+
 import {
   SidebarProvider,
   SidebarInset,
@@ -6,6 +11,8 @@ import {
 } from "components/ui/sidebar";
 
 export default function PagesLayout({ children }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+
   return (
     <SidebarProvider
       style={{
@@ -13,7 +20,22 @@ export default function PagesLayout({ children }) {
         "--header-height": "calc(var(--spacing) * 12)",
       }}
     >
-      <AppSidebar variant="inset" />
+      {/* Sidebar disappears when search is open */}
+      {!searchOpen && (
+        <AppSidebar
+          variant="inset"
+          onSearchClick={() => setSearchOpen(true)}
+        />
+      )}
+
+      {/* Search panel replaces sidebar */}
+      {searchOpen && (
+        <SearchPanel
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
+
       <SidebarInset>
         <div className="p-2">
           <SidebarTrigger />
@@ -21,6 +43,7 @@ export default function PagesLayout({ children }) {
         {children}
         <div id="modal-root"></div>
       </SidebarInset>
+
     </SidebarProvider>
   );
 }

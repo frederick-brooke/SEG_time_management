@@ -10,8 +10,6 @@ export function TaskCard({
   onEdit,
   onDelete,
   getPriorityStyle,
-  attributes,
-  listeners,
 }) {
 
 
@@ -70,6 +68,12 @@ export function TaskCard({
           {task.exam && (
             <span className="text-[10px] px-2 py-0.5 rounded-full border bg-blue-50 text-blue-700 border-blue-100 font-medium">
               {task.exam.title}
+            </span>
+          )}
+
+          {task.isModuleTask && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-100 font-medium flex items-center gap-1">
+              📚 Module Task
             </span>
           )}
         </div>
@@ -140,6 +144,7 @@ export function TaskCard({
         onView={() => onView(task)}
         onEdit={() => onEdit(task.id)}
         onDelete={() => onDelete(task.id)}
+        canDelete={!task.isModuleTask}
       />
     </div>
   );
