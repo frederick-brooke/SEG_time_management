@@ -1,31 +1,92 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import UserSearch from "components/messaging/UserSearch";
 import ConversationList from "components/messaging/ConversationList";
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const params = useParams();
+  const conversationId = params?.conversationId as string | undefined;
+
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(true);
+      if (mobile) setSidebarOpen(!conversationId);
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [conversationId]);
+
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(!conversationId);
+  }, [conversationId, isMobile]);
+
   return (
-    <div className="flex h-screen" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
-      <aside className="w-80 flex flex-col" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="p-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-sm flex items-center gap-1 mb-3 transition-colors"
-            style={{ color: "rgba(148,163,255,0.5)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.5)")}
-          >
-            ←
-          </button>
-          <h2 className="text-lg font-bold mb-3" style={{ color: "rgba(220,225,255,0.9)" }}>Messages</h2>
-          <UserSearch />
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <ConversationList />
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}
+    >
+      {/* Sidebar */}
+      <aside
+        className="flex flex-col flex-shrink-0 transition-all duration-300 overflow-hidden"
+        style={{
+          width: sidebarOpen ? "320px" : "0px",
+          borderRight: sidebarOpen ? "1px solid rgba(255,255,255,0.06)" : "none",
+          minWidth: 0,
+        }}
+      >
+        <div className="flex flex-col h-full" style={{ width: "320px" }}>
+          <div className="p-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="text-sm flex items-center gap-1 mb-3 transition-colors"
+              style={{ color: "rgba(148,163,255,0.5)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.5)")}
+            >
+              ←
+            </button>
+            <h2 className="text-lg font-bold mb-3" style={{ color: "rgba(220,225,255,0.9)" }}>Messages</h2>
+            <UserSearch />
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <ConversationList />
+          </div>
         </div>
       </aside>
-      <main className="flex-1 flex flex-col overflow-hidden">{children}</main>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {isMobile && conversationId && (
+          <div
+            className="flex-shrink-0 px-3 py-2"
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <button
+              onClick={() => {
+                setSidebarOpen(true);
+                router.push("/messages");
+              }}
+              className="flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: "rgba(148,163,255,0.7)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,1)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.7)")}
+            >
+              ← Back
+            </button>
+          </div>
+        )}
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }
