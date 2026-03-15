@@ -198,7 +198,7 @@ export default function ConversationPage() {
    * @param e - Input change event
    * @returns void
    */
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     fetch(`/api/conversations/${conversationId}/typing`, {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -259,7 +259,7 @@ export default function ConversationPage() {
    * @param e - Keyboard event from the input
    * @returns void
    */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 

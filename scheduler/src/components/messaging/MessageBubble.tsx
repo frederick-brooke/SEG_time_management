@@ -140,10 +140,12 @@ export function MessageBubble({ msg, isMe, isFirst, isLast, showDateDivider, isH
                 border: "1px solid rgba(99,111,255,0.3)",
                 color: "rgba(230,235,255,0.95)",
                 boxShadow: "0 2px 16px rgba(88,101,242,0.15)",
+                wordBreak: "break-all",
               } : {
                 background: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.07)",
                 color: "rgba(200,210,230,0.85)",
+                wordBreak: "break-all",
               }}
             >
               {msg.content}
