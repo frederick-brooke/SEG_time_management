@@ -21,71 +21,131 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
     }, [appeal.id, fetchAppeals, onClose]);
 
   return (
-    <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
-      onClick={onClose} //click outside closes
+    <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} // clicking backdrop closes
     >
-      <div className="p-6" onClick={(e) => e.stopPropagation()} >
+      <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 border-l"
+        onClick={onClose} //click outside closes
+      >
+        <div
+          className="h-full overflow-y-auto p-6 space-y-6 text-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
+        {/* Header */}
         <h3 className="text-xl font-semibold mb-4">
-        Appeal Details
+          Appeal Details
         </h3>
 
-        <p className="mb-2">
-          <strong>User:</strong> {appeal.user?.email}
-        </p>
+        <h3 className="text-l font-bold mb-4">
+          <p><strong>Appeal ID:</strong> {appeal.id}</p>
+        </h3>
 
-        <p className="mb-2">
-          <strong>Related Report:</strong> {appeal.report?.id}
-        </p>
+        <div className="border-t" />
 
-        <p className="mb-4">
-          <strong>Reasoning:</strong>
-          {appeal.description == null && (
-            <> None Given </> //reasoning and description are only optional
-          )}
+        {/* Appeal Info */}
+        <div className="grid grid-cols-2 gap-y-3">
 
-          {appeal.description}
-        </p>
+          <span className="text-gray-500">Appealing User</span>
+          <span className="font-medium">
+            {appeal.user?.username ?? appeal.user?.email}
+          </span>
 
-        <p>
-          <strong>Handled By:</strong>{" "}
-          {appeal.handledBy ? appeal.handledBy.username : "Not handled yet"}
-        </p>
+          <span className="text-gray-500">Submitted</span>
+          <span className="font-medium">
+            {new Date(appeal.createdAt).toLocaleString()}
+          </span>
 
-        <div className="flex gap-2 mt-6">
-          {appeal.status === "PENDING" && (
+          <span className="text-gray-500">Related Report</span>
+          <span className="font-medium">
+            {appeal.report?.id ?? "Unknown"}
+          </span>
+
+          <span className="text-gray-500">Appeal Status</span>
+          <span className="font-medium">{appeal.status}</span>
+
+          <span className="text-gray-500">Handled By</span>
+          <span className="font-medium">
+            {appeal.handledBy?.username ?? "Not handled yet"}
+          </span>
+
+          {appeal.status === "APPROVED" && (
             <>
-                <button
-                  onClick={() => {
-                    handleAction("APPROVE");
-                    alert("Successfully unbanned the affected user!")
-                  }}
-                  className="bg-green-500 text-white px-4 py-2 rounded"
-                >
-                  Approve & Unban
-                  {/* Create a notifioation saying the user has been unbanned */}
-                </button>
-
-              <button
-                onClick={() => {
-                  handleAction("REJECT");
-                  alert("Successfully unbanned the affected user!")
-                }}
-                className="bg-red-500 text-white px-4 py-2 rounded"
-              >
-                Reject Appeal
-              </button>
+              <span className="text-gray-500">User Ban Status</span>
+              <span className="font-medium text-green-600">
+                Ban Lifted
+              </span>
             </>
           )}
+
+          {appeal.status === "REJECTED" && (
+            <>
+              <span className="text-gray-500">Ban Status</span>
+              <span className="font-medium text-red-600">
+                Ban Remains Active
+              </span>
+            </>
+          )}
+
         </div>
 
-      <button
-        onClick={onClose}
-        className="mt-4 text-sm text-gray-500 underline"
-      >
-        Close
-      </button>
-    </div>
-  </div>
+        <div className="border-t" />
+
+        {/* Appeal Description */}
+        <div>
+          <p className="text-gray-500 mb-1">Appeal Explanation</p>
+          <div className="bg-gray-50 border rounded-lg p-3 text-sm">
+            {appeal.description ?? "No explanation provided by the user."}
+          </div>
+        </div>
+
+        <div className="border-t" />
+
+        {/* Moderator Notes Placeholder (common in appeal systems) */}
+        {appeal.moderatorNotes && (
+          <div>
+            <p className="text-gray-500 mb-1">Moderator Notes</p>
+            <div className="bg-gray-50 border rounded-lg p-3 text-sm">
+              {appeal.moderatorNotes}
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        {appeal.status === "PENDING" && (
+          <div className="space-y-2">
+
+            <button
+              onClick={() => {
+                handleAction("APPROVE");
+                alert("Appeal approved. User ban has been lifted.");
+              }}
+              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+            >
+              Approve Appeal & Lift Ban
+            </button>
+
+            <button
+              onClick={() => {
+                handleAction("REJECT");
+                alert("Appeal rejected");
+              }}
+              className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
+            >
+              Reject Appeal
+            </button>
+
+          </div>
+        )}
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="w-full border py-2 rounded-lg hover:bg-gray-100 transition"
+        >
+          Close
+        </button>
+        </div>
+      </div>
+    </div>   
       
   );
 }
