@@ -13,6 +13,8 @@ type Conversation = {
   id: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
+  lastMessageSentByMe: boolean;
+  hasUnread: boolean;
   participants: Participant[];
   isGroup: boolean;
   name: string | null;
@@ -32,6 +34,22 @@ type Friend = {
  * @param conversationId - The ID of the conversation this menu belongs to.
  * @param onDeleted - Callback invoked with the conversation ID after a successful deletion.
  */
+function DeliveryTick() {
+  return (
+    <svg
+      width="16"
+      height="9"
+      viewBox="0 0 18 10"
+      fill="none"
+      style={{ display: "inline-block", flexShrink: 0 }}
+      aria-hidden
+    >
+      <path d="M1 5l3 3L9 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 5l3 3L14 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function ConversationMenu({
   conversationId,
   onDeleted,
@@ -47,9 +65,7 @@ function ConversationMenu({
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -63,14 +79,9 @@ function ConversationMenu({
     if (!confirm("Delete this conversation? This cannot be undone.")) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/conversations/${conversationId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        onDeleted(conversationId);
-      } else {
-        alert("Failed to delete conversation.");
-      }
+      const res = await fetch(`/api/conversations/${conversationId}`, { method: "DELETE" });
+      if (res.ok) onDeleted(conversationId);
+      else alert("Failed to delete conversation.");
     } finally {
       setLoading(false);
       setOpen(false);
@@ -94,7 +105,6 @@ function ConversationMenu({
           <circle cx="8" cy="13" r="1.2" />
         </svg>
       </button>
-
       {open && (
         <div
           className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px]"
@@ -237,9 +247,19 @@ export default function ConversationList() {
                     {avatarLetter}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold truncate" style={{ color: "rgba(220,225,255,0.85)" }}>{displayName}</p>
+
+                {/* Name + preview + dot */}
+                <div className="flex-1 min-w-0 relative">
+                  <div className="flex items-center gap-1.5 pr-4">
+                    <p
+                      className="text-sm truncate"
+                      style={{
+                        color: "rgba(220,225,255,0.85)",
+                        fontWeight: convo.hasUnread ? 600 : 500,
+                      }}
+                    >
+                      {displayName}
+                    </p>
                     {isGroup && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
@@ -249,9 +269,24 @@ export default function ConversationList() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs truncate" style={{ color: "rgba(148,163,255,0.4)" }}>
-                    {convo.lastMessage ?? "Start a conversation"}
-                  </p>
+                  <div className="flex items-center gap-1 min-w-0">
+                    {convo.lastMessage && convo.lastMessageSentByMe && <DeliveryTick />}
+                    <p
+                      className="text-xs truncate"
+                      style={{
+                        color: convo.hasUnread ? "rgba(190,210,255,0.9)" : "rgba(148,163,255,0.4)",
+                        fontWeight: convo.hasUnread ? 500 : 400,
+                      }}
+                    >
+                      {convo.lastMessage ?? "Start a conversation"}
+                    </p>
+                  </div>
+                  {convo.hasUnread && (
+                    <div
+                      className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                      style={{ background: "rgba(99,149,255,0.95)" }}
+                    />
+                  )}
                 </div>
               </button>
 
