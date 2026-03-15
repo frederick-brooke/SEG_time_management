@@ -100,6 +100,12 @@ export default function ExamDetailPage() {
                                                     <input
                                                         type="number"
                                                         className="w-10 text-sm outline-none"
+                                                        min="1"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === '-' || e.key === 'e') {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
                                                         value={topics.duration}
                                                         onChange={(e) => updateTopic(index, 'duration', parseInt(e.target.value) || 0)}
                                                     />
