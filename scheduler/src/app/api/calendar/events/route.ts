@@ -580,19 +580,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await prisma.event.delete({ where: { id } });
-
-    // If this was a scheduled task block, mark the task as unscheduled
-    if (event.category === "Task") {
-      await prisma.task.updateMany({
-        where: {
-          userId: session.user.id,
-          title: event.title,
-          status: "scheduled",
-        },
-        data: { status: "todo" },
-      });
-    }
-
+    
     return NextResponse.json({ success: true, message: "Event deleted" });
   } catch (e: any) {
     console.error("Delete handler error:", e);
