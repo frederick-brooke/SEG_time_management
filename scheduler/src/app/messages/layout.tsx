@@ -16,17 +16,16 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     const check = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (!mobile) setSidebarOpen(true);
-      if (mobile) setSidebarOpen(!conversationId);
+      if (!mobile) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(!conversationId);
+      }
     };
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, [conversationId]);
-
-  useEffect(() => {
-    if (isMobile) setSidebarOpen(!conversationId);
-  }, [conversationId, isMobile]);
 
   return (
     <div
