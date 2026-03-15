@@ -101,7 +101,7 @@ export function CreateGroupModal({
                   {u.username[0].toUpperCase()}
                 </div>
               )}
-              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{u.fname ?? u.username}</span>
+              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{u.fname?.trim() || u.username}</span>
             </label>
           ))}
         </div>

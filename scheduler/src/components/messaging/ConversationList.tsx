@@ -3,7 +3,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import PusherClient from "pusher-js";
 import { CreateGroupModal } from "@/components/messaging/CreateGroupModal";
+
+const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+});
 
 type Participant = {
   user: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null };
@@ -36,7 +41,6 @@ function formatLastMessageTime(iso: string | null): string {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const diffWeeks = Math.floor(diffDays / 7);
-
   if (diffMins < 1) return "now";
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
@@ -54,14 +58,7 @@ function formatLastMessageTime(iso: string | null): string {
  */
 function DeliveryTick() {
   return (
-    <svg
-      width="16"
-      height="9"
-      viewBox="0 0 18 10"
-      fill="none"
-      style={{ display: "inline-block", flexShrink: 0 }}
-      aria-hidden
-    >
+    <svg width="16" height="9" viewBox="0 0 18 10" fill="none" style={{ display: "inline-block", flexShrink: 0 }} aria-hidden>
       <path d="M1 5l3 3L9 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M6 5l3 3L14 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -181,12 +178,62 @@ export default function ConversationList() {
     return () => window.removeEventListener("focus", fetchConversations);
   }, [session, fetchConversations]);
 
-  /**
-   * Returns the other participant's user object for a 1-to-1 conversation.
-   * Returns `undefined` for group conversations.
-   *
-   * @param convo - The conversation to inspect.
-   */
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = pusher.subscribe(`user-${session.user.id}`);
+
+    channel.bind(
+      "conversation-updated",
+      (data: {
+        id: string;
+        lastMessage?: string;
+        lastMessageAt?: string;
+        senderId?: string;
+        refetch?: boolean;
+      }) => {
+        // If a membership change happened, do a full refetch
+        if (data.refetch) {
+          fetchConversations();
+          return;
+        }
+        setConversations((prev) => {
+          const exists = prev.find((c) => c.id === data.id);
+          if (!exists) {
+            // Conversation not in list yet (e.g. first ever message) — refetch
+            fetchConversations();
+            return prev;
+          }
+          const updated = prev.map((c) => {
+            if (c.id !== data.id) return c;
+            return {
+              ...c,
+              lastMessage: data.lastMessage ?? c.lastMessage,
+              lastMessageAt: data.lastMessageAt ?? c.lastMessageAt,
+              lastMessageSentByMe: data.senderId === session.user.id,
+              // Only mark unread if the message was sent by someone else
+              // and this conversation isn't currently open
+              hasUnread: data.senderId !== session.user.id && activeId !== data.id,
+            };
+          });
+          // Float the updated conversation to the top
+          const target = updated.find((c) => c.id === data.id)!;
+          return [target, ...updated.filter((c) => c.id !== data.id)];
+        });
+      }
+    );
+
+    channel.bind("conversation-deleted", ({ id }: { id: string }) => {
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeId === id) router.push("/messages");
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe(`user-${session.user.id}`);
+    };
+  }, [session?.user?.id, fetchConversations, activeId, router]);
+
   const getOtherUser = (convo: Conversation) =>
     convo.participants.find((p) => p.user.id !== session?.user?.id)?.user;
 
@@ -249,7 +296,12 @@ export default function ConversationList() {
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <button
-                onClick={() => router.push(`/messages/${convo.id}`)}
+                onClick={() => {
+                  setConversations((prev) =>
+                    prev.map((c) => c.id === convo.id ? { ...c, hasUnread: false } : c)
+                  );
+                  router.push(`/messages/${convo.id}`);
+                }}
                 className="flex items-center gap-3 flex-1 min-w-0 text-left"
               >
                 {avatarSrc ? (

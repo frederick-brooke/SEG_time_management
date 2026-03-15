@@ -22,7 +22,6 @@ export async function POST(
   }
 
   const { conversationId } = await params;
-
   let body: { content?: string } | null = null;
   try {
     body = await req.json();
@@ -64,6 +63,26 @@ export async function POST(
       .trigger(`conversation-${conversationId}`, "new-message", message)
       .catch((err) => console.error("Pusher error:", err));
 
+    const participants = await prisma.conversationParticipant.findMany({
+      where: { conversationId },
+      select: { userId: true },
+    });
+
+    const conversationUpdate = {
+      id: conversationId,
+      lastMessage: body.content,
+      lastMessageAt: new Date().toISOString(),
+      senderId: session.user.id,
+    };
+
+    await Promise.all(
+      participants.map((p) =>
+        pusher
+          .trigger(`user-${p.userId}`, "conversation-updated", conversationUpdate)
+          .catch((err) => console.error("Pusher user-channel error:", err))
+      )
+    );
+
     return NextResponse.json(message);
   } catch (err) {
     console.error("Failed to create message", err);
@@ -94,7 +113,6 @@ export async function DELETE(
   }
 
   try {
-    // Record when this user cleared the chat — only affects what they see
     await prisma.conversationParticipant.updateMany({
       where: {
         conversationId,
@@ -105,6 +123,11 @@ export async function DELETE(
       },
     });
 
+    // The user's sidebar should remove the conversation
+    await pusher
+      .trigger(`user-${session.user.id}`, "conversation-deleted", { id: conversationId })
+      .catch((err) => console.error("Pusher delete error:", err));
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Failed to clear conversation", err);
@@ -112,7 +135,6 @@ export async function DELETE(
   }
 }
 
-// Mark conversation as read for the current user
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ conversationId: string }> }

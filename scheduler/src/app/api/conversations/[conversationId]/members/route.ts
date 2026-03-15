@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { prisma } from "lib/prisma";
+import Pusher from "pusher";
 
-// Add a member
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID!,
+  key: process.env.PUSHER_KEY!,
+  secret: process.env.PUSHER_SECRET!,
+  cluster: process.env.PUSHER_CLUSTER!,
+  useTLS: true,
+});
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -17,6 +25,7 @@ export async function POST(
   const requester = await prisma.conversationParticipant.findUnique({
     where: { conversationId_userId: { conversationId, userId: session.user.id } },
   });
+
   if (requester?.role !== "admin") {
     return NextResponse.json({ error: "Only admins can add members" }, { status: 403 });
   }
@@ -26,10 +35,14 @@ export async function POST(
     include: { user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
   });
 
+  // The new member's sidebar should refetch so the group appears for them
+  await pusher
+    .trigger(`user-${userId}`, "conversation-updated", { id: conversationId, refetch: true })
+    .catch((err) => console.error("Pusher add-member error:", err));
+
   return NextResponse.json(member);
 }
 
-// Promote/demote a member (admin only)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -43,6 +56,7 @@ export async function PATCH(
   const requester = await prisma.conversationParticipant.findUnique({
     where: { conversationId_userId: { conversationId, userId: session.user.id } },
   });
+
   if (requester?.role !== "admin") {
     return NextResponse.json({ error: "Only admins can change roles" }, { status: 403 });
   }
@@ -56,7 +70,6 @@ export async function PATCH(
   return NextResponse.json(updated);
 }
 
-// Remove a member (admin) or leave (self)
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -69,7 +82,6 @@ export async function DELETE(
   const targetUserId = body.userId ?? session.user.id;
   const isSelf = targetUserId === session.user.id;
 
-  // If removing someone else, must be admin
   if (!isSelf) {
     const requester = await prisma.conversationParticipant.findUnique({
       where: { conversationId_userId: { conversationId, userId: session.user.id } },
@@ -79,7 +91,6 @@ export async function DELETE(
     }
   }
 
-  // If the leaving user is an admin, transfer to earliest joined member
   const leavingMember = await prisma.conversationParticipant.findUnique({
     where: { conversationId_userId: { conversationId, userId: targetUserId } },
   });
@@ -100,6 +111,25 @@ export async function DELETE(
   await prisma.conversationParticipant.delete({
     where: { conversationId_userId: { conversationId, userId: targetUserId } },
   });
+
+  // The removed/leaving user's sidebar should drop this conversation
+  await pusher
+    .trigger(`user-${targetUserId}`, "conversation-deleted", { id: conversationId })
+    .catch((err) => console.error("Pusher leave error:", err));
+
+  // The remaining participants should refetch (member count changed, etc.)
+  const remaining = await prisma.conversationParticipant.findMany({
+    where: { conversationId },
+    select: { userId: true },
+  });
+
+  await Promise.all(
+    remaining.map((p) =>
+      pusher
+        .trigger(`user-${p.userId}`, "conversation-updated", { id: conversationId, refetch: true })
+        .catch((err) => console.error("Pusher remaining error:", err))
+    )
+  );
 
   return NextResponse.json({ success: true });
 }
