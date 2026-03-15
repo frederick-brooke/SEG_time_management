@@ -17,7 +17,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   Personal: "#f59e0b",
   Lab: "#8b5cf6",
   Google: "#4285F4",
-  Task: "#0ea5e9",
 };
 
 // Helper — detect iCal-imported events
@@ -299,222 +298,6 @@ function ImportCalendarModal({
   );
 }
 
-function SchedulerPanel({
-  onScheduled,
-  userId,
-  onRegisterRefresh,
-}: {
-  onScheduled: () => void;
-  userId: string;
-  onRegisterRefresh: (fn: () => void) => void;
-}) {
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [scheduling, setScheduling] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
-
-  const showToast = (msg: string, ok: boolean) => {
-    setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4000);
-  };
-
-  const fetchTasks = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/tasks?userId=${userId}`);
-      const data = await res.json();
-      setTasks((data.tasks ?? []).filter((t: any) => !t.completed && t.duration > 0));
-    } catch {
-      showToast("Failed to load tasks", false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchTasks(); }, []);
-  useEffect(() => {
-    onRegisterRefresh(fetchTasks);
-  }, []);
-
-  const scheduleOne = async (taskId: string) => {
-    setScheduling(taskId);
-    try {
-      const res = await fetch("/api/tasks/schedule", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ taskId }),
-      });
-      const data = await res.json();
-      if (!res.ok) { showToast(data.message ?? "No slot found", false); return; }
-      showToast("Task scheduled ✓", true);
-      onScheduled();
-      fetchTasks();
-    } catch {
-      showToast("Scheduling failed", false);
-    } finally {
-      setScheduling(null);
-    }
-  };
-
-  const scheduleAll = async () => {
-    setScheduling("all");
-    try {
-      const res = await fetch("/api/tasks/schedule", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) { showToast(data.message ?? "Failed", false); return; }
-      showToast(`Scheduled ${data.scheduled} of ${data.total} tasks ✓`, true);
-      onScheduled();
-      fetchTasks();
-    } catch {
-      showToast("Scheduling failed", false);
-    } finally {
-      setScheduling(null);
-    }
-  };
-
-  const unschedule = async (taskId: string) => {
-    setScheduling(taskId);
-    try {
-      const res = await fetch(`/api/tasks/schedule?taskId=${taskId}`, { method: "DELETE" });
-      if (!res.ok) { showToast("Failed to unschedule", false); return; }
-      showToast("Task unscheduled", true);
-      onScheduled();
-      fetchTasks();
-    } catch {
-      showToast("Failed", false);
-    } finally {
-      setScheduling(null);
-    }
-  };
-
-  const unscheduled = tasks.filter((t) => t.status !== "scheduled");
-  const scheduled = tasks.filter((t) => t.status === "scheduled");
-
-  const PriorityBadge = ({ p }: { p: string }) => {
-    const colors: Record<string, string> = {
-      Urgent: "bg-red-100 text-red-700",
-      High: "bg-orange-100 text-orange-700",
-      Medium: "bg-yellow-100 text-yellow-700",
-      Low: "bg-gray-100 text-gray-500",
-    };
-    return (
-      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${colors[p] ?? colors.Low}`}>
-        {p}
-      </span>
-    );
-  };
-
-  return (
-    <div className="flex flex-col h-full">
-      {toast && (
-        <div className={`mb-3 px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 ${toast.ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-          <span>{toast.ok ? "✓" : "✕"}</span>
-          {toast.msg}
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="font-black text-gray-900 text-base">Auto-Schedule</h2>
-          <p className="text-[11px] text-gray-400 mt-0.5">Slots avoid sleep (10 PM – 7 AM)</p>
-        </div>
-        {unscheduled.length > 0 && (
-          <button
-            onClick={scheduleAll}
-            disabled={scheduling === "all"}
-            className="flex items-center gap-1.5 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white text-xs font-bold px-3 py-2 rounded-xl transition-all"
-          >
-            {scheduling === "all" && <span className="animate-spin">↻</span>}
-            Schedule All
-          </button>
-        )}
-      </div>
-
-      {loading ? (
-        <div className="flex-1 flex items-center justify-center text-gray-300 text-sm">Loading tasks…</div>
-      ) : tasks.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-8">
-          <span className="text-3xl">📋</span>
-          <p className="text-sm text-gray-400 font-medium">No tasks with a duration set</p>
-          <p className="text-xs text-gray-300">Add a duration to tasks to auto-schedule them</p>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-          {unscheduled.length > 0 && (
-            <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">
-                Unscheduled ({unscheduled.length})
-              </p>
-              <div className="space-y-2">
-                {unscheduled.map((task) => (
-                  <div key={task.id} className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{task.title}</p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <PriorityBadge p={task.priority} />
-                          <span className="text-[11px] text-gray-400">🕐 {task.duration} min</span>
-                          {task.dueDate && (
-                            <span className="text-[11px] text-gray-400">
-                              📅 {format(new Date(task.dueDate), "MMM d")}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => scheduleOne(task.id)}
-                        disabled={scheduling === task.id}
-                        className="flex-shrink-0 bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white text-[11px] font-bold px-3 py-1.5 rounded-xl transition-all"
-                      >
-                        {scheduling === task.id ? <span className="animate-spin inline-block">↻</span> : "Schedule"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {scheduled.length > 0 && (
-            <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">
-                Scheduled ({scheduled.length})
-              </p>
-              <div className="space-y-2">
-                {scheduled.map((task) => (
-                  <div key={task.id} className="bg-sky-50 border border-sky-100 rounded-2xl p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sky-500 text-xs">✓</span>
-                          <p className="font-semibold text-gray-700 text-sm truncate">{task.title}</p>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <PriorityBadge p={task.priority} />
-                          <span className="text-[11px] text-gray-400">🕐 {task.duration} min</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => unschedule(task.id)}
-                        disabled={scheduling === task.id}
-                        className="flex-shrink-0 text-[11px] font-bold text-gray-400 hover:text-red-500 px-2 py-1.5 rounded-xl transition-colors disabled:opacity-50"
-                        title="Remove from calendar"
-                      >
-                        {scheduling === task.id ? "…" : "✕"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-
 export default function CalendarView({
   events: initialEvents,
   userId,
@@ -538,8 +321,6 @@ export default function CalendarView({
   const [lastDeletedEvent, setLastDeletedEvent] = useState<any | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const schedulerRefreshRef = useRef<(() => void) | null>(null);
-  const [showScheduler, setShowScheduler] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
   const EventComponent = ({ event }: any) => {
@@ -554,9 +335,6 @@ export default function CalendarView({
       <div className={styles.eventWrapper}>
         {travelMins !== null && (
           <div className={styles.eventTravel}>{travelMins}m travel</div>
-        )}
-        {event.category === "Task" && (
-          <div className={styles.eventTaskBadge}>📋</div>
         )}
         <div className={styles.eventTitle}>{event.title}</div>
       </div>
@@ -578,7 +356,6 @@ export default function CalendarView({
       if (!res.ok) return;
       const data = await res.json();
       setEvents(data.map((e: any) => ({ ...e, start: new Date(e.start), end: new Date(e.end) })));
-      if (schedulerRefreshRef.current) schedulerRefreshRef.current();
     } catch (err) {
       console.error("Failed to refresh events:", err);
     }
@@ -753,16 +530,7 @@ export default function CalendarView({
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 mb-3">
-          <button
-            onClick={() => setShowScheduler((v) => !v)}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-2xl border font-bold text-sm transition-all shadow-sm ${
-              showScheduler
-                ? "bg-sky-500 text-white border-sky-500"
-                : "bg-white text-gray-600 border-gray-200 hover:border-sky-300 hover:text-sky-500"
-            }`}
-          >
-            Auto-Schedule
-          </button>
+          
           <button
             onClick={() => setShowImportModal(true)}
             className="flex items-center gap-2 px-4 py-1.5 rounded-2xl border font-bold text-sm transition-all shadow-sm bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
@@ -772,7 +540,7 @@ export default function CalendarView({
         </div>
         {/* Category filters */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {["All", "Lecture", "Individual Study", "Exam", "Personal", "Lab", "Task"].map((cat) => (
+          {["All", "Lecture", "Individual Study", "Exam", "Personal", "Lab", ].map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
@@ -946,16 +714,6 @@ export default function CalendarView({
           </div>
         )}
       </div>
-
-      {showScheduler && (
-        <div className="w-[300px] flex-shrink-0 bg-white rounded-xl shadow-md border border-gray-100 p-4 flex flex-col min-h-[700px]">
-          <SchedulerPanel
-            onScheduled={refreshEvents}
-            userId={userId}
-            onRegisterRefresh={(fn) => { schedulerRefreshRef.current = fn; }}
-          />
-        </div>
-      )}
 
       {showImportModal && (
         <ImportCalendarModal
