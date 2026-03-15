@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from "lib/prisma";
+import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
@@ -83,6 +84,7 @@ export async function getProfile(username: string) {
   };
 }
 
+//profile
 /**
  * Updates the current user's profile fields from a form submission
  * @param {FormData} formData - Form data containing fname, lname, and bio fields
@@ -103,7 +105,7 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/profile");
 }
 
-
+//friend requests
 /**
  * Sends a friend request from the current user to a target user
  * @param {string} targetUserId - The database ID of the user to send a request to
@@ -128,7 +130,11 @@ export async function sendFriendRequest(targetUserId: string) {
   if (existing) return;
 
   await prisma.friendRequest.create({
-    data: { senderId, receiverId: targetUserId, status: "PENDING" },
+    data: {
+      senderId,
+      receiverId: targetUserId,
+      status: PrismaFriendStatus.PENDING,
+    },
   });
 
   revalidatePath("/profile");
@@ -142,7 +148,7 @@ export async function sendFriendRequest(targetUserId: string) {
 export async function acceptFriendRequest(requestId: string) {
   await prisma.friendRequest.update({
     where: { id: requestId },
-    data: { status: "ACCEPTED" },
+    data: { status: PrismaFriendStatus.ACCEPTED },
   });
 
   revalidatePath("/profile");
@@ -172,7 +178,7 @@ export async function removeFriend(friendUserId: string) {
 
   await prisma.friendRequest.deleteMany({
     where: {
-      status: "ACCEPTED",
+      status: PrismaFriendStatus.ACCEPTED,
       OR: [
         { senderId: userId, receiverId: friendUserId },
         { senderId: friendUserId, receiverId: userId },
@@ -195,7 +201,7 @@ export async function cancelFriendRequest(targetUserId: string) {
     where: {
       senderId: session.user.id,
       receiverId: targetUserId,
-      status: "PENDING",
+      status: PrismaFriendStatus.PENDING,
     },
   });
 

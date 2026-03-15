@@ -1,4 +1,5 @@
 import { prisma } from "lib/prisma";
+import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 
 //types
 export type FriendUser = {
@@ -24,9 +25,9 @@ const FRIEND_USER_SELECT = {
   pfp: true,
 } as const;
 
-//searching up users
+
 /**
- * Fetches a full user record by email, including tasks, progress, and friend requests
+ * Fetches a full user record by email, including tasks, progress, and pending friend requests
  * @param {string} email - The email address to look up
  * @return {Promise<object | null>} - Full user object or null if not found
  */
@@ -43,20 +44,27 @@ export async function fetchUserByEmail(email: string) {
       pfp: true,
       createdAt: true,
       progress: {
-        select: { points: true, level: true, experience: true },
+        select: {
+          points: true,
+          level: true,
+          experience: true,
+        },
       },
       tasks: {
-        select: { completed: true, completedAt: true },
+        select: {
+          completed: true,
+          completedAt: true,
+        },
       },
       receivedRequests: {
-        where: { status: "PENDING" },
+        where: { status: PrismaFriendStatus.PENDING },
         select: {
           id: true,
           sender: { select: FRIEND_USER_SELECT },
         },
       },
       sentRequests: {
-        where: { status: "ACCEPTED" },
+        where: { status: PrismaFriendStatus.ACCEPTED },
         select: {
           id: true,
           receiver: { select: FRIEND_USER_SELECT },
@@ -84,10 +92,17 @@ export async function fetchUserByUsername(username: string) {
       pfp: true,
       createdAt: true,
       progress: {
-        select: { points: true, level: true, experience: true },
+        select: {
+          points: true,
+          level: true,
+          experience: true,
+        },
       },
       tasks: {
-        select: { completed: true, completedAt: true },
+        select: {
+          completed: true,
+          completedAt: true,
+        },
       },
     },
   });
@@ -116,7 +131,7 @@ export async function fetchUsernameByEmail(email: string): Promise<string | null
 export async function fetchFriendCount(userId: string): Promise<number> {
   return prisma.friendRequest.count({
     where: {
-      status: "ACCEPTED",
+      status: PrismaFriendStatus.ACCEPTED,
       OR: [{ senderId: userId }, { receiverId: userId }],
     },
   });
@@ -130,11 +145,11 @@ export async function fetchFriendCount(userId: string): Promise<number> {
 export async function fetchFriends(userId: string): Promise<FriendUser[]> {
   const [sent, received] = await Promise.all([
     prisma.friendRequest.findMany({
-      where: { senderId: userId, status: "ACCEPTED" },
+      where: { senderId: userId, status: PrismaFriendStatus.ACCEPTED },
       select: { receiver: { select: FRIEND_USER_SELECT } },
     }),
     prisma.friendRequest.findMany({
-      where: { receiverId: userId, status: "ACCEPTED" },
+      where: { receiverId: userId, status: PrismaFriendStatus.ACCEPTED },
       select: { sender: { select: FRIEND_USER_SELECT } },
     }),
   ]);
@@ -164,19 +179,22 @@ export async function fetchFriendStatus(
     }),
   ]);
 
-  if (sent?.status === "ACCEPTED" || received?.status === "ACCEPTED") {
+  if (
+    sent?.status === PrismaFriendStatus.ACCEPTED ||
+    received?.status === PrismaFriendStatus.ACCEPTED
+  ) {
     return { status: "FRIENDS" };
   }
-  if (sent?.status === "PENDING") {
+  if (sent?.status === PrismaFriendStatus.PENDING) {
     return { status: "REQUEST_SENT" };
   }
-  if (received?.status === "PENDING") {
+  if (received?.status === PrismaFriendStatus.PENDING) {
     return { status: "REQUEST_RECEIVED", requestId: received.id };
   }
   return { status: "NONE" };
 }
 
-//task stats
+//tasks
 /**
  * Computes completion statistics from an array of task records
  * @param {{ completed: boolean }[]} tasks - Array of task objects with completion status
