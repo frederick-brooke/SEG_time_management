@@ -510,6 +510,26 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">City</label>
+                  <input 
+                    name="city" 
+                    defaultValue={profile.city || ""} 
+                    className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent focus:outline-none transition-all" 
+                    placeholder="Enter your city"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700">Country</label>
+                  <input 
+                    name="country" 
+                    defaultValue={profile.country || ""} 
+                    className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent focus:outline-none transition-all" 
+                    placeholder="Enter your country"
+                  />
+                </div>
+              </div>
               <div className="flex justify-end pt-4 border-t border-gray-100">
                 <SubmitButton text="Save Changes" loadingText="Saving..." />
               </div>

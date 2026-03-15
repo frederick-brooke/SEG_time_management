@@ -38,20 +38,119 @@ export async function getMyProfile() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return null;
 
-  const user = await fetchUserByEmail(session.user.email);
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: {
+      id: true,
+      username: true,
+      fname: true,
+      lname: true,
+      email: true,
+      bio: true,
+      pfp: true,
+      city: true,
+      country: true,
+      location: true,
+      createdAt: true,
+    },
+  });
+
   if (!user) return null;
 
-  const [friends, friendCount, streak] = await Promise.all([
-    fetchFriends(user.id),
-    fetchFriendCount(user.id),
-    calculateStreak(user.id),
+  const [
+    progress,
+    tasks,
+    pendingReceivedRequests,
+    sentAcceptedRequests,
+    receivedAcceptedRequests,
+    friendCount,
+  ] = await Promise.all([
+    prisma.userProgress.findUnique({
+      where: { userId: user.id },
+      select: {
+        points: true,
+        level: true,
+        experience: true,
+      },
+    }),
+    prisma.task.findMany({
+      where: { userId: user.id },
+      select: {
+        completed: true,
+        completedAt: true,
+      },
+    }),
+    prisma.friendRequest.findMany({
+      where: {
+        receiverId: user.id,
+        status: "PENDING",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            pfp: true,
+          },
+        },
+      },
+    }),
+    prisma.friendRequest.findMany({
+      where: {
+        senderId: user.id,
+        status: "ACCEPTED",
+      },
+      include: {
+        receiver: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            pfp: true,
+          },
+        },
+      },
+    }),
+    prisma.friendRequest.findMany({
+      where: {
+        receiverId: user.id,
+        status: "ACCEPTED",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            pfp: true,
+          },
+        },
+      },
+    }),
+    getFriendCount(user.id),
   ]);
+
+  const friends = [
+    ...sentAcceptedRequests.map((req) => req.receiver),
+    ...receivedAcceptedRequests.map((req) => req.sender),
+  ];
+
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const totalTasks = tasks.length;
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const streak = await calculateStreak(user.id);
 
   return {
     ...user,
+    progress: progress ?? null,
+    receivedRequests: pendingReceivedRequests,
     friends,
-    stats: { ...computeTaskStats(user.tasks), friendCount, streak },
-    friendStatus: "ME" as const,
+    stats: { completedTasks, totalTasks, completionRate, friendCount, streak },
+    friendStatus: "ME",
   };
 }
 
@@ -203,6 +302,72 @@ export async function cancelFriendRequest(targetUserId: string) {
       receiverId: targetUserId,
       status: PrismaFriendStatus.PENDING,
     },
+  });
+
+  revalidatePath("/profile");
+}
+
+export async function updateProfile(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
+  const fname = formData.get("fname") as string;
+  const lname = formData.get("lname") as string;
+  const bio = formData.get("bio") as string;
+  const city = formData.get("city") as string;
+  const country = formData.get("country") as string;
+
+  const updateData: any = {
+    fname: fname || null,
+    lname: lname || null,
+    bio: bio || null,
+    city: city || null,
+    country: country || null,
+  };
+
+  // If city and country are provided, attempt to geocode them into coordinates.
+  // Always update the location when the user supplies city/country: if geocoding
+  // fails or returns no result, we explicitly clear the stored location so we
+  // don't keep stale coordinates for a new textual location.
+  if (city && country) {
+    updateData.location = null;
+    try {
+      const apiKey = process.env.OPENCAGE_API_KEY;
+
+      if (!apiKey) {
+        console.warn("OPENCAGE_API_KEY is not set; skipping geocoding.");
+      } else {
+        const query = encodeURIComponent(`${city}, ${country}`);
+        const url = `https://api.opencagedata.com/geocode/v1/json?q=${query}&key=${apiKey}&limit=1`;
+
+        const response = await fetch(url);
+
+        if (response.ok) {
+          const data = await response.json();
+          const firstResult = data?.results?.[0];
+
+          if (
+            firstResult?.geometry &&
+            firstResult.geometry.lat != null &&
+            firstResult.geometry.lng != null
+          ) {
+            updateData.location = {
+              lat: firstResult.geometry.lat,
+              lng: firstResult.geometry.lng,
+            };
+          }
+        } else {
+          console.error("Geocoding request failed with status:", response.status);
+        }
+      }
+    } catch (error) {
+      console.error("Error while geocoding city/country:", error);
+    }
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: updateData,
   });
 
   revalidatePath("/profile");
