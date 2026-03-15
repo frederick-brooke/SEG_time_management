@@ -22,70 +22,65 @@ export const authOptions: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        console.log("Authorize called", credentials?.email);
+        try {
+          if (!credentials?.email || !credentials?.password) return null;
 
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: {
-            reportsReceived: true,
-          },
-        });
-
-        console.log("User found:", !!user);
-        console.log("Has passwordHash:", !!user?.passwordHash);
-
-        if (!user || !user.passwordHash) return null;
-
-        const isValid = await verifyPassword(
-          credentials.password,
-          user.passwordHash || "",
-        );
-
-        console.log("Password valid:", isValid);
-
-        if (!isValid) return null;
-
-        if (user.isBanned) {
-          // permanent ban
-          if (!user.banExpires) {
-            return {
-              id: user.id.toString(),
-              email: user.email,
-              username: user.username,
-              role: user.role,
-              isBanned: true,
-              isDeleted: user.isDeleted,
-            };
-          }
-          // temporary ban still active
-          if (new Date() < user.banExpires) {
-            return {
-              id: user.id.toString(),
-              email: user.email,
-              username: user.username,
-              role: user.role,
-              isBanned: true,
-              isDeleted: user.isDeleted,
-            };
-          }
-          // ban expired
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { isBanned: false, banExpires: null },
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
           });
-          user.isBanned = false;
-        }
 
-        return {
-          id: user.id.toString(),
-          email: user.email,
-          username: user.username,
-          role: user.role,
-          isBanned: user.isBanned,
-          isDeleted: user.isDeleted,
-        };
+          if (!user || !user.passwordHash) return null;
+
+          const isValid = await verifyPassword(
+            credentials.password,
+            user.passwordHash || "",
+          );
+
+          if (!isValid) return null;
+
+          if (user.isBanned) {
+            // permanent ban
+            if (!user.banExpires) {
+              return {
+                id: user.id.toString(),
+                email: user.email,
+                username: user.username,
+                role: user.role,
+                isBanned: true,
+                isDeleted: user.isDeleted,
+              };
+            }
+            // temporary ban still active
+            if (new Date() < user.banExpires) {
+              return {
+                id: user.id.toString(),
+                email: user.email,
+                username: user.username,
+                role: user.role,
+                isBanned: true,
+                isDeleted: user.isDeleted,
+              };
+            }
+            // ban expired
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { isBanned: false, banExpires: null },
+            });
+            user.isBanned = false;
+          }
+
+          return {
+            id: user.id.toString(),
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            isBanned: user.isBanned,
+            isDeleted: user.isDeleted,
+          };
+        } catch (error) {
+          console.error("AUTHORIZE ERROR:", error);
+          return null;
+        }        
       },
     }),
 

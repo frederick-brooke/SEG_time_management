@@ -66,11 +66,9 @@ export default function BannedPage() {
                             </p>
 
                             {/* If temporary show the date that it will expire at */}
-                            
-
                             <p>
                                 <span className="font-medium text-gray-800">Ban Expires:</span>{" "}
-                                {banInfo.expires ?? "Permanent"}
+                                {banInfo.expires ? new Date(banInfo.expires).toLocaleString() : "Permanent"}
                             </p>
                         </div>
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma, Role } from "@prisma/client";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
@@ -40,7 +41,7 @@ export async function GET(req: Request) {
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
 
     //dynamically build the query set
-    const where: any = { isDeleted: false };
+    const where: Prisma.UserWhereInput = { isDeleted: { not: true } };
 
     if (search.trim()) {
         where.username = {
@@ -64,11 +65,9 @@ export async function GET(req: Request) {
 
     //category filtering
     if (categories) {
-        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase());
+        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase() as Role);
             
-        where.role = {
-            in: categoryArray,
-        };
+        where.role = { in: categoryArray };
     }
 
     // run queries in parallel
@@ -79,9 +78,13 @@ export async function GET(req: Request) {
             skip: (page - 1) * limit,
             take: limit,
             include: {
-                reportsMade: true,
-                reportsReceived: true,
-                appeals: true,
+                _count: {
+                    select: {
+                    reportsMade: true,
+                    reportsReceived: true,
+                    appeals: true
+                    }
+                }
             },
         }),
         prisma.user.count({ where })

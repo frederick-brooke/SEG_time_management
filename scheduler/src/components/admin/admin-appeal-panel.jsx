@@ -51,8 +51,6 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
           {appeal.handledBy ? appeal.handledBy.username : "Not handled yet"}
         </p>
 
-        
-
         <div className="flex gap-2 mt-6">
           {appeal.status === "PENDING" && (
             <>
