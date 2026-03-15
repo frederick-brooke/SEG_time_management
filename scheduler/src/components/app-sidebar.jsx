@@ -13,6 +13,7 @@ import {
   IconTrophy,
   IconUser,
   IconSearch,
+  IconSettings,
   IconUserCog,
   IconBook
 } from "@tabler/icons-react";
@@ -83,6 +84,11 @@ const data = {
       title: "Admin",
       url: "/admin",
       icon: IconUserCog,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: IconSettings, 
     },
   ],
   navClouds: [
