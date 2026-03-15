@@ -87,6 +87,16 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
         token.role = user.role;
         token.isBanned = user.isBanned;
+        token.username = user.username;
+      }
+
+      if (!token.username && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { username: true },
+        });
+
+        token.username = dbUser?.username;
       }
 
       if (account?.access_token) {
@@ -213,6 +223,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub;
         session.user.role = token.role;
         session.user.isBanned = token.isBanned as boolean;
+        session.user.username = token.username
 
         const googleAccount = await prisma.account.findFirst({
           where: { userId: token.sub, provider: "google" },

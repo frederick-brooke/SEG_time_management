@@ -10,8 +10,6 @@ export function TaskCard({
   onEdit,
   onDelete,
   getPriorityStyle,
-  attributes,
-  listeners,
 }) {
 
 

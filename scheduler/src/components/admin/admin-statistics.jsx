@@ -1,6 +1,7 @@
+import { useAdminStats } from "@/hooks/useAdminStats";
 
-
-export default function AdminStatistics({totalUsers, reports, appeals}){
+export default function AdminStatistics(){
+    const { totalUsers, totalReports, totalAppeals } = useAdminStats();
 
     return(
         <section className="bg-white shadow rounded p-6 mb-4">
@@ -18,7 +19,7 @@ export default function AdminStatistics({totalUsers, reports, appeals}){
 
                 <div className="bg-red-400 p-4 rounded text-center">
                     <p className="text-xl font-bold">
-                        {reports.length}
+                        {totalReports}
                     </p>
 
                     <p>Total Reports</p>
@@ -26,7 +27,7 @@ export default function AdminStatistics({totalUsers, reports, appeals}){
                 
                 <div className="bg-yellow-400 p-4 rounded text-center">
                     <p className="text-xl font-bold">
-                        {appeals.length}
+                        {totalAppeals}
                     </p>
                     <p>Total Appeals</p>
                 </div>

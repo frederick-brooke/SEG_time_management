@@ -3,14 +3,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
-    // Debug: Check if cookies are being received
-    const cookieStore = await cookies();
-
-    cookieStore.get("__Secure-next-auth.session-token");
-
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -41,12 +35,14 @@ export async function GET(req: Request) {
     const endDate = searchParams.get("endDate");
     const categories = searchParams.get("categories");
 
-    const totalUsers = await prisma.user.count(); //fixed number of users
+    // restrict sortable fields (security)
+    const allowedSortFields = ["username", "createdAt", "role"];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
 
     //dynamically build the query set
     const where: any = {};
 
-    if (search && search.trim() !== "") {
+    if (search.trim()) {
         where.username = {
             contains: search,
             mode: "insensitive",
@@ -65,35 +61,31 @@ export async function GET(req: Request) {
             where.createdAt.lte = new Date(endDate);
         }
     }
+
     //category filtering
     if (categories) {
-        const categoryArray = categories
-            .split(",")
-            .map(c => c.trim().toUpperCase());
+        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase());
             
         where.role = {
             in: categoryArray,
         };
     }
 
-    // total matching search
-    const totalMatchingUsers = await prisma.user.count({
-        where,
-    });
+    // run queries in parallel
+    const [users, totalMatchingUsers] = await Promise.all([
+        prisma.user.findMany({
+            where,
+            orderBy: { [safeSortBy]: order },
+            skip: (page - 1) * limit,
+            take: limit,
+            include: {
+                reportsMade: true,
+                reportsReceived: true,
+                appeals: true,
+            },
+        }),
+        prisma.user.count({ where })
+    ]);
 
-    const users = await prisma.user.findMany({
-        where,
-        orderBy: {
-            [sortBy]: order,        //lowercase comes after upercase always
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {  //for relations to be displayed on the user panel
-            reportsMade: true,
-            reportsReceived: true,
-            appeals: true,
-        },
-    });
-
-    return NextResponse.json({ totalUsers, users, totalPages: Math.ceil(totalMatchingUsers/limit), totalMatchingUsers});
+    return NextResponse.json({ users, totalUsers: totalMatchingUsers, totalUserPages: Math.ceil(totalMatchingUsers/limit)});
 }
