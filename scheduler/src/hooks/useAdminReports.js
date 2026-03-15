@@ -1,6 +1,5 @@
 "use client";
 
-import { report } from "node:process";
 import { useEffect, useState } from "react";
 
 export function useAdminReports(filters) {

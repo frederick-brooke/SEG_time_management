@@ -5,7 +5,7 @@ import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
 
 import ReportFilter from "@/components/admin/report-filter-panel";
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useUsers } from "@/hooks/useUsers";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { useAdminAppeals } from "@/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
@@ -13,10 +13,11 @@ import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
 import AdminStatistics from "@/components/admin/admin-statistics";
 import AppealFilter from "@/components/admin/appeal-filter-panel";
+import { Users } from "lucide-react";
 
 export default function AdminPage() {
   //User management states
-  const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: []};  //user search parameters
+  const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page:1, limit: 10};  //user search parameters
 
   const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
   const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
@@ -33,26 +34,31 @@ export default function AdminPage() {
   const [currentReportPage, setCurrentReportPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
-
   //report filter states
-  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"" };
-
+  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12 };
   const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
   const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
+
+  function resetReportFilters(){
+    setDraftReportFilters(defaultReportFilters);
+    setAppliedReportFilters(defaultReportFilters);
+  }
 
   const [currentAppealPage, setCurrentAppealPage] = useState(1);
   const [selectedAppeal, setSelectedAppeal] = useState(null);
   
-  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:""};
+  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12};
   const [appliedAppealFilters, setAppliedAppealFilters] = useState(defaultAppealFilters);
   const [draftAppealFilters, setDraftAppealFilters] = useState(defaultAppealFilters);
-
   const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  //open and close the panel
 
-  const {users, totalUserPages, totalUsers, loading} = useAdminStats(appliedUserFilters);
+  function resetAppealFilters(){
+    setDraftAppealFilters(defaultAppealFilters);
+    setAppliedAppealFilters(defaultAppealFilters);
+  }
 
+  const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters, "/api/admin/users");
   const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(appliedReportFilters);
-
   const { appeals, totalAppealPages, totalAppeals, fetchAppeals,} = useAdminAppeals(appliedAppealFilters);
 
   const [currentTab, setCurrentTab] = useState("reports");  //display the current system, defaults on the reports subsection
@@ -73,6 +79,9 @@ export default function AdminPage() {
           selectedReport={selectedReport}
           setSelectedReport={setSelectedReport}
           fetchReports={fetchReports}
+          filters={appliedReportFilters}
+          setFilters={setAppliedReportFilters}
+          resetFilters={resetReportFilters}
         />
     ),
 
@@ -87,6 +96,9 @@ export default function AdminPage() {
           setSelectedAppeal={setSelectedAppeal}
           fetchAppeals={fetchAppeals}
           setIsAppealFilterOpen={setIsAppealFilterOpen}
+          filters={appliedAppealFilters}
+          setFilters={setAppliedAppealFilters}
+          resetFilters={resetAppealFilters}
         />
     )
   }
@@ -96,7 +108,7 @@ export default function AdminPage() {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
       {/* admin statistics */}
-      <AdminStatistics totalUsers={totalUsers} reports={reports} appeals={appeals}/>
+      <AdminStatistics/>
 
       {/* Container for the user reporting system*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -146,12 +158,17 @@ export default function AdminPage() {
           setFilters={setDraftUserFilters}
           onClose={() => setIsUserFilterOpen(false)}
           applyFilters={() => {
-            setAppliedUserFilters(draftUserFilters);
+            setAppliedUserFilters(prev => ({
+              ...prev,
+              ...draftUserFilters,
+              page: 1
+            }));
             setIsUserFilterOpen(false);
           }}
           resetFilters={() => {
             setAppliedUserFilters(defaultUserFilters);
-          }}              
+          }} 
+          type={"admin"} /* needed to show admin category sorting etc*/           
         />
       )} 
         

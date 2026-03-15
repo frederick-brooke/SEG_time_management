@@ -1,6 +1,28 @@
+import { nextWednesday } from "date-fns";
 import { examPlannerLogic  } from "./examPlannerLogic";
 
 describe('Exam Planner Suite', () => {
+    test('Should filter out unavailable dates correctly', () => {
+        const start = new Date('2026-03-01');
+        const end = new Date('2026-03-05');
+        const unavailable = [new Date('2026-03-03')];
+
+        const result = examPlannerLogic.getAvailableDates(start, end, unavailable);
+
+        expect(result).toHaveLength(3);
+
+        const dateStrings = result.map(d => d.toDateString());
+        expect(dateStrings).not.toContain(new Date('2026=03-02').toDateString());
+        expect(dateStrings).toContain(new Date('2026-03-01').toDateString());
+    });
+
+    test('Should return empty array if start date is after end date', () => {
+        const start = new Date('2026-03-10');
+        const end = new Date('2026-03-05');
+        const result = examPlannerLogic.getAvailableDates(start, end, []);
+        expect(result).toEqual([]);
+    });
+    
     test('Algorithm: spread tasks when daily goal is exceeded', () => {
         const topics = [{ duration: 40 }, { duration: 40 }];
         const result = examPlannerLogic.calculateDaysRequired(topics, 60);
