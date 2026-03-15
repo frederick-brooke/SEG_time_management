@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { prisma } from "lib/prisma";
-
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,17 +16,40 @@ export async function GET() {
           user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
         },
       },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { senderId: true, createdAt: true },
+      },
     },
     orderBy: { lastMessageAt: "desc" },
   });
 
-  // Hide conversations where the user has cleared their history and no new messages have arrived since
-  const filtered = conversations.filter((conv) => {
-    const participant = conv.participants.find((p) => p.userId === session.user.id);
-    if (!participant?.deletedAt) return true;
-    // Keep it only if a new message arrived after they cleared it
-    return conv.lastMessageAt && new Date(conv.lastMessageAt) > new Date(participant.deletedAt);
-  });
+  const filtered = conversations
+    .filter((conv) => {
+      const participant = conv.participants.find((p) => p.userId === session.user.id);
+      if (!participant?.deletedAt) return true;
+      return conv.lastMessageAt && new Date(conv.lastMessageAt) > new Date(participant.deletedAt);
+    })
+    .map((conv) => {
+      const participant = conv.participants.find((p) => p.userId === session.user.id);
+      const lastMsg = conv.messages[0];
+      const lastMessageSentByMe = lastMsg?.senderId === session.user.id;
+
+      // Unread = last message exists, wasn't sent by me, and arrived after I last read
+      const hasUnread =
+        !!lastMsg &&
+        !lastMessageSentByMe &&
+        (!participant?.lastReadAt ||
+          new Date(lastMsg.createdAt) > new Date(participant.lastReadAt));
+
+      return {
+        ...conv,
+        lastMessageSentByMe,
+        hasUnread,
+        messages: undefined,
+      };
+    });
 
   return NextResponse.json(filtered);
 }

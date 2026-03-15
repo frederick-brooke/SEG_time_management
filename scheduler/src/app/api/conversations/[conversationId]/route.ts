@@ -111,3 +111,21 @@ export async function DELETE(
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+// Mark conversation as read for the current user
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ conversationId: string }> }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { conversationId } = await params;
+
+  await prisma.conversationParticipant.updateMany({
+    where: { conversationId, userId: session.user.id },
+    data: { lastReadAt: new Date() },
+  });
+
+  return NextResponse.json({ success: true });
+}
