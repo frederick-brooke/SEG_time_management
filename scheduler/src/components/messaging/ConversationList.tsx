@@ -27,6 +27,24 @@ type Friend = {
   pfp: string | null;
 };
 
+function formatLastMessageTime(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffWeeks = Math.floor(diffDays / 7);
+
+  if (diffMins < 1) return "now";
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  if (diffWeeks < 5) return `${diffWeeks}w`;
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
 /**
  * A three-dot overflow menu shown on each conversation row.
  * Exposes a "Delete" action.
@@ -250,7 +268,7 @@ export default function ConversationList() {
 
                 {/* Name + preview + dot */}
                 <div className="flex-1 min-w-0 relative">
-                  <div className="flex items-center gap-1.5 pr-4">
+                  <div className="flex items-center gap-1.5 pr-5">
                     <p
                       className="text-sm truncate"
                       style={{
@@ -266,6 +284,14 @@ export default function ConversationList() {
                         style={{ background: "rgba(139,92,246,0.15)", color: "rgba(167,139,250,0.8)" }}
                       >
                         Group
+                      </span>
+                    )}
+                    {convo.lastMessageAt && (
+                      <span
+                        className="text-xs ml-auto shrink-0"
+                        style={{ color: convo.hasUnread ? "rgba(99,149,255,0.9)" : "rgba(148,163,255,0.35)" }}
+                      >
+                        {formatLastMessageTime(convo.lastMessageAt)}
                       </span>
                     )}
                   </div>
