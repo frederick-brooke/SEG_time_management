@@ -1,46 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export function useTasks(userId) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Form state for editing
+  // Form state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     dueDate: "",
+    url: "",
     subtasks: "",
     durationHours: "0",
     durationMinutes: "0",
-    priority: "Low",
+    priority: "Medium",
     examId: "none",
-    bufferDays: "0",
+    bufferDays: 0,
+    isRecurring: false,
+    recurrence: null,
   });
 
   // View/Delete state
   const [viewTask, setViewTask] = useState(null);
   const [taskToDelete, setTaskToDelete] = useState(null);
 
-  useEffect(() => {
-    fetchTasks();
-  }, [userId]);
-
-  const fetchTasks = async () => {
+  // useCallback so consumers can call fetchTasks() to force a refresh
+  const fetchTasks = useCallback(async () => {
+    if (!userId) return;
     try {
       setIsLoading(true);
       const res = await fetch(`/api/tasks?userId=${userId}`);
       const data = await res.json();
-      if (data.tasks) {
-        setTasks(data.tasks);
-      }
+      if (data.tasks) setTasks(data.tasks);
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const createTask = async (taskData) => {
     const res = await fetch("/api/tasks", {
@@ -48,63 +51,53 @@ export function useTasks(userId) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(taskData),
     });
-
     if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || "Unknown error");
+      const err = await res.json();
+      throw new Error(err.error || "Unknown error");
     }
-
     const data = await res.json();
-    if (data.task && data.task.id) {
-      setTasks([...tasks, data.task]);
+    if (data.task?.id) {
+      setTasks((prev) => [data.task, ...prev]);
       return data.task;
     }
     throw new Error("Invalid response from server");
   };
 
   const updateTask = async (taskId, taskData) => {
-    await fetch(`/api/tasks/${taskId}`, {
+    const res = await fetch(`/api/tasks/${taskId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(taskData),
     });
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, ...taskData } : task,
-      ),
-    );
+    const data = await res.json();
+    const updated = data.task || { ...tasks.find((t) => t.id === taskId), ...taskData };
+    setTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
   };
 
   const deleteTask = async (taskId) => {
     await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
-    setTasks(tasks.filter((task) => task.id !== taskId));
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
   };
 
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {
     const task = tasks.find((t) => t.id === taskId);
-
     if (!task) return;
-
     let nextStatus = forcedStatus;
     if (!nextStatus) {
       if (task.status === "todo") nextStatus = "in-progress";
       else if (task.status === "in-progress") nextStatus = "todo";
       else if (task.status === "completed") nextStatus = "in-progress";
     }
-
     await updateTask(taskId, { status: nextStatus });
   };
 
   const sortTasks = () => {
     const priorityMap = { High: 3, Medium: 2, Low: 1 };
-    setTasks(
-      [...tasks].sort(
-        (a, b) => priorityMap[b.priority] - priorityMap[a.priority],
-      ),
+    setTasks((prev) =>
+      [...prev].sort((a, b) => priorityMap[b.priority] - priorityMap[a.priority]),
     );
   };
 
-  // NEW: Shared handler functions
   const handleFormChange = (updates) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
@@ -114,40 +107,51 @@ export function useTasks(userId) {
       name: "",
       description: "",
       dueDate: "",
+      url: "",
       subtasks: "",
       durationHours: "0",
       durationMinutes: "0",
-      priority: "Low",
+      priority: "Medium",
       examId: "none",
-      bufferDays: "0",
+      bufferDays: 0,
+      isRecurring: false,
+      recurrence: null,
     });
     setEditingTaskId(null);
   };
 
-  const handleSubmitTask = async () => {
-    if (!formData.name.trim()) {
+  // TaskFormDialog now passes merged data as argument — use it directly
+  // so we're never reading stale formData state.
+  const handleSubmitTask = async (mergedData) => {
+    const data = mergedData || formData;
+    if (!data.name?.trim()) {
       alert("Please enter a task name.");
       return;
     }
 
     const totalMinutes =
-      parseInt(formData.durationHours) * 60 +
-      parseInt(formData.durationMinutes);
-    const subtasksArray = formData.subtasks
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
+      parseInt(data.durationHours || "0") * 60 +
+      parseInt(data.durationMinutes || "0");
+
+    const subtasksArray =
+      typeof data.subtasks === "string"
+        ? data.subtasks.split(",").map((s) => s.trim()).filter(Boolean)
+        : data.subtasks || [];
 
     const taskData = {
-      title: formData.name,
-      description: formData.description,
-      dueDate: formData.dueDate || new Date().toISOString(),
-      priority: formData.priority,
+      title: data.name,
+      description: data.description || "",
+      // Don't force a dueDate if the user left it blank
+      dueDate: data.dueDate || null,
+      priority: data.priority || "Medium",
       duration: totalMinutes,
       subtasks: subtasksArray,
-      userId: userId,
-      examId: formData.examId === "none" ? null : formData.examId,
-      bufferDays: formData.bufferDays ?? "0",
+      userId,
+      examId: data.examId === "none" ? null : (data.examId || null),
+      bufferDays: parseInt(data.bufferDays) || 0,
+      url: data.url || null,
+      isRecurring: data.isRecurring || false,
+      recurrence: data.recurrence || null,
     };
 
     try {
@@ -165,46 +169,42 @@ export function useTasks(userId) {
 
   const handleEditTask = (taskId) => {
     const task = tasks.find((t) => t.id === taskId);
-    if (task) {
-      setEditingTaskId(taskId);
-      setFormData({
-        name: task.title,
-        description: task.description,
-        dueDate: task.dueDate || "",
-        subtasks: task.subtasks?.join(", ") || "",
-        durationHours: Math.floor((task.duration || 0) / 60).toString(),
-        durationMinutes: ((task.duration || 0) % 60).toString(),
-        priority: task.priority,
-        examId: task.examId || "none",
-        url: task.url || "",
-        bufferDays: task.bufferDays ?? "0",
-      });
-      setIsDialogOpen(true);
-    }
+    if (!task) return;
+    setEditingTaskId(taskId);
+    setFormData({
+      name: task.title || "",
+      description: task.description || "",
+      dueDate: task.dueDate
+        ? new Date(task.dueDate).toISOString().split("T")[0]
+        : "",
+      url: task.url || "",
+      subtasks: Array.isArray(task.subtasks) ? task.subtasks.join(", ") : (task.subtasks || ""),
+      durationHours: Math.floor((task.duration || 0) / 60).toString(),
+      durationMinutes: ((task.duration || 0) % 60).toString(),
+      priority: task.priority || "Medium",
+      examId: task.examId || "none",
+      bufferDays: task.bufferDays ?? 0,
+      isRecurring: task.isRecurring || false,
+      recurrence: task.recurrence || null,
+    });
+    setIsDialogOpen(true);
   };
 
-  const handleViewTask = (task) => {
-    setViewTask(task);
-  };
+  const handleViewTask = (task) => setViewTask(task);
 
-  const handleDeleteTask = (taskId) => {
-    setTaskToDelete(taskId);
-  };
+  const handleDeleteTask = (taskId) => setTaskToDelete(taskId);
 
   const confirmDeleteTask = async () => {
-    if (taskToDelete) {
-      try {
-        await deleteTask(taskToDelete);
-        setTaskToDelete(null);
-      } catch (error) {
-        alert("Failed to delete task.");
-      }
+    if (!taskToDelete) return;
+    try {
+      await deleteTask(taskToDelete);
+      setTaskToDelete(null);
+    } catch {
+      alert("Failed to delete task.");
     }
   };
 
-  const cancelDelete = () => {
-    setTaskToDelete(null);
-  };
+  const cancelDelete = () => setTaskToDelete(null);
 
   return {
     // Data
@@ -223,6 +223,7 @@ export function useTasks(userId) {
     taskToDelete,
 
     // Actions
+    fetchTasks,       // expose so ToDoList can refresh after external changes
     createTask,
     updateTask,
     deleteTask,
