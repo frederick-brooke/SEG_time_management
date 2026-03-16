@@ -19,13 +19,6 @@ enum FriendStatus {
   REJECTED
 }
 
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-}
-
 enum ReportStatus {
   PENDING
   UNDER_REVIEW
@@ -211,6 +204,9 @@ model Task {
   relativeOffsetDays   Int?      
   eventLinkMode        String?   
   progress             Int?     @default(0)
+
+  moduleId String? @db.ObjectId
+  module   Module? @relation(fields: [moduleId], references: [id])
 }
 
 enum NotificationType {
@@ -218,17 +214,6 @@ enum NotificationType {
   SUCCESS
   WARNING
   ERROR
-}
-model Notification {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String  @db.ObjectId
-  title     String
-  message   String
-  type      NotificationType
-  isRead    Boolean  @default(false)
-  link      String?  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Exam {
@@ -284,26 +269,6 @@ model Event {
   tasks              Task[]
 
   
-}
-model Report {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  reportedUserId String @db.ObjectId
-  reportedUser   User   @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
-
-  reportedById String @db.ObjectId
-  reportedBy   User   @relation("UserReportsMade", fields: [reportedById], references: [id])
-
-  reason      String
-  description String?
-
-  status ReportStatus @default(PENDING)
-
-  handledById String? @db.ObjectId
-  handledBy   User?   @relation("ModeratorHandledReports", fields: [handledById], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model FriendRequest {
