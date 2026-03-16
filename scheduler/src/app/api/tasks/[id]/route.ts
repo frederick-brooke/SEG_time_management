@@ -1,0 +1,91 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    await prisma.task.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE task error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete task" },
+      { status: 500 },
+    );
+  }
+}
+
+// ── PATCH ─────────────────────────────────────────────────────────────────────
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const d: Record<string, unknown> = {};
+
+    if (body.title !== undefined) d.title = body.title;
+    if (body.description !== undefined)
+      d.description = body.description ?? null;
+    if (body.dueDate !== undefined)
+      d.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+    if (body.priority !== undefined) d.priority = body.priority;
+    if (body.duration !== undefined) d.duration = Number(body.duration);
+    if (body.subtasks !== undefined) d.subtasks = body.subtasks;
+    if (body.bufferDays !== undefined) d.bufferDays = body.bufferDays ?? null;
+    if (body.url !== undefined) d.url = body.url ?? null;
+    if (body.isRecurring !== undefined) d.isRecurring = body.isRecurring;
+    if (body.recurrence !== undefined) d.recurrence = body.recurrence ?? null;
+    if (body.missedAt !== undefined)
+      d.missedAt = body.missedAt ? new Date(body.missedAt) : null;
+    if (body.carriedFrom !== undefined)
+      d.carriedFrom = body.carriedFrom ?? null;
+    if (body.examId !== undefined)
+      d.examId = body.examId && body.examId !== "none" ? body.examId : null;
+    if (body.eventId !== undefined) d.eventId = body.eventId || null;
+    if (body.scheduledDate !== undefined)
+      d.scheduledDate = body.scheduledDate
+        ? new Date(body.scheduledDate)
+        : null;
+    if (body.scheduledTime !== undefined)
+      d.scheduledTime = body.scheduledTime
+        ? new Date(body.scheduledTime)
+        : null;
+
+    // ── progress field (from check-in partial completion) ────────────────────
+    if (body.progress !== undefined) d.progress = body.progress ?? null;
+
+    if (body.status !== undefined) {
+      d.status = body.status;
+      d.completed = body.status === "completed";
+      d.completedAt = body.status === "completed" ? new Date() : null;
+      // Clear progress when task is completed
+      if (body.status === "completed") d.progress = null;
+    }
+
+    if (body.completed !== undefined) {
+      d.completed = body.completed;
+      d.completedAt = body.completed ? new Date() : null;
+      d.status = body.completed ? "completed" : "todo";
+      if (body.completed) d.progress = null;
+    }
+
+    const task = await prisma.task.update({
+      where: { id },
+      data: d as Parameters<typeof prisma.task.update>[0]["data"],
+    });
+
+    return NextResponse.json({ task });
+  } catch (error) {
+    console.error("PATCH task error:", error);
+    return NextResponse.json(
+      { error: "Failed to update task" },
+      { status: 500 },
+    );
+  }
+}
