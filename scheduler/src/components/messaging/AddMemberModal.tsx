@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
@@ -67,7 +68,13 @@ export function AddMemberModal({ conversationId, existingMemberIds, onClose, onA
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
               {f.pfp ? (
-                <Image src={f.pfp} alt={f.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                <Image
+                  src={f.pfp}
+                  alt={f.username}
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 rounded-full object-cover"
+                />
               ) : (
                 <div
                   className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center"

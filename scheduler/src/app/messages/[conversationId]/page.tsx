@@ -37,26 +37,6 @@ const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
 });
 
 /**
- * Displays a three-dot bubble to indicate another user is typing.
- * @returns JSX typing indicator element
- */
-function TypingBubble() {
-  return (
-    <div className="flex items-end gap-2 mt-2">
-      <div className="w-7" />
-      <div
-        className="rounded-2xl px-4 py-3 flex gap-1 items-center"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
-      >
-        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
-        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
-        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />
-      </div>
-    </div>
-  );
-}
-
-/**
  * Main conversation page handling messages, real-time updates, and group management.
  * @returns JSX full conversation view
  */
@@ -125,8 +105,8 @@ export default function ConversationPage() {
     fetch(`/api/conversations/${conversationId}`, { method: "PATCH" }).catch(() => {});
   }, [conversationId]);
 
-  useEffect(() => { 
-    initialLoadDone.current = false; 
+  useEffect(() => {
+    initialLoadDone.current = false;
   }, [conversationId]);
 
   // Scroll to bottom on initial message load
@@ -170,6 +150,7 @@ export default function ConversationPage() {
   useEffect(() => {
     if (!conversationId) return;
     const channel = pusher.subscribe(`conversation-${conversationId}`);
+
     channel.bind("new-message", (newMessage: Message) => {
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMessage.id)) return prev;
@@ -179,6 +160,7 @@ export default function ConversationPage() {
       setTypingUser(null);
       setTimeout(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, 50);
     });
+
     channel.bind("typing", ({ userId, username, isTyping }: { userId: string; username: string; isTyping: boolean }) => {
       if (userId === session?.user?.id) return;
       setTypingUser(isTyping ? username : null);
@@ -187,6 +169,7 @@ export default function ConversationPage() {
         typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
       }
     });
+
     return () => { channel.unbind_all(); pusher.unsubscribe(`conversation-${conversationId}`); };
   }, [conversationId, session?.user?.id]);
 
@@ -196,7 +179,7 @@ export default function ConversationPage() {
   }, [typingUser]);
 
   /**
-   * Updates input state and fires a typing indicator to the API that auto-clears after 2 seconds
+   * Updates input state and fires a typing indicator to the API that auto-clears after 2 seconds.
    * @param e - Input change event
    * @returns void
    */
@@ -216,7 +199,7 @@ export default function ConversationPage() {
   };
 
   /**
-   * Adds message to the UI and sends it to the API
+   * Adds message to the UI and sends it to the API.
    * Replaces temporary message with the real one on success and removes it on failure.
    * @returns void
    */
@@ -309,6 +292,7 @@ export default function ConversationPage() {
     fetchDetails();
   };
 
+  // Group consecutive messages by sender and date for visual bubbling
   const grouped = messages.map((msg, i) => {
     const prev = messages[i - 1];
     const next = messages[i + 1];
@@ -317,7 +301,7 @@ export default function ConversationPage() {
     const showDateDivider = prevDate !== currDate;
     const sameSenderAsPrev = prev?.sender.id === msg.sender.id && !showDateDivider;
     const sameSenderAsNext = next?.sender.id === msg.sender.id && new Date(next.createdAt).toDateString() === currDate;
-    
+
     return { msg, showDateDivider, isFirst: !sameSenderAsPrev, isLast: !sameSenderAsNext };
   });
 
@@ -358,7 +342,6 @@ export default function ConversationPage() {
           )}
         </div>
 
-        {/* Group consecutive messages by sender and date for visual bubbling */}
         {grouped.map(({ msg, showDateDivider, isFirst, isLast }) => (
           <MessageBubble
             key={msg.id}
@@ -374,7 +357,20 @@ export default function ConversationPage() {
           />
         ))}
 
-        {typingUser && <TypingBubble />}
+        {typingUser && (
+          <div className="flex items-end gap-2 mt-2">
+            <div className="w-7" />
+            <div
+              className="rounded-2xl px-4 py-3 flex gap-1 items-center"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />
+            </div>
+          </div>
+        )}
+
         <div ref={bottomRef} />
       </div>
 

@@ -22,6 +22,7 @@ export function GroupHeader({ name, participantCount, onToggleMembers, onLeave }
           {participantCount} members
         </span>
       </button>
+
       <button
         onClick={onLeave}
         className="text-xs font-medium transition-colors"
