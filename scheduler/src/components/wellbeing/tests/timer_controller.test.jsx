@@ -11,7 +11,7 @@ jest.mock("@/context/UIContext", () => ({
   }),
 }));
 
-// Mock Modal
+// Mock ReminderModal
 jest.mock("components/ui/modal", () => ({
   __esModule: true,
   default: ({ open, children, title, onClose }) =>

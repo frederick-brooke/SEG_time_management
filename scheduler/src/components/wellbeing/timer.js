@@ -66,19 +66,22 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
         const [h, m, s] = timeInput.split(":").map(Number);  //parse hours, minutes and seconds from the time string
 
         const durationMs = ((h * 60 + m) * 60 + (s || 0)) * 1000;   //total duration in milliseconds
-
-        const res = await fetch("/api/wellbeing/timer", {
-            //sends the duration to server API
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ durationMs }),
-        });
-        const { endTime } = await res.json();
+        
+        startTimer(durationMs);
         //calculates remaining time and start countdown
-        const remainingMs = endTime - Date.now();
-        startTimer(remainingMs);
+
+        try {
+            await fetch("/api/wellbeing/timer", {
+                //sends the duration to server API
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ durationMs }),
+            });
+        } catch (error) {
+            console.error("Timer API failed:", err);
+        }
     };
 
     return (
