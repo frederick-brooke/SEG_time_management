@@ -101,7 +101,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
       </div>
 
       {/* Timer Card */}
-      <div className="w-[380px] rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 p-8 shadow-xl text-white flex flex-col items-center gap-6">
+      <div className="w-full max-w-lg rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 p-8 shadow-xl text-white flex flex-col items-center gap-6">
 
         {/* Timer Display */}
         <div className="text-center">
@@ -208,7 +208,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
       {/* Wellbeing Tip */}
       {!hasStarted && (
-        <p className="text-gray-400 text-xs text-center max-w-xs">
+        <p className="text-gray-800 text-xs text-center max-w-xs">
           Tip: Taking short breaks every 30–60 minutes improves focus
           and helps reduce mental fatigue.
         </p>
