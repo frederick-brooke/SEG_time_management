@@ -15,6 +15,7 @@ type Props = {
   isFirst: boolean;
   isLast: boolean;
   showDateDivider: boolean;
+  dateDividerLabel: string;
   isHovered: boolean;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -190,6 +191,7 @@ export function MessageBubble({
   isFirst,
   isLast,
   showDateDivider,
+  dateDividerLabel,
   isHovered,
   onMouseEnter,
   onMouseLeave,
@@ -221,7 +223,7 @@ export function MessageBubble({
         <div className="flex items-center gap-3 my-2">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
           <span className="text-xs font-medium px-1" style={{ color: "rgba(148,163,255,0.35)" }}>
-            {formatDate(msg.createdAt)}
+            {dateDividerLabel}
           </span>
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
         </div>

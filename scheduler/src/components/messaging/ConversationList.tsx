@@ -292,7 +292,7 @@ export default function ConversationList() {
           return (
             <div
               key={convo.id}
-              className="group flex items-center gap-3 px-3 py-2 rounded-xl transition-colors w-full"
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl transition-colors w-full"
               style={{
                 background: isActive ? "rgba(88,101,242,0.12)" : "transparent",
                 border: isActive ? "1px solid rgba(88,101,242,0.2)" : "1px solid transparent",
@@ -301,7 +301,6 @@ export default function ConversationList() {
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <button
-                // Optimistically clear unread before navigating so the dot doesn't persist on the active row
                 onClick={() => {
                   setConversations((prev) =>
                     prev.map((c) => c.id === convo.id ? { ...c, hasUnread: false } : c)
@@ -311,10 +310,10 @@ export default function ConversationList() {
                 className="flex items-center gap-3 flex-1 min-w-0 text-left"
               >
                 {avatarSrc ? (
-                  <Image src={avatarSrc} alt={displayName ?? ""} width={40} height={40} className="rounded-full object-cover shrink-0" />
+                  <Image src={avatarSrc} alt={displayName ?? ""} width={48} height={48} className="rounded-full object-cover shrink-0" />
                 ) : (
                   <div
-                    className="w-10 h-10 rounded-full font-semibold flex items-center justify-center text-sm shrink-0"
+                    className="w-12 h-12 rounded-full font-semibold flex items-center justify-center text-base shrink-0"
                     style={{
                       background: isGroup ? "rgba(139,92,246,0.2)" : "rgba(88,101,242,0.2)",
                       color: isGroup ? "rgba(167,139,250,0.9)" : "rgba(148,163,255,0.9)",
@@ -328,7 +327,7 @@ export default function ConversationList() {
                 <div className="flex-1 min-w-0 relative">
                   <div className="flex items-center gap-1.5 pr-5">
                     <p
-                      className="text-sm truncate"
+                      className="text-base truncate"
                       style={{
                         color: "rgba(220,225,255,0.85)",
                         fontWeight: convo.hasUnread ? 600 : 500,
@@ -344,19 +343,12 @@ export default function ConversationList() {
                         Group
                       </span>
                     )}
-                    {convo.lastMessageAt && (
-                      <span
-                        className="text-xs ml-auto shrink-0"
-                        style={{ color: convo.hasUnread ? "rgba(99,149,255,0.9)" : "rgba(148,163,255,0.35)" }}
-                      >
-                        {formatLastMessageTime(convo.lastMessageAt)}
-                      </span>
-                    )}
                   </div>
+
                   <div className="flex items-center gap-1 min-w-0">
                     {convo.lastMessage && convo.lastMessageSentByMe && <DeliveryTick />}
                     <p
-                      className="text-xs truncate"
+                      className="text-sm truncate flex-1"
                       style={{
                         color: convo.hasUnread ? "rgba(190,210,255,0.9)" : "rgba(148,163,255,0.4)",
                         fontWeight: convo.hasUnread ? 500 : 400,
@@ -364,10 +356,22 @@ export default function ConversationList() {
                     >
                       {convo.lastMessage ?? "Start a conversation"}
                     </p>
+                    {convo.lastMessageAt && (
+                      <>
+                        <span className="text-xs shrink-0" style={{ color: "rgba(148,163,255,0.3)" }}>·</span>
+                        <span
+                          className="text-xs shrink-0"
+                          style={{ color: convo.hasUnread ? "rgba(99,149,255,0.9)" : "rgba(148,163,255,0.35)" }}
+                        >
+                          {formatLastMessageTime(convo.lastMessageAt)}
+                        </span>
+                      </>
+                    )}
                   </div>
+
                   {convo.hasUnread && (
                     <div
-                      className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
                       style={{ background: "rgba(99,149,255,0.95)" }}
                     />
                   )}
