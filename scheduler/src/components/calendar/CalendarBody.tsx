@@ -1,6 +1,6 @@
 "use client";
 // src/components/calendar/CalendarBody.tsx
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Calendar } from "react-big-calendar";
 import { format } from "date-fns";
 import { CATEGORY_COLORS } from "@/lib/ui";
@@ -74,12 +74,13 @@ function makeEventPropGetter(categories: any[], events: any[]) {
       const color = cat?.color ?? "#6b7280";
       return {
         style: {
-          backgroundColor: color,
-          border: "none",
+          backgroundColor: color + "33",
+          border: `2px solid #00000033`,
           borderRadius: "6px",
-          color: "white",
+          color: "#111111",
           fontSize: "0.8rem",
           padding: "4px",
+          fontWeight: "600",
         },
       };
     }
@@ -151,6 +152,23 @@ export default function CalendarBody({
   onUndoDismiss,
 }: Props) {
   const searchRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Scroll calendar to 9am on mount
+  useEffect(() => {
+    if (!calendarRef.current) return;
+    const tryScroll = () => {
+      const scrollContainer =
+        calendarRef.current?.querySelector(".rbc-time-content");
+      if (scrollContainer) {
+        // 64px per hour × 9 hours = 576px
+        scrollContainer.scrollTop = 576;
+      }
+    };
+    // Small delay to let react-big-calendar finish rendering its internal DOM
+    const timer = setTimeout(tryScroll, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="flex-1 min-w-0">
@@ -240,7 +258,10 @@ export default function CalendarBody({
         </div>
 
         {/* Calendar grid */}
-        <div className="bg-white p-4 rounded-3xl shadow-md border border-gray-100">
+        <div
+          className="bg-white p-4 rounded-3xl shadow-md border border-gray-100"
+          ref={calendarRef}
+        >
           <div className="h-[600px]">
             <Calendar
               localizer={localizer}
@@ -257,6 +278,11 @@ export default function CalendarBody({
               eventPropGetter={makeEventPropGetter(categories, filteredItems)}
               dayPropGetter={makeDayPropGetter(scheduleLogs)}
               components={{ event: EventComponent }}
+              formats={{
+                eventTimeRangeFormat: () => "",
+                eventTimeRangeStartFormat: () => "",
+                eventTimeRangeEndFormat: () => "",
+              }}
             />
           </div>
         </div>

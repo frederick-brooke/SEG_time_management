@@ -2,7 +2,7 @@
 // src/components/CalendarView.tsx
 import { useState, useEffect } from "react";
 import { dateFnsLocalizer } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
+import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
@@ -13,7 +13,6 @@ import QuickScheduleModal from "./calendar/QuickScheduleModal";
 import CategoryManagerModal from "./calendar/CategoryManagerModal";
 import ScheduleDrawer from "./calendar/ScheduleDrawer";
 import UnscheduledPanel from "./calendar/UnscheduledPanel";
-import FilterSidebar from "./calendar/FilterSidebar";
 import CalendarBody from "./calendar/CalendarBody";
 
 import { useCalendarData } from "@/hooks/useCalendarData";
@@ -69,7 +68,6 @@ export default function CalendarView({
   const [rescheduleQueue, setRescheduleQueue] = useState<any[]>([]);
   const [showReschedule, setShowReschedule] = useState(false);
 
-  // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     data.fetchCategories();
     data.fetchExams();
@@ -93,7 +91,6 @@ export default function CalendarView({
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
-  // ── Filtered calendar items ────────────────────────────────────────────────
   const getFilteredItems = () => {
     const items: any[] = [];
     data.events.forEach((e) => {
@@ -114,7 +111,6 @@ export default function CalendarView({
     return items;
   };
 
-  // ── Check-in → reschedule flow ────────────────────────────────────────────
   const handleCheckInDone = async (toReschedule: any[]) => {
     setShowCheckIn(false);
     if (toReschedule.length === 0) {
@@ -190,7 +186,6 @@ export default function CalendarView({
     ix.setIsTaskEditOpen(false);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex gap-6">
       {showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
@@ -213,19 +208,7 @@ export default function CalendarView({
           );
         })()}
 
-      <FilterSidebar
-        activeFilters={activeFilters}
-        categories={data.categories}
-        categoryFilters={data.categoryFilters}
-        onToggleFilter={(key) =>
-          setActiveFilters((p) => ({ ...p, [key]: !p[key] }))
-        }
-        onToggleCategory={(id) =>
-          data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] }))
-        }
-        onManageCategories={() => setShowCategoryManager(true)}
-      />
-
+      {/* ── Main calendar (no left sidebar) ── */}
       <div className="flex-1 min-w-0">
         <div className="flex gap-2 mb-4">
           <button
@@ -270,11 +253,21 @@ export default function CalendarView({
         />
       </div>
 
+      {/* ── Right panel — filter sidebar + unscheduled + log ── */}
       <UnscheduledPanel
         unscheduledTasks={data.unscheduledTasks}
         scheduleLogs={data.scheduleLogs}
         events={data.events}
         categories={data.categories}
+        activeFilters={activeFilters}
+        categoryFilters={data.categoryFilters}
+        onToggleFilter={(key) =>
+          setActiveFilters((p) => ({ ...p, [key]: !p[key] }))
+        }
+        onToggleCategory={(id) =>
+          data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] }))
+        }
+        onManageCategories={() => setShowCategoryManager(true)}
         onTaskClick={setQuickScheduleTask}
         onEditLog={(log) => {
           sched.patch({

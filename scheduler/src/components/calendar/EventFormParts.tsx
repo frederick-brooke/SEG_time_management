@@ -22,13 +22,13 @@ export const RELATIVE_OPTIONS: {
   label: string;
   offsetDays: number | null;
 }[] = [
-  { key: "3-before", label: "3 days before", offsetDays: -3 },
-  { key: "2-before", label: "2 days before", offsetDays: -2 },
-  { key: "1-before", label: "1 day before", offsetDays: -1 },
-  { key: "same-day", label: "Same day", offsetDays: 0 },
-  { key: "1-after", label: "1 day after", offsetDays: 1 },
-  { key: "2-after", label: "2 days after", offsetDays: 2 },
-  { key: "3-after", label: "3 days after", offsetDays: 3 },
+  { key: "3-before", label: "3 days before event", offsetDays: -3 },
+  { key: "2-before", label: "2 days before event", offsetDays: -2 },
+  { key: "1-before", label: "1 day before event", offsetDays: -1 },
+  { key: "same-day", label: "Day of event", offsetDays: 0 },
+  { key: "1-after", label: "1 day after event", offsetDays: 1 },
+  { key: "2-after", label: "2 days after event", offsetDays: 2 },
+  { key: "3-after", label: "3 days after event", offsetDays: 3 },
   { key: "custom", label: "Custom date", offsetDays: null },
 ];
 
@@ -40,7 +40,7 @@ function relativeTo(mode: RelativeOption) {
 }
 
 // ---------------------------------------------------------------------------
-// RelativePicker — grid of relative option buttons
+// RelativePicker
 // ---------------------------------------------------------------------------
 function RelativePicker({
   value,
@@ -70,7 +70,7 @@ function RelativePicker({
 }
 
 // ---------------------------------------------------------------------------
-// CustomDatePicker — single date or date range
+// CustomDatePicker
 // ---------------------------------------------------------------------------
 function CustomDatePicker({
   useRange,
@@ -104,7 +104,7 @@ function CustomDatePicker({
             />
           </div>
           <div>
-            <label className="text-xs text-gray-400">To</label>{" "}
+            <label className="text-xs text-gray-400">To</label>
             <input
               type="date"
               value={rangeEnd}
@@ -246,7 +246,7 @@ export function LinkedTaskCard({
         <div className="border-t border-gray-100 p-3 flex flex-col gap-3 bg-gray-50">
           <div>
             <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
-              Schedule relative to event
+              Finish task by
             </label>
             <RelativePicker value={mode} onChange={setMode} />
           </div>
@@ -314,7 +314,7 @@ export function LinkedTaskCard({
 }
 
 // ---------------------------------------------------------------------------
-// NewTaskForm — the add-a-task input at the bottom of TaskPromptSection
+// NewTaskForm
 // ---------------------------------------------------------------------------
 function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
   const [title, setTitle] = useState("");
@@ -384,6 +384,7 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
         onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         className="border p-2 rounded-lg text-sm"
       />
+
       <div className="grid grid-cols-2 gap-2">
         <div>
           <label className="text-xs font-bold text-gray-400">
@@ -411,9 +412,10 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
           </select>
         </div>
       </div>
+
       <div>
         <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
-          Schedule relative to event
+          Finish task by
         </label>
         <RelativePicker value={mode} onChange={setMode} />
       </div>
@@ -431,6 +433,7 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
           }}
         />
       )}
+
       <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 flex flex-col gap-2">
         <Toggle
           on={scheduleTime}
@@ -450,6 +453,7 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
           </p>
         )}
       </div>
+
       <div className="border-t pt-3">
         <Toggle
           on={isRecurring}
@@ -474,6 +478,7 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
           </div>
         )}
       </div>
+
       <button
         type="button"
         onClick={handleAdd}

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
-import  TaskViewDialog  from "./tasks/TaskViewDialog";
+import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/hooks/useTasks";
 
