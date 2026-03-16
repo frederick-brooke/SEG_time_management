@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "lib/auth";
-import { prisma } from "lib/prisma";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
     where: { userId: session.user.id },
     orderBy: { createdAt: "asc" },
   });
-
   return NextResponse.json({ categories });
 }
 
@@ -31,7 +30,6 @@ export async function POST(req: NextRequest) {
   const category = await prisma.category.create({
     data: { name, color, userId: session.user.id },
   });
-
   return NextResponse.json({ category });
 }
 
@@ -47,7 +45,6 @@ export async function PATCH(req: NextRequest) {
     where: { id },
     data: { name, color },
   });
-
   return NextResponse.json({ category });
 }
 
@@ -71,6 +68,5 @@ export async function DELETE(req: NextRequest) {
     );
 
   await prisma.category.delete({ where: { id } });
-
   return NextResponse.json({ success: true });
 }
