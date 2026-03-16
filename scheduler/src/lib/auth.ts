@@ -6,6 +6,33 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 
+export async function authorizeUser(credentials: Record<"email" | "password", string> | undefined) {
+  if (!credentials?.email || !credentials?.password) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { email: credentials.email },
+    include: { reportsReceived: true },
+  });
+
+  if (!user || !user.passwordHash) return null;
+
+  const isValid = await verifyPassword(credentials.password, user.passwordHash);
+  if (!isValid) return null;
+
+  if (user.isBanned) {
+    if (!user.banExpires) {
+      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+    }
+    if (new Date() < user.banExpires) {
+      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+    }
+    await prisma.user.update({ where: { id: user.id }, data: { isBanned: false, banExpires: null } });
+    user.isBanned = false;
+  }
+
+  return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: user.isBanned };
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -20,70 +47,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-
-      async authorize(credentials) {
-        console.log("Authorize called", credentials?.email);
-
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: {
-            reportsReceived: true,
-          },
-        });
-
-        console.log("User found:", !!user);
-        console.log("Has passwordHash:", !!user?.passwordHash);
-
-        if (!user || !user.passwordHash) return null;
-
-        const isValid = await verifyPassword(
-          credentials.password,
-          user.passwordHash || "",
-        );
-
-        console.log("Password valid:", isValid);
-
-        if (!isValid) return null;
-
-        if (user.isBanned) {
-          // permanent ban
-          if (!user.banExpires) {
-            return {
-              id: user.id.toString(),
-              email: user.email,
-              name: user.username,
-              role: user.role,
-              isBanned: true,
-            };
-          }
-          // temporary ban still active
-          if (new Date() < user.banExpires) {
-            return {
-              id: user.id.toString(),
-              email: user.email,
-              name: user.username,
-              role: user.role,
-              isBanned: true,
-            };
-          }
-          // ban expired
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { isBanned: false, banExpires: null },
-          });
-          user.isBanned = false;
-        }
-
-        return {
-          id: user.id.toString(),
-          email: user.email,
-          name: user.username,
-          role: user.role,
-          isBanned: user.isBanned,
-        };
-      },
+      authorize: authorizeUser,
     }),
 
     GoogleProvider({
@@ -92,8 +56,7 @@ export const authOptions: NextAuthOptions = {
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
-          scope:
-            "openid email profile https://www.googleapis.com/auth/calendar",
+          scope: "openid email profile https://www.googleapis.com/auth/calendar",
           access_type: "offline",
           prompt: "consent",
         },
@@ -124,6 +87,16 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
         token.role = user.role;
         token.isBanned = user.isBanned;
+        token.username = user.username;
+      }
+
+      if (!token.username && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { username: true },
+        });
+
+        token.username = dbUser?.username;
       }
 
       if (account?.access_token) {
@@ -161,8 +134,7 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              refresh_token_expires_in:
-                account.refresh_token_expires_in as number,
+              refresh_token_expires_in: account.refresh_token_expires_in as number,
             },
             create: {
               userId,
@@ -175,8 +147,7 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              refresh_token_expires_in:
-                account.refresh_token_expires_in as number,
+              refresh_token_expires_in: account.refresh_token_expires_in as number,
             },
           });
         }
@@ -226,8 +197,7 @@ export const authOptions: NextAuthOptions = {
             scope: account.scope,
             token_type: account.token_type,
             id_token: account.id_token,
-            refresh_token_expires_in:
-              account.refresh_token_expires_in as number,
+            refresh_token_expires_in: account.refresh_token_expires_in as number,
           },
           create: {
             userId: token.sub,
@@ -240,8 +210,7 @@ export const authOptions: NextAuthOptions = {
             scope: account.scope,
             token_type: account.token_type,
             id_token: account.id_token,
-            refresh_token_expires_in:
-              account.refresh_token_expires_in as number,
+            refresh_token_expires_in: account.refresh_token_expires_in as number,
           },
         });
       }
@@ -254,6 +223,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub;
         session.user.role = token.role;
         session.user.isBanned = token.isBanned as boolean;
+        session.user.username = token.username
 
         const googleAccount = await prisma.account.findFirst({
           where: { userId: token.sub, provider: "google" },

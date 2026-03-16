@@ -671,6 +671,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await prisma.event.delete({ where: { id } });
+    
     return NextResponse.json({ success: true, message: "Event deleted" });
   } catch (e: any) {
     console.error("Delete handler error:", e);
