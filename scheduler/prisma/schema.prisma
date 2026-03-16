@@ -92,6 +92,11 @@ model User {
   appeals        Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
 
+  lastCheckIn   DateTime?
+  categories Category[]
+  scheduleLogs ScheduleLog[]
+  checkIns CheckIn[]
+
   conversations   ConversationParticipant[]
   sentMessages    Message[]
   createdModules  Module[]       @relation("ModuleCreator")
@@ -172,24 +177,58 @@ model UserInventory {
 }
 
 model Task {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  dueDate     DateTime?
-  completed   Boolean   @default(false)
-  completedAt DateTime?
-  status      String    @default("todo")
-  priority    String    @default("Low")
-  duration    Int       @default(0)
-  subtasks    String[]  @default([])
-  url         String?
-  userId       String  @db.ObjectId
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  examId       String? @db.ObjectId
-  exam         Exam?   @relation(fields: [examId], references: [id])
-  moduleId     String? @db.ObjectId
-  module       Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  isModuleTask Boolean @default(false)
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  title               String
+  description         String?
+  dueDate             DateTime?
+  completed           Boolean  @default(false)
+  completedAt         DateTime?
+  status              String   @default("todo")
+  duration            Int      @default(0)
+  durationHours       String?
+  durationMins        String?
+  subtasks            String[] @default([])
+  priority            String   @default("Low")
+  url                 String?
+  bufferDays          Int?
+
+  userId              String   @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  examId              String?  @db.ObjectId
+  exam                Exam?    @relation(fields: [examId], references: [id])
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  eventId             String?  @db.ObjectId
+  event               Event?   @relation(fields: [eventId], references: [id])
+  recurrence          Json?    
+  scheduledDate       DateTime?
+  scheduledTime       DateTime?
+  isRecurring         Boolean  @default(false)
+  missedAt            DateTime?
+  carriedFrom         String?  @db.ObjectId
+  scheduledRelativeTo  String?  
+  relativeOffsetDays   Int?      
+  eventLinkMode        String?   
+  progress             Int?     @default(0)
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+model Notification {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String  @db.ObjectId
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean  @default(false)
+  link      String?  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -240,6 +279,31 @@ model Event {
   moduleId          String?   @db.ObjectId
   module            Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   isModuleEvent     Boolean   @default(false)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tasks              Task[]
+
+  
+}
+model Report {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  reportedUserId String @db.ObjectId
+  reportedUser   User   @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
+
+  reportedById String @db.ObjectId
+  reportedBy   User   @relation("UserReportsMade", fields: [reportedById], references: [id])
+
+  reason      String
+  description String?
+
+  status ReportStatus @default(PENDING)
+
+  handledById String? @db.ObjectId
+  handledBy   User?   @relation("ModeratorHandledReports", fields: [handledById], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -375,4 +439,35 @@ model ModuleMember {
   role     ModuleRole @default(MEMBER)
   joinedAt DateTime   @default(now())
   @@unique([moduleId, userId])
+}
+model Category {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name   String
+  color  String
+
+  createdAt DateTime @default(now())
+}
+
+model ScheduleLog {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String   @db.ObjectId
+  user             User     @relation(fields: [userId], references: [id])
+  mode             String
+  dateLabel        String
+  taskIds          String[] @db.ObjectId
+  previousSchedule Json?
+  days             Json?
+  scheduledAt      DateTime @default(now())
+}
+
+model CheckIn {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime // the day being checked in for
+  taskEntries Json     // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
+  createdAt   DateTime @default(now())
 }

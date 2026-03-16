@@ -5,13 +5,20 @@ import { getFriendsLeaderboard } from "@/src/app/actions/leaderboard";
 import { Trophy } from "lucide-react";
 import LeaderboardClient from "./LeaderboardClient";
 
-export default async function LeaderboardPage() {
+// 1. Next.js 15+ requires searchParams to be typed as a Promise
+export default async function LeaderboardPage(props: {
+  searchParams: Promise<{ timeframe?: string }>;
+}) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     redirect("/login");
   }
 
-  const leaderboard = await getFriendsLeaderboard();
+  // 2. Await the searchParams to "unwrap" them!
+  const resolvedSearchParams = await props.searchParams;
+  const timeframe = (resolvedSearchParams.timeframe || 'all') as 'day' | 'week' | 'month' | 'all';
+
+  const leaderboard = await getFriendsLeaderboard(timeframe);
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
@@ -29,7 +36,8 @@ export default async function LeaderboardPage() {
             </p>
           </div>
         </div>
-        <LeaderboardClient initialData={leaderboard || []} />
+        
+        <LeaderboardClient initialData={leaderboard || []} currentTimeframe={timeframe} />
       </div>
     </div>
   );
