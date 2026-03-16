@@ -55,6 +55,7 @@ model User {
   lastCheckIn   DateTime?
   categories Category[]
   scheduleLogs ScheduleLog[]
+  checkIns CheckIn[]
 }
 
 enum Role {
@@ -138,6 +139,10 @@ model Task {
   isRecurring         Boolean  @default(false)
   missedAt            DateTime?
   carriedFrom         String?  @db.ObjectId
+  scheduledRelativeTo  String?  
+  relativeOffsetDays   Int?      
+  eventLinkMode        String?   
+  progress             Int?     @default(0)
 }
 
 enum NotificationType {
@@ -303,11 +308,22 @@ model Category {
 }
 
 model ScheduleLog {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String   @db.ObjectId
+  user             User     @relation(fields: [userId], references: [id])
+  mode             String
+  dateLabel        String
+  taskIds          String[] @db.ObjectId
+  previousSchedule Json?
+  days             Json?
+  scheduledAt      DateTime @default(now())
+}
+
+model CheckIn {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  mode        String   // "day" or "week"
-  dateLabel   String   // e.g. "Mon Mar 09" or "Week of Mar 09"
-  taskIds     String[] @db.ObjectId
-  scheduledAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime // the day being checked in for
+  taskEntries Json     // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
+  createdAt   DateTime @default(now())
 }
