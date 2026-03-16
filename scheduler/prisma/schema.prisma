@@ -68,8 +68,8 @@ model User {
   country  String?
   location Json? // { lat: number, lng: number }
 
-  role       Role    @default(BASIC)
-  isBanned   Boolean @default(false)
+  role       Role      @default(BASIC)
+  isBanned   Boolean   @default(false)
   banExpires DateTime?
 
   accounts      Account[]
@@ -92,15 +92,15 @@ model User {
   appeals        Appeal[]
   handledAppeals Appeal[] @relation("ModeratorHandledAppeals")
 
-  lastCheckIn   DateTime?
-  categories Category[]
+  lastCheckIn  DateTime?
+  categories   Category[]
   scheduleLogs ScheduleLog[]
-  checkIns CheckIn[]
+  checkIns     CheckIn[]
 
-  conversations   ConversationParticipant[]
-  sentMessages    Message[]
-  createdModules  Module[]       @relation("ModuleCreator")
-  moduleMembers   ModuleMember[]
+  conversations  ConversationParticipant[]
+  sentMessages   Message[]
+  createdModules Module[]                  @relation("ModuleCreator")
+  moduleMembers  ModuleMember[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -120,25 +120,26 @@ model Account {
   id_token                 String? @db.String
   session_state            String?
   refresh_token_expires_in Int?
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
 model UserProgress {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId         String    @unique @db.ObjectId
-  points         Int       @default(0)
-  level          Int       @default(1)
-  experience     Int       @default(0)
-  streak         Int       @default(0)
+  id             String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String             @unique @db.ObjectId
+  points         Int                @default(0)
+  level          Int                @default(1)
+  experience     Int                @default(0)
+  streak         Int                @default(0)
   equippedTitle  String?
   equippedFrame  String?
   xpBoostExpires DateTime?
-  streakShields  Int       @default(0)
+  streakShields  Int                @default(0)
   shieldUsedDate DateTime?
-  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions PointTransaction[]
-  inventory    UserInventory[]
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions   PointTransaction[]
+  inventory      UserInventory[]
 }
 
 model PointTransaction {
@@ -147,109 +148,94 @@ model PointTransaction {
   progress   UserProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
   amount     Int
   reason     String
-  taskId     String?  @db.ObjectId
-  createdAt  DateTime @default(now())
+  taskId     String?      @db.ObjectId
+  createdAt  DateTime     @default(now())
 }
 
 model ShopItem {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  name        String       @unique
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  name        String          @unique
   description String
   type        ShopItemType
   price       Int
   value       String
   icon        String
-  rarity      String       @default("common")
-  isActive    Boolean      @default(true)
-  inventory UserInventory[]
+  rarity      String          @default("common")
+  isActive    Boolean         @default(true)
+  inventory   UserInventory[]
 }
 
 model UserInventory {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  itemId      String   @db.ObjectId
-  progressId  String   @db.ObjectId
-  purchasedAt DateTime @default(now())
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  item     ShopItem     @relation(fields: [itemId], references: [id])
-  progress UserProgress @relation(fields: [progressId], references: [id])
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  itemId      String       @db.ObjectId
+  progressId  String       @db.ObjectId
+  purchasedAt DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item        ShopItem     @relation(fields: [itemId], references: [id])
+  progress    UserProgress @relation(fields: [progressId], references: [id])
+
   @@unique([userId, itemId])
 }
 
 model Task {
-  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
-  title               String
-  description         String?
-  dueDate             DateTime?
-  completed           Boolean  @default(false)
-  completedAt         DateTime?
-  status              String   @default("todo")
-  duration            Int      @default(0)
-  durationHours       String?
-  durationMins        String?
-  subtasks            String[] @default([])
-  priority            String   @default("Low")
-  url                 String?
-  bufferDays          Int?
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String?
+  dueDate       DateTime?
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  status        String    @default("todo")
+  duration      Int       @default(0)
+  durationHours String?
+  durationMins  String?
+  subtasks      String[]  @default([])
+  priority      String    @default("Low")
+  url           String?
+  bufferDays    Int?
 
-  userId              String   @db.ObjectId
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  examId              String?  @db.ObjectId
-  exam                Exam?    @relation(fields: [examId], references: [id])
+  examId String? @db.ObjectId
+  exam   Exam?   @relation(fields: [examId], references: [id])
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  eventId             String?  @db.ObjectId
-  event               Event?   @relation(fields: [eventId], references: [id])
-  recurrence          Json?    
-  scheduledDate       DateTime?
-  scheduledTime       DateTime?
-  isRecurring         Boolean  @default(false)
-  missedAt            DateTime?
-  carriedFrom         String?  @db.ObjectId
-  scheduledRelativeTo  String?  
-  relativeOffsetDays   Int?      
-  eventLinkMode        String?   
-  progress             Int?     @default(0)
-}
-
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-}
-model Notification {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String  @db.ObjectId
-  title     String
-  message   String
-  type      NotificationType
-  isRead    Boolean  @default(false)
-  link      String?  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  eventId             String?   @db.ObjectId
+  event               Event?    @relation(fields: [eventId], references: [id])
+  recurrence          Json?
+  scheduledDate       DateTime?
+  scheduledTime       DateTime?
+  isRecurring         Boolean   @default(false)
+  missedAt            DateTime?
+  carriedFrom         String?   @db.ObjectId
+  scheduledRelativeTo String?
+  relativeOffsetDays  Int?
+  eventLinkMode       String?
+  progress            Int?      @default(0)
+  module              Module?   @relation(fields: [moduleId], references: [id])
+  moduleId            String?   @db.ObjectId
 }
 
 model Exam {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String     @db.ObjectId
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title           String
-  examDate        DateTime
-  maxTimePerDay   Int
-  unavailableDays DateTime[]
+  id                String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String             @db.ObjectId
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String
+  examDate          DateTime
+  maxTimePerDay     Int
+  unavailableDays   DateTime[]
   tasks             Task[]
   revisionMaterials RevisionMaterial[]
-  createdAt DateTime @default(now())
+  createdAt         DateTime           @default(now())
 }
 
 model RevisionMaterial {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  examId   String @db.ObjectId
-  exam     Exam   @relation(fields: [examId], references: [id], onDelete: Cascade)
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  examId   String  @db.ObjectId
+  exam     Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
   title    String
   type     String
   duration Int
@@ -280,32 +266,10 @@ model Event {
   module            Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   isModuleEvent     Boolean   @default(false)
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  tasks              Task[]
-
-  
-}
-model Report {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  reportedUserId String @db.ObjectId
-  reportedUser   User   @relation("UserReportsReceived", fields: [reportedUserId], references: [id])
-
-  reportedById String @db.ObjectId
-  reportedBy   User   @relation("UserReportsMade", fields: [reportedById], references: [id])
-
-  reason      String
-  description String?
-
-  status ReportStatus @default(PENDING)
-
-  handledById String? @db.ObjectId
-  handledBy   User?   @relation("ModeratorHandledReports", fields: [handledById], references: [id])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  tasks Task[]
 }
 
 model FriendRequest {
@@ -317,6 +281,7 @@ model FriendRequest {
   status     FriendStatus @default(PENDING)
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
+
   @@unique([senderId, receiverId])
 }
 
@@ -331,6 +296,7 @@ model Notification {
   link      String?
   createdAt DateTime         @default(now())
   expiresAt DateTime?
+
   @@index([userId, isRead])
   @@index([createdAt])
 }
@@ -364,7 +330,7 @@ model Report {
   handledBy      User?        @relation("ModeratorHandledReports", fields: [handledById], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  appeals Appeal[]
+  appeals        Appeal[]
 }
 
 model Appeal {
@@ -402,6 +368,7 @@ model ConversationParticipant {
   role           String       @default("member")
   joinedAt       DateTime     @default(now())
   deletedAt      DateTime?
+
   @@unique([conversationId, userId])
 }
 
@@ -416,18 +383,18 @@ model Message {
 }
 
 model Module {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
-  maxMembers  Int     @default(50)
-  joinPin     String  @unique
-  creatorId   String  @db.ObjectId
-  creator     User    @relation("ModuleCreator", fields: [creatorId], references: [id])
-  members ModuleMember[]
-  events  Event[]
-  tasks   Task[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  maxMembers  Int            @default(50)
+  joinPin     String         @unique
+  creatorId   String         @db.ObjectId
+  creator     User           @relation("ModuleCreator", fields: [creatorId], references: [id])
+  members     ModuleMember[]
+  events      Event[]
+  tasks       Task[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model ModuleMember {
@@ -438,15 +405,17 @@ model ModuleMember {
   user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   role     ModuleRole @default(MEMBER)
   joinedAt DateTime   @default(now())
+
   @@unique([moduleId, userId])
 }
+
 model Category {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name   String
-  color  String
+  name  String
+  color String
 
   createdAt DateTime @default(now())
 }
@@ -468,6 +437,6 @@ model CheckIn {
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date        DateTime // the day being checked in for
-  taskEntries Json     // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
+  taskEntries Json // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
   createdAt   DateTime @default(now())
 }
