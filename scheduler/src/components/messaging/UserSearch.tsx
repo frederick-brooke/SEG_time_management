@@ -33,7 +33,7 @@ export default function UserSearch() {
 
   // Only show results after 2 characters to avoid noisy single-letter matches
   const filteredFriends = query.length < 2 ? [] : friends.filter((f) =>
-    `${f.fname} ${f.lname} ${f.username}`.toLowerCase().includes(query.toLowerCase())
+    `${f.fname ?? ""} ${f.lname ?? ""} ${f.username}`.toLowerCase().includes(query.toLowerCase())
   );
 
   const filteredGroups = query.length < 2 ? [] : groups.filter((g) =>
