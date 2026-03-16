@@ -125,7 +125,7 @@ function ConversationMenu({
       </button>
       {open && (
         <div
-          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px]"
+          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-35"
           style={{
             background: "rgba(15,20,40,0.95)",
             border: "1px solid rgba(255,255,255,0.08)",

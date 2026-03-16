@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 
 type Message = {
   id: string;
@@ -45,18 +46,20 @@ function SenderAvatar({
 }) {
   if (src)
     return (
-      <img
+      <Image
         src={src}
         alt={username}
+        width={28}
+        height={28}
         onClick={onClick}
-        className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+        className="w-7 h-7 rounded-full object-cover shrink-0"
         style={{ cursor: onClick ? "pointer" : "default" }}
       />
     );
   return (
     <div
       onClick={onClick}
-      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
       style={{
         background: "linear-gradient(135deg, rgba(88,101,242,0.5), rgba(139,92,246,0.5))",
         cursor: onClick ? "pointer" : "default",
@@ -230,7 +233,7 @@ export function MessageBubble({
         onMouseLeave={() => { onMouseLeave(); setShowMenu(false); }}
       >
         {!isMe && (
-          <div className="w-7 flex-shrink-0 self-end">
+          <div className="w-7 shrink-0 self-end">
             {isLast ? (
               <SenderAvatar
                 src={msg.sender.pfp}
@@ -268,7 +271,7 @@ export function MessageBubble({
           {/* Bubble + three-dot menu */}
           <div className={`relative flex items-center gap-1 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
             <div
-              className={`px-4 py-2 text-sm break-words transition-opacity duration-150 ${isOptimistic ? "opacity-50" : "opacity-100"} ${isMe ? myRadius : theirRadius}`}
+              className={`px-4 py-2 text-sm wrap-break-word transition-opacity duration-150 ${isOptimistic ? "opacity-50" : "opacity-100"} ${isMe ? myRadius : theirRadius}`}
               style={isMe ? {
                 background: "linear-gradient(135deg, rgba(88,101,242,0.75), rgba(99,111,255,0.65))",
                 border: "1px solid rgba(99,111,255,0.3)",
@@ -308,7 +311,7 @@ export function MessageBubble({
 
                 {showMenu && (
                   <div
-                    className="absolute z-40 rounded-xl py-1 min-w-[130px]"
+                    className="absolute z-40 rounded-xl py-1 min-w-32.5"
                     style={{
                       top: "100%",
                       left: 0,

@@ -35,7 +35,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
     >
       {/* Sidebar */}
       <aside
-        className="flex flex-col flex-shrink-0 transition-all duration-300 overflow-hidden"
+        className="flex flex-col shrink-0 transition-all duration-300 overflow-hidden"
         style={{
           width: sidebarOpen ? "320px" : "0px",
           borderRight: sidebarOpen ? "1px solid rgba(255,255,255,0.06)" : "none",
@@ -43,7 +43,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
         }}
       >
         <div className="flex flex-col h-full" style={{ width: "320px" }}>
-          <div className="p-4 flex-shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="p-4 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <button
               onClick={() => router.push("/dashboard")}
               className="text-sm flex items-center gap-1 mb-3 transition-colors"
@@ -66,7 +66,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         {isMobile && conversationId && (
           <div
-            className="flex-shrink-0 px-3 py-2"
+            className="shrink-0 px-3 py-2"
             style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
           >
             <button

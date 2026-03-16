@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Participant = {
   userId: string;
@@ -50,7 +51,7 @@ export function MembersPanel({ participants, currentUserId, isAdmin, onAddMember
                 className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-75"
               >
                 {p.user.pfp ? (
-                  <img src={p.user.pfp} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  <Image src={p.user.pfp} alt={p.user.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
                 ) : (
                   <div
                     className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center shrink-0"

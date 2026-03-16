@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 
 type User = { id: string; username: string; fname?: string | null; pfp?: string | null };
 
@@ -93,7 +94,7 @@ export function CreateGroupModal({
             >
               <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="accent-indigo-500" />
               {u.pfp ? (
-                <img src={u.pfp} className="w-7 h-7 rounded-full object-cover" />
+                <Image src={u.pfp} alt={u.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
               ) : (
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium"
