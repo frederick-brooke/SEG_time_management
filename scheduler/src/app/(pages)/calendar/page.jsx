@@ -1,32 +1,19 @@
 import CalendarView from "components/CalendarView";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "lib/auth";
-import { prisma } from "lib/prisma";
 import GoogleLinkButton from "@/src/components/googleLinkButton";
 
+// ---------------------------------------------------------------------------
+// We intentionally do NOT pre-fetch events/tasks here.
+// CalendarView fetches everything on mount via refreshEvents() + refreshTasks()
+// which ensures:
+//   a) recurring events are expanded correctly via the API route
+//   b) unscheduledTasks uses shouldShowAsUnscheduled() not a simple DB filter
+//   c) no stale initial state on first paint
+// ---------------------------------------------------------------------------
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions);
   if (!session) throw new Error("Not authenticated");
-
-  const events = await prisma.event.findMany({
-    where: { userId: session.user.id },
-    orderBy: { start: "asc" },
-  });
-
-  const tasks = await prisma.task.findMany({
-    where: { userId: session.user.id, scheduledDate: { not: null } },
-    orderBy: { scheduledDate: "asc" },
-  });
-
-  const unscheduledTasks = await prisma.task.findMany({
-    where: { userId: session.user.id, scheduledDate: null, completed: false },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const allTasks = await prisma.task.findMany({
-    where: { userId: session.user.id, completed: false },
-    orderBy: { dueDate: "asc" },
-  });
 
   return (
     <main className="container mx-auto p-8">
@@ -35,10 +22,10 @@ export default async function CalendarPage() {
         <GoogleLinkButton isConnected={session.user.googleConnected} />
       </div>
       <CalendarView
-        events={events}
-        tasks={tasks}
-        allTasks={allTasks}
-        unscheduledTasks={unscheduledTasks}
+        events={[]}
+        tasks={[]}
+        allTasks={[]}
+        unscheduledTasks={[]}
         userId={session.user.id}
         googleConnected={session.user.googleConnected}
       />
