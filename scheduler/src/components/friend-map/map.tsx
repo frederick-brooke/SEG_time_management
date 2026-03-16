@@ -1,23 +1,22 @@
 "use client";
 
+/**
+ * Kept for backwards compatibility.
+ * Re-exports the dynamic-wrapped FriendMap from the shared map components.
+ */
 import dynamic from "next/dynamic";
-
-interface Friend {
-  id: string;
-  username: string;
-  name: string;
-  city?: string;
-  country?: string;
-  location: { lat: number; lng: number } | null;
-  pfp?: string;
-}
+import { Friend } from "@/src/lib/map";
 
 interface FriendMapProps {
   friends: Friend[];
 }
 
 const FriendMap = dynamic<FriendMapProps>(
-  () => import("./map-client").then((mod) => mod.FriendMap),
+  () => import("@/src/components/map/CombinedMap").then((m) => ({
+    default: ({ friends }: FriendMapProps) => (
+      <m.CombinedMap friends={friends} events={[]} defaultMode="friends" />
+    ),
+  })),
   {
     ssr: false,
     loading: () => (
