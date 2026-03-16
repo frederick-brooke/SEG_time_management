@@ -40,21 +40,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(existing);
   }
 
-  const conversation = await prisma.conversation.create({
-    data: {
-      isGroup: false,
-      participants: {
-        create: [{ userId: session.user.id }, { userId: targetUserId }],
-      },
-    },
-    include: {
-      participants: {
-        include: {
-          user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
+  try {
+    const conversation = await prisma.conversation.create({
+      data: {
+        isGroup: false,
+        participants: {
+          create: [{ userId: session.user.id }, { userId: targetUserId }],
         },
       },
-    },
-  });
-
-  return NextResponse.json(conversation);
+      include: {
+        participants: {
+          include: {
+            user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
+          },
+        },
+      },
+    });
+    return NextResponse.json(conversation);
+  } catch (err) {
+    console.error("Failed to create conversation", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
 }
