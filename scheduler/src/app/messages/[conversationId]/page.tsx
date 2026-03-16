@@ -109,7 +109,6 @@ export default function ConversationPage() {
     initialLoadDone.current = false;
   }, [conversationId]);
 
-  // Scroll to bottom on initial message load
   useEffect(() => {
     if (messages.length > 0 && !initialLoadDone.current) {
       initialLoadDone.current = true;
@@ -146,7 +145,6 @@ export default function ConversationPage() {
     return () => { if (el) observer.unobserve(el); };
   }, [loadMore]);
 
-  // Subscribe to Pusher channel for real-time new messages and typing events
   useEffect(() => {
     if (!conversationId) return;
     const channel = pusher.subscribe(`conversation-${conversationId}`);
@@ -302,7 +300,14 @@ export default function ConversationPage() {
     const sameSenderAsPrev = prev?.sender.id === msg.sender.id && !showDateDivider;
     const sameSenderAsNext = next?.sender.id === msg.sender.id && new Date(next.createdAt).toDateString() === currDate;
 
-    return { msg, showDateDivider, isFirst: !sameSenderAsPrev, isLast: !sameSenderAsNext };
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const dateDividerLabel =
+      currDate === today ? "Today"
+      : currDate === yesterday ? "Yesterday"
+      : new Date(msg.createdAt).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+
+    return { msg, showDateDivider, dateDividerLabel, isFirst: !sameSenderAsPrev, isLast: !sameSenderAsNext };
   });
 
   return (
@@ -342,7 +347,7 @@ export default function ConversationPage() {
           )}
         </div>
 
-        {grouped.map(({ msg, showDateDivider, isFirst, isLast }) => (
+        {grouped.map(({ msg, showDateDivider, dateDividerLabel, isFirst, isLast }) => (
           <MessageBubble
             key={msg.id}
             msg={msg}
@@ -350,6 +355,7 @@ export default function ConversationPage() {
             isFirst={isFirst}
             isLast={isLast}
             showDateDivider={showDateDivider}
+            dateDividerLabel={dateDividerLabel}
             isHovered={hoveredId === msg.id}
             onMouseEnter={() => setHoveredId(msg.id)}
             onMouseLeave={() => setHoveredId(null)}
@@ -362,8 +368,7 @@ export default function ConversationPage() {
             <div className="w-7" />
             <div
               className="rounded-2xl px-4 py-3 flex gap-1 items-center"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
-            >
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
               <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
               <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
               <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />

@@ -39,12 +39,12 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       <aside
         className="flex flex-col shrink-0 transition-all duration-300 overflow-hidden"
         style={{
-          width: sidebarOpen ? "320px" : "0px",
+          width: sidebarOpen ? "380px" : "0px",
           borderRight: sidebarOpen ? "1px solid rgba(255,255,255,0.06)" : "none",
           minWidth: 0,
         }}
       >
-        <div className="flex flex-col h-full" style={{ width: "320px" }}>
+        <div className="flex flex-col h-full" style={{ width: "380px" }}>
           <div className="p-4 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <button
               onClick={() => router.push("/dashboard")}
