@@ -83,7 +83,7 @@ export default function ExamDetailPage() {
                                     <input
                                         className="flex-1 p-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
                                         placeholder="Topic Name"
-                                        values={topics.title}
+                                        values={topic.title}
                                         onChange={(e) => updateTopic(index, 'title', e.target.value)}
                                     />
 
@@ -97,7 +97,7 @@ export default function ExamDetailPage() {
                                                     e.preventDefault();
                                                 }
                                             }}
-                                            value={topics.duration}
+                                            value={topic.duration}
                                             onChange={(e) => updateTopic(index, 'duration', parseInt(e.target.value) || 0)}
                                         />
                                         <span className="text-[10px] text-muted-foreground font-bold">MINS</span>
@@ -111,10 +111,11 @@ export default function ExamDetailPage() {
                                     onChange={(e) => updateTopic(index, 'url', e.target.value)}
                                 />
 
+                                {/* Circular X button to delete a topic */}
                                 {topics.length > 1 && (
                                     <button 
                                         onClick={() => removeTopic(index)}
-                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify center"
+                                        className="flex items-center justify-center shrink-0 w-6 h-6 rouded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-colors text-[10px] font-bold"
                                     >
                                         x
                                     </button>
