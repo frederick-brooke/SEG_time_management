@@ -101,8 +101,11 @@ export default function Page() {
         <hr className="border-white/5" />
 
         {/* -- Grid Layout for Cards -- */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start pt-12">
           <ComingUpSoon userId={session?.user?.id} />
+
+          <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.2)] rounded-full opacity-50" />
+
           <UpcomingExams exams={exams} />
         </div>
 
