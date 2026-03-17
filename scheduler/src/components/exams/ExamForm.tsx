@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
 
-
 /**
  * The core form component for creating or updating exam settings.
  * @param {Object} props The component properties.
@@ -16,6 +15,9 @@ import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
 export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSuccess }) {
     const [serverError, setServerError] = useState("");
     const [isPending, setIsPending] = useState(false);
+    const formLabelStyle = "block text-[12px] font-black uppercase tracking-widest text-white/40 ml-1";
+    const inputStyle = "w-full bg-white/10 border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-blue-500/40 rounded-xl transition-all outline-none text-base font-medium shadow-inner [color-scheme:dark]";
+    const saveStyle = "bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl px-2 py-2 uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/50 transition-all";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -61,45 +63,45 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             )}
 
             <div>
-                <label className="block text-sm font-semibold mb-1">Exam Title</label>
+                <label className={formLabelStyle}>Exam Title</label>
                 <input 
                     name="title" 
                     defaultValue={editingExam?.title || ""}
                     required
-                    className="w-full border-2 p-3 rounded-xl text-black"  
+                    className={inputStyle}  
                 />
             </div>
             <div>
-                <label className="block text-sm font-semibold mb-1">Exam Date</label>
+                <label className={formLabelStyle}>Exam Date</label>
                 <input 
                     name="examDate" 
                     type="date" 
                     defaultValue={editingExam ? new Date(editingExam.examDate).toISOString().split('T')[0] : ""}
                     required 
-                    className="w-full border-2 p-3 rounded-xl text-black"  
+                    className={inputStyle} 
                 />                        
             </div>
             <div>
-                <label className="block text-sm font-semibold mb-1">Daily Study Goal (mins)</label>
+                <label className={formLabelStyle}>Daily Study Goal (mins)</label>
                 <input 
                     name="maxTimePerDay" 
                     type="number" 
                     defaultValue={editingExam?.maxTimePerDay || ""}
                     required 
-                    className="w-full border-2 p-3 rounded-xl text-black"
+                    className={inputStyle}
                 />                        
             </div>
             <div className="flex justify-end gap-3 pt-4">
                 <button 
                     type="button" 
                     onClick={onSuccess} 
-                    className="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium"
+                    className="text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                 >
                     Cancel
                 </button>
                 <button 
                     type="submit" 
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition"
+                    className={saveStyle}
                 >
                     {isPending? "Saving..." : editingExam ? "Update Settings" : "Save Exam"}
                 </button>            
