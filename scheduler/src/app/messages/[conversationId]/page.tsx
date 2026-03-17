@@ -10,6 +10,7 @@ import { MembersPanel } from "@/components/messaging/MembersPanel";
 import { AddMemberModal } from "@/components/messaging/AddMemberModal";
 import { MessageBubble } from "@/components/messaging/MessageBubble";
 import { MessageInput } from "@/components/messaging/MessageInput";
+import { StarBackground } from "@/components/ui/StarBackground";
 
 type Message = {
   id: string;
@@ -311,7 +312,10 @@ export default function ConversationPage() {
   });
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
+    <div className="chat-bg relative flex flex-col h-full" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
+      
+      <StarBackground />
+
       {convDetails?.isGroup && (
         <GroupHeader
           name={convDetails.name}

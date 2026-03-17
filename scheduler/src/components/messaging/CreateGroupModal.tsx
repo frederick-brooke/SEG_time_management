@@ -73,7 +73,7 @@ export function CreateGroupModal({
             color: "rgba(210,220,255,0.85)",
             caretColor: "rgba(99,111,255,0.8)",
           }}
-          placeholder="Group name (e.g. Study Squad)"
+          placeholder="Group name (e.g. Dream Team)"
           value={name}
           onChange={(e) => { setName(e.target.value); setDuplicate(false); }}
           onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,111,255,0.4)")}
