@@ -12,6 +12,7 @@ import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import  TaskViewDialog  from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
+import { LunarCard } from "./ui/lunar-card";
 
 export function ComingUpSoon({ userId }) {
   const {
@@ -38,13 +39,13 @@ export function ComingUpSoon({ userId }) {
   const getPriorityStyle = (priority) => {
     switch (priority) {
       case "High":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
+        return "border-red-500/30 bg-red-500/10 text-red-400";
       case "Medium":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+        return "border-amber-500/30 bg-amber-500/10 text-amber-400";
       case "Low":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
+        return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
       default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
+        return "border-white/10 bg-white/5 text-white/50";
     }
   };
 
@@ -77,23 +78,23 @@ export function ComingUpSoon({ userId }) {
 
   return (
     <>
-      <Card className="max-h-[450px] flex flex-col overflow-hidden bg-card border shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b shrink-0 bg-card">
-          <CardTitle className="text-base font-semibold">
+      <div className="flex flex-col h-full">
+        <div className="flex flex-row items-center justify-between px-1 mb-6">
+          <h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
             Coming Up Soon
-          </CardTitle>
+          </h2>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsDialogOpen(true)}
-              className="text-xs bg-slate-900 text-white px-2 py-1 rounded">
+              className="text-[10px] font-black uppercase tracking-wider bg-blue-400 text-gray-950 px-3 py-1.5 rounded-lg hover:bg-blue-300 transition-colors shadow-[0_0_15px_rgba(90,165,250,0.4)]">
                 New
             </button>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-white/40" />
           </div>
-        </CardHeader>
+        </div>
 
-        <div className="overflow-y-auto p-4 space-y-3 custom-scrollbar" style={{ maxHeight: "350px" }}>
+        <div className="overflow-y-auto pt-0 pb-6 px-2 custom-scrollbar transition-all" style={{ maxHeight: "350px" }}>
           {comingSoonTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No tasks due soon</p>
+            <p className="text-sm text-white/30 text-center py-8 italic font-medium">No tasks due soon</p>
           ) : (
             <div className="space-y-3">
               {comingSoonTasks.map((task) => (
@@ -110,7 +111,7 @@ export function ComingUpSoon({ userId }) {
             </div>
             )}
         </div>
-      </Card>
+      </div>
 
       {/* Shared dialogs */}
       <TaskFormDialog

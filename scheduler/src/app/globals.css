@@ -139,3 +139,8 @@
 .moon-glow {
   filter: drop-shadow(0 0 40px rgba(140, 180, 255, 0.18));
 }
+
+@theme {
+  --color-lunar-blue: #5a96ff;
+  --color-lunar-purple: #a855f7;
+}
