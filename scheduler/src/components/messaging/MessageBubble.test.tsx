@@ -2,8 +2,6 @@ import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { MessageBubble } from "./MessageBubble";
 
-// Module mocks
-
 jest.mock("next/image", () => ({
   __esModule: true,
   default: ({ src, alt, onClick, style, ...props }: any) => (
@@ -11,12 +9,10 @@ jest.mock("next/image", () => ({
   ),
 }));
 
-// Shared test data
-
 const BASE_MSG = {
   id: "msg-1",
   content: "Hello world",
-  createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5m ago, today
+  createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
   sender: { id: "u-2", username: "bob", pfp: null },
 };
 
@@ -26,6 +22,7 @@ const defaultProps = {
   isFirst: true,
   isLast: true,
   showDateDivider: false,
+  dateDividerLabel: "Today",
   isHovered: false,
   onMouseEnter: jest.fn(),
   onMouseLeave: jest.fn(),
@@ -38,8 +35,6 @@ function setup(props: Partial<typeof defaultProps> = {}) {
 
 beforeEach(() => jest.clearAllMocks());
 
-// Date divider
-
 describe("MessageBubble – date divider", () => {
   it("does not render a date divider when showDateDivider is false", () => {
     setup({ showDateDivider: false });
@@ -47,7 +42,7 @@ describe("MessageBubble – date divider", () => {
   });
 
   it("renders 'Today' divider for a message sent today", () => {
-    setup({ showDateDivider: true });
+    setup({ showDateDivider: true, dateDividerLabel: "Today" });
     expect(screen.getByText("Today")).toBeInTheDocument();
   });
 
@@ -56,7 +51,7 @@ describe("MessageBubble – date divider", () => {
       ...BASE_MSG,
       createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
     };
-    setup({ msg, showDateDivider: true });
+    setup({ msg, showDateDivider: true, dateDividerLabel: "Yesterday" });
     expect(screen.getByText("Yesterday")).toBeInTheDocument();
   });
 
@@ -65,11 +60,12 @@ describe("MessageBubble – date divider", () => {
       ...BASE_MSG,
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     };
-    setup({ msg, showDateDivider: true });
-    // Any weekday name is acceptable — just verify it rendered something
     const weekdays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-    const found = weekdays.some((d) => screen.queryByText(d));
-    expect(found).toBe(true);
+    const label = weekdays.find(d =>
+      new Date(msg.createdAt).toLocaleDateString([], { weekday: "long" }) === d
+    ) ?? "Monday";
+    setup({ msg, showDateDivider: true, dateDividerLabel: label });
+    expect(screen.getByText(label)).toBeInTheDocument();
   });
 
   it("renders a short date for messages older than 7 days", () => {
@@ -77,14 +73,12 @@ describe("MessageBubble – date divider", () => {
       ...BASE_MSG,
       createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
     };
-    setup({ msg, showDateDivider: true });
-    // Should render something like "Mar 6" — just check it's not Today/Yesterday
+    const label = new Date(msg.createdAt).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+    setup({ msg, showDateDivider: true, dateDividerLabel: label });
     expect(screen.queryByText("Today")).not.toBeInTheDocument();
     expect(screen.queryByText("Yesterday")).not.toBeInTheDocument();
   });
 });
-
-// Message content
 
 describe("MessageBubble – content", () => {
   it("renders the message content", () => {
@@ -95,7 +89,6 @@ describe("MessageBubble – content", () => {
   it("renders the timestamp element", () => {
     const msg = { ...BASE_MSG, createdAt: new Date("2025-01-01T14:35:00").toISOString() };
     setup({ msg });
-    // Timestamp is always in the DOM; visibility is controlled by opacity
     const time = new Date("2025-01-01T14:35:00").toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -116,8 +109,6 @@ describe("MessageBubble – content", () => {
     expect(bubble).toBeInTheDocument();
   });
 });
-
-// Sender label & avatar
 
 describe("MessageBubble – sender label and avatar", () => {
   it("shows the sender username label for others' first messages", () => {
@@ -177,12 +168,9 @@ describe("MessageBubble – sender label and avatar", () => {
   });
 });
 
-// Own vs others' bubbles
-
 describe("MessageBubble – isMe layout", () => {
   it("does not render the avatar area for own messages", () => {
     setup({ isMe: true, isLast: true });
-    // No img and no initial letter avatar
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     expect(screen.queryByText("B")).not.toBeInTheDocument();
   });
@@ -192,8 +180,6 @@ describe("MessageBubble – isMe layout", () => {
     expect(screen.queryByRole("button", { name: "" })).not.toBeInTheDocument();
   });
 });
-
-// Hover behaviour
 
 describe("MessageBubble – hover", () => {
   it("calls onMouseEnter when the row is hovered", () => {
@@ -209,13 +195,10 @@ describe("MessageBubble – hover", () => {
   });
 });
 
-// Three-dot menu
-
 describe("MessageBubble – three-dot menu", () => {
   it("does not render the three-dot button for optimistic messages", () => {
     const msg = { ...BASE_MSG, id: "temp-xyz" };
     setup({ msg, isMe: false, isHovered: true });
-    // Menu button renders only when !isMe && !isOptimistic
     const menuButtons = document.querySelectorAll("button svg circle");
     expect(menuButtons.length).toBe(0);
   });
@@ -232,7 +215,6 @@ describe("MessageBubble – three-dot menu", () => {
     const menuBtn = document.querySelector("button svg")!.closest("button")!;
     fireEvent.click(menuBtn);
     expect(screen.getByText("Report")).toBeInTheDocument();
-
     fireEvent.mouseLeave(screen.getByText("Hello world").closest(".flex.items-end")!);
     expect(screen.queryByText("Report")).not.toBeInTheDocument();
   });
@@ -245,8 +227,6 @@ describe("MessageBubble – three-dot menu", () => {
     expect(screen.getByText("Report User")).toBeInTheDocument();
   });
 });
-
-// ReportModal
 
 describe("MessageBubble – ReportModal", () => {
   function openReportModal() {
@@ -274,30 +254,20 @@ describe("MessageBubble – ReportModal", () => {
   });
 
   it("POSTs to /api/report with correct payload", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
     window.alert = jest.fn();
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "HARASSMENT" } });
     fireEvent.change(screen.getByPlaceholderText(/additional details/i), {
       target: { value: "They were rude" },
     });
-
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
-
     expect(global.fetch).toHaveBeenCalledWith("/api/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        reportedUserId: "u-2",
-        reason: "HARASSMENT",
-        description: "They were rude",
-      }),
+      body: JSON.stringify({ reportedUserId: "u-2", reason: "HARASSMENT", description: "They were rude" }),
     });
   });
 
@@ -305,12 +275,10 @@ describe("MessageBubble – ReportModal", () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
     window.alert = jest.fn();
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
-
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith("Report submitted successfully.");
       expect(screen.queryByText("Report User")).not.toBeInTheDocument();
@@ -324,42 +292,29 @@ describe("MessageBubble – ReportModal", () => {
     });
     window.alert = jest.fn();
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
-
-    await waitFor(() =>
-      expect(window.alert).toHaveBeenCalledWith("Already reported")
-    );
+    await waitFor(() => expect(window.alert).toHaveBeenCalledWith("Already reported"));
   });
 
   it("shows fallback error message when response has no error field", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({}),
-    });
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
     window.alert = jest.fn();
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "OTHER" } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
-
-    await waitFor(() =>
-      expect(window.alert).toHaveBeenCalledWith("Something went wrong.")
-    );
+    await waitFor(() => expect(window.alert).toHaveBeenCalledWith("Something went wrong."));
   });
 
   it("shows 'Submitting...' while request is in flight", async () => {
-    global.fetch = jest.fn().mockReturnValue(new Promise(() => {})); // never resolves
+    global.fetch = jest.fn().mockReturnValue(new Promise(() => {}));
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
     fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /submitting/i })).toBeDisabled()
     );
@@ -375,15 +330,11 @@ describe("MessageBubble – ReportModal", () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
     window.alert = jest.fn();
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
-
     await waitFor(() => screen.queryByText("Report User") === null);
-
-    // Re-open the menu
     const menuBtn = document.querySelector("button svg")!.closest("button")!;
     fireEvent.click(menuBtn);
     expect(screen.getByText("Already reported")).toBeInTheDocument();
@@ -393,17 +344,14 @@ describe("MessageBubble – ReportModal", () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
     window.alert = jest.fn();
     openReportModal();
-
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
     await waitFor(() => screen.queryByText("Report User") === null);
-
     const menuBtn = document.querySelector("button svg")!.closest("button")!;
     fireEvent.click(menuBtn);
     fireEvent.click(screen.getByText("Already reported"));
-
     expect(screen.queryByText("Report User")).not.toBeInTheDocument();
   });
 });

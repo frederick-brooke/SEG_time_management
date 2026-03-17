@@ -72,7 +72,7 @@ const mockParticipant = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockTrigger = jest.fn().mockResolvedValue({});
-  jest.mocked(getServerSession).mockResolvedValue({ user: { id: "user-1" } });
+  jest.mocked(getServerSession).mockResolvedValue({ user: { id: "user-1", name: "Alice" } });
   jest.mocked(prisma.message.create).mockResolvedValue(mockMessage);
   jest.mocked(prisma.conversation.update).mockResolvedValue({} as any);
   jest.mocked(prisma.conversationParticipant.findMany).mockResolvedValue([
@@ -111,7 +111,7 @@ describe("POST /api/conversations/[conversationId]/messages", () => {
       const res = await POST(req, { params: makeParams("conv-1") });
       const data = await res.json();
       expect(res.status).toBe(400);
-      expect(data.error).toBe("Invalid JSON body");
+      expect(data.error).toBe("Missing content or conversationId");
     });
   });
 
