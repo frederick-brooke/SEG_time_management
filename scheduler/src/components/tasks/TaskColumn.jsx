@@ -12,7 +12,8 @@ export function TaskColumn({
 }) {
   return (
     <div
-      className={`flex-1 min-w-[300px] rounded-lg border p-4 ${status === "overdue" ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" : "bg-muted/20"}`}
+      className={`flex-1 min-w-[300px] rounded-lg border p-4 flex flex-col h-[calc(100vh-380px)] ${
+        status === "overdue" ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" : "bg-muted/20"}`}
     >
       <div className="mb-4 pb-3 border-b">
         <h3 className="font-semibold text-base">{title}</h3>
@@ -21,7 +22,7 @@ export function TaskColumn({
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 overflow-y-auto pr-2 flex-1 custom-scrollbar">
         {tasks.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
             No tasks
