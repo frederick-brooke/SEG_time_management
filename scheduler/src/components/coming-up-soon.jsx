@@ -77,17 +77,23 @@ export function ComingUpSoon({ userId }) {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <Card className="max-h-[450px] flex flex-col overflow-hidden bg-card border shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b shrink-0 bg-card">
           <CardTitle className="text-base font-semibold">
             Coming Up Soon
           </CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsDialogOpen(true)}
+              className="text-xs bg-slate-900 text-white px-2 py-1 rounded">
+                New
+            </button>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardHeader>
 
-        <CardContent>
+        <div className="overflow-y-auto p-4 space-y-3 custom-scrollbar" style={{ maxHeight: "350px" }}>
           {comingSoonTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tasks due soon</p>
+            <p className="text-sm text-muted-foreground text-center py-4">No tasks due soon</p>
           ) : (
             <div className="space-y-3">
               {comingSoonTasks.map((task) => (
@@ -102,8 +108,8 @@ export function ComingUpSoon({ userId }) {
                 />
               ))}
             </div>
-          )}
-        </CardContent>
+            )}
+        </div>
       </Card>
 
       {/* Shared dialogs */}

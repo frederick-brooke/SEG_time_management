@@ -101,7 +101,7 @@ export default function Page() {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-4 gap-6">
+      <div className="h-full max-h-[calc(100vh-200px)] overflow-hidden">
         <ComingUpSoon userId={session?.user?.id} />
         <UpcomingExams exams={exams} />
       </div>

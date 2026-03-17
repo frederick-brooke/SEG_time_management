@@ -30,9 +30,6 @@ export function TaskFormDialog({
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button>New</Button>
-      </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
