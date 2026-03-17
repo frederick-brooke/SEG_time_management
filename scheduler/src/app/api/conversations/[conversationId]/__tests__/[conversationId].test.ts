@@ -1,4 +1,4 @@
-import { POST, DELETE, PATCH } from "./route";
+import { POST, DELETE, PATCH } from "../route";
 
 // var needed here because jest.mock is hoisted above const/let declarations
 var mockTrigger = jest.fn().mockResolvedValue({});

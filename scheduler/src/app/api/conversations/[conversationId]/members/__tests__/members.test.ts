@@ -1,4 +1,4 @@
-import { POST, PATCH, DELETE } from "./route";
+import { POST, PATCH, DELETE } from "../route";
 
 jest.mock("next/server", () => ({
   NextRequest: jest.fn(),

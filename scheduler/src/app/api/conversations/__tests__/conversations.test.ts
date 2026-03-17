@@ -1,4 +1,4 @@
-import { GET, POST } from "./route";
+import { GET, POST } from "../route";
 
 jest.mock("next/server", () => ({
   NextResponse: {
