@@ -13,28 +13,96 @@ const pusher = new Pusher({
 });
 
 /**
- * POST /api/conversations/[conversationId]/messages
- * Creates a new message, updates the conversation's last message preview,
- * and notifies participants via Pusher.
+ * Sends a message to Pusher for a given channel and event.
+ * Logs errors but does not throw.
+ * @param channel - The Pusher channel name
+ * @param event - The Pusher event name
+ * @param data - The data payload
+ */
+async function triggerPusher(channel: string, event: string, data: any) {
+  try {
+    await pusher.trigger(channel, event, data);
+  } catch (err) {
+    console.error(`Pusher error on channel ${channel}:`, err);
+  }
+}
+
+/**
+ * Updates the conversation's last message and timestamp.
+ * @param conversationId - The conversation to update
+ * @param lastMessage - The content of the last message
+ */
+async function updateConversation(conversationId: string, lastMessage: string) {
+  return prisma.conversation.update({
+    where: { id: conversationId },
+    data: {
+      lastMessage,
+      lastMessageAt: new Date(),
+    },
+  });
+}
+
+/**
+ * Notifies all conversation participants (sidebar updates) about the latest message.
+ * @param conversationId - The conversation ID
+ * @param senderId - The ID of the message sender
+ * @param lastMessage - The content of the last message
+ */
+async function notifyParticipants(
+  conversationId: string,
+  senderId: string,
+  lastMessage: string
+) {
+  const participants = await prisma.conversationParticipant.findMany({
+    where: { conversationId },
+    select: { userId: true },
+  });
+
+  const conversationUpdate = {
+    id: conversationId,
+    lastMessage,
+    lastMessageAt: new Date().toISOString(),
+    senderId,
+  };
+
+  await Promise.all(
+    participants.map((p) =>
+      triggerPusher(`user-${p.userId}`, "conversation-updated", conversationUpdate)
+    )
+  );
+}
+
+/**
+ * Creates a new message in the database including the sender info.
+ * @param conversationId - The conversation ID
+ * @param senderId - The ID of the sender
+ * @param content - The message content
+ */
+async function createMessage(
+  conversationId: string,
+  senderId: string,
+  content: string
+) {
+  return prisma.message.create({
+    data: { conversationId, senderId, content },
+    include: {
+      sender: { select: { id: true, username: true, pfp: true } },
+    },
+  });
+}
+
+/**
+ * Main handler for creating a message in a conversation.
  */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await params;
-  let body: { content?: string } | null = null;
-  try {
-    body = await req.json();
-  } catch (err) {
-    console.error("Failed to parse JSON", err);
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
+  const body = await parseRequestBody(req);
   if (!body?.content || !conversationId) {
     return NextResponse.json(
       { error: "Missing content or conversationId" },
@@ -43,57 +111,31 @@ export async function POST(
   }
 
   try {
-    const message = await prisma.message.create({
-      data: {
-        content: body.content,
-        conversationId,
-        senderId: session.user.id,
-      },
-      include: {
-        sender: {
-          select: { id: true, username: true, pfp: true },
-        },
-      },
-    });
+    // Create message and update conversation
+    const message = await createMessage(conversationId, session.user.id, body.content);
+    await updateConversation(conversationId, body.content);
 
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: {
-        lastMessage: body.content,
-        lastMessageAt: new Date(),
-      },
-    });
-
-    // Message delivery to the open conversation view
-    pusher
-      .trigger(`conversation-${conversationId}`, "new-message", message)
-      .catch((err) => console.error("Pusher error:", err));
-
-    const participants = await prisma.conversationParticipant.findMany({
-      where: { conversationId },
-      select: { userId: true },
-    });
-
-    const conversationUpdate = {
-      id: conversationId,
-      lastMessage: body.content,
-      lastMessageAt: new Date().toISOString(),
-      senderId: session.user.id,
-    };
-
-    // Update each participant's sidebar with the latest message preview
-    await Promise.all(
-      participants.map((p) =>
-        pusher
-          .trigger(`user-${p.userId}`, "conversation-updated", conversationUpdate)
-          .catch((err) => console.error("Pusher user-channel error:", err))
-      )
-    );
+    // Notify Pusher channels
+    triggerPusher(`conversation-${conversationId}`, "new-message", message);
+    await notifyParticipants(conversationId, session.user.id, body.content);
 
     return NextResponse.json(message);
   } catch (err) {
     console.error("Failed to create message", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+/**
+ * Safely parses the request JSON.
+ * Returns null if invalid.
+ */
+async function parseRequestBody(req: NextRequest) {
+  try {
+    return await req.json();
+  } catch (err) {
+    console.error("Failed to parse JSON", err);
+    return null;
   }
 }
 
@@ -120,9 +162,7 @@ export async function DELETE(
     },
   });
 
-  if (!participant) {
-    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
-  }
+  if (!participant) { return NextResponse.json({ error: "Conversation not found" }, { status: 404 }); }
 
   try {
     await prisma.conversationParticipant.updateMany({
@@ -135,7 +175,6 @@ export async function DELETE(
       },
     });
 
-    // Remove the conversation from the user's sidebar
     await pusher
       .trigger(`user-${session.user.id}`, "conversation-deleted", { id: conversationId })
       .catch((err) => console.error("Pusher delete error:", err));

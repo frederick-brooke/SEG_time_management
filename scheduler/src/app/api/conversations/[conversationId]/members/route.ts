@@ -12,6 +12,77 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+/** Get session user or return unauthorized response */
+async function requireUser() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return null;
+  return session.user;
+}
+
+/** Check if user is admin in a conversation */
+async function isAdmin(conversationId: string, userId: string) {
+  const participant = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_userId: { conversationId, userId } },
+  });
+  return participant?.role === "admin";
+}
+
+/** Safely trigger a Pusher event */
+async function trigger(channel: string, event: string, data: any) {
+  try {
+    await pusher.trigger(channel, event, data);
+  } catch (err) {
+    console.error(`Pusher ${event} error:`, err);
+  }
+}
+
+/** Promote next oldest member to admin */
+async function promoteNextAdmin(conversationId: string, excludeUserId: string) {
+  const nextAdmin = await prisma.conversationParticipant.findFirst({
+    where: { conversationId, userId: { not: excludeUserId } },
+    orderBy: { joinedAt: "asc" },
+  });
+
+  if (!nextAdmin) return;
+
+  await prisma.conversationParticipant.update({
+    where: { conversationId_userId: { conversationId, userId: nextAdmin.userId } },
+    data: { role: "admin" },
+  });
+}
+
+/** Removes a participant from the conversation. */
+async function removeMember(conversationId: string, targetUserId: string) {
+  const leavingMember = await prisma.conversationParticipant.findUnique({
+    where: { conversationId_userId: { conversationId, userId: targetUserId } },
+  });
+
+  if (!leavingMember) return;
+
+  // Promote next admin if needed
+  if (leavingMember.role === "admin") await promoteNextAdmin(conversationId, targetUserId);
+
+  await prisma.conversationParticipant.delete({
+    where: { conversationId_userId: { conversationId, userId: targetUserId } },
+  });
+
+  // Notify removed member
+  await trigger(`user-${targetUserId}`, "conversation-deleted", { id: conversationId });
+
+  // Notify remaining participants
+  const remaining = await prisma.conversationParticipant.findMany({
+    where: { conversationId },
+    select: { userId: true },
+  });
+
+  await Promise.all(
+    remaining.map((p) =>
+      trigger(`user-${p.userId}`, "conversation-updated", { id: conversationId, refetch: true })
+    )
+  );
+}
+
+
 /**
  * POST /api/conversations/[conversationId]/members
  * Adds a user to the conversation. Requires the requester to be an admin.
@@ -20,29 +91,28 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await params;
   const { userId } = await req.json();
 
-  const requester = await prisma.conversationParticipant.findUnique({
-    where: { conversationId_userId: { conversationId, userId: session.user.id } },
-  });
-
-  if (requester?.role !== "admin") {
+  if (!(await isAdmin(conversationId, user.id))) {
     return NextResponse.json({ error: "Only admins can add members" }, { status: 403 });
   }
 
   const member = await prisma.conversationParticipant.create({
     data: { conversationId, userId, role: "member" },
-    include: { user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
+    include: {
+      user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
+    },
   });
 
   // Notify the new member so the conversation appears in their sidebar immediately
-  await pusher
-    .trigger(`user-${userId}`, "conversation-updated", { id: conversationId, refetch: true })
-    .catch((err) => console.error("Pusher add-member error:", err));
+  await trigger(`user-${userId}`, "conversation-updated", {
+    id: conversationId,
+    refetch: true,
+  });
 
   return NextResponse.json(member);
 }
@@ -55,17 +125,13 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await params;
   const { userId, role } = await req.json();
 
-  const requester = await prisma.conversationParticipant.findUnique({
-    where: { conversationId_userId: { conversationId, userId: session.user.id } },
-  });
-
-  if (requester?.role !== "admin") {
+  if (!(await isAdmin(conversationId, user.id))) {
     return NextResponse.json({ error: "Only admins can change roles" }, { status: 403 });
   }
 
@@ -80,7 +146,6 @@ export async function PATCH(
 
 /**
  * DELETE /api/conversations/[conversationId]/members
- * Removes a participant from the conversation.
  * - Any member can leave the groupchat.
  * - Only admins can remove others.
  * - If the removed user is the only admin, the next oldest participant is promoted.
@@ -89,63 +154,18 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await params;
   const body = await req.json().catch(() => ({}));
-  const targetUserId = body.userId ?? session.user.id;
-  const isSelf = targetUserId === session.user.id;
+  const targetUserId = body.userId ?? user.id;
+  const isSelf = targetUserId === user.id;
 
-  if (!isSelf) {
-    const requester = await prisma.conversationParticipant.findUnique({
-      where: { conversationId_userId: { conversationId, userId: session.user.id } },
-    });
-    if (requester?.role !== "admin") {
-      return NextResponse.json({ error: "Only admins can remove members" }, { status: 403 });
-    }
+  if (!isSelf && !(await isAdmin(conversationId, user.id))) {
+    return NextResponse.json({ error: "Only admins can remove members" }, { status: 403 });
   }
 
-  const leavingMember = await prisma.conversationParticipant.findUnique({
-    where: { conversationId_userId: { conversationId, userId: targetUserId } },
-  });
-
-  // Promote the next oldest member if the admin is leaving
-  if (leavingMember?.role === "admin") {
-    const nextAdmin = await prisma.conversationParticipant.findFirst({
-      where: { conversationId, userId: { not: targetUserId } },
-      orderBy: { joinedAt: "asc" },
-    });
-    if (nextAdmin) {
-      await prisma.conversationParticipant.update({
-        where: { conversationId_userId: { conversationId, userId: nextAdmin.userId } },
-        data: { role: "admin" },
-      });
-    }
-  }
-
-  await prisma.conversationParticipant.delete({
-    where: { conversationId_userId: { conversationId, userId: targetUserId } },
-  });
-
-  // Drop the conversation from the removed/leaving user's sidebar
-  await pusher
-    .trigger(`user-${targetUserId}`, "conversation-deleted", { id: conversationId })
-    .catch((err) => console.error("Pusher leave error:", err));
-
-  // Notify remaining participants so their member lists stay in sync
-  const remaining = await prisma.conversationParticipant.findMany({
-    where: { conversationId },
-    select: { userId: true },
-  });
-
-  await Promise.all(
-    remaining.map((p) =>
-      pusher
-        .trigger(`user-${p.userId}`, "conversation-updated", { id: conversationId, refetch: true })
-        .catch((err) => console.error("Pusher remaining error:", err))
-    )
-  );
-
+  await removeMember(conversationId, targetUserId);
   return NextResponse.json({ success: true });
 }

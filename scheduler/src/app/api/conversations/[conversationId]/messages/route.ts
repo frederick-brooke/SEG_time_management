@@ -14,13 +14,10 @@ export async function GET(
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await params;
-  const { searchParams } = new URL(req.url);
-  const cursor = searchParams.get("cursor");
+  const cursor = new URL(req.url).searchParams.get("cursor");
 
   // Check if this user has cleared their history for this conversation
   const participant = await prisma.conversationParticipant.findFirst({
@@ -30,23 +27,13 @@ export async function GET(
   const messages = await prisma.message.findMany({
     where: {
       conversationId,
-      // Only show messages sent after the user cleared their history
-      ...(participant?.deletedAt && {
-        createdAt: { gt: participant.deletedAt },
-      }),
+      ...(participant?.deletedAt && { createdAt: { gt: participant.deletedAt } }),
     },
     take: 20,
-    ...(cursor && {
-      // skip: 1 excludes the cursor message itself from the next page
-      skip: 1,
-      cursor: { id: cursor },
-    }),
+    // skip: 1 excludes the cursor message itself from the next page
+    ...(cursor && { skip: 1, cursor: { id: cursor } }),
     orderBy: { createdAt: "desc" },
-    include: {
-      sender: {
-        select: { id: true, username: true, pfp: true },
-      },
-    },
+    include: { sender: { select: { id: true, username: true, pfp: true } } },
   });
 
   return NextResponse.json(messages);
