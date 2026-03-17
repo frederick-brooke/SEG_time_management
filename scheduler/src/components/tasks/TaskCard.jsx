@@ -2,6 +2,7 @@ import * as React from "react";
 import { Button } from "components/ui/button";
 import { Checkbox } from "components/ui/checkbox";
 import { TaskActions } from "@/src/components/task-actions";
+import { ArrowRight, ArrowLeft, GripVertical } from "lucide-react";
 
 export function TaskCard({
   task,
@@ -30,17 +31,27 @@ export function TaskCard({
 
   return (
     <div className="flex items-center gap-2 rounded-lg border p-2.5 bg-card shadow-sm hover:shadow-md transition-shadow">
+    {(task.status === "todo" || task.status === "in-progress") && (
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 cursor-pointer shrink-0"
+        className="h-8 w-8 cursor-pointer shrink-0 hover:bg-muted"
         onClick={(e) => {
           e.stopPropagation();
-          onToggle(task.id);
+          let nextStatus = task.status;
+          if (task.status === "todo") nextStatus = "in-progress";
+          else if (task.status === "in-progress") nextStatus = "todo";
+          onToggle(task.id, nextStatus);
         }}
       >
-        <span className="text-muted-foreground text-sm">⋮⋮</span>
+        {task.status === "todo" && (
+          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+        )}
+        {task.status === "in-progress" && (
+          <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+        )}
       </Button>
+    )}
 
       <Checkbox
         id={`task-${task.id}`}
@@ -101,7 +112,7 @@ export function TaskCard({
         {subtasksList.length > 0 && (
           <div className="mt-2 pt-2 border-t border-dashed border-muted space-y-1">
             <p className="text-[10px] font-bold text-muted-foreground uppercase">Subtasks</p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
               {(Array.isArray(task.subtasks) 
               ? task.subtasks 
               : String(task.subtasks).split(',').filter(s => s.trim() !== "")
