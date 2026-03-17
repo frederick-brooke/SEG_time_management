@@ -35,16 +35,23 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       className="flex h-screen overflow-hidden"
       style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}
     >
-      {/* Sidebar */}
+      {/* Sidebar — fixed full screen on mobile, static 380px on desktop */}
       <aside
         className="flex flex-col shrink-0 transition-all duration-300 overflow-hidden"
         style={{
-          width: sidebarOpen ? "380px" : "0px",
-          borderRight: sidebarOpen ? "1px solid rgba(255,255,255,0.06)" : "none",
+          width: sidebarOpen ? (isMobile ? "100vw" : "380px") : "0px",
+          borderRight: sidebarOpen && !isMobile ? "1px solid rgba(255,255,255,0.06)" : "none",
           minWidth: 0,
+          ...(isMobile && {
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100vh",
+            zIndex: 50,
+          }),
         }}
       >
-        <div className="flex flex-col h-full" style={{ width: "380px" }}>
+        <div className="flex flex-col h-full" style={{ width: isMobile ? "100vw" : "380px" }}>
           <div className="p-4 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <button
               onClick={() => router.push("/dashboard")}
@@ -64,31 +71,33 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-        {isMobile && conversationId && (
-          <div
-            className="shrink-0 px-3 py-2"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-          >
-            <button
-              onClick={() => {
-                setSidebarOpen(true);
-                router.push("/messages");
-              }}
-              className="flex items-center gap-1.5 text-sm transition-colors"
-              style={{ color: "rgba(148,163,255,0.7)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,1)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.7)")}
+      {/* Main content — hidden on mobile when sidebar is open */}
+      {(!isMobile || !sidebarOpen) && (
+        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+          {isMobile && conversationId && (
+            <div
+              className="shrink-0 px-3 py-2"
+              style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
             >
-              ← Back
-            </button>
+              <button
+                onClick={() => {
+                  setSidebarOpen(true);
+                  router.push("/messages");
+                }}
+                className="flex items-center gap-1.5 text-sm transition-colors"
+                style={{ color: "rgba(148,163,255,0.7)" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,1)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.7)")}
+              >
+                ← Back
+              </button>
+            </div>
+          )}
+          <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+            {children}
           </div>
-        )}
-        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-          {children}
-        </div>
-      </main>
+        </main>
+      )}
     </div>
   );
 }
