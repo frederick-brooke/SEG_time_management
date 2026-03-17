@@ -14,16 +14,21 @@ export function TaskColumn({
   return (
     <div
       className={`flex-1 min-w-[300px] rounded-lg border p-4 flex flex-col h-[calc(100vh-380px)] ${
-        status === "overdue" ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900" : "bg-muted/20"}`}
+        status === "overdue" ? 
+          "bg-red-500/5 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.05)]" 
+          : "bg-white/[0.03] border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.02)]"
+        }`}
     >
-      <div className="mb-4 pb-3 border-b">
-        <h3 className="font-semibold text-base">{title}</h3>
-        <p className="text-xs text-muted-foreground mt-1">
+      <div className="mb-6 flex justify-between items-end border-b border-white/5 gap-1 px-2">
+        <h3 className={`font-black text-[11px] uppercase tracking-[0.4em] ${status === 'overdue' ? 'text-red-400' : 'text-white/80'}`}>
+          {title}
+        </h3>
+        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
           {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
         </p>
       </div>
 
-      <div className="space-y-3 overflow-y-auto pr-2 flex-1 custom-scrollbar">
+      <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar">
         {tasks.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground text-sm">
             No tasks

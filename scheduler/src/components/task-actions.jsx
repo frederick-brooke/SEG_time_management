@@ -7,29 +7,29 @@ export function TaskActions({ onView, onEdit, onDelete }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 text-white hover:bg-white-100"
                   onClick={onView}
                   title="View Task"
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4 hover:bg-white-100" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 text-white over:bg-white-100"
                   onClick={onEdit}
                   title="Edit Task"
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Pencil className="h-4 w-4 text-white hover:bg-white-100" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 text-white hover:bg-white-100"
                   onClick={onDelete}
                   title="Delete Task"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 hover:bg-white-100" />
                 </Button>
         </div>
     )

@@ -27,9 +27,18 @@ export function TaskFormDialog({
   onFormChange,
   onSubmit,
   exams = [],
+  showTrigger = true,
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button className="bg-blue-600 text-white font-black rounded-xl px-8 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all uppercase tracking-widest text-xs border border-blue-400/50">
+            + NEW TASK
+          </Button>
+        </DialogTrigger>
+      )}
+      
 
       <DialogContent>
         <DialogHeader>

@@ -83,12 +83,20 @@ export function ComingUpSoon({ userId }) {
           <h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
             Coming Up Soon
           </h2>
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsDialogOpen(true)}
-              className="text-[10px] font-black uppercase tracking-wider bg-blue-400 text-gray-950 px-3 py-1.5 rounded-lg hover:bg-blue-300 transition-colors shadow-[0_0_15px_rgba(90,165,250,0.4)]">
-                New
-            </button>
-            <Calendar className="h-4 w-4 text-white/40" />
+
+          <div className="flex items-center">
+            <TaskFormDialog
+              isOpen={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}
+              editingTaskId={editingTaskId}
+              formData={formData}
+              onFormChange={handleFormChange}
+              onSubmit={handleSubmitTask}
+              showTrigger={true}
+            />
           </div>
         </div>
 
@@ -114,17 +122,6 @@ export function ComingUpSoon({ userId }) {
       </div>
 
       {/* Shared dialogs */}
-      <TaskFormDialog
-        isOpen={isDialogOpen}
-        onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}
-        editingTaskId={editingTaskId}
-        formData={formData}
-        onFormChange={handleFormChange}
-        onSubmit={handleSubmitTask}
-      />
       <DeleteTaskDialog
         isOpen={taskToDelete !== null}
         onConfirm={confirmDeleteTask}
