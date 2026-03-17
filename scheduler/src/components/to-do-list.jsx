@@ -93,23 +93,41 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
   }
 
   return (
-    <Card className="@container/card">
-      <CardHeader>
-        <CardTitle>TO DO LIST</CardTitle>
-        <CardDescription>Get ahead of your tasks!</CardDescription>
+    <Card className="bg-transparent border-none shadow-none @container/card overflow-visible">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle className="text-5xl font-black tracking-tighter text-white uppercase">TO DO LIST</CardTitle>
+        <CardDescription className="text-white/40 font-bold uppercase tracking-[0.3em] text-[12px] mt-2">Get ahead of your tasks!</CardDescription>
 
-        <div className="mt-4 space-y-2">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Task Completion</span>
-            <span className="font-medium text-foreground">
+        {/* Progress Bar */}
+        <div className="mt-8 max-w-md space-y-3">
+          <div className="flex justify-between text-[14px] font-black uppercase tracking-[0.2em]">
+            <span className="text-white/60">Task Completion</span>
+            <span className="text-lg font-black text-cyan-400 drop-shadow-[0_0_10x_rgba(59,130,246,0.5)]">
               {progressPercentage}%
             </span>
           </div>
-          <Progress value={progressPercentage} className="h-2" />
+
+          <div className="relative">
+            <style dangerouslySetInnerHTML={{ __html: `
+            [data-progress-indicator] > div {
+              background-color: #38bdf8 !important;
+              box-shadow: none !important;
+            }
+          `}} />
+
+          <Progress 
+            data-progress-indicator
+            value={progressPercentage} 
+            className="h-3 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]" />
+          </div>
         </div>
 
-        <CardAction className="flex gap-2">
-          <Button onClick={sortTasks}>Sort</Button>
+        <CardAction className="flex gap-3 mt-8">
+          <Button onClick={sortTasks}
+                  className="bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+          >
+            Sort
+          </Button>
           <TaskFormDialog
             isOpen={isDialogOpen}
             onOpenChange={(open) => {
@@ -130,11 +148,11 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
       </CardHeader>
 
       {/* Search Bar */}
-      <div className="px-6 mb-6">
+      <div className="px-0 mb-10">
         <div className="mt-4">
             <input
               placeholder="Search Tasks"
-              className="w-full max-w-sm p-2 text-sm border rounded-md bg-transparent"
+              className="w-full max-w-sm p-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white placeholder:text-white/20 focus:ring-blue-500/40 transition-all backdrop-blur-md outline-none"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
