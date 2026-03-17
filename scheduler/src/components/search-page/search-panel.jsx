@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SearchControls from "@/components/search-page/search-controls";
 import SearchUsers from "@/components/search-page/searchUsers";
 import UserFilter from "@/components/admin/user-filter-panel";
@@ -19,6 +19,19 @@ export default function SearchPanel({ open, onClose }) {
         setDraftUserFilters(defaultUserFilters);
         setAppliedUserFilters(defaultUserFilters);
     }
+
+    //debounce for the searching by 30 miliseconds instead of instantenous returning results
+    useEffect(() => {
+        const delay = setTimeout(() => {
+            setAppliedUserFilters(prev => ({
+                ...prev,
+                search: draftUserFilters.search,
+                page: 1
+            }));
+        }, 300);
+
+        return () => clearTimeout(delay);
+    }, [draftUserFilters.search]);
 
     const [isUserFilterOpen,setIsUserFilterOpen] = useState(false);
     const {users,totalUserPages,totalUsers} = useUsers(appliedUserFilters,"/api/users/search");
