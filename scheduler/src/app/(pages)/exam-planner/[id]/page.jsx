@@ -115,7 +115,7 @@ export default function ExamDetailPage() {
                                 {topics.length > 1 && (
                                     <button 
                                         onClick={() => removeTopic(index)}
-                                        className="flex items-center justify-center shrink-0 w-6 h-6 rouded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-colors text-[10px] font-bold"
+                                        className="flex items-center justify-center shrink-0 w-6 h-6 rouded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-colors text-[10px]"
                                     >
                                         x
                                     </button>

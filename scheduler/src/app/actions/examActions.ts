@@ -232,8 +232,6 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
             dueDate: dueDate,
             examId: examId,
             userId: userId,
-            durationHours: hours.toString(),
-            durationMins: mins.toString(),
             duration: topic.duration,
             url: topic.url || null
         }
