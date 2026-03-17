@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { validatePassword } from 'lib/password';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -28,8 +29,9 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
 
@@ -113,7 +115,12 @@ export default function RegisterPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-gray-500">Must be at least 6 characters</p>
+              <ul className="mt-1 text-xs text-gray-500 list-disc list-inside">
+                <li>Minimum 6 characters</li>
+                <li>At least one uppercase letter</li>
+                <li>At least one lowercase letter</li>
+                <li>At least one number or symbol</li>
+              </ul>
             </div>
 
             <div>
