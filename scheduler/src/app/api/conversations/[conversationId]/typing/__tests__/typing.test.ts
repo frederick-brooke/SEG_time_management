@@ -57,6 +57,34 @@ describe("POST /api/conversations/[conversationId]/typing", () => {
     });
   });
 
+  describe("validation (parseRequestBody)", () => {
+    it("returns 400 when body is invalid JSON", async () => {
+      const req = new Request("http://localhost/api/conversations/conv-1/typing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "not-json",
+      }) as any;
+      const res = await POST(req, { params: makeParams("conv-1") });
+      const data = await res.json();
+      expect(res.status).toBe(400);
+      expect(data.error).toBe("Invalid request body");
+    });
+
+    it("returns 400 when isTyping is missing", async () => {
+      const res = await POST(makeRequest({}), { params: makeParams("conv-1") });
+      const data = await res.json();
+      expect(res.status).toBe(400);
+      expect(data.error).toBe("Invalid request body");
+    });
+
+    it("returns 400 when isTyping is not a boolean", async () => {
+      const res = await POST(makeRequest({ isTyping: "yes" }), { params: makeParams("conv-1") });
+      const data = await res.json();
+      expect(res.status).toBe(400);
+      expect(data.error).toBe("Invalid request body");
+    });
+  });
+
   describe("success", () => {
     it("returns ok: true", async () => {
       const res = await POST(makeRequest({ isTyping: true }), { params: makeParams("conv-1") });
@@ -64,9 +92,12 @@ describe("POST /api/conversations/[conversationId]/typing", () => {
       expect(res.status).toBe(200);
       expect(data.ok).toBe(true);
     });
+  });
 
+  describe("triggerTypingIndicator", () => {
     it("triggers Pusher on the correct channel", async () => {
       await POST(makeRequest({ isTyping: true }), { params: makeParams("conv-1") });
+      await Promise.resolve();
       expect(mockTrigger).toHaveBeenCalledWith(
         "conversation-conv-1",
         "typing",
@@ -76,6 +107,7 @@ describe("POST /api/conversations/[conversationId]/typing", () => {
 
     it("includes userId, username and isTyping in the Pusher payload", async () => {
       await POST(makeRequest({ isTyping: true }), { params: makeParams("conv-1") });
+      await Promise.resolve();
       expect(mockTrigger).toHaveBeenCalledWith(
         expect.any(String),
         "typing",
@@ -89,18 +121,18 @@ describe("POST /api/conversations/[conversationId]/typing", () => {
 
     it("passes isTyping: false correctly", async () => {
       await POST(makeRequest({ isTyping: false }), { params: makeParams("conv-1") });
+      await Promise.resolve();
       expect(mockTrigger).toHaveBeenCalledWith(
         expect.any(String),
         "typing",
         expect.objectContaining({ isTyping: false })
       );
     });
-  });
 
-  describe("Pusher fire-and-forget", () => {
     it("still returns ok even if Pusher trigger fails", async () => {
       mockTrigger = jest.fn().mockRejectedValue(new Error("Pusher error"));
       const res = await POST(makeRequest({ isTyping: true }), { params: makeParams("conv-1") });
+      await Promise.resolve();
       const data = await res.json();
       expect(res.status).toBe(200);
       expect(data.ok).toBe(true);
