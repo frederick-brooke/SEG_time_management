@@ -279,7 +279,7 @@ describe("ConversationList – rendering", () => {
     setupMocks({ conversations: [DIRECT_CONV] });
     render(<ConversationList />);
     await waitFor(() => {
-      const dot = document.querySelector(".rounded-full.w-2.h-2");
+      const dot = document.querySelector(".w-2\\.5.h-2\\.5.rounded-full");
       expect(dot).toBeInTheDocument();
     });
   });
@@ -341,12 +341,12 @@ describe("ConversationList – navigation", () => {
     setupMocks({ conversations: [DIRECT_CONV] });
     render(<ConversationList />);
     await waitFor(() => screen.getByText("Alice Smith"));
-    expect(document.querySelector(".rounded-full.w-2.h-2")).toBeInTheDocument();
+    expect(document.querySelector(".w-2\\.5.h-2\\.5.rounded-full")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Alice Smith").closest("button")!);
 
     await waitFor(() =>
-      expect(document.querySelector(".rounded-full.w-2.h-2")).not.toBeInTheDocument()
+      expect(document.querySelector(".w-2\\.5.h-2\\.5.rounded-full")).not.toBeInTheDocument()
     );
   });
 });
@@ -509,7 +509,7 @@ describe("ConversationList – Pusher", () => {
     });
 
     await waitFor(() => {
-      expect(document.querySelector(".rounded-full.w-2.h-2")).toBeInTheDocument();
+      expect(document.querySelector(".w-2\\.5.h-2\\.5.rounded-full")).toBeInTheDocument();
     });
   });
 
@@ -528,7 +528,7 @@ describe("ConversationList – Pusher", () => {
     });
 
     await waitFor(() => {
-      expect(document.querySelector(".rounded-full.w-2.h-2")).not.toBeInTheDocument();
+      expect(document.querySelector(".w-2\\.5.h-2\\.5.rounded-full")).not.toBeInTheDocument();
     });
   });
 

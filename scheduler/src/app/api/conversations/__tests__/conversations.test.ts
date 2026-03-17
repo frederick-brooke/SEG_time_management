@@ -129,6 +129,21 @@ describe("GET /api/conversations", () => {
       expect(data[0].hasUnread).toBe(true);
     });
 
+    it("annotates hasUnread: true when lastReadAt is null and there is a message from someone else", async () => {
+      const conv = {
+        ...mockDmConversation,
+        participants: [
+          makeParticipant("user-1", { lastReadAt: null }),
+          makeParticipant("user-2"),
+        ],
+        messages: [{ senderId: "user-2", createdAt: new Date("2024-01-02") }],
+      };
+      jest.mocked(prisma.conversation.findMany).mockResolvedValue([conv] as any);
+      const res = await GET();
+      const data = await res.json();
+      expect(data[0].hasUnread).toBe(true);
+    });
+
     it("annotates hasUnread: false when the last message was sent by me", async () => {
       const conv = {
         ...mockDmConversation,
@@ -203,7 +218,32 @@ describe("POST /api/conversations", () => {
     });
   });
 
-  describe("1-to-1 conversation", () => {
+  describe("validation (parseRequestBody)", () => {
+    it("returns 400 when body is invalid JSON", async () => {
+      const req = new Request("http://localhost/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "not-json",
+      }) as any;
+      const res = await POST(req);
+      const data = await res.json();
+      expect(res.status).toBe(400);
+      expect(data.error).toBe("Invalid body");
+    });
+
+    it("returns 400 when body is missing", async () => {
+      const req = new Request("http://localhost/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }) as any;
+      const res = await POST(req);
+      const data = await res.json();
+      expect(res.status).toBe(400);
+      expect(data.error).toBe("Invalid body");
+    });
+  });
+
+  describe("1-to-1 conversation (find1to1Conversation + handle1to1Duplicate)", () => {
     it("returns existing conversation if one already exists", async () => {
       jest.mocked(prisma.conversation.findMany).mockResolvedValue([mockDmConversation] as any);
       const res = await POST(makeRequest({ memberIds: ["user-2"], isGroup: false }));
@@ -244,9 +284,19 @@ describe("POST /api/conversations", () => {
       await POST(makeRequest({ memberIds: ["user-2"], isGroup: false }));
       expect(prisma.conversation.create).toHaveBeenCalled();
     });
+
+    it("does not match a conversation where the friend is not a participant", async () => {
+      const convWithoutFriend = {
+        ...mockDmConversation,
+        participants: [makeParticipant("user-1"), makeParticipant("user-99")],
+      };
+      jest.mocked(prisma.conversation.findMany).mockResolvedValue([convWithoutFriend] as any);
+      await POST(makeRequest({ memberIds: ["user-2"], isGroup: false }));
+      expect(prisma.conversation.create).toHaveBeenCalled();
+    });
   });
 
-  describe("group conversation", () => {
+  describe("group conversation (findDuplicateGroupConversation + handleGroupDuplicate)", () => {
     it("returns existing group if one with identical members already exists", async () => {
       jest.mocked(prisma.conversation.findMany).mockResolvedValue([mockGroupConversation] as any);
       const res = await POST(makeRequest({ name: "Study Group", memberIds: ["user-2", "user-3"], isGroup: true }));
@@ -263,6 +313,34 @@ describe("POST /api/conversations", () => {
       expect(prisma.conversation.create).toHaveBeenCalled();
     });
 
+    it("does not match a group with different members", async () => {
+      const differentGroup = {
+        ...mockGroupConversation,
+        participants: [
+          makeParticipant("user-1", { role: "admin" }),
+          makeParticipant("user-2"),
+          makeParticipant("user-99"),
+        ],
+      };
+      jest.mocked(prisma.conversation.findMany).mockResolvedValue([differentGroup] as any);
+      await POST(makeRequest({ name: "New Group", memberIds: ["user-2", "user-3"], isGroup: true }));
+      expect(prisma.conversation.create).toHaveBeenCalled();
+    });
+
+    it("deduplicates member IDs before checking for existing groups", async () => {
+      jest.mocked(prisma.conversation.findMany).mockResolvedValue([mockGroupConversation] as any);
+      const res = await POST(makeRequest({
+        name: "Study Group",
+        memberIds: ["user-2", "user-2", "user-3"],
+        isGroup: true,
+      }));
+      const data = await res.json();
+      expect(data.id).toBe("conv-2");
+      expect(prisma.conversation.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("createConversation", () => {
     it("creates group with correct name and isGroup: true", async () => {
       jest.mocked(prisma.conversation.create).mockResolvedValue(mockGroupConversation);
       await POST(makeRequest({ name: "New Group", memberIds: ["user-2", "user-3"], isGroup: true }));
@@ -282,6 +360,15 @@ describe("POST /api/conversations", () => {
       const member = participants.find((p: any) => p.userId === "user-2");
       expect(creator.role).toBe("admin");
       expect(member.role).toBe("member");
+    });
+
+    it("sets name to null for 1-to-1 conversations", async () => {
+      await POST(makeRequest({ memberIds: ["user-2"], isGroup: false }));
+      expect(prisma.conversation.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ isGroup: false, name: null }),
+        })
+      );
     });
   });
 });
