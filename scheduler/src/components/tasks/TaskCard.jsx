@@ -4,6 +4,7 @@ import { Checkbox } from "components/ui/checkbox";
 import { TaskActions } from "@/src/components/task-actions";
 import { ArrowRight, ArrowLeft, GripVertical } from "lucide-react";
 import { LunarCard } from "../ui/lunar-card";
+import { useRouter } from "next/navigation";
 
 export function TaskCard({
   task,
@@ -12,9 +13,11 @@ export function TaskCard({
   onEdit,
   onDelete,
   getPriorityStyle,
-  isDashboard = false,
+  isDashboard = true,
+  className = "",
 }) {
 
+  const router = useRouter();
 
   const subtasksList = React.useMemo(() => {
     if (!task.subtasks) return [];
@@ -32,39 +35,58 @@ export function TaskCard({
 });
 
   return (
-    <LunarCard variant="blue" className="p-3 mb-3 rounded-[3rem] bg-purple-500/10 group-hover:bg-pruple-500/20 transition-colors">
-      <div className="flex items-start gap-4">
-      {(task.status === "todo" || task.status === "in-progress") && (
-        <Button
-          variant="ghost" 
-          size="icon"
-          className="h-8 w-8 cursor-pointer shrink-0 hover:bg-muted"
-          onClick={(e) => {
-            e.stopPropagation();
-            let nextStatus = task.status;
-            if (task.status === "todo") nextStatus = "in-progress";
-            else if (task.status === "in-progress") nextStatus = "todo";
-            onToggle(task.id, nextStatus);
-          }}
-        >
-          {task.status === "todo" && (
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          )}
-          {task.status === "in-progress" && (
-            <ArrowLeft className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
-      )}
+    <LunarCard variant="blue"
+            className={`p-6 mb-4 rounded-[3em] transition-all duration-300 ${
+              isDashboard
+                ? "cursor-pointer hover:scale-[1.02] active:scale-95 hover:ring-2 hover:ring-blue-400/30"
+                : ""
+            } ${className}`}
+            onClick={() => {
+                isDashboard && router.push(`/tasks?highlight=${task.id}`)
+            }}
+      >
 
-        <Checkbox
-          id={`task-${task.id}`}
-          checked={task.status === "completed"}
-          onCheckedChange={() => {
-            const next = task.status === "completed" ? "todo" : "completed";
-            onToggle(task.id, next)
-          }}
-          className="shrink-0 h-4 w-4"
-        />
+      <div className={`flex items-center ${isDashboard ? 'gap-0' : 'gap-4'}`}>
+        {!isDashboard && (
+          <>
+          {/* Arrows */}
+          {(task.status === "todo" || task.status === "in-progress") && (
+            <Button
+              variant="ghost" 
+              size="icon"
+              className="h-8 w-8 cursor-pointer shrink-0 hover:bg-muted"
+              onClick={(e) => {
+                if (isDashboard) {
+                  router.push(`/tasks?highlight=${task.id}`)
+                }
+                e.stopPropagation();
+                let nextStatus = task.status;
+                if (task.status === "todo") nextStatus = "in-progress";
+                else if (task.status === "in-progress") nextStatus = "todo";
+                onToggle(task.id, nextStatus);
+              }}
+            >
+              {task.status === "todo" && (
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              )}
+              {task.status === "in-progress" && (
+                <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+          )}
+
+          {/* Checkbox */}
+          <Checkbox
+            id={`task-${task.id}`}
+            checked={task.status === "completed"}
+            onCheckedChange={() => {
+              const next = task.status === "completed" ? "todo" : "completed";
+              onToggle(task.id, next)
+            }}
+            className="shrink-0 h-4 w-4"
+          />
+        </>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex flex-row flex-wrap gap-2 mt-1">
@@ -112,7 +134,7 @@ export function TaskCard({
           </div>
 
           {/* Subtask Checklist */}
-          {subtasksList.length > 0 && (
+          {!isDashboard && subtasksList.length > 0 && (
             <div className="mt-2 pt-2 border-t border-dashed border-muted space-y-1">
               <p className="text-[10px] font-bold text-muted-foreground uppercase">Subtasks</p>
               <div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
@@ -153,13 +175,15 @@ export function TaskCard({
             </div>
           )} 
         </div>
-
-        <TaskActions
-          onView={() => onView(task)}
-          onEdit={() => onEdit(task.id)}
-          onDelete={() => onDelete(task.id)}
-          canDelete={!task.isModuleTask}
-        />
+        
+        {!isDashboard && (
+          <TaskActions
+            onView={() => onView(task)}
+            onEdit={() => onEdit(task.id)}
+            onDelete={() => onDelete(task.id)}
+            canDelete={!task.isModuleTask}
+          />
+        )}
       </div>
     </LunarCard>
   );
