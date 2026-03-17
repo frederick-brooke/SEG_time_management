@@ -144,3 +144,21 @@
   --color-lunar-blue: #5a96ff;
   --color-lunar-purple: #a855f7;
 }
+
+@keyframes lunar-highlight-burst {
+  0% {
+    box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.8);
+    border-color: rgba(59, 130, 246, 1);
+  }
+
+  100% {
+    box-shadow: 0 0 0 40px rgba(59, 130, 246, 0);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.animate-lunar-burst {
+  animation: lunar-highlight-burst 2s ease-out forwards;
+  z-index: 50;
+  position: relative;
+}

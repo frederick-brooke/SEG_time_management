@@ -17,7 +17,7 @@ import  TaskViewDialog  from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 
-export function ToDoList({ userId, exams = [], filterExamId = null }) {
+export function ToDoList({ userId, exams = [], filterExamId = null, highlightId = null }) {
   const {
     tasks,
     isLoading,
@@ -152,6 +152,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null }) {
             <TaskColumn
               title="To Do"
               tasks={todoTasks}
+              highlightId={highlightId}
               status="todo"
               onToggle={toggleTaskStatus}
               onView={handleViewTask}
@@ -162,6 +163,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null }) {
             <TaskColumn
               title="In Progress"
               tasks={inProgressTasks}
+              highlightId={highlightId}
               status="in-progress"
               onToggle={toggleTaskStatus}
               onView={handleViewTask}
@@ -172,6 +174,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null }) {
             <TaskColumn
               title="Completed"
               tasks={completedTasks}
+              highlightId={highlightId}
               status="completed"
               onToggle={toggleTaskStatus}
               onView={handleViewTask}
@@ -182,6 +185,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null }) {
             <TaskColumn
               title="Overdue"
               tasks={overdueTasks}
+              highlightId={highlightId}
               status="overdue"
               onToggle={toggleTaskStatus}
               onView={handleViewTask}

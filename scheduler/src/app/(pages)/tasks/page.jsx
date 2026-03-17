@@ -3,10 +3,22 @@ import { ToDoList } from "@/src/components/to-do-list";
 import { useSession } from "next-auth/react";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function TasksPage() {
   const { data: session, status } = useSession();
   const [exams, setExams] = useState([]);
+  const searchParams = useSearchParams();
+  const [highlightId, setHighlightId] = useState(null);
+
+  useEffect(() => {
+    const id = searchParams.get("highlight");
+    if (id) {
+      setHighlightId(id);;
+      const timer = setTimeout(() => setHighlightId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadExams() {
@@ -39,7 +51,11 @@ export default function TasksPage() {
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
       {/* To-Do List Component */}
-      <ToDoList userId={session.user.id} exams={exams} />
+      <ToDoList 
+        userId={session.user.id} 
+        exams={exams} 
+        highlightId={highlightId}
+      />
     </div>
   );
 }

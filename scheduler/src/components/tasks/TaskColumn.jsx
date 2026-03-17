@@ -9,6 +9,7 @@ export function TaskColumn({
   onEdit,
   onDelete,
   getPriorityStyle,
+  highlightId,
 }) {
   return (
     <div
@@ -32,6 +33,8 @@ export function TaskColumn({
             <TaskCard
               key={task.id}
               task={task}
+              isDashboard={false}
+              className={String(highlightId) === String(task.id) ? "animate-lunar-burst" : ""}
               onToggle={onToggle}
               onView={onView}
               onEdit={onEdit}
