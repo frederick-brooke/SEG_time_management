@@ -3,16 +3,12 @@
 import { useState } from "react";
 import SearchControls from "@/components/search-page/search-controls";
 import SearchUsers from "@/components/search-page/searchUsers";
-import SearchTasks from "@/components/search-page/searchTasks";
 import UserFilter from "@/components/admin/user-filter-panel";
-import TaskFilter from "@/components/search-page/task-filter-panel";
 
 import { useUsers } from "@/hooks/useUsers";
-import { useTaskSearch } from "@/hooks/useTaskSearch";
 
 export default function SearchPanel({ open, onClose }) {
     const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:6 };
-    const defaultTaskFilters = { search:"", sortBy:"createdAt", order:"desc", startDate:"", endDate:"", status:[], priority:[], completed:"", page:1, limit:12 };
 
     const [currentTab,setCurrentTab] = useState("users");
 
@@ -24,19 +20,8 @@ export default function SearchPanel({ open, onClose }) {
         setAppliedUserFilters(defaultUserFilters);
     }
 
-    const [appliedTaskFilters,setAppliedTaskFilters] = useState(defaultTaskFilters);
-    const [draftTaskFilters,setDraftTaskFilters] = useState(defaultTaskFilters);
-
     const [isUserFilterOpen,setIsUserFilterOpen] = useState(false);
-    const [isTaskFilterOpen,setIsTaskFilterOpen] = useState(false);
-
-    function resetTaskFilters(){
-        setDraftTaskFilters(defaultTaskFilters);
-        setAppliedTaskFilters(defaultTaskFilters);
-    }
-
     const {users,totalUserPages,totalUsers} = useUsers(appliedUserFilters,"/api/users/search");
-    const {tasks,totalTaskPages,totalTasks} = useTaskSearch(appliedTaskFilters,"/api/tasks/search");
 
     if (!open) return null;
 
@@ -57,42 +42,13 @@ export default function SearchPanel({ open, onClose }) {
 
             {/* search controls */}
             <div className="p-4 border-b">
-                {currentTab === "users" && (
-                    <SearchControls
-                        filters={appliedUserFilters}
-                        setFilters={setAppliedUserFilters}
-                        placeholder="Search users..."
-                        onOpenFilter={() => setIsUserFilterOpen(true)}
-                        resetFilters={resetUserFilters}
-                    />
-                )}
-
-                {currentTab === "tasks" && (
-                    <SearchControls
-                    filters={appliedTaskFilters}
-                    setFilters={setAppliedTaskFilters}
-                    placeholder="Search tasks..."
-                    onOpenFilter={() => setIsTaskFilterOpen(true)}
-                    resetFilters={resetTaskFilters}
-                    />
-                )}
-            </div>
-
-            {/* tabs */}
-            <div className="flex border-b">
-                {["users","tasks","modules"].map(tab => (
-                    <button
-                    key={tab}
-                    onClick={() => setCurrentTab(tab)}
-                    className={`flex-1 py-3 text-sm font-medium capitalize
-                    ${currentTab === tab
-                        ? "border-b-2 border-black text-black"
-                        : "text-gray-500"}
-                    `}
-                    >
-                    {tab}
-                    </button>
-                ))}
+                <SearchControls
+                    filters={appliedUserFilters}
+                    setFilters={setAppliedUserFilters}
+                    placeholder="Search users..."
+                    onOpenFilter={() => setIsUserFilterOpen(true)}
+                    resetFilters={resetUserFilters}
+                />
             </div>
 
             {/* content */}
@@ -106,17 +62,6 @@ export default function SearchPanel({ open, onClose }) {
                         setIsUserFilterOpen={setIsUserFilterOpen}
                         filters={appliedUserFilters}
                         setFilters={setAppliedUserFilters}
-                    />
-                )}
-
-                {currentTab === "tasks" && (
-                    <SearchTasks
-                    tasks={tasks}
-                    totalTasks={totalTasks}
-                    totalTaskPages={totalTaskPages}
-                    setIsTaskFilterOpen={setIsTaskFilterOpen}
-                    filters={appliedTaskFilters}
-                    setFilters={setAppliedTaskFilters}
                     />
                 )}
             </div>
@@ -138,23 +83,6 @@ export default function SearchPanel({ open, onClose }) {
            }}
         />
       )}
-
-      {isTaskFilterOpen && (
-        <TaskFilter
-          filters={draftTaskFilters}
-          setFilters={setDraftTaskFilters}
-          onClose={() => setIsTaskFilterOpen(false)}
-          applyFilters={()=>{
-            setAppliedTaskFilters(prev => ({
-                ...draftTaskFilters,
-                search: prev.search
-            }))
-            
-            setIsTaskFilterOpen(false)
-           }}
-        />
-      )}
-
     </>
   );
 }
