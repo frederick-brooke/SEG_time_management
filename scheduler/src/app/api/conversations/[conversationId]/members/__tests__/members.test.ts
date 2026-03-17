@@ -100,7 +100,7 @@ describe("POST /api/conversations/[conversationId]/members", () => {
       expect(data.error).toBe("Only admins can add members");
     });
   });
-
+  
   describe("success", () => {
     it("adds a member and returns the created participant", async () => {
       jest.mocked(prisma.conversationParticipant.findUnique).mockResolvedValue(adminParticipant);
@@ -229,6 +229,14 @@ describe("DELETE /api/conversations/[conversationId]/members", () => {
           data: { role: "admin" },
         })
       );
+    });
+
+    it("does not promote anyone when a regular member leaves", async () => {
+      jest.mocked(prisma.conversationParticipant.findUnique).mockResolvedValue(memberParticipant);
+      jest.mocked(prisma.conversationParticipant.delete).mockResolvedValue(memberParticipant);
+      jest.mocked(prisma.conversationParticipant.findMany).mockResolvedValue([]);
+      await DELETE(makeRequest({}), { params: makeParams("conv-1") });
+      expect(prisma.conversationParticipant.update).not.toHaveBeenCalled();
     });
 
     it("deletes the correct participant", async () => {

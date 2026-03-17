@@ -112,6 +112,21 @@ describe("GET /api/conversations/[conversationId]", () => {
       expect(data.participants[1].role).toBe("member");
     });
 
+    it("queries participants ordered by joinedAt ascending", async () => {
+      jest.mocked(prisma.conversation.findUnique).mockResolvedValue(mockConversation);
+      await GET(makeRequest(), { params: makeParams("conv-1") });
+      expect(prisma.conversation.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "conv-1" },
+          select: expect.objectContaining({
+            participants: expect.objectContaining({
+              orderBy: { joinedAt: "asc" },
+            }),
+          }),
+        })
+      );
+    });
+
     it("includes the correct fields for each participant", async () => {
       jest.mocked(prisma.conversation.findUnique).mockResolvedValue(mockConversation);
       const res = await GET(makeRequest(), { params: makeParams("conv-1") });
