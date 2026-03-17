@@ -9,7 +9,7 @@ jest.mock('lucide-react', () => ({
 }));
 
 // Mock Server Actions
-jest.mock('@/src/app/actions/profile', () => ({
+jest.mock('../../../app/actions/profile', () => ({
   acceptFriendRequest: jest.fn(),
   rejectFriendRequest: jest.fn(),
 }));

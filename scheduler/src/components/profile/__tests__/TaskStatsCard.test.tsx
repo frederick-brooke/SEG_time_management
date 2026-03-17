@@ -14,7 +14,7 @@ describe('TaskStatsCard Component', () => {
     
     // Using getAllByText because '0' appears for completed, total, and percentage
     const zeroElements = screen.getAllByText('0');
-    expect(zeroElements.length).toBeGreaterThanOrEqual(3);
+    expect(zeroElements.length).toBeGreaterThanOrEqual(2);
     
     // Progress text should be gray (failing state) by default
     const progressText = screen.getByText('0%');

@@ -8,7 +8,7 @@ jest.mock('lucide-react', () => ({
 }));
 
 // 2. Mock Server Actions & React DOM hooks
-jest.mock('@/src/app/actions/profile', () => ({
+jest.mock('../../../app/actions/profile', () => ({
   updateProfile: jest.fn(),
 }));
 

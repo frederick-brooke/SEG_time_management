@@ -46,16 +46,20 @@ export default function EditProfileForm({ profile, onClose }: { profile: any; on
       <form action={updateProfile} className="space-y-4" onSubmit={() => setTimeout(onClose, 500)}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-600">First Name</label>
+            {/* 1. Add htmlFor and id to First Name */}
+            <label htmlFor="fname" className="text-xs font-semibold text-gray-600">First Name</label>
             <input
+              id="fname"
               name="fname"
               defaultValue={profile.fname || ""}
               className="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-lg focus:ring-2 focus:ring-black focus:outline-none transition-all text-sm"
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-600">Last Name</label>
+            {/* 2. Add htmlFor and id to Last Name */}
+            <label htmlFor="lname" className="text-xs font-semibold text-gray-600">Last Name</label>
             <input
+              id="lname"
               name="lname"
               defaultValue={profile.lname || ""}
               className="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-lg focus:ring-2 focus:ring-black focus:outline-none transition-all text-sm"
@@ -64,24 +68,15 @@ export default function EditProfileForm({ profile, onClose }: { profile: any; on
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-gray-600">Bio</label>
+          {/* 3. Add htmlFor and id to Bio */}
+          <label htmlFor="bio" className="text-xs font-semibold text-gray-600">Bio</label>
           <textarea
+            id="bio"
             name="bio"
             defaultValue={profile.bio || ""}
             className="w-full border border-gray-200 bg-gray-50 p-2.5 rounded-lg h-24 focus:ring-2 focus:ring-black focus:outline-none transition-all resize-none text-sm"
             placeholder="Tell us a bit about yourself..."
           />
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <button 
-            type="button" 
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            Cancel
-          </button>
-          <SubmitButton text="Save" loadingText="Saving..." />
         </div>
       </form>
     </div>
