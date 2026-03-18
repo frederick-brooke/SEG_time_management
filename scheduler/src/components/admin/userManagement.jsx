@@ -9,13 +9,10 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
     const start = (filters.page - 1) * filters.limit + 1;
     const end = Math.min(filters.page * filters.limit, totalUsers);
 
-    console.log("Users received:", users);
-    console.log("Total users:", totalUsers);
-
     return(
         <div>
-            <section className="mb-4 bg-white shadow rounded p-6 flex flex-col h-[660px]">
-                <h2 className="text-2xl font-semibold mb-4">User Management</h2>
+            <section className="mb-4 flex flex-col h-[660px]">
+                <h2 className="text-xl font-semibold mb-4 text-white">User Management</h2>
                 
                 <form
                     onSubmit={(e) => {
@@ -42,19 +39,19 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                                 page: 1,
                             }));
                         }}
-                        className="border rounded px-3 py-2 max-w-sm"
+                        className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-300/50 w-full max-w-sm"
                     />
 
                     <button
                         type="submit"
-                        className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                        className="px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition"
                     >
                         Search
                     </button>
 
                     <button
                         type="button"
-                        className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                        className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
                         onClick={() => setIsUserFilterOpen(true)}
                     >
                         Filter
@@ -62,18 +59,18 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 
                     <button 
                         type="button" 
-                        className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+                        className="p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
                         onClick={() => {setInputValue(""); resetFilters()}}
                     >
                         <FunnelXIcon size={18}/>
                     </button>
                 </form>
                 
-                <div className="space-y-2 flex-1 overflow-y-auto min-h-0 mt-4">
+                <div className="space-y-2 flex-1 overflow-y-auto min-h-0 mt-4 pr-1">
                     {users.map((user) => (
                         <div key={user.id} 
                             onClick={() => setSelectedUser(user)}
-                            className={`border-b py-1 cursor-pointer transition ${user.isBanned ? "bg-red-100 text-red-700" : "hover:bg-gray-100"}`}>
+                            className={`px-3 py-2 rounded-lg cursor-pointer transition-all ${user.isBanned ? "bg-red-100/10 text-red-300" : "text-white hover:bg-white/20"}`}>
                             {user.username}
                         </div>
                     ))}
@@ -81,42 +78,41 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 
                 <div className="mt-4 flex justify-center flex-shrink-0">
                     {users.length !== 0 ? (
-                        <p className="text-sm text-gray-600">
-                        Showing{" "}
-                        <span className="font-semibold text-gray-900">
-                            {start}-{end}
-                        </span>{" "}
-                        of{" "}
-                        <span className="font-semibold text-gray-900">
-                            {totalUsers}
-                        </span>{" "}
-                        users
+                        <p className="text-sm text-white/60">
+                            Showing{" "}
+                            <span className="font-semibold text-white">
+                                {start}-{end}
+                            </span>{" "}
+                            of{" "}
+                            <span className="font-semibold text-white">
+                                {totalUsers}
+                            </span>{" "}
+                            users
                         </p>
                     ) : (
-                        <p className="text-sm text-gray-500 mt-4">
+                        <p className="text-sm text-white/40 mt-4">
                         No users found.
                         </p>
                     )}
                 </div>
 
                 {totalUserPages >= 1 && (
-                    <div className="flex items-center justify-between mt-4 border-t pt-4 flex-shrink-0">
+                    <div className="flex items-center justify-between mt-4 border-t pt-4 border-white/10 flex-shrink-0">
                         <button
-                        disabled={filters.page === 1}
+                            disabled={filters.page === 1}
 
-                        onClick={() =>
-                            setFilters(prev => ({
-                                ...prev,
-                                page: prev.page - 1,
-                            }))
-                        }
-
-                        className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() =>
+                                setFilters(prev => ({
+                                    ...prev,
+                                    page: prev.page - 1,
+                                }))
+                            }
+                            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Previous
                         </button>
 
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-white-600">
                             Page {filters.page} of {totalUserPages}
                         </span>
 
@@ -128,9 +124,9 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                                     page: prev.page + 1
                                 }))
                             }
-                            className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                        Next
+                            Next
                         </button>
                     </div>
                 )}

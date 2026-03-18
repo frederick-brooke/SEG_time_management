@@ -115,7 +115,7 @@ export default function AdminPage() {
       </h1>
 
       {/* background effects */}
-      <StarField density={120} />
+      <StarField density={100} />
       <GlowBackground />
 
       {/* admin statistics */}
