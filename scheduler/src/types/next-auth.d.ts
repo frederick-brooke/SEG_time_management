@@ -9,6 +9,7 @@ declare module "next-auth" {
     role: "BASIC" | "SUPERUSER";
     isBanned: boolean;
     username: string;
+    isDeleted: boolean;
   }
 
   interface Session extends DefaultSession {
@@ -18,6 +19,7 @@ declare module "next-auth" {
       isBanned: boolean;
       googleConnected?: boolean;
       username: string;
+      isDeleted: boolean;
     } & DefaultSession["user"];
 
     accessToken?: string; 
@@ -31,5 +33,6 @@ declare module "next-auth/jwt" {
     isBanned?: boolean;
     accessToken?: string;
     username?: string; 
+    isDeleted?: boolean;
   }
 }

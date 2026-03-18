@@ -44,7 +44,7 @@
     "scripts/fix-role.js", 
     "src/app/api/admin/users/[id]/ban/route.js",
     "src/types/**/*.d.ts"
-, "src/app/dashboard/page.tsx"  ],
+, "src/app/dashboard/page.tsx", "src/hooks/useReminders.js"  ],
   "exclude": [
     "node_modules"
   ]
