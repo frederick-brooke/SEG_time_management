@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
-import { MessageBubble } from "./MessageBubble";
+import { MessageBubble } from "../MessageBubble";
 
 jest.mock("next/image", () => ({
   __esModule: true,

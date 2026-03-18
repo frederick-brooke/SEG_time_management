@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
-import ConversationList from "./ConversationList";
+import ConversationList from "../ConversationList";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
