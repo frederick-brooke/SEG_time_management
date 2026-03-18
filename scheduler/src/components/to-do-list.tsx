@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "components/ui/progress";
 import {
   Card,
   CardAction,
@@ -9,12 +9,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "components/ui/card";
+import { Button } from "components/ui/button";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks } from "@/src/hooks/useTasks";
+
+interface ToDoListProps {
+  userId: string;
+  exams?: any[];
+  filterExamId?: string | null;
+  highligthId?: string | null;
+}
 
 export function ToDoList({ userId, exams = [], filterExamId = null, highlightId = null }) {
   const {
@@ -27,7 +35,6 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
     viewTask,
     setViewTask,
     taskToDelete,
-    fetchTasks,
     toggleTaskStatus,
     sortTasks,
     handleFormChange,
@@ -40,73 +47,34 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
     cancelDelete,
   } = useTasks(userId);
 
-  const [categories, setCategories] = React.useState<any[]>([]);
-  const [events, setEvents] = React.useState<any[]>([]);
-
-  React.useEffect(() => {
-    // Fetch categories
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then((d) => setCategories(d.categories || []));
-
-    // ── Fetch events WITHOUT triggering Google sync ──────────────────────────
-    // The calendar/events GET route runs a Google sync on every request unless
-    // we pass ?nosync=true or rely on the SYNC_INTERVAL guard.
-    // We add a cache: "force-cache" hint so Next.js deduplicates the request,
-    // and we don't pass force=true so the sync interval guard applies.
-    fetch("/api/calendar/events", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => setEvents(Array.isArray(d) ? d : []));
-  }, []);
-
-  // Re-fetch when EventForm creates linked tasks
-  React.useEffect(() => {
-    const handler = () => fetchTasks();
-    window.addEventListener("tasks-updated", handler);
-    return () => window.removeEventListener("tasks-updated", handler);
-  }, [fetchTasks]);
-
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const isOverdue = (task: any) => {
+  const isOverdue = (task) => {
     if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return new Date(task.dueDate) < today;
+    const dueDate = new Date(task.dueDate);
+    return dueDate < today;
   };
 
   const examFilteredTasks = filterExamId
-    ? tasks.filter((t: any) => t.examId === filterExamId)
+    ? tasks.filter(t => t.examId === filterExamId)
     : tasks;
 
-  const searchedTasks = examFilteredTasks.filter((t: any) =>
-    (t.title || "").toLowerCase().includes(searchQuery.toLowerCase()),
+  const searchedTasks = examFilteredTasks.filter(t =>
+    (t.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const overdueTasks = searchedTasks.filter((t: any) => isOverdue(t));
-  const todoTasks = searchedTasks.filter(
-    (t: any) => (t.status || "todo") === "todo" && !isOverdue(t),
-  );
-  const inProgressTasks = searchedTasks.filter(
-    (t: any) => (t.status || "todo") === "in-progress" && !isOverdue(t),
-  );
-  const completedTasks = searchedTasks.filter(
-    (t: any) => (t.status || "todo") === "completed",
-  );
+  const overdueTasks = searchedTasks.filter((task) => isOverdue(task));
+  const todoTasks = searchedTasks.filter(t => (t.status || "todo") === "todo" && !isOverdue(t));
+  const inProgressTasks = searchedTasks.filter(t => (t.status || "todo") === "in-progress" && !isOverdue(t));
+  const completedTasks = searchedTasks.filter(t => (t.status || "todo") === "completed");
 
+  // Progress bar logic
   const totalTasks = examFilteredTasks.length;
-  const completedCount = examFilteredTasks.filter(
-    (t: any) => t.status === "completed",
-  ).length;
+  const completedCount = examFilteredTasks.filter(t => t.status === "completed").length;
   const progressPercentage =
     totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
-
-  const editingTask = editingTaskId
-    ? tasks.find((t: any) => t.id === editingTaskId)
-    : null;
-  const editingLinkedEvent = editingTask?.eventId
-    ? events.find((e: any) => e.id === editingTask.eventId)
-    : null;
 
   if (isLoading) {
     return (
@@ -159,6 +127,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
             onOpenChange={(open) => {
               setIsDialogOpen(open);
               if (!open) resetForm();
+
               if (open && editingTaskId === null && filterExamId) {
                 handleFormChange({ examId: filterExamId });
               }
@@ -167,20 +136,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
             formData={formData}
             onFormChange={handleFormChange}
             onSubmit={handleSubmitTask}
-            onDelete={
-              editingTaskId
-                ? () => {
-                    handleDeleteTask(editingTaskId);
-                    setIsDialogOpen(false);
-                    resetForm();
-                  }
-                : undefined
-            }
             exams={exams}
-            showTrigger={true}
-            linkedEventTitle={editingLinkedEvent?.title ?? null}
-            relativeOffsetDays={editingTask?.relativeOffsetDays ?? null}
-            scheduledRelativeTo={editingTask?.scheduledRelativeTo ?? null}
           />
         </CardAction>
       </CardHeader>
@@ -196,13 +152,12 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
             />
         </div>
       </div>
+      
 
       <CardContent className="px-4">
         {examFilteredTasks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p>
-              No tasks yet. Click &ldquo;New&rdquo; to create your first task!
-            </p>
+            <p>No tasks yet. Click "New" to create your first task!</p>
           </div>
         ) : (
           <div className="flex gap-4 overflow-x-auto pb-4">
@@ -215,8 +170,6 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onView={handleViewTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
-              categories={categories}
-              events={events}
             />
             <TaskColumn
               title="In Progress"
@@ -227,8 +180,6 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onView={handleViewTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
-              categories={categories}
-              events={events}
             />
             <TaskColumn
               title="Completed"
@@ -239,8 +190,6 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onView={handleViewTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
-              categories={categories}
-              events={events}
             />
             <TaskColumn
               title="Overdue"
@@ -250,9 +199,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onToggle={toggleTaskStatus}
               onView={handleViewTask}
               onEdit={handleEditTask}
-              onDelete={handleDeleteTask}
-              categories={categories}
-              events={events}
+              onDelete={handleDeleteTask}              
             />
           </div>
         )}
@@ -263,17 +210,10 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
         onConfirm={confirmDeleteTask}
         onCancel={cancelDelete}
       />
-
       <TaskViewDialog
         task={viewTask}
         isOpen={viewTask !== null}
-        onClose={() => setViewTask(null)}
-        onEdit={(taskId) => {
-          setViewTask(null);
-          handleEditTask(taskId);
-        }}
-        categories={categories}
-        events={events}
+        onClose={() => setViewTask(null)}        
       />
     </Card>
   );
