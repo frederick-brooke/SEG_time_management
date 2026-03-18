@@ -370,7 +370,8 @@ model ConversationParticipant {
   role           String       @default("member")
   joinedAt       DateTime     @default(now())
   deletedAt      DateTime?
-
+  lastReadAt     DateTime?
+  
   @@unique([conversationId, userId])
 }
 
