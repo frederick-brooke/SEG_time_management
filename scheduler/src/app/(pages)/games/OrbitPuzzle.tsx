@@ -3,11 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { payGameEntry } from "@/src/app/actions/games";
 import { DIFFICULTY_CONFIG, Difficulty } from "@/src/lib/games-config";
+import { GoldCoin } from "components/ui/gold-coin";
+
 
 const ALL_SYMBOLS = ["🪐", "⭐", "🌙", "☄️", "🚀", "👾", "🌌", "💫", "🛸", "🔭", "🌠", "🪨"];
 
 type CardState = { id: number; symbol: string; flipped: boolean; matched: boolean };
 type GamePhase = "lobby" | "countdown" | "playing" | "won" | "lost";
+
 
 function shuffle(pairs: number): CardState[] {
   const syms = ALL_SYMBOLS.slice(0, pairs);
@@ -28,19 +31,16 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
   const [countdown, setCountdown] = useState(3);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // cards as state just for rendering — game logic uses the ref below
   const [renderCards, setRenderCards] = useState<CardState[]>([]);
 
-  // --- single source of truth for game logic, never stale ---
   const cardsRef = useRef<CardState[]>([]);
-  const firstPickRef = useRef<number | null>(null); // index of first picked card
+  const firstPickRef = useRef<number | null>(null);
   const lockedRef = useRef(false);
   const phaseRef = useRef<GamePhase>("lobby");
   const diffRef = useRef<Difficulty>("easy");
   const timeRef = useRef(0);
   const timerInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // keep refs in sync with state
   useEffect(() => { phaseRef.current = phase; }, [phase]);
   useEffect(() => { diffRef.current = difficulty; }, [difficulty]);
   useEffect(() => { timeRef.current = timeLeft; }, [timeLeft]);
@@ -48,11 +48,9 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
   const cfg = DIFFICULTY_CONFIG[difficulty];
 
   function syncCards() {
-    // push ref state into render state
     setRenderCards([...cardsRef.current]);
   }
 
-  // ── TIMER ────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "playing") return;
     timerInterval.current = setInterval(() => {
@@ -70,16 +68,13 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
     return () => clearInterval(timerInterval.current!);
   }, [phase]);
 
-  // ── WIN ──────────────────────────────────────────────────────────────────
   const handleWin = useCallback(() => {
     clearInterval(timerInterval.current!);
     setPhase("won");
     phaseRef.current = "won";
   }, []);
 
-  // ── CARD CLICK ───────────────────────────────────────────────────────────
   function onCardClick(idx: number) {
-    // all guards use refs — zero dependency on React state
     if (phaseRef.current !== "playing") return;
     if (lockedRef.current) return;
 
@@ -87,15 +82,12 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
     const card = cards[idx];
     if (card.flipped || card.matched) return;
 
-    // flip this card
     cards[idx] = { ...card, flipped: true };
     syncCards();
 
     if (firstPickRef.current === null) {
-      // first pick
       firstPickRef.current = idx;
     } else {
-      // second pick
       const firstIdx = firstPickRef.current;
       firstPickRef.current = null;
       lockedRef.current = true;
@@ -109,7 +101,6 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
           cardsRef.current[idx]      = { ...cardsRef.current[idx],      matched: true };
           syncCards();
           lockedRef.current = false;
-
           const allDone = cardsRef.current.every(c => c.matched);
           if (allDone) handleWin();
         }, 400);
@@ -124,7 +115,6 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
     }
   }
 
-  // ── START GAME ───────────────────────────────────────────────────────────
   async function startGame() {
     setError(null);
     setIsProcessing(true);
@@ -177,14 +167,14 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
             <div className="text-6xl mb-4">🌌</div>
             <h2 className="text-4xl font-black text-white tracking-tight mb-2">Orbit Puzzle</h2>
             <p className="text-gray-400 text-sm max-w-sm mx-auto">
-              Match pairs of cosmic symbols before time runs out. Spend points to play.
+              Match pairs of cosmic symbols before time runs out. Spend coins to play.
             </p>
           </div>
           <div className="flex justify-center mb-8">
             <div className="bg-white/10 border border-white/20 rounded-2xl px-6 py-3 flex items-center gap-3">
-              <span className="text-xl">⭐</span>
+              <GoldCoin size={24} />
               <span className="text-2xl font-black text-white">{balance.toLocaleString()}</span>
-              <span className="text-gray-400 text-sm">points</span>
+              <span className="text-gray-400 text-sm">coins</span>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 mb-8">
@@ -194,8 +184,9 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
                   difficulty === key ? "border-yellow-400 bg-yellow-400/10" : "border-white/10 bg-white/5 hover:border-white/30"}`}>
                 <p className="font-black text-white text-lg mb-3">{c.label}</p>
                 <div className="space-y-1 text-xs text-gray-400">
-                  <p>🃏 {c.pairs} pairs</p><p>⏱ {c.timeLimit}s</p>
-                  <p>💸 {c.cost} pts to play</p>
+                  <p>🃏 {c.pairs} pairs</p>
+                  <p>⏱ {c.timeLimit}s</p>
+                  <p className="flex items-center gap-1"><GoldCoin size={14} /> {c.cost} coins to play</p>
                 </div>
                 {difficulty === key && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-yellow-400" />}
               </button>
@@ -206,7 +197,7 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
             className={`w-full py-4 rounded-2xl font-black text-lg transition-all ${
               balance < cfg.cost ? "bg-gray-700 text-gray-500 cursor-not-allowed"
               : "bg-yellow-400 text-gray-900 hover:bg-yellow-300 shadow-lg shadow-yellow-400/30 hover:scale-[1.02]"}`}>
-            {isProcessing ? "Launching..." : balance < cfg.cost ? `Need ${cfg.cost} pts` : `🚀 Launch — ${cfg.cost} pts`}
+            {isProcessing ? "Launching..." : balance < cfg.cost ? `Need ${cfg.cost} coins` : `🚀 Launch — ${cfg.cost} coins`}
           </button>
         </div>
       )}
@@ -252,7 +243,10 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
           <p className="text-gray-400 mb-8">You matched all {cfg.pairs} pairs in {moves} moves. Well done, Commander!</p>
           <div className="bg-white/10 border border-white/20 rounded-2xl px-6 py-4 mb-8">
             <p className="text-gray-400 text-sm">Current balance</p>
-            <p className="text-white font-black text-2xl">⭐ {balance.toLocaleString()}</p>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <GoldCoin size={28} />
+              <span className="text-white font-black text-2xl">{balance.toLocaleString()}</span>
+            </div>
           </div>
           <div className="flex gap-3 w-full">
             <button onClick={() => setPhase("lobby")} className="flex-1 py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors">Change Difficulty</button>
@@ -266,15 +260,18 @@ export default function OrbitPuzzle({ initialBalance }: { initialBalance: number
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-sm mx-auto">
           <div className="text-7xl mb-6">💥</div>
           <h2 className="text-4xl font-black text-red-400 mb-2">Mission Failed</h2>
-          <p className="text-gray-400 mb-8">Time ran out! {matchedPairs}/{cfg.pairs} matched. <br/><span className="text-red-400 font-bold">{cfg.cost} pts lost.</span></p>
+          <p className="text-gray-400 mb-8">Time ran out! {matchedPairs}/{cfg.pairs} matched. <br/><span className="text-red-400 font-bold">{cfg.cost} coins lost.</span></p>
           <div className="bg-white/10 border border-white/20 rounded-2xl px-6 py-4 mb-8">
             <p className="text-gray-400 text-sm">Current balance</p>
-            <p className="text-white font-black text-2xl">⭐ {balance.toLocaleString()}</p>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <GoldCoin size={28} />
+              <span className="text-white font-black text-2xl">{balance.toLocaleString()}</span>
+            </div>
           </div>
           <div className="flex gap-3 w-full">
             <button onClick={() => setPhase("lobby")} className="flex-1 py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors">Back to Lobby</button>
             <button onClick={startGame} disabled={isProcessing || balance < cfg.cost} className="flex-1 py-3 rounded-xl bg-yellow-400 text-gray-900 font-black hover:bg-yellow-300 transition-colors disabled:opacity-50">
-              {balance < cfg.cost ? "Not enough pts" : "Try Again"}
+              {balance < cfg.cost ? "Not enough coins" : "Try Again"}
             </button>
           </div>
         </div>

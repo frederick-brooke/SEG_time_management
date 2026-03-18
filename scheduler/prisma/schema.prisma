@@ -150,9 +150,11 @@ model UserProgress {
   xpBoostExpires DateTime?
   streakShields  Int                @default(0)
   shieldUsedDate DateTime?
-  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions   PointTransaction[]
-  inventory      UserInventory[]
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions PointTransaction[]
+  inventory    UserInventory[]
+  coins          Int       @default(0)   // ← ADD THIS
+
 }
 
 model PointTransaction {

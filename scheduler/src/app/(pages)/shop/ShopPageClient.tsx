@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { purchaseItem, equipItem, unequipItem } from "@/src/app/actions/shop";
 import { Zap, Shield, Crown, Sparkles, ShoppingBag, CheckCircle, Package } from "lucide-react";
+import { GoldCoin } from "components/ui/gold-coin";
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FRAME STYLES — maps frame `value` → Tailwind classes applied to avatar border
@@ -177,9 +179,9 @@ function ItemCard({
       {/* Price + action */}
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
         <div className="flex items-center gap-1.5">
-          <span className="text-lg">⭐</span>
+          <GoldCoin size={28} />
           <span className="font-black text-gray-900 text-lg">{item.price.toLocaleString()}</span>
-          <span className="text-xs text-gray-400 font-medium">pts</span>
+          <span className="text-xs text-gray-400 font-medium">coins</span>
         </div>
 
         {item.owned ? (
@@ -336,9 +338,9 @@ export default function ShopPageClient({ initialData }: ShopPageClientProps) {
                   <div>
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Your Balance</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-2xl">⭐</span>
+                      <GoldCoin size={18} />
                       <span className="text-3xl font-black text-white">{data.points.toLocaleString()}</span>
-                      <span className="text-gray-400 text-sm">pts</span>
+                      <span className="text-gray-400 text-sm">coins</span>
                     </div>
                   </div>
                 </div>

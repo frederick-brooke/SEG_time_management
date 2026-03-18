@@ -26,7 +26,7 @@ export async function getShopData() {
   const userProgress = progress ?? await prisma.userProgress.create({
     data: {
       userId: session.user.id,
-      points: 0, level: 1, experience: 0, streak: 0, streakShields: 0,
+      points: 0, level: 1, experience: 0, coins: 0, streak: 0, streakShields: 0,
     },
     include: { inventory: { include: { item: true } } },
   });
@@ -37,9 +37,9 @@ export async function getShopData() {
     items: items.map(item => ({
       ...item,
       owned: ownedItemIds.has(item.id),
-      canAfford: userProgress.points >= item.price,
+      canAfford: userProgress.coins >= item.price,
     })),
-    points: userProgress.points,
+    points: userProgress.coins,   // ShopPageClient reads this as "points" — keeps UI working
     equippedTitle: userProgress.equippedTitle ?? null,
     equippedFrame: userProgress.equippedFrame ?? null,
     xpBoostExpires: userProgress.xpBoostExpires ?? null,
@@ -71,7 +71,7 @@ export async function purchaseItem(itemId: string) {
 
   if (!item) throw new Error("Item not found");
   if (!progress) throw new Error("User progress not found");
-  if (progress.points < item.price) throw new Error("Not enough points");
+  if (progress.coins < item.price) throw new Error("Not enough coins");
 
   const alreadyOwned = progress.inventory.some((inv: any) => inv.itemId === itemId);
   if (alreadyOwned) throw new Error("Already owned");
@@ -79,7 +79,7 @@ export async function purchaseItem(itemId: string) {
   await prisma.$transaction([
     prisma.userProgress.update({
       where: { userId: session.user.id },
-      data: { points: { decrement: item.price } },
+      data: { coins: { decrement: item.price } },
     }),
     prisma.userInventory.create({
       data: { userId: session.user.id, itemId, progressId: progress.id },
