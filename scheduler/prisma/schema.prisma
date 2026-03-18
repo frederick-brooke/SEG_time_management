@@ -181,6 +181,7 @@ model UserInventory {
 model Task {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   title         String
+  category      String?
   description   String?
   dueDate       DateTime?
   completed     Boolean   @default(false)
@@ -225,6 +226,7 @@ model Exam {
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   title             String
   examDate          DateTime
+  endTime           DateTime?
   maxTimePerDay     Int
   unavailableDays   DateTime[]
   tasks             Task[]

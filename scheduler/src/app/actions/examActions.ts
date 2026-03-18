@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { examPlannerLogic  } from "lib/examPlannerLogic";
 import { createNotification } from "./notifications";
 import { NotificationType } from "@prisma/client";
+import { createGzip } from "node:zlib";
 
 /**
  * Updates specific settings for an existing exam record.
@@ -46,20 +47,53 @@ export async function createExam(formData: FormData) {
     try {
         const title = formData.get("title") as string;
         const examDate = new Date(formData.get("examDate") as string);
+        const startTimeStr = formData.get("startTime") as string;
+        const endTimeStr = formData.get("endTime") as string;
         const maxTimePerDay = parseInt(formData.get("maxTimePerDay") as string);
+        
+        const datePart = (formData.get("examDate") as string);
+        const examStart = new Date(`${datePart}T${startTimeStr}:00`);
+        const examEnd = new Date(`${datePart}T${endTimeStr}:00`);
 
-        const newExam = await prisma.exam.create({
-            data: {
-                userId: session.user.id,
-                title,
-                examDate,
-                maxTimePerDay,
-                unavailableDays: [],
-            },
+        const result = await prisma.$transaction(async (tx) => {
+            const category = await tx.category.create({
+                data: {
+                    userId: session.user.id,
+                    name: title,
+                    color: "#ef4444",
+                }
+            });
+
+            const exam = await tx.exam.create({
+                data: {
+                    userId: session.user.id,
+                    title,
+                    examDate: examStart,
+                    endTime: examEnd,
+                    maxTimePerDay,
+                    unavailableDays: [],
+                },
+            });
+
+            await tx.event.create({
+                data: {
+                    userId: session.user.id,
+                    title: `Exam: ${title}`,
+                    start: examStart,
+                    end: examEnd,
+                    category: category.name,
+                }
+            });
+
+            return exam;
         });
 
         revalidatePath("/exam-planner");
-        return { success: true, data: newExam};
+        revalidatePath("/calendar");
+        revalidatePath("/exam-planner");
+       
+        return { success: true, data: result};
+
     }   catch (error) {
             console.error("Error creating exam:", error)
             return { success: false, error: "Failed to create exam"};
@@ -236,6 +270,11 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
     const hours = Math.floor(topic.duration / 60);
     const mins = topic.duration % 60;
 
+    const exam = await prisma.exam.findUnique({
+        where: { id: examId },
+        select: { title: true }
+    });
+
     await prisma.task.create({
         data: {
             title: `${topic.title}`,
@@ -245,7 +284,8 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
             examId: examId,
             userId: userId,
             duration: topic.duration,
-            url: topic.url || null
+            url: topic.url || null,
+            category: exam?.title || "Exam",
         }
     });
 

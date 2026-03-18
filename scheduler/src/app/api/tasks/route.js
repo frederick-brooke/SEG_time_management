@@ -198,6 +198,12 @@ export async function POST(request) {
     }
 
     // ── Single task creation ──────────────────────────────────────────────
+    let examCategory = null;
+    if (body.examId && body.examId !== "none") {
+      const exam = await prisma.exam.findUnique({ where: { id: body.examId }});
+      examCategory = exam?.title;
+    }
+
     const task = await prisma.task.create({
       data: {
         title:               body.title,
@@ -210,6 +216,7 @@ export async function POST(request) {
         duration:            body.duration            || 0,
         subtasks:            body.subtasks            || [],
         examId:              body.examId && body.examId !== "none" ? body.examId : null,
+        category:            examCategory || "General",
         eventId:             body.eventId             || null,
         isRecurring:         body.isRecurring         || false,
         recurrence:          body.recurrence          || null,
@@ -221,6 +228,7 @@ export async function POST(request) {
         relativeOffsetDays:  body.relativeOffsetDays  ?? null,
         eventLinkMode:       body.eventLinkMode        ?? null,
       },
+      include: { exam: true }
     });
     return NextResponse.json({ task });
   } catch (error) {

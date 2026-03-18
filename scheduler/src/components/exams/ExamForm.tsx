@@ -6,6 +6,12 @@ import { createNotification } from "@/src/app/actions/notifications";
 import { NotificationType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 
+
+const formatTime = (date: Date | string | undefined) => {
+    if (!date) return "09:00";
+    const d = new Date(date);
+    return d.toTimeString().slice(0, 5);
+}
 /**
  * The core form component for creating or updating exam settings.
  * @param {Object} props The component properties.
@@ -42,14 +48,24 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 result = await createExam(formData);
             }
             if (result.success) {
-                await createNotification(
-                    session?.user?.id,
-                    editingExam ? "Exam Updated" : "Exam Added",
-                    editingExam
-                        ? `"${formData.get("title")}" has been updated.`
-                        : `"${formData.get("title")} has been added to your planner.`,
-                    editingExam ? NotificationType.INFO : NotificationType.SUCCESS
-                );
+                if (session?.user?.id) {
+                    await createNotification(
+                        session?.user?.id,
+                        editingExam ? "Exam Updated" : "Exam Added",
+                        editingExam
+                            ? `"${formData.get("title")}" has been updated.`
+                            : `"${formData.get("title")} has been added to your planner.`,
+                        editingExam ? NotificationType.INFO : NotificationType.SUCCESS
+                    );
+                }
+
+                if (editingExam) {
+                    onExamUpdated?.(result.data);
+                } else {
+                    onExamAdded?.(result.data);
+                }
+
+                onSuccess();
               
             } else {
                 setServerError(result.error || "Failed to save exam details");
@@ -87,6 +103,28 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                     required 
                     className={inputStyle} 
                 />                        
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className={formLabelStyle}>Start Time</label>
+                    <input
+                        name="startTime"
+                        type="time"
+                        defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
+                        required
+                        className={inputStyle}
+                    />
+                </div>
+                <div>
+                    <label className={formLabelStyle}>End Time</label>
+                    <input
+                        name="endTime"
+                        type="time"
+                        defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
+                        required
+                        className={inputStyle}
+                    />
+                </div>    
             </div>
             <div>
                 <label className={formLabelStyle}>Daily Study Goal (mins)</label>
