@@ -25,10 +25,15 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
     const { data: session } = useSession();
     const [serverError, setServerError] = useState("");
     const [isPending, setIsPending] = useState(false);
+
+    // Styling constants for the Lunar aesthetic
     const formLabelStyle = "block text-[12px] font-black uppercase tracking-widest text-white/40 ml-1";
     const inputStyle = "w-full bg-white/10 border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-blue-500/40 rounded-xl transition-all outline-none text-base font-medium shadow-inner [color-scheme:dark]";
     const saveStyle = "bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl px-2 py-2 uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/50 transition-all";
-    
+
+    /**
+     * Handles the asynchronous submission of the exam data.
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         setServerError("");
