@@ -1,13 +1,24 @@
 "use client";
-
 import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import type { Layer } from "leaflet";
-import { MapEvent, CATEGORY_COLORS, TRANSPORT_ICONS } from "@/src/lib/map";
-import { formatDate, createPinSvg } from "@/src/lib/map";
+import { MapEvent, CATEGORY_COLORS, TRANSPORT_ICONS } from "@/lib/map";
+import { formatDate, createPinSvg } from "@/lib/map";
 
 interface EventLayerProps {
   events: MapEvent[];
+}
+
+
+function offsetCoord(
+  lat: number,
+  lng: number,
+  index: number,
+  type: "start" | "dest"
+): [number, number] {
+  const OFFSET = 0.0005; // ~55m
+  const direction = type === "dest" ? -1 : 1;
+  return [lat + OFFSET * direction * (1 + index * 0.3), lng];
 }
 
 export function EventLayer({ events }: EventLayerProps) {
@@ -18,7 +29,10 @@ export function EventLayer({ events }: EventLayerProps) {
     if (!map) return;
 
     import("leaflet").then((L) => {
-      events.forEach((event) => {
+      layersRef.current.forEach((l) => map.removeLayer(l));
+      layersRef.current = [];
+
+      events.forEach((event, index) => {
         const color = CATEGORY_COLORS[event.category] || "#6b7280";
         const transportIcon = TRANSPORT_ICONS[event.transportMode || ""] || "";
 
@@ -38,6 +52,12 @@ export function EventLayer({ events }: EventLayerProps) {
         `;
 
         if (event.startCoords) {
+          const [lat, lng] = offsetCoord(
+            event.startCoords.lat,
+            event.startCoords.lng,
+            index,
+            "start"
+          );
           const icon = L.divIcon({
             html: createPinSvg(color, event.category),
             className: "",
@@ -45,16 +65,19 @@ export function EventLayer({ events }: EventLayerProps) {
             iconAnchor: [16, 42],
             popupAnchor: [0, -42],
           });
-          const marker = L.marker(
-            [event.startCoords.lat, event.startCoords.lng],
-            { icon }
-          )
+          const marker = L.marker([lat, lng], { icon })
             .addTo(map)
             .bindPopup(popupContent, { maxWidth: 280 });
           layersRef.current.push(marker);
         }
 
         if (event.destinationCoords) {
+          const [lat, lng] = offsetCoord(
+            event.destinationCoords.lat,
+            event.destinationCoords.lng,
+            index,
+            "dest"
+          );
           const destIcon = L.divIcon({
             html: createPinSvg(color, "D"),
             className: "",
@@ -62,14 +85,12 @@ export function EventLayer({ events }: EventLayerProps) {
             iconAnchor: [16, 42],
             popupAnchor: [0, -42],
           });
-          const destMarker = L.marker(
-            [event.destinationCoords.lat, event.destinationCoords.lng],
-            { icon: destIcon }
-          )
+          const destMarker = L.marker([lat, lng], { icon: destIcon })
             .addTo(map)
             .bindPopup(popupContent, { maxWidth: 280 });
           layersRef.current.push(destMarker);
 
+          // Route line uses TRUE coordinates, not the offset ones
           if (event.startCoords) {
             const line = L.polyline(
               [
