@@ -2,6 +2,11 @@
 
 import React, { useState } from "react";
 import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
+import { createNotification } from "@/src/app/actions/notifications";
+import { NotificationType } from "@prisma/client";
+import { useSession } from "next-auth/react";
+
+const { data: session } = useSession();
 
 /**
  * The core form component for creating or updating exam settings.
@@ -18,7 +23,7 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
     const formLabelStyle = "block text-[12px] font-black uppercase tracking-widest text-white/40 ml-1";
     const inputStyle = "w-full bg-white/10 border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-blue-500/40 rounded-xl transition-all outline-none text-base font-medium shadow-inner [color-scheme:dark]";
     const saveStyle = "bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl px-2 py-2 uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/50 transition-all";
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setServerError("");
@@ -38,12 +43,15 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 result = await createExam(formData);
             }
             if (result.success) {
-                if (editingExam) {
-                    onExamUpdated?.(result.data);
-                } else {
-                    onExamAdded?.(result.data);
-                }
-                onSuccess?.();
+                await createNotification(
+                    session?.user?.id,
+                    editingExam ? "Exam Updated" : "Exam Added",
+                    editingExam
+                        ? `"${formData.get("title")}" has been updated.`
+                        : `"${formData.get("title")} has been added to your planner.`,
+                    editingExam ? NotificationType.INFO : NotificationType.SUCCESS
+                );
+              
             } else {
                 setServerError(result.error || "Failed to save exam details");
             }

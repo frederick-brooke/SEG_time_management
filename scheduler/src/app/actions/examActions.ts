@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
 import { examPlannerLogic  } from "lib/examPlannerLogic";
+import { createNotification } from "./notifications";
+import { NotificationType } from "@prisma/client";
 
 /**
  * Updates specific settings for an existing exam record.
@@ -165,7 +167,17 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
         revalidatePath(`/exam-planner`);
         revalidatePath(`/exam-hub`);
         revalidatePath(`/exam-planner/${examId}`);
+
+        await createNotification(
+            exam.userId,
+            "Study Plan Generated",
+            `Your revision plan for this exam is ready.`,
+            NotificationType.SUCCESS
+        );
+
         return { success: true };
+
+        
 
     } catch (error) {
         console.error("Plan generation error:", error);
@@ -249,4 +261,42 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
         });
     }
 
+}
+
+export async function checkUpcomingDeadlines(userId: string) {
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    const urgentTasks = await prisma.task.findMany({
+        where: {
+            userId,
+            status: { not: "completed" },
+            dueDate: { gte: now, lte: threeDaysFromNow }
+        }
+    });
+
+    const urgentExams = await prisma.exam.findMany({
+        where: {
+            userId,
+            examDate: { gte: now, lte: threeDaysFromNow }
+        }
+    });
+
+    for (const task of urgentTasks) {
+        await createNotification(
+            userId,
+            "Task Due Soon",
+            `"${task.title}" is due ${new Date(task.dueDate).toLocaleDateString()}`,
+            NotificationType.WARNING
+        );
+    }
+
+    for (const exam of urgentExams) {
+        await createNotification(
+            userId,
+            "Exam Approaching",
+            `"${exam.title}" is on ${new Date(exam.examDate).toLocaleDateString()}`,
+            NotificationType.WARNING
+        );
+    }
 }

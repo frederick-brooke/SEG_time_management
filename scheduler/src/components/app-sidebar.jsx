@@ -2,6 +2,8 @@
 import * as React from "react";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { checkUpcomingDeadlines } from "../app/actions/examActions";
 
 import {
   IconCamera,
@@ -160,10 +162,17 @@ export function AppSidebar({ onSearchClick, ...props }) {
   const [searchOpen,setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { data: session } = useSession()
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
+  
+  React.useEffect(() => {
+    if (session?.user?.id) {
+      checkUpcomingDeadlines(session.user.id);
+    }
+  }, [session]);
 
   return (
     <>
