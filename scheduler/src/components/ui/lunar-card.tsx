@@ -12,7 +12,6 @@ interface LunarCardProps {
  * to match the dark space aesthetic.
  * @param {string} className Additional tailwind classes for the layout.
  * @param {React.ReactNode} children The content of the card
- * @returns The lunar glow effect.
  */
 export function LunarCard({ children, className = "", variant = "blue", id, onClick}: LunarCardProps) {
     const variants = {
