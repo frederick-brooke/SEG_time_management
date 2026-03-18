@@ -1,3 +1,11 @@
+/**
+ * @file route.ts
+ * @description Handles message operations within a conversation.
+ * POST creates and broadcasts a new message via Pusher.
+ * DELETE soft-clears history for the requesting user only (sets deletedAt).
+ * PATCH marks the conversation as read by updating lastReadAt.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";

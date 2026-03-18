@@ -1,3 +1,11 @@
+/**
+ * @file route.ts
+ * @description Manages group conversation membership.
+ * POST adds a member (admin only), PATCH updates a participant's role (admin only),
+ * DELETE removes a member — any user can leave themselves, admins can remove others.
+ * If the last admin leaves or is removed, the next oldest participant is auto-promoted.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

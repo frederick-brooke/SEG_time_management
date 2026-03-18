@@ -1,3 +1,12 @@
+/**
+ * @file route.ts
+ * @description Handles listing and creating conversations.
+ * GET returns all conversations for the current user, annotated with hasUnread
+ * and lastMessageSentByMe, filtering out soft-deleted entries.
+ * POST finds or creates a conversation — deduplicating both 1-to-1 and group
+ * conversations before creating a new one.
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

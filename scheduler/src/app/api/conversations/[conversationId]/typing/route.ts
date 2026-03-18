@@ -1,3 +1,9 @@
+/**
+ * @file route.ts
+ * @description POST handler for broadcasting typing indicators via Pusher.
+ * Fire-and-forget — responds immediately without waiting for the Pusher trigger to resolve.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

@@ -1,3 +1,10 @@
+/**
+ * @file route.ts
+ * @description POST handler for finding or creating a 1-to-1 conversation.
+ * Returns the existing conversation if one already exists between the two users,
+ * otherwise creates and returns a new one.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

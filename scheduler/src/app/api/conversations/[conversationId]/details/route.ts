@@ -1,3 +1,10 @@
+/**
+ * @file route.ts
+ * @description GET handler for retrieving a single conversation by ID.
+ * Validates the request, checks participant membership, and returns
+ * the conversation with its participants and user details.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

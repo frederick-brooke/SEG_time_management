@@ -1,3 +1,10 @@
+/**
+ * @file route.ts
+ * @description GET handler for paginated message retrieval within a conversation.
+ * Returns up to 20 messages newest-first, with optional cursor-based pagination.
+ * Excludes messages sent before the requesting user last cleared their history.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
