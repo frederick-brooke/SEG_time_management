@@ -179,13 +179,13 @@ const NotificationModal = ({
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="lunar-label !text-white !text-[11px]">
                       {notification.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-xs text-white/60 mt-1">
                       {notification.message}
                     </p>
-                    <span className="text-xs text-gray-500 mt-2 block">
+                    <span className="lunar-label !text-[9px] !opacity-40 mt-1">
                       {formatTime(notification.createdAt)}
                     </span>
                   </div>
@@ -229,9 +229,9 @@ const NotificationModal = ({
           <div className="border-t border-white/10 p-4 bg-black-20 flex gap-3 justify-end rounded-b-lg">
             <button
               onClick={clearAll}
-              className="px-4 py-2 text-sm font-medium text-black-700 hover:bg-black-200 rounded-md transition-colors inline-flex items-center gap-2"
+              className="lunar-label "
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="text-white" />
               Clear All
             </button>
             <button
