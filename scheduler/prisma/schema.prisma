@@ -43,6 +43,7 @@ enum ShopItemType {
   TITLE
   FRAME
   FUNCTIONAL
+  AVATAR
 }
 
 enum ModuleRole {
