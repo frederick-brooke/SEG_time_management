@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Label } from "components/ui/label";
 import { Button } from "components/ui/button";
+<<<<<<< HEAD
 import { getPriorityStyle } from "@/src/lib/priority";
 import { X, CheckCircle2 } from "lucide-react"; // Added for a nice icon
 import { intervalToDuration } from "date-fns";
@@ -19,11 +20,16 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
+=======
+import { CheckCircle2 } from "lucide-react";
+
+export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle, onReward }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+>>>>>>> 64abd0c (rewards pop up)
   if (!task) return null;
 
-  /**
-   * Handles updating the task to 'completed' and awarding XP
-   */
   const handleCompleteTask = async () => {
     setLoading(true);
     try {
@@ -32,15 +38,15 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           status: 'completed',
-          completed: true // This is the trigger for your backend XP logic
-        })
+          completed: true,
+        }),
       });
 
       if (res.ok) {
-        // Refresh the page data so the XP bar updates immediately
-        router.refresh(); 
-        // Close the dialog after successful completion
-        onClose(); 
+        const data = await res.json();
+        router.refresh();
+        onClose();
+        if (data.rewards) onReward(data.rewards);
       }
     } catch (error) {
       console.error("Failed to update task:", error);
@@ -85,11 +91,17 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
           </div>
 
           <div>
+<<<<<<< HEAD
             <Label className="lunar-label">Priority</Label>
             <p className="lunar-value">
               <span
                 className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}
               >
+=======
+            <Label className="text-sm font-medium">Priority</Label>
+            <p className="text-sm mt-1">
+              <span className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}>
+>>>>>>> 64abd0c (rewards pop up)
                 {task.priority}
               </span>
             </p>
@@ -120,7 +132,7 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
               <p className="lunar-value">No resource attached</p>
             )}
           </div>
-          
+
           <div>
             <Label className="lunar-label">Due Date</Label>
             <p className="lunar-value">
@@ -145,7 +157,9 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
             <Label className="lunar-label">Subtasks</Label>
             <ul className="list-disc list-inside text-sm text-white/50 mt-1 space-y-1">
               {task.subtasks?.length > 0 ? (
-                task.subtasks.map((sub, index) => <li key={index}>{sub}</li>)
+                task.subtasks.map((sub, index) => (
+                  <li key={index}>{sub}</li>
+                ))
               ) : (
                 <li>No subtasks</li>
               )}
@@ -153,16 +167,19 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
           </div>
         </div>
 
+<<<<<<< HEAD
         {/* Footer Buttons */}
         <div className="flex gap-3 mt-8">
           <Button variant="outline" onClick={onClose} className="flex-1 bg-white/10 text-white border-white/10 hover:bg-white/20">
+=======
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+>>>>>>> 64abd0c (rewards pop up)
             Close
           </Button>
-
-          {/* Complete Task Button - Only shows if not already completed */}
           {task.status !== "completed" && (
-            <Button 
-              onClick={handleCompleteTask} 
+            <Button
+              onClick={handleCompleteTask}
               disabled={loading}
               className="flex-1 bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-[0_0_20px_rgba(59,130,246,0.4)]"
             >

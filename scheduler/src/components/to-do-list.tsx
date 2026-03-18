@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import { Progress } from "components/ui/progress";
 import {
   Card,
@@ -13,18 +14,12 @@ import {
 import { Button } from "components/ui/button";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
-import { TaskViewDialog } from "./tasks/TaskViewDialog";
+import TaskViewDialog from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
+import { RewardPopup } from "components/ui/reward-popup";
 
-interface ToDoListProps {
-  userId: string;
-  exams?: any[];
-  filterExamId?: string | null;
-  highligthId?: string | null;
-}
-
-export function ToDoList({ userId, exams = [], filterExamId = null, highlightId = null }) {
+export function ToDoList({ userId, exams = [], filterExamId = null }) {
   const {
     tasks,
     isLoading,
@@ -48,6 +43,20 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
   } = useTasks(userId);
 
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [reward, setReward] = useState<{ xp: number; coins: number } | null>(null);
+
+  const getPriorityStyle = (priority) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
+      case "Medium":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
+      case "Low":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
+      default:
+        return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
 
   const isOverdue = (task) => {
     if (!task.dueDate || task.status === "completed") return false;
@@ -70,7 +79,6 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
   const inProgressTasks = searchedTasks.filter(t => (t.status || "todo") === "in-progress" && !isOverdue(t));
   const completedTasks = searchedTasks.filter(t => (t.status || "todo") === "completed");
 
-  // Progress bar logic
   const totalTasks = examFilteredTasks.length;
   const completedCount = examFilteredTasks.filter(t => t.status === "completed").length;
   const progressPercentage =
@@ -87,134 +95,146 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
   }
 
   return (
-    <Card className="bg-transparent border-none shadow-none @container/card overflow-visible">
-      <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-5xl font-black tracking-tighter text-white uppercase">TO DO LIST</CardTitle>
-        <CardDescription className="text-white/40 font-bold uppercase tracking-[0.3em] text-[12px] mt-2">Get ahead of your tasks!</CardDescription>
+    <>
+      <Card className="@container/card">
+        <CardHeader>
+          <CardTitle>TO DO LIST</CardTitle>
+          <CardDescription>Get ahead of your tasks!</CardDescription>
 
-        {/* Progress Bar */}
-        <div className="mt-8 max-w-md space-y-3">
-          <div className="flex justify-between text-[14px] font-black uppercase tracking-[0.2em]">
-            <span className="text-white/60">Task Completion</span>
-            <span className="text-lg font-black text-cyan-400 drop-shadow-[0_0_10x_rgba(59,130,246,0.5)]">
-              {progressPercentage}%
-            </span>
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Task Completion</span>
+              <span className="font-medium text-foreground">
+                {progressPercentage}%
+              </span>
+            </div>
+            <Progress value={progressPercentage} className="h-2" />
           </div>
 
-          <div className="relative">
-            <style dangerouslySetInnerHTML={{ __html: `
-            [data-progress-indicator] > div {
-              background-color: #38bdf8 !important;
-              box-shadow: none !important;
-            }
-          `}} />
+          <CardAction className="flex gap-2">
+            <Button onClick={sortTasks}>Sort</Button>
+            <TaskFormDialog
+              isOpen={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+                if (open && editingTaskId === null && filterExamId) {
+                  handleFormChange({ examId: filterExamId });
+                }
+              }}
+              editingTaskId={editingTaskId}
+              formData={formData}
+              onFormChange={handleFormChange}
+              onSubmit={handleSubmitTask}
+              exams={exams}
+            />
+          </CardAction>
+        </CardHeader>
 
-          <Progress 
-            data-progress-indicator
-            value={progressPercentage} 
-            className="h-3 bg-white/5 border border-white/10 rounded-full overflow-hidden shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]" />
-          </div>
-        </div>
-
-        <CardAction className="flex gap-3 mt-8">
-          <Button onClick={sortTasks}
-                  className="bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
-          >
-            Sort
-          </Button>
-          <TaskFormDialog
-            isOpen={isDialogOpen}
-            onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) resetForm();
-
-              if (open && editingTaskId === null && filterExamId) {
-                handleFormChange({ examId: filterExamId });
-              }
-            }}
-            editingTaskId={editingTaskId}
-            formData={formData}
-            onFormChange={handleFormChange}
-            onSubmit={handleSubmitTask}
-            exams={exams}
-          />
-        </CardAction>
-      </CardHeader>
-
-      {/* Search Bar */}
-      <div className="px-0 mb-10">
-        <div className="mt-4">
+        <div className="px-6 mb-6">
+          <div className="mt-4">
             <input
               placeholder="Search Tasks"
-              className="w-full max-w-sm p-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white placeholder:text-white/20 focus:ring-blue-500/40 transition-all backdrop-blur-md outline-none"
+              className="w-full max-w-sm p-2 text-sm border rounded-md bg-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+          </div>
         </div>
-      </div>
-      
 
-      <CardContent className="px-4">
-        {examFilteredTasks.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No tasks yet. Click "New" to create your first task!</p>
-          </div>
-        ) : (
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            <TaskColumn
-              title="To Do"
-              tasks={todoTasks}
-              highlightId={highlightId}
-              status="todo"
-              onToggle={toggleTaskStatus}
-              onView={handleViewTask}
-              onEdit={handleEditTask}
-              onDelete={handleDeleteTask}
-            />
-            <TaskColumn
-              title="In Progress"
-              tasks={inProgressTasks}
-              highlightId={highlightId}
-              status="in-progress"
-              onToggle={toggleTaskStatus}
-              onView={handleViewTask}
-              onEdit={handleEditTask}
-              onDelete={handleDeleteTask}
-            />
-            <TaskColumn
-              title="Completed"
-              tasks={completedTasks}
-              highlightId={highlightId}
-              status="completed"
-              onToggle={toggleTaskStatus}
-              onView={handleViewTask}
-              onEdit={handleEditTask}
-              onDelete={handleDeleteTask}
-            />
-            <TaskColumn
-              title="Overdue"
-              tasks={overdueTasks}
-              highlightId={highlightId}
-              status="overdue"
-              onToggle={toggleTaskStatus}
-              onView={handleViewTask}
-              onEdit={handleEditTask}
-              onDelete={handleDeleteTask}              
-            />
-          </div>
-        )}
-      </CardContent>
+        <CardContent className="px-4">
+          {examFilteredTasks.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No tasks yet. Click "New" to create your first task!</p>
+            </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              <TaskColumn
+                title="To Do"
+                tasks={todoTasks}
+                status="todo"
+                onToggle={async (taskId, forcedStatus) => {
+                  console.log("onToggle called", taskId, forcedStatus); // ← ADD
+                  const r = await toggleTaskStatus(taskId, forcedStatus);
+                  console.log("rewards returned:", r); // ← ADD
+                  if (r) setReward(r);
+                }}
+                onView={handleViewTask}
+                onEdit={handleEditTask}
+                onDelete={handleDeleteTask}
+                getPriorityStyle={getPriorityStyle}
+              />
+              <TaskColumn
+                title="In Progress"
+                tasks={inProgressTasks}
+                status="in-progress"
+                onToggle={async (taskId, forcedStatus) => {
+                  console.log("onToggle called", taskId, forcedStatus); // ← ADD
+                  const r = await toggleTaskStatus(taskId, forcedStatus);
+                  console.log("rewards returned:", r); // ← ADD
+                  if (r) setReward(r);
+                }}
+                onView={handleViewTask}
+                onEdit={handleEditTask}
+                onDelete={handleDeleteTask}
+                getPriorityStyle={getPriorityStyle}
+              />
+              <TaskColumn
+                title="Completed"
+                tasks={completedTasks}
+                status="completed"
+                onToggle={async (taskId, forcedStatus) => {
+                  console.log("onToggle called", taskId, forcedStatus); // ← ADD
+                  const r = await toggleTaskStatus(taskId, forcedStatus);
+                  console.log("rewards returned:", r); // ← ADD
+                  if (r) setReward(r);
+                }}
+                onView={handleViewTask}
+                onEdit={handleEditTask}
+                onDelete={handleDeleteTask}
+                getPriorityStyle={getPriorityStyle}
+              />
+              <TaskColumn
+                title="Overdue"
+                tasks={overdueTasks}
+                status="overdue"
+                onToggle={async (taskId, forcedStatus) => {
+                  console.log("onToggle called", taskId, forcedStatus); // ← ADD
+                  const r = await toggleTaskStatus(taskId, forcedStatus);
+                  console.log("rewards returned:", r); // ← ADD
+                  if (r) setReward(r);
+                }}
+                onView={handleViewTask}
+                onEdit={handleEditTask}
+                onDelete={handleDeleteTask}
+                getPriorityStyle={getPriorityStyle}
+              />
+            </div>
+          )}
+        </CardContent>
 
-      <DeleteTaskDialog
-        isOpen={taskToDelete !== null}
-        onConfirm={confirmDeleteTask}
-        onCancel={cancelDelete}
-      />
-      <TaskViewDialog
-        task={viewTask}
-        isOpen={viewTask !== null}
-        onClose={() => setViewTask(null)}        
-      />
-    </Card>
+        <DeleteTaskDialog
+          isOpen={taskToDelete !== null}
+          onConfirm={confirmDeleteTask}
+          onCancel={cancelDelete}
+        />
+        <TaskViewDialog
+          task={viewTask}
+          isOpen={viewTask !== null}
+          onClose={() => setViewTask(null)}
+          getPriorityStyle={getPriorityStyle}
+          onReward={(r) => setReward(r)}
+        />
+      </Card>
+
+      {reward && (
+        <RewardPopup
+          xp={reward.xp}
+          coins={reward.coins}
+          onDone={() => setReward(null)}
+        />
+      )}
+    </>
+    
   );
 }

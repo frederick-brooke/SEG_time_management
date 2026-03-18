@@ -76,18 +76,33 @@ export async function PATCH(
     }
 
     if (body.completed !== undefined) {
-      d.completed = body.completed;
-      d.completedAt = body.completed ? new Date() : null;
-      d.status = body.completed ? "completed" : "todo";
-      if (body.completed) d.progress = null;
+      updateData.completed = body.completed;
+      updateData.completedAt = body.completed ? new Date() : null;
+      updateData.status = body.completed ? "completed" : "todo";
     }
 
-    const task = await prisma.task.update({
-      where: { id },
-      data: d as Parameters<typeof prisma.task.update>[0]["data"],
-    });
+    const task = await prisma.task.update({ where: { id }, data: updateData });
 
-    return NextResponse.json({ task });
+    const isNowCompleted = task.completed;
+const priority = task.priority ?? "Low";
+
+const PRIORITY_REWARDS: Record<string, { xp: number; coins: number }> = {
+  Low:    { xp: 10, coins: 5  },
+  Medium: { xp: 20, coins: 10 },
+  High:   { xp: 30, coins: 15 },
+};
+
+let rewards: { xp: number; coins: number } | null = null;
+
+if (!wasCompleted && isNowCompleted) {
+  await awardTaskPoints(task.userId, task.id, priority);
+  rewards = PRIORITY_REWARDS[priority] ?? PRIORITY_REWARDS.Low;
+} else if (wasCompleted && !isNowCompleted) {
+  await revokeTaskPoints(task.userId, task.id, priority);
+}
+
+    return NextResponse.json({ task, rewards });
+
   } catch (error) {
     console.error("PATCH task error:", error);
     return NextResponse.json(
