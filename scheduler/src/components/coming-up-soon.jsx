@@ -14,7 +14,7 @@ import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 import { LunarCard } from "./ui/lunar-card";
 
-export function ComingUpSoon({ userId }) {
+export function ComingUpSoon({ userId, exams = [] }) {
   const {
     tasks,
     isLoading,
@@ -93,6 +93,7 @@ export function ComingUpSoon({ userId }) {
               onFormChange={handleFormChange}
               onSubmit={handleSubmitTask}
               showTrigger={true}
+              exams={exams}
             />
           </div>
         </div>
@@ -106,6 +107,7 @@ export function ComingUpSoon({ userId }) {
                 <TaskCard
                   key={task.id}
                   task={task}
+                  exams={exams}
                   onToggle={toggleTaskStatus}
                   onView={handleViewTask}
                   onEdit={handleEditTask}

@@ -43,7 +43,7 @@ export function TaskFormDialog({
             if (e.target === e.currentTarget) onOpenChange(false)
         }}>
         <LunarCard
-            className="lunar-card"
+            className="lunar-card relative p-5"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}

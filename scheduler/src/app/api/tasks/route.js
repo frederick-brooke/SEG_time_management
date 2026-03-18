@@ -216,7 +216,7 @@ export async function POST(request) {
         duration:            body.duration            || 0,
         subtasks:            body.subtasks            || [],
         examId:              body.examId && body.examId !== "none" ? body.examId : null,
-        category:            examCategory || "General",
+        category:            examCategory             || "General",
         eventId:             body.eventId             || null,
         isRecurring:         body.isRecurring         || false,
         recurrence:          body.recurrence          || null,

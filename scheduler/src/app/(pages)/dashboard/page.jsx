@@ -47,6 +47,16 @@ export default function Page() {
   }, [status, router]);
 
   useEffect(() => {
+    async function loadExams() {
+      if (session?.user?.id) {
+        const data = await getMyExams();
+        setExams(data);
+      }
+    }
+    loadExams();
+  }, [session]);
+
+  useEffect(() => {
     const error = searchParams.get("error");
     if (error === "GoogleAccountTaken" || error === "OAuthAccountNotLinked") {
       setErrorMessage("This Google Account is already linked to another user.");
@@ -102,7 +112,7 @@ export default function Page() {
 
         {/* -- Grid Layout for Cards -- */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start pt-12">
-          <ComingUpSoon userId={session?.user?.id} />
+          <ComingUpSoon userId={session?.user?.id} exams={exams}/>
 
           <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.2)] rounded-full opacity-50" />
 
