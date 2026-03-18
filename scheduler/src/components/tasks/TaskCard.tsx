@@ -93,15 +93,15 @@ export function TaskCard({
                 {task.title}
               </span>
             </div>
-            <div>
+            <div className="flex items-center gap-2 flex-wrap mt-1">
               <span
-                className={`text-[12px] px-2 py-0.5 rounded font-black uppercase tracking-tighter ${getPriorityStyle(task.priority)}`}
+                className={`text-[12px] px-2 gap-2 py-0.5 rounded font-black uppercase tracking-tighter ${getPriorityStyle(task.priority)}`}
               >
                 {task.priority}
               </span>
 
               {task.exam && (
-                <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest opacity-80">
+                <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest opacity-80">
                   {task.exam.title}
                 </span>
               )}
