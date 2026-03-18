@@ -6,6 +6,33 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 
+export async function authorizeUser(credentials: Record<"email" | "password", string> | undefined) {
+  if (!credentials?.email || !credentials?.password) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { email: credentials.email },
+    include: { reportsReceived: true },
+  });
+
+  if (!user || !user.passwordHash) return null;
+
+  const isValid = await verifyPassword(credentials.password, user.passwordHash);
+  if (!isValid) return null;
+
+  if (user.isBanned) {
+    if (!user.banExpires) {
+      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+    }
+    if (new Date() < user.banExpires) {
+      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+    }
+    await prisma.user.update({ where: { id: user.id }, data: { isBanned: false, banExpires: null } });
+    user.isBanned = false;
+  }
+
+  return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: user.isBanned };
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -90,8 +117,7 @@ export const authOptions: NextAuthOptions = {
       allowDangerousEmailAccountLinking: true,
       authorization: {
         params: {
-          scope:
-            "openid email profile https://www.googleapis.com/auth/calendar",
+          scope: "openid email profile https://www.googleapis.com/auth/calendar",
           access_type: "offline",
           prompt: "consent",
         },
@@ -170,8 +196,7 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              refresh_token_expires_in:
-                account.refresh_token_expires_in as number,
+              refresh_token_expires_in: account.refresh_token_expires_in as number,
             },
             create: {
               userId,
@@ -184,8 +209,7 @@ export const authOptions: NextAuthOptions = {
               scope: account.scope,
               token_type: account.token_type,
               id_token: account.id_token,
-              refresh_token_expires_in:
-                account.refresh_token_expires_in as number,
+              refresh_token_expires_in: account.refresh_token_expires_in as number,
             },
           });
         }
@@ -235,8 +259,7 @@ export const authOptions: NextAuthOptions = {
             scope: account.scope,
             token_type: account.token_type,
             id_token: account.id_token,
-            refresh_token_expires_in:
-              account.refresh_token_expires_in as number,
+            refresh_token_expires_in: account.refresh_token_expires_in as number,
           },
           create: {
             userId: token.sub,
@@ -249,8 +272,7 @@ export const authOptions: NextAuthOptions = {
             scope: account.scope,
             token_type: account.token_type,
             id_token: account.id_token,
-            refresh_token_expires_in:
-              account.refresh_token_expires_in as number,
+            refresh_token_expires_in: account.refresh_token_expires_in as number,
           },
         });
       }

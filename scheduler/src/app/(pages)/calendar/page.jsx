@@ -1,40 +1,34 @@
 import CalendarView from "components/CalendarView";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "lib/auth";
-import { prisma } from "lib/prisma";
 import GoogleLinkButton from "@/src/components/googleLinkButton";
 
+// ---------------------------------------------------------------------------
+// We intentionally do NOT pre-fetch events/tasks here.
+// CalendarView fetches everything on mount via refreshEvents() + refreshTasks()
+// which ensures:
+//   a) recurring events are expanded correctly via the API route
+//   b) unscheduledTasks uses shouldShowAsUnscheduled() not a simple DB filter
+//   c) no stale initial state on first paint
+// ---------------------------------------------------------------------------
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions);
   if (!session) throw new Error("Not authenticated");
-
-  const events = await prisma.event.findMany({
-    where: { userId: session.user.id },
-    orderBy: { start: "asc" },
-  });
 
   return (
     <main className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">My Schedule</h1>
-
         <GoogleLinkButton isConnected={session.user.googleConnected} />
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <CalendarView events={events} userId={session.user.id} />
-        </div>
-
-        <div className="bg-gray-50 p-4 rounded-lg border">
-          <h2 className="font-semibold mb-2">Sync Settings</h2>
-          <p className="text-sm text-gray-600">
-            {session.user.googleConnected
-              ? "Your events are ready to sync with Google."
-              : "Connect your Google account to sync these events to your mobile device."}
-          </p>
-        </div>
-      </div>
+      <CalendarView
+        events={[]}
+        tasks={[]}
+        allTasks={[]}
+        unscheduledTasks={[]}
+        userId={session.user.id}
+        googleConnected={session.user.googleConnected}
+      />
     </main>
   );
 }

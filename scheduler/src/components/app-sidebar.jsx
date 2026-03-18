@@ -13,13 +13,14 @@ import {
   IconTrophy,
   IconUser,
   IconSearch,
+  IconSettings,
   IconUserCog,
   IconBook
 } from "@tabler/icons-react";
 import { GraduationCap, Map } from "lucide-react";
-import { NavMain } from "components/nav-main";
-import { NavSecondary } from "components/nav-secondary";
-import { NavUser } from "components/nav-user";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +29,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "components/ui/sidebar";
+} from "@/components/ui/sidebar";
 
 import SearchPanel from "@/components/search-page/search-panel";
 
@@ -84,6 +85,11 @@ const data = {
       url: "/admin",
       icon: IconUserCog,
       role: "SUPERUSER"
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: IconSettings, 
     },
   ],
   navClouds: [
