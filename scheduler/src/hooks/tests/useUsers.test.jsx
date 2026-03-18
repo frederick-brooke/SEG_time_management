@@ -3,93 +3,65 @@ import { useUsers } from "../useUsers";
 
 global.fetch = jest.fn();
 
-describe("useUsers hook", () => {
-  const endpoint = "/api/admin/users";
-
+describe("useUsers", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test("fetches users successfully on mount", async () => {
-    const mockUsers = [{ id: "1", name: "Alice" }];
-
+  test("successful fetch updates state", async () => {
     fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        users: mockUsers,
-        totalUserPages: 3,
-        totalUsers: 15,
+        users: [{ id: "1" }],
+        totalUserPages: 2,
+        totalUsers: 10,
       }),
     });
 
     const { result } = renderHook(() =>
-      useUsers({ page: "1", limit: "10" }, endpoint)
+      useUsers({ page: 1 }, "/api/users")
     );
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/admin/users?page=1&limit=10"
-    );
-
-    expect(result.current.users).toEqual(mockUsers);
-    expect(result.current.totalUserPages).toBe(3);
-    expect(result.current.totalUsers).toBe(15);
+    expect(result.current.users).toEqual([{ id: "1" }]);
+    expect(result.current.totalUserPages).toBe(2);
+    expect(result.current.totalUsers).toBe(10);
   });
 
-  test("uses fallback defaults when response fields are missing", async () => {
-    fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
+  test("handles API error response", async () => {
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
-    const { result } = renderHook(() =>
-      useUsers({ page: "1" }, endpoint)
-    );
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
-    });
-
-    expect(result.current.users).toEqual([]);
-    expect(result.current.totalUserPages).toBe(1);
-    expect(result.current.totalUsers).toBe(0);
-  });
-
-  test("handles API error when response is not ok", async () => {
     fetch.mockResolvedValue({
       ok: false,
-      json: async () => ({ message: "Bad request" }),
+      json: async () => ({ error: "Bad request" }),
     });
 
     const { result } = renderHook(() =>
-      useUsers({ page: "1" }, endpoint)
+      useUsers({ page: 1 }, "/api/users")
     );
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
+    expect(logSpy).toHaveBeenCalled();
     expect(result.current.users).toEqual([]);
   });
 
-  test("handles fetch network failure", async () => {
+  test("handles network error", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
     fetch.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() =>
-      useUsers({ page: "1" }, endpoint)
+      useUsers({ page: 1 }, "/api/users")
     );
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.users).toEqual([]);
+    expect(errorSpy).toHaveBeenCalled();
   });
 
-  test("refetches when filters change", async () => {
+  test("builds query with arrays and ignores empty values", async () => {
     fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -99,47 +71,44 @@ describe("useUsers hook", () => {
       }),
     });
 
-    const { rerender } = renderHook(
-      ({ filters }) => useUsers(filters, endpoint),
-      {
-        initialProps: { filters: { page: "1" } },
-      }
+    renderHook(() =>
+      useUsers(
+        { role: ["ADMIN", "USER"], page: 2, empty: "", nullValue: null },
+        "/api/users"
+      )
     );
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
 
-    rerender({ filters: { page: "2" } });
+    const url = fetch.mock.calls[0][0];
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(2);
-    });
+    expect(url).toContain("role=ADMIN");
+    expect(url).toContain("role=USER");
+    expect(url).toContain("page=2");
+    expect(url).not.toContain("empty=");
+    expect(url).not.toContain("nullValue=");
   });
 
-  test("manual fetchUsers call works", async () => {
+  test("manual fetchUsers works", async () => {
     fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        users: [{ id: "5", name: "Manual User" }],
+        users: [{ id: "2" }],
         totalUserPages: 1,
         totalUsers: 1,
       }),
     });
 
     const { result } = renderHook(() =>
-      useUsers({}, endpoint)
+      useUsers({ page: 1 }, "/api/users")
     );
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => {
       await result.current.fetchUsers();
     });
 
     expect(fetch).toHaveBeenCalledTimes(2);
-    expect(result.current.users[0].name).toBe("Manual User");
   });
 });

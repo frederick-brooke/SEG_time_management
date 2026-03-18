@@ -1,13 +1,12 @@
 import AppealPanel from "./admin-appeal-panel";
 
 export default function AppealsManagement({appeals, totalAppeals, totalAppealPages, currentAppealPage, setCurrentAppealPage, selectedAppeal, setSelectedAppeal, fetchAppeals, setIsAppealFilterOpen, filters, setFilters, resetFilters}) {
-  const PAGE_SIZE = 5;
-  const page = filters.page ?? 1;
+  const PAGE_SIZE = filters?.limit ?? 5;
+  const page = filters?.page ?? 1;
 
   const start = appeals.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const end = appeals.length === 0
-    ? 0
-    : Math.min((page - 1) * PAGE_SIZE + appeals.length, totalAppeals);
+
+  const end = appeals.length === 0 ? 0 : start + appeals.length - 1;
 
   return (
     <section className="mb-10 bg-white shadow rounded p-6 flex flex-col h-[600px]">
@@ -78,9 +77,12 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
       {totalAppealPages >= 1 && (
         <div className="flex items-center justify-between mt-6 pt-4 border-t flex-shrink-0">
           <button
-            disabled={currentAppealPage === 1}
+            disabled={page === 1}
             onClick={() =>
-              setCurrentAppealPage((prev) => prev - 1)
+              setFilters(prev => ({
+                ...prev,
+                page: (prev.page ?? 1) - 1
+              }))
             }
             className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -92,9 +94,12 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
           </span>
 
           <button
-            disabled={currentAppealPage === totalAppealPages}
+            disabled={page === totalAppealPages}
             onClick={() =>
-              setCurrentAppealPage((prev) => prev + 1)
+              setFilters(prev => ({
+                ...prev,
+                page: (prev.page ?? 1) + 1
+              }))
             }
             className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
