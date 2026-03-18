@@ -13,7 +13,12 @@ import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
 import AdminStatistics from "@/components/admin/admin-statistics";
 import AppealFilter from "@/components/admin/appeal-filter-panel";
-import { Users } from "lucide-react";
+
+//UI components
+import StarField from "@/components/effects/starField";
+import GlowBackground from "@/components/ui/glowBackground";
+import GlassCard from "@/components/ui/glassCard";
+import { motion } from "framer-motion";
 
 export default function AdminPage() {
   //User management states
@@ -104,51 +109,71 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="min-h-screen bg-gray-950 text-white relative overflow-hidden">
+      <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-10">
+        Admin Dashboard
+      </h1>
+
+      {/* background effects */}
+      <StarField density={120} />
+      <GlowBackground />
 
       {/* admin statistics */}
       <AdminStatistics/>
 
       {/* Container for the user reporting system*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <UserManagement
-          users={users}
-          totalUsers={totalUsers}
-          totalUserPages={totalUserPages}
-          setIsUserFilterOpen={setIsUserFilterOpen}
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
-          filters={appliedUserFilters}
-          setFilters={setAppliedUserFilters}
-          resetFilters={resetUserFilters}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <GlassCard>
+            <UserManagement
+              users={users}
+              totalUsers={totalUsers}
+              totalUserPages={totalUserPages}
+              setIsUserFilterOpen={setIsUserFilterOpen}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+              filters={appliedUserFilters}
+              setFilters={setAppliedUserFilters}
+              resetFilters={resetUserFilters}
+            />
+          </GlassCard>
 
-        <div>
-          {/* tabs header title */}
-          <div className="flex border-b mb-4">
-            <button
-              onClick={() => setCurrentTab("reports")}
-              className={`px-4 py-2 font-medium ${
-                currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-              }`}
-            >
-              Reports
-            </button>
+        </motion.div>
 
-            <button
-              onClick={() => setCurrentTab("appeals")}
-              className={`px-4 py-2 font-medium ${
-                currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-              }`}
-            >
-              Appeals
-            </button>
-          </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0}}
+        >
+          <GlassCard>
+            {/* tabs header title */}
+            <div className="flex border-b mb-4">
+              <button
+                onClick={() => setCurrentTab("reports")}
+                className={`px-4 py-2 font-medium ${
+                  currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
+                }`}
+              >
+                Reports
+              </button>
 
-          {/* render the active tab */}
-          {tabs[currentTab]}
-        </div>
+              <button
+                onClick={() => setCurrentTab("appeals")}
+                className={`px-4 py-2 font-medium ${
+                  currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
+                }`}
+              >
+                Appeals
+              </button>
+            </div>
+
+            {/* render the active tab */}
+            {tabs[currentTab]}
+          </GlassCard>
+          
+        </motion.div>
 
       </div>
       
