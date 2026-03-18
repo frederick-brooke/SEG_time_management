@@ -19,6 +19,7 @@ import {
   IconUserCog,
   IconBook,
   IconBell,
+  IconCalendar,
 } from "@tabler/icons-react";
 
 import { GraduationCap, Map } from "lucide-react";
@@ -59,6 +60,11 @@ const data = {
       title: "Tasks",
       url: "/tasks",
       icon: IconListDetails,
+    },
+    {
+      title: "Calendar",
+      url: "/calendar",
+      icon: IconCalendar,
     },
     {
       title: "Exam Planner",

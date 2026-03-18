@@ -6,8 +6,6 @@ import { createNotification } from "@/src/app/actions/notifications";
 import { NotificationType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 
-const { data: session } = useSession();
-
 /**
  * The core form component for creating or updating exam settings.
  * @param {Object} props The component properties.
@@ -18,6 +16,7 @@ const { data: session } = useSession();
  * @returns 
  */
 export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSuccess }) {
+    const { data: session } = useSession();
     const [serverError, setServerError] = useState("");
     const [isPending, setIsPending] = useState(false);
     const formLabelStyle = "block text-[12px] font-black uppercase tracking-widest text-white/40 ml-1";
