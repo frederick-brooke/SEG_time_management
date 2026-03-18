@@ -123,7 +123,11 @@ export default function EventForm({
               type="button"
               disabled={f.isGoogle}
               onClick={() => f.setCategory(cat.name)}
-              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${f.category === cat.name ? "border-black scale-105" : "border-transparent opacity-40"}`}
+              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                f.category === cat.name
+                  ? "border-black scale-105"
+                  : "border-transparent opacity-40"
+              }`}
               style={{ backgroundColor: cat.color, color: "white" }}
             >
               {cat.name}
@@ -186,24 +190,22 @@ export default function EventForm({
             <div className="mt-2 p-3 bg-gray-50 rounded-lg">
               {f.recurrenceType === "weekly" && (
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-                    (day) => (
-                      <label key={day} className="flex items-center gap-1">
-                        <input
-                          type="checkbox"
-                          checked={f.recurrenceDays.includes(day)}
-                          onChange={(e) =>
-                            f.setRecurrenceDays((prev: string[]) =>
-                              e.target.checked
-                                ? [...prev, day]
-                                : prev.filter((d: string) => d !== day),
-                            )
-                          }
-                        />
-                        <span className="text-xs">{day}</span>
-                      </label>
-                    ),
-                  )}
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                    <label key={day} className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={f.recurrenceDays.includes(day)}
+                        onChange={(e) =>
+                          f.setRecurrenceDays((prev: string[]) =>
+                            e.target.checked
+                              ? [...prev, day]
+                              : prev.filter((d: string) => d !== day),
+                          )
+                        }
+                      />
+                      <span className="text-xs">{day}</span>
+                    </label>
+                  ))}
                 </div>
               )}
               <label className="text-xs text-gray-400">Until</label>
@@ -229,6 +231,10 @@ export default function EventForm({
         onStartNameChange={f.setStartLocName}
         onDestNameChange={f.setDestLocName}
         onTransportModeChange={f.setTransportMode}
+        travelTimeMode={f.travelTimeMode}
+        manualTravelTime={f.manualTravelTime}
+        onTravelTimeModeChange={f.setTravelTimeMode}
+        onManualTravelTimeChange={f.setManualTravelTime}
       />
 
       <button
@@ -246,9 +252,7 @@ export default function EventForm({
           onClick={() => f.handleDelete(onSuccess)}
           className="w-full mt-2 p-3 rounded-xl font-bold text-red-600 border border-red-200 hover:bg-red-50 transition-all"
         >
-          {f.editMode === "single"
-            ? "Delete This Day Only"
-            : "Delete Entire Event"}
+          {f.editMode === "single" ? "Delete This Day Only" : "Delete Entire Event"}
         </button>
       )}
     </form>
