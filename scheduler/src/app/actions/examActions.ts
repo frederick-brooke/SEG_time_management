@@ -7,7 +7,6 @@ import { revalidatePath } from "next/cache";
 import { examPlannerLogic  } from "lib/examPlannerLogic";
 import { createNotification } from "./notifications";
 import { NotificationType } from "@prisma/client";
-import { createGzip } from "node:zlib";
 
 /**
  * Updates specific settings for an existing exam record.
@@ -303,6 +302,14 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
 
 }
 
+/**
+ * Deadline minder protocol.
+ * Scans the database for tasks and exams due within the next 72 hours.
+ * Automatically dispatches system notifications for urgent items
+ * that haven't been completed yet.
+ * @param {string} userId The unique identifier of the user to check.
+ * @returns {Promise<void>} Resolves once all notifications have been processed. 
+ */
 export async function checkUpcomingDeadlines(userId: string) {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
