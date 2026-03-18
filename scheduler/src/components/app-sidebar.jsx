@@ -15,8 +15,10 @@ import {
   IconSearch,
   IconSettings,
   IconUserCog,
-  IconBook
+  IconBook,
+  IconBell,
 } from "@tabler/icons-react";
+
 import { GraduationCap, Map } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -32,6 +34,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import SearchPanel from "@/components/search-page/search-panel";
+import NotificationModal from "../app/components/NotificationModal";
 
 const data = {
   user: {
@@ -84,6 +87,11 @@ const data = {
       title: "Admin",
       url: "/admin",
       icon: IconUserCog,
+    },
+    {
+      title: "Notifications",
+      action: "notifications",
+      icon: IconBell,
     },
     {
       title: "Settings",
@@ -150,40 +158,59 @@ const data = {
 
 export function AppSidebar({ onSearchClick, ...props }) {
   const [searchOpen,setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <>
-      <Sidebar collapsible="offcanvas" {...props}>
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="data-[slot=sidebar-menu-button]:!p-1.5"
-              >
-                <a href="#">
-                  <GraduationCap className="!size-5" />
-                  <span className="text-base font-semibold">Scheduler</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+      <Sidebar collapsible="offcanvas" 
+                className="!bg-transparent !border-none !shadow-none"
+                {...props}>
+        <div className="lunar-sidebar-ink">
+          <SidebarHeader>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className="data-[slot=sidebar-menu-button]:!p-1.5"
+                >
+                  <a href="#">
+                    <GraduationCap className="text-blue-400 !size-7 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+                    <span className="lunar-header text-xl">Lunar</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarHeader>
 
-        <SidebarContent>
-          <NavMain items={data.navMain} label="Main" />
-          <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
-        </SidebarContent>
-        <SidebarFooter>
-          <NavUser user={data.user} />
-        </SidebarFooter>
+          <SidebarContent className="lunar-scroll px-2">
+            <NavMain items={data.navMain} label="" onNotifClick={() => setNotifOpen(true)} />
+            <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
+          </SidebarContent>
+          <SidebarFooter>
+            <NavUser user={data.user} />
+          </SidebarFooter>
+        </div>
       </Sidebar>
-    
 
-      <SearchPanel
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
+      {/* Notification Modal */}
+      {mounted && (
+        <NotificationModal
+          isOpen={notifOpen}
+          handleShowModal={() => setNotifOpen(false)}
+        />    
+      )}
+
+      {mounted && (
+        <SearchPanel
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
     </>
     
   );

@@ -57,31 +57,27 @@ const NotificationModal = ({
   const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case NotificationType.SUCCESS:
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5" />;
       case NotificationType.ERROR:
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <XCircle className="w-5 h-5" />
       case NotificationType.WARNING:
-        return <AlertCircle className="w-5 h-5 text-yellow-500" />;
-      case NotificationType.INFO:
-        return <Info className="w-5 h-5 text-blue-500" />;
+        return <AlertCircle className="w-5 h-5" />
       default:
-        return null;
+        return <Info className="w-5 h-5" />
     }
   };
 
-  const getNotificationBgColor = (type: NotificationType) => {
-    switch (type) {
-      case NotificationType.SUCCESS:
-        return "bg-green-50 border-green-200";
-      case NotificationType.ERROR:
-        return "bg-red-50 border-red-200";
-      case NotificationType.WARNING:
-        return "bg-yellow-50 border-yellow-200";
-      case NotificationType.INFO:
-        return "bg-blue-50 border-blue-200";
-      default:
-        return "bg-gray-50 border-gray-200";
-    }
+    const getNotificationClass = (type: NotificationType) => {
+      switch (type) {
+        case NotificationType.SUCCESS:
+          return "lunar-item-success";
+        case NotificationType.ERROR:
+          return "lunar-item-error";
+        case NotificationType.WARNING:
+          return "lunar-item-warning";
+        default:
+          return "lunar-item-info";
+      }
   };
 
   const formatTime = (timestamp: Date) => {
@@ -130,7 +126,7 @@ const NotificationModal = ({
 
   return (
     <div
-      className="w-full h-full fixed inset-0 backdrop-filter backdrop-blur-sm flex items-center justify-center z-50"
+      className={`fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xl z-[9999] ${!isOpen && 'hidden'}`}
       onClick={handleShowModal}
     >
       <style jsx>{`
@@ -151,19 +147,19 @@ const NotificationModal = ({
       `}</style>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col"
+        className="lunar-glass max-w-2xl w-full max-h-[80vh] flex flex-col"
       >
         {/* Header */}
-        <div className="border-b border-gray-200 p-6 flex items-center justify-between">
+        <div className="border-b border-white/5 p-6 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="lunar-header">Notifications</h2>
+            <p className="lunar-label">
               {notifications.length} notifications
             </p>
           </div>
           <button
             onClick={handleShowModal}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="text-white/40 hover:text-white"
             aria-label="Close modal"
           >
             <X className="w-6 h-6 text-gray-500" />
@@ -177,7 +173,7 @@ const NotificationModal = ({
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-l-4 flex items-start gap-3 ${getNotificationBgColor(notification.type)} hover:bg-opacity-75 transition-colors`}
+                  className={`p-4 border-b border-white/5 flex items-start gap-3 transition-colors hover:bg-white/5 hover:bg-opacity-75 transition-colors ${getNotificationClass(notification.type)}`}
                 >
                   <div className="flex-shrink-0 mt-1">
                     {getNotificationIcon(notification.type)}
@@ -230,10 +226,10 @@ const NotificationModal = ({
 
         {/* Footer */}
         {notifications.length > 0 && (
-          <div className="border-t border-gray-200 p-4 bg-gray-50 flex gap-3 justify-end rounded-b-lg">
+          <div className="border-t border-white/10 p-4 bg-black-20 flex gap-3 justify-end rounded-b-lg">
             <button
               onClick={clearAll}
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-md transition-colors inline-flex items-center gap-2"
+              className="px-4 py-2 text-sm font-medium text-black-700 hover:bg-black-200 rounded-md transition-colors inline-flex items-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
               Clear All

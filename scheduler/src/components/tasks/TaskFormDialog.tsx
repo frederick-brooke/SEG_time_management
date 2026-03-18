@@ -13,7 +13,8 @@ import { LunarCard } from "../ui/lunar-card";
 import { X } from "lucide-react";
 
 
-const labelStyle = "text-[10px] font-bold text-blue-400/80 uppercase tracking-widest";
+const labelStyle = "lunar-label"
+const cardStyle = "lunar-card"
 const inputStyle = "bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-blue-500/40 rounded-xl transition-all [color-scheme:dark]";
 const selectStyle = "bg-[#0a0f1d] border-white/10 text-white rounded-xl focus:ring-2 focus:ring-blue-500/40";
 
@@ -42,7 +43,7 @@ export function TaskFormDialog({
             if (e.target === e.currentTarget) onOpenChange(false)
         }}>
         <LunarCard
-            className="w-full max-w-[380px] relative p-6 bg-[#111629]/95 border-white/10 shadow-2xl"
+            className="lunar-card"
             onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
