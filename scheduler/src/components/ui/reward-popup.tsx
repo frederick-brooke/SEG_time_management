@@ -1,51 +1,79 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
-import { GoldCoin } from "components/ui/gold-coin";
 
 interface RewardPopupProps {
   xp: number;
-  coins: number;
   onDone: () => void;
 }
 
-export function RewardPopup({ xp, coins, onDone }: RewardPopupProps) {
-  const [stage, setStage] = useState<"in" | "hold" | "out">("in");
+export function RewardPopup({ xp, onDone }: RewardPopupProps) {
+  // Simplified stages: start hidden -> animate to center -> fade/scale out
+  const [stage, setStage] = useState<"hidden" | "center" | "exit">("hidden");
 
   useEffect(() => {
-    const t1 = setTimeout(() => setStage("hold"), 50);
-    const t2 = setTimeout(() => setStage("out"), 2000);
-    const t3 = setTimeout(onDone, 2400);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    // Trigger the pop-up slightly after mount
+    const t1 = setTimeout(() => setStage("center"), 50);
+    // Hold in the center for 1.5 seconds, then exit
+    const t2 = setTimeout(() => setStage("exit"), 1500);
+    // Unmount completely
+    const t3 = setTimeout(onDone, 2000);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
   }, [onDone]);
 
   return (
     <div
-      style={{ position: "fixed", bottom: 96, left: "50%", transform: "translateX(-50%)", zIndex: 9999 }}
-      className={`transition-all duration-300 ${
-        stage === "in"   ? "opacity-0 scale-75 translate-y-4" :
-        stage === "hold" ? "opacity-100 scale-100 translate-y-0" :
-                           "opacity-0 scale-90 -translate-y-2"
-      }`}
+      style={{
+        position: "fixed",
+        zIndex: 9999,
+        pointerEvents: "none",
+        left: "50%",
+        // Starts below the screen, moves to 50% (center)
+        top: stage === "hidden" ? "120%" : "50%",
+        // Scales down on exit
+        transform: `translate(-50%, -50%) scale(${stage === "exit" ? 0 : 1})`,
+        opacity: stage === "exit" ? 0 : 1,
+        // Bouncy spring animation for the entrance
+        transition: "all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "160px",
+        height: "160px",
+      }}
     >
-      <div className="flex items-center gap-3 bg-gray-900 text-white px-6 py-3 rounded-2xl shadow-2xl border border-white/10 whitespace-nowrap">
-        {/* XP */}
-        <div className="flex items-center gap-1.5">
-          <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center">
-            <Star size={14} className="text-gray-900 fill-gray-900" />
-          </div>
-          <span className="font-black text-yellow-400 text-base">+{xp} XP</span>
-        </div>
+      {/* Background Star SVG */}
+      <svg
+        viewBox="0 0 24 24"
+        fill="#facc15" // Yellow/Gold color
+        style={{
+          position: "absolute",
+          width: "100%",
+          height: "100%",
+          filter: "drop-shadow(0px 8px 16px rgba(250, 204, 21, 0.4))",
+        }}
+      >
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      </svg>
 
-        <div className="w-px h-5 bg-white/20" />
-
-        {/* Coins */}
-        <div className="flex items-center gap-1.5">
-          <GoldCoin size={22} />
-          <span className="font-black text-amber-400 text-base">+{coins} coins</span>
-        </div>
-      </div>
+      {/* Points Text Inside the Star */}
+      <span
+        style={{
+          position: "relative",
+          color: "#ffffff",
+          fontWeight: 900,
+          fontSize: "1.75rem",
+          textShadow: "1px 2px 4px rgba(0,0,0,0.3)", // Helps readability against the yellow
+          marginTop: "12px", // Pushes the text down slightly into the visual center of the star
+        }}
+      >
+        +{xp}
+      </span>
     </div>
   );
 }
