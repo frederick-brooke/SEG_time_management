@@ -1,4 +1,13 @@
 "use client";
+
+/**
+ * @file MessageBubble.tsx
+ * @description Renders a single chat message with date dividers, sender avatars,
+ * hover timestamps, and a report flow for other users' messages.
+ * Supports optimistic rendering for messages not yet confirmed by the API,
+ * and adjusts bubble border-radius based on position within a consecutive message group.
+ */
+
 import { useState } from "react";
 import Image from "next/image";
 
@@ -22,10 +31,12 @@ type Props = {
   onAvatarClick?: (username: string) => void;
 };
 
+/** Formats an ISO timestamp to a localised HH:MM string. */
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+/** Formats an ISO date to a human-readable label: "Today", "Yesterday", a weekday, or a short date. */
 function formatDate(iso: string) {
   const date = new Date(iso);
   const now = new Date();
@@ -36,6 +47,11 @@ function formatDate(iso: string) {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+/**
+ * Renders a circular avatar for a message sender.
+ * Falls back to the first letter of the username if no profile picture is available.
+ * If `onClick` is provided, the avatar is rendered as a clickable element.
+ */
 function SenderAvatar({
   src,
   username,
@@ -73,6 +89,11 @@ function SenderAvatar({
   );
 }
 
+/**
+ * Modal for submitting a report against a user.
+ * Requires a reason selection; an optional description can be added.
+ * Calls POST /api/report and invokes `onReported` on success.
+ */
 function ReportModal({
   reportedUserId,
   onClose,
@@ -86,6 +107,7 @@ function ReportModal({
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
+  /** Submits the report to the API and closes the modal on success. */
   const handleSubmit = async () => {
     setLoading(true);
     const res = await fetch("/api/report", {

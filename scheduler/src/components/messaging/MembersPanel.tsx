@@ -1,4 +1,12 @@
 "use client";
+
+/**
+ * @file MembersPanel.tsx
+ * @description Collapsible panel rendered inside a group conversation showing all current members.
+ * Admins can add members, remove participants, and toggle admin roles.
+ * Each member's avatar and name links to their profile page.
+ */
+
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 

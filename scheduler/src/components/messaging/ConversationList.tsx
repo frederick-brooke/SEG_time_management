@@ -1,4 +1,12 @@
 "use client";
+
+/**
+ * @file ConversationList.tsx
+ * @description Sidebar component that lists all conversations for the current user.
+ * Handles real-time updates via Pusher (new messages, deletions, membership changes),
+ * refetches on window focus, and exposes a modal for creating new group conversations.
+ */
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -32,6 +40,13 @@ type Friend = {
   pfp: string | null;
 };
 
+/**
+ * Formats an ISO timestamp into a short relative string for display in conversation rows.
+ * Returns values like "now", "5m", "3h", "2d", "1w", or a locale date for older timestamps.
+ *
+ * @param iso - ISO 8601 date string, or null.
+ * @returns A short human-readable string, or an empty string if null.
+ */
 function formatLastMessageTime(iso: string | null): string {
   if (!iso) return "";
   const date = new Date(iso);

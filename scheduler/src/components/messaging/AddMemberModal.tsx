@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file AddMemberModal.tsx
+ * @description Modal component for adding friends to an existing group conversation.
+ * Fetches the current user's friends, filters out existing members, and posts
+ * a new member to the conversation via the REST API.
+ */
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 

@@ -1,4 +1,13 @@
 "use client";
+
+/**
+ * @file CreateGroupModal.tsx
+ * @description Modal for creating a new group conversation.
+ * Allows the user to name the group and select members from their friend list.
+ * Detects duplicate groups by checking the age of the returned conversation
+ * and prompts the user to open the existing one instead.
+ */
+
 import { useState } from "react";
 import Image from "next/image";
 
@@ -25,6 +34,11 @@ export function CreateGroupModal({
     );
   };
 
+  /**
+   * Submits the group creation request.
+   * If the API returns an existing conversation (age > 5s), sets the duplicate warning
+   * instead of navigating away.
+   */
   const handleCreate = async () => {
     if (!name.trim() || selected.length === 0) return;
     setLoading(true);
