@@ -6,14 +6,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/src/components/ui/card";
-import { Calendar } from "lucide-react";
 import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
-import { LunarCard } from "./ui/lunar-card";
 
+/**
+ * Dashboard component which filters and displays tasks due within the next 7 days.
+ * Integrates task management tools and synchronises linked exam data across dialogs.
+ * @param {string} userId The unique identifier for fetching user tasks.
+ * @param {Array} exams Array of user-created exams to populate the link dropdown.
+ * @returns {JSX.Element} The rendered 'Coming Up Soon' section.
+ */
 export function ComingUpSoon({ userId, exams = [] }) {
   const {
     tasks,
@@ -36,19 +41,11 @@ export function ComingUpSoon({ userId, exams = [] }) {
     cancelDelete,
   } = useTasks(userId);
 
-  const getPriorityStyle = (priority) => {
-    switch (priority) {
-      case "High":
-        return "border-red-500/30 bg-red-500/10 text-red-400";
-      case "Medium":
-        return "border-amber-500/30 bg-amber-500/10 text-amber-400";
-      case "Low":
-        return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
-      default:
-        return "border-white/10 bg-white/5 text-white/50";
-    }
-  };
-
+  /**
+   * Logic to determine if a task is due within the next 7 days.
+   * @param {Object} task The task record from the database.
+   * @returns {boolean} Whether the task is due in the next 7 days or not.
+   */
   const isComingSoon = (task) => {
     if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
@@ -97,7 +94,8 @@ export function ComingUpSoon({ userId, exams = [] }) {
             />
           </div>
         </div>
-
+        
+        {/* Task list in a scrollable container */}
         <div className="overflow-y-auto pt-0 pb-6 px-2 custom-scrollbar transition-all" style={{ maxHeight: "350px" }}>
           {comingSoonTasks.length === 0 ? (
             <p className="text-sm text-white/30 text-center py-8 italic font-medium">No tasks due soon</p>
