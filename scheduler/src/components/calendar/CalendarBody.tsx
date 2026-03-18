@@ -40,6 +40,13 @@ function TaskEventContent({ event }: { event: any }) {
   );
 }
 
+function formatTravelTime(mins: number): string {
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
 function CalendarEventContent({ event }: { event: any }) {
   const travelMins =
     typeof event.travelDuration === "number" ? event.travelDuration : null;
@@ -48,7 +55,7 @@ function CalendarEventContent({ event }: { event: any }) {
       {travelMins !== null && (
         <div className="mb-1 px-1 py-[2px] rounded bg-white/20 text-[9px] flex items-center gap-1 font-bold">
           <span>🚗</span>
-          <span>{travelMins} min travel</span>
+          <span>{formatTravelTime(travelMins)} travel</span>
         </div>
       )}
       <div className="font-semibold truncate leading-tight">{event.title}</div>
