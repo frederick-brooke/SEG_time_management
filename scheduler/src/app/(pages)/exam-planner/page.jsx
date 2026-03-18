@@ -2,19 +2,18 @@
 
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
-import { AppSidebar } from "@/src/components/app-sidebar";
-import { SiteHeader } from "@/src/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
 import { getMyExams, deleteExam } from "@/src/app/actions/examActions";
 import ExamFormDialog from "@/src/components/exams/exam-form-dialog";
-
 import Link from "next/link";
-
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
+/**
+ * The dashboard for exam planning.
+ * Displays a grid of active exams with revision progress
+ * as well as tools for adding or removing study plans.
+ */
 export default function ExamPlannerPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -36,6 +35,10 @@ export default function ExamPlannerPage() {
     loadExams();
   }, [session]);
 
+  /**
+   * Handler for removing an exam and its associated data.
+   * @param {string}} id The database ID of the exam.
+   */
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this exam entry?")) {
       try {
@@ -63,6 +66,7 @@ export default function ExamPlannerPage() {
           />
         </div>
 
+        {/* Exam Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {exams.length > 0 ? (
             exams.map((exam) => {
@@ -79,6 +83,7 @@ export default function ExamPlannerPage() {
                   key={exam.id}
                   className="group relative p-8 bg-[#111629]/60 border border-white/5 backdrop-blur-md rounded-[2rem] shadow-2xl flex flex-col gap-6 transition-all hover:bg-[#111629]/80 hover:border-blue-500/20"
                 >
+                  {/* Exam Title and Tasks */}
                   <div className="flex justify-between items-start">
                     <Link
                       href={`/exam-planner/${exam.id}`}
@@ -91,6 +96,7 @@ export default function ExamPlannerPage() {
                     </span>
                   </div>
 
+                  {/* Exam Date and Daily Goal */}
                   <p className="bg-white/5 border border-white/10 text-blue-400 px-4 py-1.5 rounded-full text-[11px] font-black tracking-widest shadow-[0_0_15px_rgba(37,99,235,0.4)]">
                     Exam Date: {new Date(exam.examDate).toLocaleDateString()}
                   </p>
@@ -98,6 +104,7 @@ export default function ExamPlannerPage() {
                     Daily Goal: {exam.maxTimePerDay} mins
                   </p>
 
+                  {/* Progress Section */}
                   <div className="space-y-2 py-2">
                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       <span>Revision Progress</span>
@@ -111,6 +118,7 @@ export default function ExamPlannerPage() {
                     </div>
                   </div>
 
+                  {/* Action Footer */}
                   <div className="flex justify-end mt-4">
                     <ExamFormDialog
                       editingExam={exam}
