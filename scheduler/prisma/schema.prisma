@@ -153,7 +153,8 @@ model UserProgress {
   user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions PointTransaction[]
   inventory    UserInventory[]
-  coins          Int       @default(0)   // ← ADD THIS
+  coins          Int       @default(0)   
+  equippedAvatar  String?
 
 }
 

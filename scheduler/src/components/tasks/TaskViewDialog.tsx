@@ -4,31 +4,29 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Label } from "components/ui/label";
 import { Button } from "components/ui/button";
-<<<<<<< HEAD
-import { getPriorityStyle } from "@/src/lib/priority";
-import { X, CheckCircle2 } from "lucide-react"; // Added for a nice icon
-import { intervalToDuration } from "date-fns";
+import { X, CheckCircle2 } from "lucide-react"; 
 import { LunarCard } from "../ui/lunar-card";
 
 interface TaskViewDialogProps {
   task: any | null;
   isOpen: boolean;
   onClose: () => void;
+  getPriorityStyle: (priority: string) => string;
+  onReward?: (rewards: any) => void;
 }
 
-export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
+export function TaskViewDialog({ 
+  task, 
+  isOpen, 
+  onClose, 
+  getPriorityStyle, 
+  onReward 
+}: TaskViewDialogProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  
-=======
-import { CheckCircle2 } from "lucide-react";
 
-export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle, onReward }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
->>>>>>> 64abd0c (rewards pop up)
-  if (!task) return null;
+  // Return early if dialog shouldn't be open or task is missing
+  if (!isOpen || !task) return null;
 
   const handleCompleteTask = async () => {
     setLoading(true);
@@ -46,7 +44,7 @@ export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle
         const data = await res.json();
         router.refresh();
         onClose();
-        if (data.rewards) onReward(data.rewards);
+        if (data.rewards && onReward) onReward(data.rewards);
       }
     } catch (error) {
       console.error("Failed to update task:", error);
@@ -56,14 +54,13 @@ export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle
   };
 
   return (
-
     /* Background Overlay */
-    < div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xl z-[9999]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xl z-[9999]" onClick={onClose}>
 
       {/* Lunar Wrapper */}
       <LunarCard
           className="w-full max-w-[425px] relative p-8 bg-[#111629]/95 border-white/10 shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button onClick={onClose} className="absolute top-5 right-6 text-white/40 hover:text-white">
@@ -72,7 +69,7 @@ export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle
 
         {/* Title */}
         <div className="mb-6">
-          <h3 className="text-2xl font-black text-white uppercase tracking-tighter">
+          <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
             {task.title}
             {task.status === "completed" && (
               <CheckCircle2 className="text-green-500 h-5 w-5" />
@@ -91,18 +88,10 @@ export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle
           </div>
 
           <div>
-<<<<<<< HEAD
             <Label className="lunar-label">Priority</Label>
-            <p className="lunar-value">
-              <span
-                className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}
-              >
-=======
-            <Label className="text-sm font-medium">Priority</Label>
-            <p className="text-sm mt-1">
+            <p className="lunar-value mt-1">
               <span className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}>
->>>>>>> 64abd0c (rewards pop up)
-                {task.priority}
+                {task.priority || "None"}
               </span>
             </p>
           </div>
@@ -157,7 +146,7 @@ export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle
             <Label className="lunar-label">Subtasks</Label>
             <ul className="list-disc list-inside text-sm text-white/50 mt-1 space-y-1">
               {task.subtasks?.length > 0 ? (
-                task.subtasks.map((sub, index) => (
+                task.subtasks.map((sub: string, index: number) => (
                   <li key={index}>{sub}</li>
                 ))
               ) : (
@@ -167,14 +156,9 @@ export default function TaskViewDialog({ task, isOpen, onClose, getPriorityStyle
           </div>
         </div>
 
-<<<<<<< HEAD
         {/* Footer Buttons */}
-        <div className="flex gap-3 mt-8">
+        <div className="flex flex-col sm:flex-row gap-3 mt-8">
           <Button variant="outline" onClick={onClose} className="flex-1 bg-white/10 text-white border-white/10 hover:bg-white/20">
-=======
-        <DialogFooter className="flex flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose} className="flex-1">
->>>>>>> 64abd0c (rewards pop up)
             Close
           </Button>
           {task.status !== "completed" && (

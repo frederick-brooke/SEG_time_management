@@ -12,6 +12,10 @@ import { sendFriendRequest, removeFriend, cancelFriendRequest } from "../../acti
 
 // Sub-components
 import ReportModal from "components/admin/report-modal";
+import { GoldCoin } from "components/ui/gold-coin";
+import { AVATAR_IMAGES } from "@/src/lib/shop-catalogue";
+
+
 import EditProfileForm from "components/profile/EditProfileForm";
 import FriendsList from "components/profile/FriendsList";
 import PendingRequests from "components/profile/PendingRequests";
@@ -32,6 +36,21 @@ function formatDate(dateString: string): string {
 }
 
 /**
+ * Resolves the src for an avatar <img>.
+ *   - If pfp starts with "avatar:" it's a shop avatar key → look up in AVATAR_IMAGES
+ *   - If pfp is a normal URL (uploaded photo / OAuth) → use it directly
+ *   - Otherwise returns null (fall back to initials)
+ */
+function resolveAvatarSrc(pfp: string | null | undefined): string | null {
+  if (!pfp) return null;
+  if (pfp.startsWith("avatar:")) {
+    const key = pfp.slice("avatar:".length);
+    return AVATAR_IMAGES[key] ?? null;
+  }
+  return pfp;
+}
+
+/**
  * Handles the logic and UI for sending, canceling, or removing friend requests.
  * @param {Object} props - Component props.
  * @param {any} props.profile - The profile data of the user being viewed.
@@ -40,8 +59,21 @@ function formatDate(dateString: string): string {
  */
 function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnProfile: boolean }) {
   const [isPending, startTransition] = useTransition();
+  const [showReport, setShowReport] = useState(false);
 
-  if (isOwnProfile) return null;
+  const level      = profile.progress?.level      ?? 1;
+  const totalXp    = profile.progress?.experience ?? 0;
+  const coins      = profile.progress?.coins      ?? 0;
+  const XP_PER_LEVEL = 100;
+  const xpIntoLevel  = totalXp % XP_PER_LEVEL;
+  const xpBarWidth   = Math.min((xpIntoLevel / XP_PER_LEVEL) * 100, 100);
+  const xpToNext     = XP_PER_LEVEL - xpIntoLevel;
+
+  // Resolve the avatar src once — used throughout the component
+  const avatarSrc = resolveAvatarSrc(profile.pfp);
+
+  const FriendRequestButton = () => {
+    if (isOwnProfile) return null;
 
   const handleAction = (actionFn: (id: string) => Promise<any>, confirmMsg?: string) => {
     if (confirmMsg && !confirm(confirmMsg)) return;
@@ -148,8 +180,8 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
           {/* Avatar + Level Badge */}
           <div className="relative shrink-0">
             <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-500 overflow-hidden border-4 border-white shadow-md">
-              {profile.pfp ? (
-                <img src={profile.pfp} alt="Profile" className="w-full h-full object-cover" />
+              {avatarSrc ? (
+                <img src={avatarSrc} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <span>{profile.fname?.[0] ?? profile.username?.[0] ?? ""}{profile.lname?.[0] ?? ""}</span>
               )}
