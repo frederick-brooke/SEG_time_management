@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file page.tsx
+ * @description Full conversation view for a single direct or group conversation.
+ * Handles paginated message loading, optimistic sends, real-time updates via Pusher
+ * (new messages, typing indicators), and group management (members, roles, leave).
+ */
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";

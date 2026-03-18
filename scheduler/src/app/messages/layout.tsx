@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * @file layout.tsx
+ * @description Responsive shell for the messages section.
+ * On desktop, renders a fixed 380px sidebar alongside the conversation view.
+ * On mobile, toggles between the sidebar and the active conversation full-screen,
+ * hiding the sidebar when a conversation is open and vice versa.
+ */
+
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
