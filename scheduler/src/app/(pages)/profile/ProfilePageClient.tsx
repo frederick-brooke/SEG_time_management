@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { 
   Users, UserPlus, UserCheck, Clock, 
   ChevronDown, ChevronUp, UserMinus, Flag, Star, Zap, Pencil, X

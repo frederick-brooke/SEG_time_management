@@ -16,7 +16,7 @@ import {
   IconUserCog,
   IconBook
 } from "@tabler/icons-react";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, Map } from "lucide-react";
 import { NavMain } from "components/nav-main";
 import { NavSecondary } from "components/nav-secondary";
 import { NavUser } from "components/nav-user";
@@ -63,6 +63,11 @@ const data = {
       title: "Profile",
       url: "/profile",
       icon: IconUser,
+    },
+    {
+      title: "Friends Map",
+      url: "/friend-map",
+      icon: Map,
     },
     {
       title: "Leaderboard",
