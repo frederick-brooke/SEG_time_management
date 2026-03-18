@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from "react";
-import { Medal, Flame, Clock, Target } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface LeaderboardUser {
   id: string;
@@ -16,7 +17,18 @@ interface LeaderboardUser {
   isCurrentUser: boolean;
 }
 
-export default function LeaderboardClient({ initialData }: { initialData: LeaderboardUser[] }) {
+interface LeaderboardClientProps {
+  initialData: LeaderboardUser[];
+  currentTimeframe: 'day' | 'week' | 'month' | 'all';
+}
+
+export default function LeaderboardClient({ initialData, currentTimeframe }: LeaderboardClientProps) {
+  const router = useRouter();
+  
+  // ✅ NEW: Add a transition state to track when the server is loading
+  const [isPending, startTransition] = useTransition();
+  const [localTimeframe, setLocalTimeframe] = useState(currentTimeframe);
+  
   const [sortBy, setSortBy] = useState<'streak' | 'focusTime' | 'completionRate'>('streak');
 
   const sortedData = [...initialData].sort((a, b) => {
@@ -35,23 +47,60 @@ export default function LeaderboardClient({ initialData }: { initialData: Leader
     return 0;
   });
 
+  const handleTimeframeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newTimeframe = e.target.value as any;
+    // 1. Update the dropdown instantly for the user
+    setLocalTimeframe(newTimeframe);
+    
+    // 2. Tell Next.js to fetch the new URL in the background
+    startTransition(() => {
+      router.push(`?timeframe=${newTimeframe}`);
+    });
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
       
-      {/* Table Controls (Dropdown) */}
-      <div className="flex justify-between items-center p-4 bg-white border-b border-gray-100">
-        <h2 className="font-bold text-gray-900">Live Rankings</h2>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-semibold text-gray-500">Sort by:</label>
-          <select 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="border border-gray-200 bg-gray-50 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none cursor-pointer transition-all hover:bg-gray-100"
-          >
-            <option value="streak">Current Streak</option>
-            <option value="focusTime">Focus Time</option>
-            <option value="completionRate">Completion Rate</option>
-          </select>
+      {/* Table Controls (Dropdowns) */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-white border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <h2 className="font-bold text-gray-900">Live Rankings</h2>
+          {/* ✅ NEW: Show a tiny loading spinner next to the title when fetching */}
+          {isPending && (
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {/* Timeframe Filter */}
+          <div className="flex items-center gap-2">
+            <Calendar size={16} className={isPending ? "text-blue-500" : "text-gray-400"} />
+            <select 
+              value={localTimeframe} 
+              onChange={handleTimeframeChange}
+              disabled={isPending}
+              className="border border-gray-200 bg-gray-50 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none cursor-pointer transition-all hover:bg-gray-100 disabled:opacity-50"
+            >
+              <option value="day">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+
+          {/* Sort Filter */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-semibold text-gray-500">Sort by:</label>
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="border border-gray-200 bg-gray-50 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none cursor-pointer transition-all hover:bg-gray-100"
+            >
+              <option value="streak">Current Streak</option>
+              <option value="focusTime">Focus Time</option>
+              <option value="completionRate">Completion Rate</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -65,7 +114,8 @@ export default function LeaderboardClient({ initialData }: { initialData: Leader
       </div>
 
       {/* Table Body */}
-      <div className="divide-y divide-gray-100">
+      {/* ✅ NEW: Fade out the table slightly while the server is loading new data */}
+      <div className={`divide-y divide-gray-100 transition-opacity duration-200 ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
         {!sortedData || sortedData.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             No friends to compete with yet! Head to a profile to add some.

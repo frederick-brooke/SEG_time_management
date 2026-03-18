@@ -9,7 +9,7 @@ import {
 import { Calendar } from "lucide-react";
 import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
-import  TaskViewDialog  from "./tasks/TaskViewDialog";
+import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 import { LunarCard } from "./ui/lunar-card";
@@ -50,20 +50,17 @@ export function ComingUpSoon({ userId }) {
   };
 
   const isComingSoon = (task) => {
-    if (!task.dueDate) return false;
-    if (task.status === "completed") return false;
-
+    if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(task.dueDate);
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
-
-    return dueDate >= today && dueDate <= sevenDaysFromNow;
+    const due = new Date(task.dueDate);
+    return due >= today && due <= sevenDaysFromNow;
   };
 
   const comingSoonTasks = tasks
-    .filter((t) => isComingSoon(t))
+    .filter(isComingSoon)
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
   if (isLoading) {
@@ -113,7 +110,6 @@ export function ComingUpSoon({ userId }) {
                   onView={handleViewTask}
                   onEdit={handleEditTask}
                   onDelete={handleDeleteTask}
-                  getPriorityStyle={getPriorityStyle}
                 />
               ))}
             </div>
@@ -127,11 +123,11 @@ export function ComingUpSoon({ userId }) {
         onConfirm={confirmDeleteTask}
         onCancel={cancelDelete}
       />
+
       <TaskViewDialog
         task={viewTask}
         isOpen={viewTask !== null}
         onClose={() => setViewTask(null)}
-        getPriorityStyle={getPriorityStyle}
       />
     </>
   );

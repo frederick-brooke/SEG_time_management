@@ -1,81 +1,91 @@
 import { NextResponse } from "next/server";
-import prisma from "@/src/lib/prisma";
-import { awardTaskPoints, revokeTaskPoints } from "@/src/lib/points";
+import { prisma } from "@/lib/prisma";
 
-// Delete task
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+// ── DELETE ────────────────────────────────────────────────────────────────────
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
-
     await prisma.task.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to delete task" }, { status: 500 });
+    console.error("DELETE task error:", error);
+    return NextResponse.json(
+      { error: "Failed to delete task" },
+      { status: 500 },
+    );
   }
 }
 
-// Patch (update) task
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+// ── PATCH ─────────────────────────────────────────────────────────────────────
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id } = await params;
     const body = await request.json();
+    const d: Record<string, unknown> = {};
 
-    // Fetch the current task so we know its previous state + owner
-    const existingTask = await prisma.task.findUnique({ where: { id } });
-    if (!existingTask) {
-      return NextResponse.json({ error: "Task not found" }, { status: 404 });
-    }
+    if (body.title !== undefined) d.title = body.title;
+    if (body.description !== undefined)
+      d.description = body.description ?? null;
+    if (body.dueDate !== undefined)
+      d.dueDate = body.dueDate ? new Date(body.dueDate) : null;
+    if (body.priority !== undefined) d.priority = body.priority;
+    if (body.duration !== undefined) d.duration = Number(body.duration);
+    if (body.subtasks !== undefined) d.subtasks = body.subtasks;
+    if (body.bufferDays !== undefined) d.bufferDays = body.bufferDays ?? null;
+    if (body.url !== undefined) d.url = body.url ?? null;
+    if (body.isRecurring !== undefined) d.isRecurring = body.isRecurring;
+    if (body.recurrence !== undefined) d.recurrence = body.recurrence ?? null;
+    if (body.missedAt !== undefined)
+      d.missedAt = body.missedAt ? new Date(body.missedAt) : null;
+    if (body.carriedFrom !== undefined)
+      d.carriedFrom = body.carriedFrom ?? null;
+    if (body.examId !== undefined)
+      d.examId = body.examId && body.examId !== "none" ? body.examId : null;
+    if (body.eventId !== undefined) d.eventId = body.eventId || null;
+    if (body.scheduledDate !== undefined)
+      d.scheduledDate = body.scheduledDate
+        ? new Date(body.scheduledDate)
+        : null;
+    if (body.scheduledTime !== undefined)
+      d.scheduledTime = body.scheduledTime
+        ? new Date(body.scheduledTime)
+        : null;
 
-    const wasCompleted = existingTask.completed;
+    // ── progress field (from check-in partial completion) ────────────────────
+    if (body.progress !== undefined) d.progress = body.progress ?? null;
 
-    // Build update data
-    const updateData: Record<string, unknown> = {};
-
-    if (body.title !== undefined) updateData.title = body.title;
-    if (body.description !== undefined) updateData.description = body.description;
-    if (body.dueDate !== undefined) updateData.dueDate = new Date(body.dueDate);
-    if (body.priority !== undefined) updateData.priority = body.priority;
-    if (body.duration !== undefined) updateData.duration = body.duration;
-    if (body.subtasks !== undefined) updateData.subtasks = body.subtasks;
-    if (body.url !== undefined) updateData.url = body.url;
-
-    // Handle status updates and sync with completed field
     if (body.status !== undefined) {
-      updateData.status = body.status;
-      if (body.status === "completed") {
-        updateData.completed = true;
-        updateData.completedAt = new Date();
-      } else {
-        updateData.completed = false;
-        updateData.completedAt = null;
-      }
+      d.status = body.status;
+      d.completed = body.status === "completed";
+      d.completedAt = body.status === "completed" ? new Date() : null;
+      // Clear progress when task is completed
+      if (body.status === "completed") d.progress = null;
     }
 
-    // Handle direct completed toggles
     if (body.completed !== undefined) {
-      updateData.completed = body.completed;
-      updateData.completedAt = body.completed ? new Date() : null;
-      updateData.status = body.completed ? "completed" : "todo";
+      d.completed = body.completed;
+      d.completedAt = body.completed ? new Date() : null;
+      d.status = body.completed ? "completed" : "todo";
+      if (body.completed) d.progress = null;
     }
 
-    const task = await prisma.task.update({ where: { id }, data: updateData });
-
-    // ── POINTS LOGIC ──────────────────────────────────────────────
-    const isNowCompleted = task.completed;
-    const priority = task.priority ?? "Low";
-
-    if (!wasCompleted && isNowCompleted) {
-      // Task was just completed → award points
-      await awardTaskPoints(task.userId, task.id, priority);
-    } else if (wasCompleted && !isNowCompleted) {
-      // Task was un-completed → revoke points
-      await revokeTaskPoints(task.userId, task.id, priority);
-    }
-    // ──────────────────────────────────────────────────────────────
+    const task = await prisma.task.update({
+      where: { id },
+      data: d as Parameters<typeof prisma.task.update>[0]["data"],
+    });
 
     return NextResponse.json({ task });
   } catch (error) {
-    console.error("Failed to update task:", error);
-    return NextResponse.json({ error: "Failed to update task" }, { status: 500 });
+    console.error("PATCH task error:", error);
+    return NextResponse.json(
+      { error: "Failed to update task" },
+      { status: 500 },
+    );
   }
 }
