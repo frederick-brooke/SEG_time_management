@@ -238,6 +238,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
             {showReport && (
               <ReportModal
                 reportedUserId={profile.id}
+                reportedUsername={profile.username}
                 onClose={() => setShowReport(false)}
               />
             )}

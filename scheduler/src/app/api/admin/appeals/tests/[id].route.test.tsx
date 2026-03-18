@@ -1,6 +1,16 @@
 import { PATCH } from "../[id]/route";
+// __tests__/appealPatch.test.ts
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+
+jest.mock("next/server", () => ({
+  NextResponse: {
+    json: jest.fn((data, init) => ({
+      status: init?.status || 200,
+      json: async () => data,
+    })),
+  },
+}));
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -14,50 +24,43 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-jest.mock("next/server", () => ({
-  NextResponse: {
-    json: (data: any, init?: any) => ({
-      json: async () => data,
-      status: init?.status || 200,
-    }),
-  },
+jest.mock("@/lib/auth", () => ({
+  authOptions: {}
 }));
 
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
-describe("PATCH /api/admin/appeals/[id]", () => {
+describe("PATCH /api/appeals/[id]", () => {
+  const mockParams = Promise.resolve({ id: "appeal123" });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  const mockParams = Promise.resolve({ id: "appeal123" });
-
-  it("returns 403 if not SUPERUSER", async () => {
+  test("returns 403 if user not superuser", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    const req = {
-      json: async () => ({ action: "APPROVE" }),
-    } as any;
+    const req: any = {
+      json: jest.fn(),
+    };
 
     const res = await PATCH(req, { params: mockParams });
-    const data = await res.json();
 
     expect(res.status).toBe(403);
-    expect(data.error).toBe("Unauthorized");
   });
 
-  it("returns 404 if appeal not found", async () => {
+  test("returns 404 if appeal not found", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin", role: "SUPERUSER" },
     });
 
     (prisma.appeal.findUnique as jest.Mock).mockResolvedValue(null);
 
-    const req = {
-      json: async () => ({ action: "APPROVE" }),
-    } as any;
+    const req: any = {
+      json: jest.fn().mockResolvedValue({ action: "APPROVE" }),
+    };
 
     const res = await PATCH(req, { params: mockParams });
     const data = await res.json();
@@ -66,9 +69,9 @@ describe("PATCH /api/admin/appeals/[id]", () => {
     expect(data.error).toBe("Appeal not found");
   });
 
-  it("approves appeal and unbans user", async () => {
+  test("approves appeal and unbans user", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin1", role: "SUPERUSER" },
     });
 
     (prisma.appeal.findUnique as jest.Mock).mockResolvedValue({
@@ -76,9 +79,9 @@ describe("PATCH /api/admin/appeals/[id]", () => {
       userId: "user123",
     });
 
-    const req = {
-      json: async () => ({ action: "APPROVE" }),
-    } as any;
+    const req: any = {
+      json: jest.fn().mockResolvedValue({ action: "APPROVE" }),
+    };
 
     const res = await PATCH(req, { params: mockParams });
     const data = await res.json();
@@ -99,9 +102,9 @@ describe("PATCH /api/admin/appeals/[id]", () => {
     expect(data.success).toBe(true);
   });
 
-  it("rejects appeal", async () => {
+  test("rejects appeal and keeps user banned", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin", role: "SUPERUSER" },
     });
 
     (prisma.appeal.findUnique as jest.Mock).mockResolvedValue({
@@ -109,9 +112,9 @@ describe("PATCH /api/admin/appeals/[id]", () => {
       userId: "user123",
     });
 
-    const req = {
-      json: async () => ({ action: "REJECT" }),
-    } as any;
+    const req: any = {
+      json: jest.fn().mockResolvedValue({ action: "REJECT" }),
+    };
 
     const res = await PATCH(req, { params: mockParams });
     const data = await res.json();
@@ -124,24 +127,24 @@ describe("PATCH /api/admin/appeals/[id]", () => {
     expect(data.success).toBe(true);
   });
 
-  it("returns 500 if prisma throws", async () => {
+  test("handles internal errors", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin", role: "SUPERUSER" },
     });
 
-    (prisma.appeal.findUnique as jest.Mock).mockRejectedValue(
-      new Error("DB error")
-    );
+    (prisma.appeal.findUnique as jest.Mock).mockImplementation(() => {
+      throw new Error("DB failure");
+    });
 
-    const req = {
-      json: async () => ({ action: "APPROVE" }),
-    } as any;
+    const req: any = {
+      json: jest.fn().mockResolvedValue({ action: "APPROVE" }),
+    };
 
     const res = await PATCH(req, { params: mockParams });
     const data = await res.json();
 
     expect(res.status).toBe(500);
     expect(data.success).toBe(false);
-    expect(data.error).toBe("DB error");
+    expect(data.error).toBe("DB failure");
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
-
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 import {
   IconCamera,
@@ -84,6 +84,7 @@ const data = {
       title: "Admin",
       url: "/admin",
       icon: IconUserCog,
+      role: "SUPERUSER"
     },
     {
       title: "Settings",
@@ -150,6 +151,14 @@ const data = {
 
 export function AppSidebar({ onSearchClick, ...props }) {
   const [searchOpen,setSearchOpen] = useState(false);
+  const { data: session } = useSession();
+
+  const navMain = data.navMain.filter((item) => {
+    if (item.title === "Admin") {
+      return session?.user?.role === "SUPERUSER";
+    }
+    return true;
+  });
 
   return (
     <>
@@ -171,20 +180,20 @@ export function AppSidebar({ onSearchClick, ...props }) {
         </SidebarHeader>
 
         <SidebarContent>
-          <NavMain items={data.navMain} label="Main" />
-          <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
+          <NavSecondary items={data.navSecondary} onSearchClick={onSearchClick}/> 
+
+          <NavMain items={navMain} label="Main" />
+
+          <SearchPanel
+            open={searchOpen}
+            onClose={() => setSearchOpen(false)}
+          />
+                   
         </SidebarContent>
         <SidebarFooter>
           <NavUser user={data.user} />
         </SidebarFooter>
       </Sidebar>
-    
-
-      <SearchPanel
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
-    </>
-    
+    </> 
   );
 }

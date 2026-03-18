@@ -12,6 +12,10 @@ import { revalidatePath } from 'next/cache';
 export async function getUsers() {
     try {
         const users = await prisma.user.findMany({
+            where: {
+                isDeleted:false
+            },
+            
             include: {
                 tasks: true,
                 _count: {
