@@ -4,21 +4,24 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ToDoList } from "@/src/components/to-do-list";
 import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/src/app/actions/examActions";
-import { SiteHeader } from "@/src/components/site-header";
-
-import { AppSidebar } from "@/src/components/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/src/components/ui/sidebar";
 import { Button } from "@/src/components/ui/button";
-
 import { Calendar } from "@/src/components/ui/calendar";
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
+/**
+ * Exam Hub interface for a specific exam.
+ * Allows users to define topics, block out unavailable dates
+ * and trigger the automated study plan generator.
+ */
 export default function ExamDetailPage() {
     const { id } = useParams();
     const [exam, setExam] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
-
     const [topics, setTopics] = useState([{ title: "", duration: 45, url: ""}]);
+
+    /**
+     * Topic management logic
+     */
     const addTopic = () => setTopics([...topics, { title: "", duration: 45, url: ""}]);
 
     const updateTopic = (index, field, value) => {
@@ -39,6 +42,9 @@ export default function ExamDetailPage() {
         if (id) loadExam()
     }, [id]);
 
+    /**
+     * Database syncing handlers
+     */
     const handleUpdateUnavailableDays = async (days) => {
         const updated = await updateExamUnavailableDays(id, days);
         setExam(updated);
@@ -56,11 +62,6 @@ export default function ExamDetailPage() {
         } finally {
             setIsGenerating(false);
         }
-    };
-
-    const handleUpdateSettings = async (newData) => {
-        const updated = await updateExamSettings(id, newData);
-        setExam(updated);
     };
 
     return (
@@ -170,7 +171,6 @@ export default function ExamDetailPage() {
                         </div>
                     )}
                 </div>
-
             </main>
         </LunarThemeWrapper>
 
