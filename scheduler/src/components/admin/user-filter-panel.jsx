@@ -1,158 +1,149 @@
 export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters, type}) {
-
     return (
-    <div
-      className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
-      onClick={onClose} //click outside closes
-    >
-      <div
-        className="p-6 space-y-6"
-        onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
-      >
-        <h3 className="text-xl flex font-semibold mb-4">
-          Filter and Sort
-
-          {/* reset button to clear all filters*/}
-        </h3>
-
-        {/* Sort by username, date of creation or email*/}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium mb-1">
-            Sort By
-          </label>
-
-          <select 
-            value={filters.sortBy}
-            onChange={(e) => 
-                    setFilters(saved_result => ({
-                        ...saved_result,
-                        sortBy: e.target.value,
-                        page:1,
-                    })
-                )                
-            }
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="username">Username</option>
-            <option value="createdAt">Date Created</option>
-            <option value="email">Email</option>
-          </select>
-        </div>
-
-        {/* Order by asc or desc */}
-        <div>
-            <label className="block text-sm font-medium mb-1">
-                Order By
-            </label>
-
-            <select 
-                value={filters.order}
-                onChange={(e) => 
-                    setFilters(saved_result => ({
-                        ...saved_result,
-                        order: e.target.value,
-                        page:1,
-                    }))                
-                }
-
-                className="w-full border rounded px-3 py-2"
+        <div
+        className="fixed inset-0 z-50 flex justify-end bg-blue/40 backdrop-blur-sm"
+        onClick={onClose} //click outside closes
+        >
+            <div
+                className="h-full w-96 p-6 flex flex-col gap-6 bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
+                onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
             >
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-            </select>
-        </div>
-    
-        {type=="admin" && (
-            <>
-                <div>
-                    <label className="block text-sm font-medium mb-1">
-                        Creation Date
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold mb-4">
+                        Filters
+                    </h3>
+
+                    {/* reset button to clear all filters*/}
+                    <button onClick={resetFilters}
+                        className="px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
+                    >
+                        Reset
+                    </button>
+                </div>
+            
+
+                {/* Sort by username, date of creation or email*/}
+                <div className="space-y-3">
+                    <label className="text-xs uppercase text-white/40 tracking-wider">
+                        Sorting
                     </label>
-                    <input
-                        type="date"
-                        value={filters.startDate}
+
+                    <select 
+                        value={filters.sortBy}
+                        onChange={(e) => 
+                                setFilters(saved_result => ({
+                                    ...saved_result,
+                                    sortBy: e.target.value,
+                                    page:1,
+                                })
+                            )                
+                        }
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none"
+                    >
+                        <option value="username">Username</option>
+                        <option value="createdAt">Date Created</option>
+                        <option value="email">Email</option>
+                    </select>
+
+                    {/* Order by asc or desc */}
+                    <select 
+                        value={filters.order}
                         onChange={(e) => 
                             setFilters(saved_result => ({
                                 ...saved_result,
-                                startDate: e.target.value,
+                                order: e.target.value,
                                 page:1,
                             }))                
                         }
-                        className="w-full border rounded px-3 py-2"
-                    />
+                        className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none"
+                    >
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
                 </div>
-
-                <div>
-                    <label className="block text-sm font-medium mb-1">
-                        Last Updated
-                    </label>
-                    <input
-                        type="date"
-                        value={filters.endDate}
-                        onChange={(e) => 
-                            setFilters(saved_result => ({
-                                ...saved_result,
-                                endDate: e.target.value,
-                                page:1,
-                            }))                
-                        }
-                        className="w-full border rounded px-3 py-2"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium mb-2">
-                        Categories
-                    </label>
-
-                    {["SUPERUSER", "BASIC"].map((cat) => (
-                        <label key={cat} className="flex items-center space-x-2 mb-1">
-                            <input
-                                type="checkbox"
-                                value={cat}
-                                checked={filters.categories.includes(cat)}
-                                onChange={(e) => {
-                                    const checked = e.target.checked;
-
-                                    setFilters(saved_results => ({
-                                        ...saved_results,
-                                        categories: checked
-                                            ? [...saved_results.categories, cat] // add category
-                                            : saved_results.categories.filter(c => c !== cat), // remove category
-                                        page: 1,
-                                    }));
-                                }}
-                            />
-
-                            <span>
-                                {cat === "SUPERUSER" && "Admin"}
-                                {cat === "BASIC" && "Basic"}
-                            </span>
+        
+                {type=="admin" && (
+                    <div className="space-y-3">
+                        <label className="block text-sm font-medium mb-1">
+                            Creation Date
                         </label>
-                    ))}
-                </div>
-            </>
-        )}
+                        <input
+                            type="date"
+                            value={filters.startDate}
+                            onChange={(e) => 
+                                setFilters(saved_result => ({
+                                    ...saved_result,
+                                    startDate: e.target.value,
+                                    page:1,
+                                }))                
+                            }
+                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white"
+                        />
+                        
+                        <input
+                            type="date"
+                            value={filters.endDate}
+                            onChange={(e) => 
+                                setFilters(saved_result => ({
+                                    ...saved_result,
+                                    endDate: e.target.value,
+                                    page:1,
+                                }))                
+                            }
+                            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white"
+                        />
+                    </div>
+                )}
 
-        <button onClick={applyFilters}
-            className="w-full bg-blue-800 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
-            Apply Filters
-        </button>
+                {type === "admin" && (
+                    <div className="space-y-3">
+                        <p className="text-xs uppercase text-white/40 tracking-wider">
+                            Roles
+                        </p>
 
-        <button onClick={resetFilters}
-            className="w-full bg-red-800 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
-            Reset Filters
-        </button>
+                        <div className="flex flex-col gap-2">
+                            {["SUPERUSER", "BASIC"].map((cat) => {
+                                const active = filters.categories.includes(cat); //default selection
 
-        <button
-          onClick={onClose}
-          className="w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  );
+                                return (
+                                    <button
+                                        key={cat}
+                                        onClick={() => {
+                                            setFilters((prev) => ({
+                                                ...prev,
+                                                categories: active
+                                                ? prev.categories.filter((c) => c !== cat)
+                                                : [...prev.categories, cat],
+                                                page: 1,
+                                            }));
+                                        }}
+                                        className={`px-3 py-2 rounded-lg text-left transition ${active ? "bg-blue-300 text-gray-900" : "bg-white/5 text-white/70 hover:bg-white/10"}`}
+                                    >
+                                        {cat === "SUPERUSER" ? "Admin" : "Basic"} 
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* actions */}
+                <div className="mt-auto space-y-3">
+                    <button
+                        onClick={applyFilters}
+                        className="w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition"
+                    >
+                        Apply Filters
+                    </button>
+
+                    <button
+                        onClick={onClose}
+                        className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+                    >
+                        Close
+                    </button>
+                </div>  
+            </div>
+        </div>
+    );
 }
