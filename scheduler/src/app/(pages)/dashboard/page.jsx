@@ -1,18 +1,20 @@
+// scheduler/src/app/(pages)/dashboard/page.tsx
 "use client";
-import * as React from "react";
-import { useEffect, useState } from "react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/src/lib/auth";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-import Panel from "@/components/panel";
-import WellbeingPage from "../wellbeing/page";
-import { useSession, signIn, signOut } from "next-auth/react";
-
-import { SiteHeader } from "@/src/components/site-header";
-import { ComingUpSoon } from "@/src/components/coming-up-soon";
+import { useState, useEffect } from "react";
+import { redirect } from "next/navigation";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
-
 import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
+import { ProfileStats } from "@/src/components/profile/StatModules";
+import { getMyProfile } from "@/src/app/actions/profile";
+import { ComingUpSoon } from "@/src/components/coming-up-soon";
+import WellbeingPage from "../wellbeing/page";
+import Panel from "@/components/panel";
+import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 export default function Page() {
   const { data: session, status } = useSession();
@@ -21,20 +23,42 @@ export default function Page() {
   const [errorMessage, setErrorMessage] = useState("");
   const {wellbeingOpen, setWellbeingOpen} = useUI();
   const [exams, setExams] = useState([]);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
+    let isMounted = true; // Prevents fetching if the user moves away from screen
     async function loadData() {
-      const data = await getMyExams();
-      setExams(data);
+      if (status === "authenticated" && !profile) {
+        const [examData, profileData] = await Promise.all([
+          getMyExams(),
+          getMyProfile()
+        ]);
+        if (isMounted) {
+          setExams(examData);
+          setProfile(profileData);
+        }
+      }
     }
     loadData();
-  }, []);
+
+    return () => { isMounted = false; };
+  }, [status]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    async function loadExams() {
+      if (session?.user?.id) {
+        const data = await getMyExams();
+        setExams(data);
+      }
+    }
+    loadExams();
+  }, [session]);
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -44,82 +68,72 @@ export default function Page() {
     }
   }, [searchParams, router]);
 
-  if (status === "loading") return <p className="p-4">Loading session...</p>;
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+   }, [status, router]);
 
-  const googleConnected = !!session?.user?.googleConnected;
+   const googleConnected = profile?.accounts?.some(acc => acc.provider === 'google');
 
-  const handleLinkGoogle = async () => {
-    await signIn("google", {
-      callbackUrl: "/dashboard",
-      redirect: true,
-    });
-  };
+   const handleLinkGoogle = () => {
+    router.push("/api/auth/signin/google");
+   };
 
   return (
-    <>
+    <LunarThemeWrapper>
+      <main className="max-w-7xl mx-auto pt-20 pb-12 lg:px-16 space-y-12 text-white/90">
+        {/* Header Section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
+          
+          {/* Left Side: Greeting & Action Buttons */}
+          <div className="flex-1 space-y-4">
+            <div>
+              <h1 className="text-4xl font-semiblack tracking-light text-white">
+                Welcome, {profile?.fname || session?.user?.name || 'User'}! 
+              </h1>
+            </div>
 
-      {errorMessage && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 m-4 rounded relative">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{errorMessage}</span>
-          <span
-            className="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer"
-            onClick={() => setErrorMessage("")}
-          >
-            <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-              <title>Close</title>
-              <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
-            </svg>
-          </span>
-        </div>
-      )}
-
-      <div className="p-4 border-b border-gray-200 mb-4">
-        {session ? (
-          <div className="flex flex-col gap-2">
-            <p>Logged in as: {session.user?.email}</p>
-            <p>Google connected: {googleConnected ? "Yes ✅" : "No ❌"}</p>
-            <div className="flex gap-2 mt-2">
-              {!googleConnected && (
-                <button
-                  onClick={handleLinkGoogle}
-                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition"
-                >
+            <div className="flex items-center gap-3">
+              {!googleConnected &&  (
+                <button onClick={handleLinkGoogle} className="bg-blue-500/10 text-blue-300 px-5 py-2.5 rounded-xl text-[10px] font-bold tracking-widest hover:bg-blue-500/20 transition-all border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
                   Connect Google Calendar
                 </button>
               )}
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400 transition"
-              >
-                Sign out
+              <button onClick={() => signOut({ callbackUrl: "/login" })} className="bg-white/5 text-white/60 px-5 py-2.5 rounded0xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md">
+                Sign Out
               </button>
             </div>
           </div>
-        ) : (
-          <p>Redirecting to login...</p>
-        )}
-      </div>
 
-      <div className="flex flex-1 flex-col p-4 gap-6">
-        <ComingUpSoon userId={session?.user?.id} />
-        <UpcomingExams exams={exams} />
-      </div>
+          {/* Right Side: The Three Stats */}
+          <div className="flex flex-col gap-3 shrink-0">
+            <p className="text-[14px] font-bold text-white uppercase tracking-[0.4em]">Your Progress</p>
+            {profile && <ProfileStats profile={profile} />}
+          </div>
+        </div>
 
-      <button
-          onClick={() => setWellbeingOpen(true)}
-          className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-pink-700 transition"
-        >
-          ❤️
+        <hr className="border-white/5" />
+
+        {/* -- Grid Layout for Cards -- */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start pt-12">
+          <ComingUpSoon userId={session?.user?.id} exams={exams}/>
+
+          <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.2)] rounded-full opacity-50" />
+
+          <UpcomingExams exams={exams} />
+        </div>
+
+        {/* Wellbeing Button */}
+        <button
+            onClick={() => setWellbeingOpen(true)}
+            className="fixed bottom-6 right-6 z-[900] flex h-14 w-14 items-center justify-center rounded-full bg-pink-600 text-white shadow-lg hover:bg-pink-700 transition">
+            ❤️
         </button>
 
-        <Panel
-                open={wellbeingOpen}
-                onClose={() => setWellbeingOpen(false)}
-                title="For Your Wellbeing"
-            >
+        <Panel open={wellbeingOpen} onClose={() => setWellbeingOpen(false)} title="For Your Wellbeing">
             <WellbeingPage />
         </Panel> 
-    </>
-  );
-}
+      </main>
+    </LunarThemeWrapper>
+  )};
