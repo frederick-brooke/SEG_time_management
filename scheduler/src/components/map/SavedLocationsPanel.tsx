@@ -1,5 +1,5 @@
 "use client";
-// src/components/map/SavedLocationsPanel.tsx
+
 import { useState } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 
@@ -56,7 +56,10 @@ function LocationCard({
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setEditing(false); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") setEditing(false);
+              }}
               autoFocus
               className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-sm text-black bg-white"
             />
@@ -115,12 +118,17 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
     setSelected(null);
     if (timer) clearTimeout(timer);
     const t = setTimeout(async () => {
-      if (text.length < 3) { setSuggestions([]); return; }
+      if (text.length < 3) {
+        setSuggestions([]);
+        return;
+      }
       try {
         const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
         const data = await res.json();
         setSuggestions(Array.isArray(data) ? data : []);
-      } catch { setSuggestions([]); }
+      } catch {
+        setSuggestions([]);
+      }
     }, 400);
     setTimer(t);
   };
@@ -151,7 +159,7 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
     <div className="border border-dashed border-gray-300 rounded-xl p-3 flex flex-col gap-2.5">
       <p className="text-xs font-bold text-gray-400 uppercase">Add a location</p>
 
-      <div className="relative" style={{ overflow: "visible" }}>
+      <div className="relative overflow-visible">
         <input
           type="text"
           placeholder="Search address…"
@@ -160,10 +168,7 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
           className="w-full border p-2 rounded-lg text-sm text-black bg-white"
         />
         {suggestions.length > 0 && (
-          <div
-            className="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-2xl mt-1"
-            style={{ zIndex: 9999, maxHeight: "200px", overflowY: "auto" }}
-          >
+          <div className="absolute left-0 right-0 mt-1 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-2xl z-[9999]">
             {suggestions.map((s, i) => (
               <button
                 key={i}
@@ -172,7 +177,7 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
                   e.preventDefault();
                   pick(s);
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm border-b last:border-0 text-gray-700"
+                className="w-full text-left px-3 py-2 text-sm text-gray-700 border-b last:border-0 hover:bg-blue-50"
               >
                 <span className="font-semibold">{s.properties.name}</span>
                 <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
@@ -226,9 +231,7 @@ interface SavedLocationsPanelProps {
 }
 
 export function SavedLocationsPanel({ onLocationsChange }: SavedLocationsPanelProps) {
-  const { locations, home, work, favourites, loading, deleteLocation, renameLocation, refresh } =
-    useSavedLocations();
-
+  const { locations, home, work, favourites, loading, deleteLocation, renameLocation, refresh } = useSavedLocations();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleAdd = async () => {
@@ -248,7 +251,6 @@ export function SavedLocationsPanel({ onLocationsChange }: SavedLocationsPanelPr
 
   return (
     <div className="bg-white rounded-xl border shadow-sm">
-      {/* Header */}
       <button
         type="button"
         onClick={() => setCollapsed((p) => !p)}
@@ -274,15 +276,8 @@ export function SavedLocationsPanel({ onLocationsChange }: SavedLocationsPanelPr
             </p>
           ) : (
             <>
-              {/* HOME first */}
-              {home && (
-                <LocationCard loc={home} onDelete={handleDelete} onRename={handleRename} />
-              )}
-              {/* WORK second */}
-              {work && (
-                <LocationCard loc={work} onDelete={handleDelete} onRename={handleRename} />
-              )}
-              {/* Favourites */}
+              {home && <LocationCard loc={home} onDelete={handleDelete} onRename={handleRename} />}
+              {work && <LocationCard loc={work} onDelete={handleDelete} onRename={handleRename} />}
               {favourites.map((loc) => (
                 <LocationCard key={loc.id} loc={loc} onDelete={handleDelete} onRename={handleRename} />
               ))}

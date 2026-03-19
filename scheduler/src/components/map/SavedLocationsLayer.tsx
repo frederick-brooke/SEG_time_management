@@ -1,8 +1,10 @@
 "use client";
-import { useEffect, useRef } from "react";
-import { useMap } from "react-leaflet";
+
+import { useEffect, useRef, useMemo } from "react";
+import { useMap, Marker, Popup } from "react-leaflet";
 import type { Layer } from "leaflet";
 import { SavedLocation } from "hooks/useSavedLocations";
+import { divIcon } from "leaflet";
 
 interface SavedLocationsLayerProps {
   locations: SavedLocation[];
@@ -20,37 +22,58 @@ const TYPE_COLOR: Record<string, string> = {
   FAVOURITE: "#f59e0b",
 };
 
-const TYPE_BG: Record<string, string> = {
-  HOME: "#ecfdf5",
-  WORK: "#eff6ff",
-  FAVOURITE: "#fffbeb",
-};
-
-const TYPE_BORDER: Record<string, string> = {
-  HOME: "#6ee7b7",
-  WORK: "#93c5fd",
-  FAVOURITE: "#fcd34d",
-};
-
-function createPinSvg(type: string): string {
-  const color = TYPE_COLOR[type] ?? "#6b7280";
-  const emoji = TYPE_EMOJI[type] ?? "📍";
-  return `
-    <div style="width:36px;height:44px;display:flex;flex-direction:column;align-items:center;">
-      <div style="
-        width:34px;height:34px;background:${color};border-radius:50% 50% 50% 0;
-        transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25);
-        border:2px solid white;display:flex;align-items:center;justify-content:center;
-      ">
-        <span style="transform:rotate(45deg);font-size:15px;line-height:1;">${emoji}</span>
+function PopupRow({ loc }: { loc: SavedLocation }) {
+  return (
+    <div
+      className={`flex items-start gap-2 p-2 rounded-lg`}
+      style={{
+        backgroundColor: loc.type === "HOME" ? "#ecfdf5" :
+                         loc.type === "WORK" ? "#eff6ff" : "#fffbeb",
+        border: `1px solid ${loc.type === "HOME" ? "#6ee7b7" :
+                            loc.type === "WORK" ? "#93c5fd" : "#fcd34d"}`
+      }}
+    >
+      <span className="text-lg flex-shrink-0">{TYPE_EMOJI[loc.type]}</span>
+      <div className="min-w-0">
+        <div className="font-bold text-xs text-gray-900">{loc.label}</div>
+        <div className="text-[10px] text-gray-500 uppercase">
+          {loc.type === "FAVOURITE" ? "Saved Place" : loc.type}
+        </div>
+        <div className="text-[10px] text-gray-400 truncate max-w-[155px]">{loc.address}</div>
       </div>
-      <div style="width:2px;height:10px;background:${color};"></div>
-    </div>`;
+    </div>
+  );
 }
 
-/**
- * Returns groups where each group shares the same spot.
- */
+/** Popup content for a location and its overlapping group */
+function SavedLocationPopup({ loc, group }: { loc: SavedLocation; group: SavedLocation[] }) {
+  const others = group.filter((l) => l.id !== loc.id);
+
+  return (
+    <div className="font-sans min-w-[210px]">
+      <div
+        className="p-2 rounded-t-lg -mx-2 -mt-2 mb-2 text-white"
+        style={{ backgroundColor: TYPE_COLOR[loc.type] }}
+      >
+        <strong className="text-sm">{TYPE_EMOJI[loc.type]} {loc.label}</strong>
+        <div className="text-[10px] opacity-80 mt-1 uppercase">{loc.type === "FAVOURITE" ? "Saved Place" : loc.type}</div>
+      </div>
+      <div className="text-xs text-gray-700 mb-1">{loc.address}</div>
+      {others.length > 0 && (
+        <>
+          <div className="text-[10px] font-bold text-gray-400 uppercase border-t pt-1 mt-1">
+            Also at this location
+          </div>
+          <div className="space-y-1 mt-1">
+            {others.map((o) => <PopupRow key={o.id} loc={o} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Group overlapping locations into arrays */
 function groupByPosition(locations: SavedLocation[]): SavedLocation[][] {
   const SAME_SPOT = 0.0001;
   const used = new Set<string>();
@@ -60,140 +83,85 @@ function groupByPosition(locations: SavedLocation[]): SavedLocation[][] {
     if (used.has(loc.id)) continue;
     const group: SavedLocation[] = [loc];
     used.add(loc.id);
+
     for (const other of locations) {
       if (used.has(other.id)) continue;
-      if (
-        Math.abs(loc.lat - other.lat) < SAME_SPOT &&
-        Math.abs(loc.lng - other.lng) < SAME_SPOT
-      ) {
+      if (Math.abs(loc.lat - other.lat) < SAME_SPOT && Math.abs(loc.lng - other.lng) < SAME_SPOT) {
         group.push(other);
         used.add(other.id);
       }
     }
+
     groups.push(group);
   }
 
   return groups;
 }
 
-/**
- * Spread pins in a group into a small arc around the true position
- * so every pin is individually visible and clickable.
- */
-function spreadPositions(
-  group: SavedLocation[],
-  zoom: number
-): Array<{ loc: SavedLocation; lat: number; lng: number }> {
-  if (group.length === 1) {
-    return [{ loc: group[0], lat: group[0].lat, lng: group[0].lng }];
-  }
+/** Spread pins slightly so overlapping markers are visible */
+function spreadPositions(group: SavedLocation[], zoom: number): Array<{ loc: SavedLocation; lat: number; lng: number }> {
+  if (group.length === 1) return [{ loc: group[0], lat: group[0].lat, lng: group[0].lng }];
 
-  // Offset radius in degrees — shrinks as you zoom in so pins stay close
   const radius = 0.0004 * Math.pow(2, 13 - zoom);
   const baseLat = group[0].lat;
   const baseLng = group[0].lng;
 
   return group.map((loc, i) => {
     const angle = (2 * Math.PI * i) / group.length - Math.PI / 2;
-    return {
-      loc,
-      lat: baseLat + radius * Math.cos(angle),
-      lng: baseLng + radius * Math.sin(angle),
-    };
+    return { loc, lat: baseLat + radius * Math.cos(angle), lng: baseLng + radius * Math.sin(angle) };
   });
 }
 
-function buildPopup(loc: SavedLocation, group: SavedLocation[]): string {
-  const color = TYPE_COLOR[loc.type];
-  const others = group.filter((l) => l.id !== loc.id);
-
-  const otherRows = others.map((n) => `
-    <div style="
-      display:flex;align-items:flex-start;gap:8px;padding:7px 9px;
-      border-radius:7px;background:${TYPE_BG[n.type]};
-      border:1px solid ${TYPE_BORDER[n.type]};margin-top:6px;
-    ">
-      <span style="font-size:16px;line-height:1;flex-shrink:0;">${TYPE_EMOJI[n.type]}</span>
-      <div style="min-width:0;">
-        <div style="font-weight:700;font-size:11px;color:#111;">${n.label}</div>
-        <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.04em;">
-          ${n.type === "FAVOURITE" ? "Saved Place" : n.type}
-        </div>
-        <div style="font-size:10px;color:#9ca3af;margin-top:1px;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px;">
-          ${n.address}
-        </div>
-      </div>
-    </div>`).join("");
-
+/** Generate Leaflet divIcon with emoji and color */
+function createPinSvg(type: string): string {
+  const color = TYPE_COLOR[type] ?? "#6b7280";
+  const emoji = TYPE_EMOJI[type] ?? "📍";
   return `
-    <div style="font-family:system-ui,sans-serif;min-width:210px;">
-      <div style="background:${color};color:white;padding:8px 12px;
-        border-radius:6px 6px 0 0;margin:-10px -10px 10px -10px;">
-        <strong style="font-size:13px;">${TYPE_EMOJI[loc.type]} ${loc.label}</strong>
-        <div style="font-size:10px;opacity:0.85;margin-top:2px;text-transform:uppercase;letter-spacing:0.05em;">
-          ${loc.type === "FAVOURITE" ? "Saved Place" : loc.type}
-        </div>
+    <div class="flex flex-col items-center w-9 h-11">
+      <div style="background:${color}" class="w-8 h-8 rounded-full rotate-[-45deg] border-2 border-white shadow flex items-center justify-center">
+        <span class="rotate-[45deg] text-sm leading-none">${emoji}</span>
       </div>
-      <div style="font-size:11px;color:#6b7280;line-height:1.5;${others.length ? "margin-bottom:6px;" : ""}">${loc.address}</div>
-      ${others.length ? `
-        <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;
-          letter-spacing:0.06em;padding-top:6px;border-top:1px solid #f3f4f6;">
-          Also at this location
-        </div>
-        ${otherRows}
-      ` : ""}
+      <div style="background:${color}" class="w-0.5 h-2"></div>
     </div>`;
 }
 
+/** Layer rendering saved locations */
 export function SavedLocationsLayer({ locations }: SavedLocationsLayerProps) {
   const map = useMap();
   const layersRef = useRef<Layer[]>([]);
 
+  const groups = useMemo(() => groupByPosition(locations), [locations]);
+
   useEffect(() => {
-    if (!map) return;
+    if (!map || locations.length === 0) return;
 
-    function render() {
-      import("leaflet").then((L) => {
-        layersRef.current.forEach((l) => map.removeLayer(l));
-        layersRef.current = [];
+    import("leaflet").then((L) => {
+      // Clear previous layers
+      layersRef.current.forEach((l) => map.removeLayer(l));
+      layersRef.current = [];
 
-        if (locations.length === 0) return;
+      const zoom = map.getZoom();
 
-        const zoom = map.getZoom();
-        const groups = groupByPosition(locations);
+      groups.forEach((group) => {
+        const spread = spreadPositions(group, zoom);
 
-        groups.forEach((group) => {
-          const spread = spreadPositions(group, zoom);
+        spread.forEach(({ loc, lat, lng }) => {
+          const marker = L.marker([lat, lng], {
+            icon: L.divIcon({ html: createPinSvg(loc.type), className: "", iconSize: [36, 44], iconAnchor: [18, 44], popupAnchor: [0, -44] })
+          })
+            .addTo(map)
+            .bindPopup(L.popup({ maxWidth: 280 }).setContent(`<div id="popup-${loc.id}"></div>`));
 
-          spread.forEach(({ loc, lat, lng }) => {
-            const icon = L.divIcon({
-              html: createPinSvg(loc.type),
-              className: "",
-              iconSize: [36, 44],
-              iconAnchor: [18, 44],
-              popupAnchor: [0, -44],
-            });
-
-            const marker = L.marker([lat, lng], { icon })
-              .addTo(map)
-              .bindPopup(buildPopup(loc, group), { maxWidth: 280 });
-
-            layersRef.current.push(marker);
-          });
+          layersRef.current.push(marker);
         });
       });
-    }
-
-    render();
-    map.on("zoomend", render);
+    });
 
     return () => {
-      map.off("zoomend", render);
       layersRef.current.forEach((l) => map.removeLayer(l));
       layersRef.current = [];
     };
-  }, [map, locations]);
+  }, [map, locations, groups]);
 
   return null;
 }
