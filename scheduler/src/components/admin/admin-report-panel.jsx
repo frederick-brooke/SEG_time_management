@@ -30,148 +30,128 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
         fetchReports();
     }
 
-  return (
-    <div
-        className="fixed inset-0 bg-black/30 z-40"
-        onClick={onClose} // clicking backdrop closes
-    >
-        <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 border-l" onClick={onClose} >
-            <div className="h-full overflow-y-auto p-6 space-y-6 text-sm" onClick={(e) => e.stopPropagation()} >
-                {/*prevent closing when clicking inside*/}
-                <h3 className="text-xl font-semibold mb-4">
-                    Report Details
-                </h3>
+    const statusStyles = report.status === "RESOLVED" ? "bg-green-400/20 text-green-300" : report.status === "REJECTED" ? "bg-red-400/20 text-red-300" : "bg-yellow-400/20 text-yellow-300";
 
-                <h3 className="text-l font-bold mb-4">
-                    <p><strong>Report ID:</strong> {report.id} </p>
-                </h3>
+    return (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="h-full w-96 flex flex-col bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-white">Report Details</h3>
+                    <button onClick={onClose} className="text-white/50 hover:text-white transition">
+                        ✕
+                    </button>
+                </div>
 
-                <div className="border-t" />
+            {/* Content */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                {/* Report Info */}
+                <div className="space-y-3">
+                    <div className="flex justify-between">
+                    <span className="text-xs uppercase text-white/40 tracking-wider">Report ID</span>
+                    <span className="font-medium text-white">{report.id}</span>
+                    </div>
 
-            {/* Report Info */}
-                <div className="grid grid-cols-2 gap-y-3">
-                    <span className="text-gray-500">Reported User</span>
-                    <span className="font-medium">{report.reportedUser.username}</span>
+                    <div className="flex justify-between">
+                    <span className="text-xs uppercase text-white/40 tracking-wider">Reported User</span>
+                    <span className="font-medium text-white">{report.reportedUser.username}</span>
+                    </div>
 
-                    <span className="text-gray-500">Date Submitted</span>
-                    <span className="font-medium">{new Date(report.createdAt).toLocaleString()}</span>
+                    <div className="flex justify-between">
+                    <span className="text-xs uppercase text-white/40 tracking-wider">Reported By</span>
+                    <span className="font-medium text-white">{report.reportedBy.username}</span>
+                    </div>
 
-                    <span className="text-gray-500">Reported By</span>
-                    <span className="font-medium">{report.reportedBy.username}</span>
-
-                    <span className="text-gray-500">Status</span>
-                    <span className="font-medium">{report.status}</span>
-
-                    <span className="text-gray-500">Handled By</span>
-                    <span className="font-medium">
-                        {report.handledBy?.username ?? "Not handled yet"}
+                    <div className="flex justify-between items-center">
+                    <span className="text-xs uppercase text-white/40 tracking-wider">Status</span>
+                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${statusStyles}`}>
+                        {report.status}
                     </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                    <span className="text-xs uppercase text-white/40 tracking-wider">Handled By</span>
+                    <span className="font-medium text-white">{report.handledBy?.username ?? "Not handled yet"}</span>
+                    </div>
 
                     {report.status === "RESOLVED" && report.reportedUser.isBanned && (
-                    <>
-                        <span className="text-gray-500">Ban Expires</span>
-                        <span className="font-medium">
+                    <div className="flex justify-between">
+                        <span className="text-xs uppercase text-white/40 tracking-wider">Ban Expires</span>
+                        <span className="font-medium text-white">
                         {report.reportedUser.banExpires
                             ? new Date(report.reportedUser.banExpires).toLocaleString()
                             : "Permanent"}
                         </span>
-                    </>
+                    </div>
                     )}
                 </div>
 
-                <div className="border-t" />
-
                 {/* Description */}
-                <div>
-                    <p className="text-gray-500 mb-1">Description</p>
-                    <div className="bg-gray-50 border rounded-lg p-3 text-sm">
+                <div className="space-y-1">
+                    <p className="text-xs text-white/40 uppercase tracking-wider">Description</p>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
                     {report.description}
                     </div>
                 </div>
-                
-                <div className="border-t" />
 
-                {/* load the action panel for the responses */}
-                {report.handledBy == null &&
-                    <div className="space-y-2">
-                        <button onClick={() => setShowReportAction(true)}
-                            //report action panel to ban or temp ban account
-                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-                        >
-                            Take Action
-                        </button>
-                    </div>            
-                }
+                {/* Action Button */}
+                {!report.handledBy && (
+                    <button
+                    onClick={() => setShowReportAction(true)}
+                    className="w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
+                    >
+                    Take Action
+                    </button>
+                )}
+            </div>
 
-                
-
-                <button onClick={onClose}
-                    className="w-full border py-2 rounded-lg hover:bg-gray-100 transition"
-                >
+            {/* Close */}
+            <div className="p-6 border-t border-white/10">
+                <button onClick={onClose} className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
                     Close
                 </button>
-            </div>    
+            </div>
+      </div>
 
-
-            {showReportAction && (
-                <ReportActionModal
-                    report={report}
-                    onClose={() => setShowReportAction(false)}
-                    banUser={banUser}
-                />
-            )}
-        </div>
+      {/* Report Action Modal */}
+      {showReportAction && (
+        <ReportActionModal report={report} onClose={() => setShowReportAction(false)} banUser={banUser} />
+      )}
     </div>
   );
 }
 
 function ReportActionModal( {report, onClose, banUser} ) {
     return(
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
-            onClick={onClose}   
-        >
-            <div className="bg-white w-full max-w-md p-6 space-y-4 rounded-xl shadow-xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2 className="text-lg font-semi-bold">Report Action</h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-white/5 w-full max-w-md p-6 space-y-4 rounded-xl shadow-2xl backdrop-blur-xl border border-white/10" onClick={(e) => e.stopPropagation()}>
+                <h2 className="text-lg font-semibold text-white">Report Action</h2>
 
-                {/* Send as a notification afterwards */}
-                <textarea
-                    placeholder="Reasoning (Optional)"
-                    className="w-full border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <textarea placeholder="Reasoning (Optional)" className="w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
 
                 <div className="space-y-2">
-                    <button
-                        onClick={() => banUser(report.reportedUser, "TEMP", 7)}
-                        className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition"
-                    >
+                    <button onClick={() => banUser(report.reportedUser, "TEMP", 7)} className="w-full py-2 rounded-xl bg-yellow-400 text-gray-900 font-medium hover:scale-[1.02] transition">
                         Temporary Ban (7 days)
                     </button>
 
-                    <button
-                        onClick={() => banUser(report.reportedUser, "PERMANENT")}
-                        className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
-                        disabled={!report.reportedUser?.id}
-                    >
+                    <button onClick={() => banUser(report.reportedUser, "PERMANENT")} className="w-full py-2 rounded-xl bg-red-400 text-gray-900 font-medium hover:scale-[1.02] transition" disabled={!report.reportedUser?.id}>
                         Permanent Ban
                     </button>
 
-                    <button
-                        onClick={() => banUser(report.reportedUser, "UNBAN")}
-                        className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-                    >
+                    <button onClick={() => banUser(report.reportedUser, "UNBAN")} className="w-full py-2 rounded-xl bg-green-400 text-gray-900 font-medium hover:scale-[1.02] transition">
                         Unban
                     </button>
                 </div>
 
-                <button
-                    onClick={onClose}
-                    className="w-full border py-2 rounded-lg hover:bg-gray-100 transition"
-                >
+                <button onClick={onClose} className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
                     Cancel
                 </button>
             </div>
         </div>
-    )
+    );
 }

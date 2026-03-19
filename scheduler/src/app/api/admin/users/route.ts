@@ -43,8 +43,6 @@ export async function GET(req: Request) {
     //dynamically build the query set
     const where: Prisma.UserWhereInput = { };
 
-
-
     //date filtering of theusers
     if (startDate || endDate) {
         const createdAtFilter: Prisma.DateTimeFilter = {};

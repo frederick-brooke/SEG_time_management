@@ -1,7 +1,7 @@
 export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters, type}) {
     return (
         <div
-        className="fixed inset-0 z-50 flex justify-end bg-blue/40 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm"
         onClick={onClose} //click outside closes
         >
             <div
