@@ -1,14 +1,8 @@
-"use client";
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-
-import Panel from "@/components/panel";
-import WellbeingPage from "../wellbeing/page";
-import { useSession, signIn, signOut } from "next-auth/react";
-
-import { SiteHeader } from "@/src/components/site-header";
-import { ComingUpSoon } from "@/src/components/coming-up-soon";
+// scheduler/src/app/(pages)/dashboard/page.tsx
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/src/lib/auth";
+import { redirect } from "next/navigation";
+import { getMyProfile } from "@/src/app/actions/profile";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
 
@@ -64,16 +58,15 @@ export default function Page() {
     }
   }, [searchParams, router]);
 
-  if (status === "loading") return <p className="p-4">Loading session...</p>;
+  // Parallel data fetching for performance (Band 5 optimization)
+  const [profile, exams] = await Promise.all([
+    getMyProfile(),
+    getMyExams()
+  ]);
 
-  const googleConnected = !!session?.user?.googleConnected;
-
-  const handleLinkGoogle = async () => {
-    await signIn("google", {
-      callbackUrl: "/dashboard",
-      redirect: true,
-    });
-  };
+  if (!profile) {
+    redirect("/login");
+  }
 
   return (
     <LunarThemeWrapper>

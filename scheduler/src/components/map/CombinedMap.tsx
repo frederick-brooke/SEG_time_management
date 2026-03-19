@@ -1,24 +1,21 @@
 "use client";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { MapToggle } from "./MapToggle";
-import { Friend, MapEvent, MapMode, CATEGORY_COLORS, TRANSPORT_ICONS } from "@/src/lib/map";
-import { calcCenter, formatDate } from "@/src/lib/map";
-import { useGeolocation } from "@/src/lib/map";
+import { Friend, MapEvent, MapMode, CATEGORY_COLORS, TRANSPORT_ICONS } from "@/lib/map";
+import { calcCenter, formatDate } from "@/lib/map";
+import { useGeolocation } from "@/lib/map";
+import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 
-const BaseMap = dynamic(
-  () => import("./BaseMap").then((m) => m.BaseMap),
-  { ssr: false }
-);
-const FriendLayer = dynamic(
-  () => import("./FriendLayer").then((m) => m.FriendLayer),
-  { ssr: false }
-);
-const EventLayer = dynamic(
-  () => import("./EventLayer").then((m) => m.EventLayer),
-  { ssr: false }
-);
+const BaseMap = dynamic(() => import("./BaseMap").then((m) => m.BaseMap), { ssr: false });
+const FriendLayer = dynamic(() => import("./FriendLayer").then((m) => m.FriendLayer), { ssr: false });
+const UnifiedMapLayer = dynamic(
+  () => import("./UnifiedMapLayer").then((m) => m.UnifiedMapLayer),
+  { 
+    ssr: false,
+    loading: () => null,
+  }
+) as React.ComponentType<{ events: MapEvent[]; savedLocations: SavedLocation[] }>;
 
 interface CombinedMapProps {
   friends: Friend[];
@@ -26,14 +23,11 @@ interface CombinedMapProps {
   defaultMode?: MapMode;
 }
 
-/**
- * The unified map component with a Friends / Events toggle.
- */
 export function CombinedMap({ friends, events, defaultMode = "events" }: CombinedMapProps) {
   const [mode, setMode] = useState<MapMode>(defaultMode);
   const { userLocation, locationError, loading } = useGeolocation();
+  const { locations: savedLocations } = useSavedLocations();
 
-  // Derive map center from whichever data set is active
   const center: [number, number] =
     mode === "friends"
       ? calcCenter([
@@ -63,7 +57,7 @@ export function CombinedMap({ friends, events, defaultMode = "events" }: Combine
   return (
     <div className="space-y-4">
       {/* Toggle */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <MapToggle
           mode={mode}
           onChange={setMode}
@@ -75,7 +69,7 @@ export function CombinedMap({ friends, events, defaultMode = "events" }: Combine
         )}
       </div>
 
-      {/* Legend — only shown in events mode */}
+      {/* Legend */}
       {mode === "events" && (
         <div className="flex flex-wrap gap-3 p-3 bg-white border rounded-lg">
           {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
@@ -88,6 +82,29 @@ export function CombinedMap({ friends, events, defaultMode = "events" }: Combine
             <div className="w-6 border-t-2 border-dashed border-gray-400" />
             <span className="text-xs text-gray-500">Route</span>
           </div>
+          {savedLocations.length > 0 && (
+            <>
+              <div className="w-px h-4 bg-gray-200 mx-1" />
+              {savedLocations.some((l) => l.type === "HOME") && (
+                <div className="flex items-center gap-1">
+                  <span className="text-sm">🏠</span>
+                  <span className="text-xs text-gray-600">Home</span>
+                </div>
+              )}
+              {savedLocations.some((l) => l.type === "WORK") && (
+                <div className="flex items-center gap-1">
+                  <span className="text-sm">🏢</span>
+                  <span className="text-xs text-gray-600">Work</span>
+                </div>
+              )}
+              {savedLocations.some((l) => l.type === "FAVOURITE") && (
+                <div className="flex items-center gap-1">
+                  <span className="text-sm">⭐</span>
+                  <span className="text-xs text-gray-600">Saved</span>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -96,11 +113,11 @@ export function CombinedMap({ friends, events, defaultMode = "events" }: Combine
         {mode === "friends" ? (
           <FriendLayer friends={friends} userLocation={userLocation} />
         ) : (
-          <EventLayer events={events} />
+          <UnifiedMapLayer events={events} savedLocations={savedLocations} />
         )}
       </BaseMap>
 
-      {/* Event cards — only shown in events mode */}
+      {/* Event cards */}
       {mode === "events" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
           {events.map((event) => {

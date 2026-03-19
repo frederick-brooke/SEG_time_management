@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { checkUpcomingDeadlines } from "../app/actions/examActions";
@@ -95,6 +94,7 @@ const data = {
       title: "Admin",
       url: "/admin",
       icon: IconUserCog,
+      role: "SUPERUSER"
     },
     {
       title: "Notifications",

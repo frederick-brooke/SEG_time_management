@@ -52,6 +52,7 @@ export function useUsers(filters, endpoint) {
         users,
         totalUserPages,
         totalUsers,
-        fetchUsers
+        fetchUsers,
+        loading,
     };
 }

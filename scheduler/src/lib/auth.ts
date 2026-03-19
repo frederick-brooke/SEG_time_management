@@ -47,7 +47,68 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      authorize: authorizeUser,
+
+      async authorize(credentials) {
+        try {
+          if (!credentials?.email || !credentials?.password) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
+
+          if (!user || !user.passwordHash) return null;
+
+          const isValid = await verifyPassword(
+            credentials.password,
+            user.passwordHash || "",
+          );
+
+          if (!isValid) return null;
+
+          if (user.isBanned) {
+            // permanent ban
+            if (!user.banExpires) {
+              return {
+                id: user.id.toString(),
+                email: user.email,
+                username: user.username,
+                role: user.role,
+                isBanned: true,
+                isDeleted: user.isDeleted,
+              };
+            }
+            // temporary ban still active
+            if (new Date() < user.banExpires) {
+              return {
+                id: user.id.toString(),
+                email: user.email,
+                username: user.username,
+                role: user.role,
+                isBanned: true,
+                isDeleted: user.isDeleted,
+              };
+            }
+            // ban expired
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { isBanned: false, banExpires: null },
+            });
+            user.isBanned = false;
+          }
+
+          return {
+            id: user.id.toString(),
+            email: user.email,
+            username: user.username,
+            role: user.role,
+            isBanned: user.isBanned,
+            isDeleted: user.isDeleted,
+          };
+        } catch (error) {
+          console.error("AUTHORIZE ERROR:", error);
+          return null;
+        }        
+      },
     }),
 
     GoogleProvider({
@@ -88,6 +149,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.isBanned = user.isBanned;
         token.username = user.username;
+        token.isDeleted = user.isDeleted
       }
 
       if (!token.username && token.sub) {

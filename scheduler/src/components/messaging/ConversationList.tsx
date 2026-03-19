@@ -1,9 +1,22 @@
 "use client";
+
+/**
+ * @file ConversationList.tsx
+ * @description Sidebar component that lists all conversations for the current user.
+ * Handles real-time updates via Pusher (new messages, deletions, membership changes),
+ * refetches on window focus, and exposes a modal for creating new group conversations.
+ */
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import PusherClient from "pusher-js";
 import { CreateGroupModal } from "@/components/messaging/CreateGroupModal";
+
+const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+});
 
 type Participant = {
   user: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null };
@@ -13,6 +26,8 @@ type Conversation = {
   id: string;
   lastMessage: string | null;
   lastMessageAt: string | null;
+  lastMessageSentByMe: boolean;
+  hasUnread: boolean;
   participants: Participant[];
   isGroup: boolean;
   name: string | null;
@@ -24,6 +39,42 @@ type Friend = {
   fname: string | null;
   pfp: string | null;
 };
+
+/**
+ * Formats an ISO timestamp into a short relative string for display in conversation rows.
+ * Returns values like "now", "5m", "3h", "2d", "1w", or a locale date for older timestamps.
+ *
+ * @param iso - ISO 8601 date string, or null.
+ * @returns A short human-readable string, or an empty string if null.
+ */
+function formatLastMessageTime(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffMins < 1) return "now";
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  if (diffWeeks < 5) return `${diffWeeks}w`;
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+/**
+ * Double-tick icon shown next to the last message preview when sent by the current user.
+ */
+function DeliveryTick() {
+  return (
+    <svg width="16" height="9" viewBox="0 0 18 10" fill="none" style={{ display: "inline-block", flexShrink: 0 }} aria-hidden>
+      <path d="M1 5l3 3L9 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 5l3 3L14 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 /**
  * A three-dot overflow menu shown on each conversation row.
@@ -47,9 +98,7 @@ function ConversationMenu({
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -63,14 +112,9 @@ function ConversationMenu({
     if (!confirm("Delete this conversation? This cannot be undone.")) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/conversations/${conversationId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        onDeleted(conversationId);
-      } else {
-        alert("Failed to delete conversation.");
-      }
+      const res = await fetch(`/api/conversations/${conversationId}`, { method: "DELETE" });
+      if (res.ok) onDeleted(conversationId);
+      else alert("Failed to delete conversation.");
     } finally {
       setLoading(false);
       setOpen(false);
@@ -94,10 +138,9 @@ function ConversationMenu({
           <circle cx="8" cy="13" r="1.2" />
         </svg>
       </button>
-
       {open && (
         <div
-          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px]"
+          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-35"
           style={{
             background: "rgba(15,20,40,0.95)",
             border: "1px solid rgba(255,255,255,0.08)",
@@ -149,16 +192,68 @@ export default function ConversationList() {
   useEffect(() => {
     fetchConversations();
     fetch("/api/user/search?q=").then((r) => r.json()).then(setFriends);
+    
+    // Refetch conversations when the window regains focus to catch updates from other tabs
     window.addEventListener("focus", fetchConversations);
     return () => window.removeEventListener("focus", fetchConversations);
   }, [session, fetchConversations]);
 
-  /**
-   * Returns the other participant's user object for a 1-to-1 conversation.
-   * Returns `undefined` for group conversations.
-   *
-   * @param convo - The conversation to inspect.
-   */
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = pusher.subscribe(`user-${session.user.id}`);
+
+    channel.bind(
+      "conversation-updated",
+      (data: {
+        id: string;
+        lastMessage?: string;
+        lastMessageAt?: string;
+        senderId?: string;
+        refetch?: boolean;
+      }) => {
+        // If a membership change happened, do a full refetch
+        if (data.refetch) {
+          fetchConversations();
+          return;
+        }
+        setConversations((prev) => {
+          const exists = prev.find((c) => c.id === data.id);
+          if (!exists) {
+            // Conversation not in list yet (e.g. first ever message) — refetch
+            fetchConversations();
+            return prev;
+          }
+          const updated = prev.map((c) => {
+            if (c.id !== data.id) return c;
+            return {
+              ...c,
+              lastMessage: data.lastMessage ?? c.lastMessage,
+              lastMessageAt: data.lastMessageAt ?? c.lastMessageAt,
+              lastMessageSentByMe: data.senderId === session.user.id,
+              // Only mark unread if the message was sent by someone else
+              // and this conversation isn't currently open
+              hasUnread: data.senderId !== session.user.id && activeId !== data.id,
+            };
+          });
+          // Float the updated conversation to the top
+          const target = updated.find((c) => c.id === data.id)!;
+          return [target, ...updated.filter((c) => c.id !== data.id)];
+        });
+      }
+    );
+
+    channel.bind("conversation-deleted", ({ id }: { id: string }) => {
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (activeId === id) router.push("/messages");
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe(`user-${session.user.id}`);
+    };
+  }, [session?.user?.id, fetchConversations, activeId, router]);
+
   const getOtherUser = (convo: Conversation) =>
     convo.participants.find((p) => p.user.id !== session?.user?.id)?.user;
 
@@ -212,7 +307,7 @@ export default function ConversationList() {
           return (
             <div
               key={convo.id}
-              className="group flex items-center gap-3 px-3 py-2 rounded-xl transition-colors w-full"
+              className="group flex items-center gap-3 px-4 py-3 rounded-xl transition-colors w-full"
               style={{
                 background: isActive ? "rgba(88,101,242,0.12)" : "transparent",
                 border: isActive ? "1px solid rgba(88,101,242,0.2)" : "1px solid transparent",
@@ -221,14 +316,19 @@ export default function ConversationList() {
               onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <button
-                onClick={() => router.push(`/messages/${convo.id}`)}
+                onClick={() => {
+                  setConversations((prev) =>
+                    prev.map((c) => c.id === convo.id ? { ...c, hasUnread: false } : c)
+                  );
+                  router.push(`/messages/${convo.id}`);
+                }}
                 className="flex items-center gap-3 flex-1 min-w-0 text-left"
               >
                 {avatarSrc ? (
-                  <Image src={avatarSrc} alt={displayName ?? ""} width={40} height={40} className="rounded-full object-cover shrink-0" />
+                  <Image src={avatarSrc} alt={displayName ?? ""} width={48} height={48} className="rounded-full object-cover shrink-0" />
                 ) : (
                   <div
-                    className="w-10 h-10 rounded-full font-semibold flex items-center justify-center text-sm shrink-0"
+                    className="w-12 h-12 rounded-full font-semibold flex items-center justify-center text-base shrink-0"
                     style={{
                       background: isGroup ? "rgba(139,92,246,0.2)" : "rgba(88,101,242,0.2)",
                       color: isGroup ? "rgba(167,139,250,0.9)" : "rgba(148,163,255,0.9)",
@@ -237,9 +337,19 @@ export default function ConversationList() {
                     {avatarLetter}
                   </div>
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-semibold truncate" style={{ color: "rgba(220,225,255,0.85)" }}>{displayName}</p>
+
+                {/* Name + preview + dot */}
+                <div className="flex-1 min-w-0 relative">
+                  <div className="flex items-center gap-1.5 pr-5">
+                    <p
+                      className="text-base truncate"
+                      style={{
+                        color: "rgba(220,225,255,0.85)",
+                        fontWeight: convo.hasUnread ? 600 : 500,
+                      }}
+                    >
+                      {displayName}
+                    </p>
                     {isGroup && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
@@ -249,9 +359,37 @@ export default function ConversationList() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs truncate" style={{ color: "rgba(148,163,255,0.4)" }}>
-                    {convo.lastMessage ?? "Start a conversation"}
-                  </p>
+
+                  <div className="flex items-center gap-1 min-w-0">
+                    {convo.lastMessage && convo.lastMessageSentByMe && <DeliveryTick />}
+                    <p
+                      className="text-sm truncate flex-1"
+                      style={{
+                        color: convo.hasUnread ? "rgba(190,210,255,0.9)" : "rgba(148,163,255,0.4)",
+                        fontWeight: convo.hasUnread ? 500 : 400,
+                      }}
+                    >
+                      {convo.lastMessage ?? "Start a conversation"}
+                    </p>
+                    {convo.lastMessageAt && (
+                      <>
+                        <span className="text-xs shrink-0" style={{ color: "rgba(148,163,255,0.3)" }}>·</span>
+                        <span
+                          className="text-xs shrink-0"
+                          style={{ color: convo.hasUnread ? "rgba(99,149,255,0.9)" : "rgba(148,163,255,0.35)" }}
+                        >
+                          {formatLastMessageTime(convo.lastMessageAt)}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {convo.hasUnread && (
+                    <div
+                      className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
+                      style={{ background: "rgba(99,149,255,0.95)" }}
+                    />
+                  )}
                 </div>
               </button>
 

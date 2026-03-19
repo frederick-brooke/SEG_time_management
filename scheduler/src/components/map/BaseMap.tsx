@@ -1,18 +1,21 @@
 "use client";
-
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import { useEffect } from "react";
-import { MAP_HEIGHT } from "@/src/lib/map/constants";
+import { useEffect, useRef } from "react";
+import { MAP_HEIGHT } from "@/lib/map/constants";
 
 interface LocationControllerProps {
   center: [number, number];
 }
 
-/** Re-centers the map whenever the center prop changes. */
 export function LocationController({ center }: LocationControllerProps) {
   const map = useMap();
+  const isFirst = useRef(true);
   useEffect(() => {
-    if (center) map.setView(center, 13);
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+    if (center) map.panTo(center);
   }, [center, map]);
   return null;
 }
@@ -25,10 +28,6 @@ interface BaseMapProps {
   className?: string;
 }
 
-/**
- * Shared Leaflet map shell — handles tile layer and container sizing.
- * Wrap FriendLayer or EventLayer children inside this.
- */
 export function BaseMap({
   center,
   zoom = 12,

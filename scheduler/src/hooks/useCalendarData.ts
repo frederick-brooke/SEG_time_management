@@ -1,11 +1,8 @@
 "use client";
 import { useState, useCallback } from "react";
-import { addMinutes } from "date-fns";
+import { addMinutes, subMinutes } from "date-fns";
 import { shouldShowAsUnscheduled } from "@/lib/taskSchedulingUtils";
 
-// ---------------------------------------------------------------------------
-// expandRecurringTasks — kept here since it's purely a data transformation
-// ---------------------------------------------------------------------------
 import { addDays, addWeeks, addMonths } from "date-fns";
 
 const DAY_MAP: Record<string, number> = {
@@ -79,9 +76,38 @@ export function expandRecurringTasks(tasks: any[]): any[] {
   return result;
 }
 
-// ---------------------------------------------------------------------------
+function buildTravelBlocks(events: any[]): any[] {
+  const blocks: any[] = [];
+  for (const ev of events) {
+    if (
+      typeof ev.travelDuration !== "number" ||
+      ev.travelDuration <= 0 ||
+      ev._type === "task" ||
+      ev._type === "_travel"
+    ) {
+      continue;
+    }
+    const travelEnd = new Date(ev.start);
+    const travelStart = subMinutes(travelEnd, ev.travelDuration);
+    blocks.push({
+      _type: "_travel",
+      _eventId: ev.id,
+      _eventCategory: ev.category,
+      _transportMode: ev.transportMode || "walking",
+      id: `travel-${ev.id}`,
+      title: `🚗 ${ev.travelDuration < 60
+        ? `${ev.travelDuration} min`
+        : ev.travelDuration % 60 === 0
+          ? `${Math.floor(ev.travelDuration / 60)}h`
+          : `${Math.floor(ev.travelDuration / 60)}h ${ev.travelDuration % 60}m`} to ${ev.title}`,
+      start: travelStart,
+      end: travelEnd,
+    });
+  }
+  return blocks;
+}
+
 // useCalendarData
-// ---------------------------------------------------------------------------
 export function useCalendarData(userId: string) {
   const [events, setEvents] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
@@ -94,7 +120,7 @@ export function useCalendarData(userId: string) {
   const [scheduleLogs, setScheduleLogs] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
 
-  // ── helpers ───────────────────────────────────────────────────────────────
+  // helpers
 
   const computeUnscheduled = useCallback(
     (allTasksList: any[], latestEvents: any[]) =>
@@ -113,8 +139,12 @@ export function useCalendarData(userId: string) {
         end: new Date(e.end),
         _type: "event",
       }));
-      setEvents(mapped);
-      return mapped;
+
+      const travelBlocks = buildTravelBlocks(mapped);
+      const withTravel = [...mapped, ...travelBlocks];
+
+      setEvents(withTravel);
+      return withTravel;
     } catch (err) {
       console.error("Failed to refresh events:", err);
       return [];

@@ -9,7 +9,8 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
     const start = (filters.page - 1) * filters.limit + 1;
     const end = Math.min(filters.page * filters.limit, totalUsers);
 
-    console.log(filters);
+    console.log("Users received:", users);
+    console.log("Total users:", totalUsers);
 
     return(
         <div>
