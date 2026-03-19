@@ -1,7 +1,7 @@
 "use client";
 import { format } from "date-fns";
 import { TaskForm, type TaskFormData } from "@/components/tasks/TaskForm";
-import EventForm from "@/components/EventForm";
+import EventForm from "@/src/components/map/EventForm";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Lecture: "#6366f1",
