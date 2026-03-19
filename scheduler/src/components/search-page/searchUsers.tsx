@@ -89,7 +89,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                                 user={user}
                                 onClick={() => {
                                 addRecentUser(user);
-                                window.location.href = `/profile/${user.username}`;
+                                    window.location.assign(`/profile/${user.username}`);
                                 }}
                             />
                         ))
