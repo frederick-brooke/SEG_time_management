@@ -30,7 +30,7 @@ const TYPE_LABELS: Record<string, string> = {
   WORK: "Work",
   FAVOURITE: "Favourite",
 };
-//saved locations
+
 function SaveLocationModal({
   address,
   lat,
@@ -57,28 +57,28 @@ function SaveLocationModal({
   };
 
   return (
-    <div className="absolute z-[200] left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 flex flex-col gap-3">
+    <div className="absolute z-[200] left-0 right-0 mt-1 bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+        <p className="text-xs font-bold text-white/30 uppercase tracking-wider">
           Save Location
         </p>
         <button
           type="button"
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+          className="text-white/30 hover:text-white/70 text-lg leading-none transition-colors"
         >
           ✕
         </button>
       </div>
 
-      <p className="text-xs text-gray-400 truncate">{address}</p>
+      <p className="text-xs text-white/30 truncate">{address}</p>
 
       <input
         type="text"
         placeholder="Label (e.g. Home, Gym...)"
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        className="w-full border p-2 rounded-lg text-sm text-black bg-white"
+        className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
         autoFocus
       />
 
@@ -91,7 +91,7 @@ function SaveLocationModal({
             className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all ${
               type === t
                 ? "bg-indigo-600 text-white border-indigo-600"
-                : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+                : "bg-white/5 text-white/50 border-white/10 hover:border-indigo-500/50"
             }`}
           >
             {TYPE_ICONS[t]} {TYPE_LABELS[t]}
@@ -103,7 +103,7 @@ function SaveLocationModal({
         type="button"
         onClick={handleSave}
         disabled={saving || !label.trim()}
-        className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 transition-all"
+        className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-500 disabled:opacity-40 transition-all"
       >
         {saving ? "Saving…" : "Save"}
       </button>
@@ -126,7 +126,7 @@ function SavedLocationChips({
           key={loc.id}
           type="button"
           onClick={() => onSelect(loc)}
-          className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-full text-xs font-semibold border border-indigo-200 transition-all"
+          className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-semibold border border-indigo-500/20 transition-all"
           title={loc.address}
         >
           {TYPE_ICONS[loc.type]} {loc.label}
@@ -255,15 +255,18 @@ export default function TravelSection({
     await refresh();
   };
 
-  return (
-    <div className="space-y-4 border-t pt-4 mt-4">
+  const inputClass =
+    "w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors";
 
-      {/* ── Travel time mode toggle ──────────────────────────────────────── */}
+  return (
+    <div className="space-y-4 border-t border-white/[0.06] pt-4 mt-4">
+
+      {/* ── Travel time mode toggle ── */}
       <div>
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">
+        <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
           Travel Time
         </label>
-        <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
+        <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl mb-4">
           {(["auto", "manual"] as const).map((m) => (
             <button
               key={m}
@@ -271,11 +274,11 @@ export default function TravelSection({
               onClick={() => onTravelTimeModeChange(m)}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
                 travelTimeMode === m
-                  ? "bg-white shadow-sm text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white/10 text-white border border-white/20"
+                  : "text-white/30 hover:text-white/60"
               }`}
             >
-              {m === "auto" ? "🗺 Auto-calculate" : "✏️ Enter manually"}
+              {m === "auto" ? "• Auto-calculate •" : "• Enter manually •"}
             </button>
           ))}
         </div>
@@ -294,29 +297,30 @@ export default function TravelSection({
                   e.target.value === "" ? null : Math.max(0, Number(e.target.value)),
                 )
               }
-              className="w-32 border p-2 rounded-lg text-black bg-white focus:outline-none focus:border-indigo-400"
+              className="w-32 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
             />
-            <span className="text-sm text-gray-500">minutes</span>
+            <span className="text-sm text-white/40">minutes</span>
             {manualTravelTime !== null && manualTravelTime > 0 && (
-              <span className="text-xs text-indigo-600 font-semibold bg-indigo-50 px-2 py-1 rounded-full border border-indigo-200">
+              <span className="text-xs text-indigo-300 font-semibold bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded-full">
                 {formatMins(manualTravelTime, transportMode)}
               </span>
             )}
           </div>
         )}
       </div>
+
       {travelTimeMode === "auto" && (
         <>
           {/* Start location */}
           <div className="relative">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-xs font-bold text-white/30 uppercase tracking-wider">
                 Starting Point
               </label>
               <button
                 type="button"
                 onClick={useCurrentLocation}
-                className="text-[10px] text-blue-600 font-bold hover:text-blue-800"
+                className="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors"
               >
                 📍 Use My Location
               </button>
@@ -333,13 +337,13 @@ export default function TravelSection({
                 placeholder="Where are you coming from?"
                 value={startLocationName}
                 onChange={(e) => handleLocationSearch(e.target.value, "start")}
-                className="flex-1 border p-2 rounded-lg text-black bg-white"
+                className={`flex-1 ${inputClass}`}
               />
               {pendingStart && (
                 <button
                   type="button"
                   onClick={() => setSaveModal("start")}
-                  className="shrink-0 px-2 py-2 text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 font-bold transition-all"
+                  className="shrink-0 px-2 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/20 font-bold transition-all"
                   title="Save this location"
                 >
                   ⭐
@@ -348,19 +352,19 @@ export default function TravelSection({
             </div>
 
             {suggestions.start.length > 0 && (
-              <div className="absolute z-[100] w-full bg-white border border-gray-200 rounded-lg shadow-2xl mt-1 max-h-48 overflow-auto">
+              <div className="absolute z-[100] w-full bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl mt-1 max-h-48 overflow-auto">
                 {suggestions.start.map((s: any, i: number) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => selectLocation(s, "start")}
-                    className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0 text-gray-700"
+                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm border-b border-white/[0.06] last:border-0 transition-colors"
                   >
-                    <span className="font-semibold">{s.properties.name}</span>
+                    <span className="font-semibold text-white/80">{s.properties.name}</span>
                     {s.properties.city && (
-                      <span className="text-gray-400 ml-1">({s.properties.city})</span>
+                      <span className="text-white/30 ml-1">({s.properties.city})</span>
                     )}
-                    <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
+                    <p className="text-xs text-white/30 truncate">{s.properties.display}</p>
                   </button>
                 ))}
               </div>
@@ -379,7 +383,7 @@ export default function TravelSection({
 
           {/* Destination */}
           <div className="relative">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            <label className="text-xs font-bold text-white/30 uppercase tracking-wider">
               Destination
             </label>
 
@@ -394,13 +398,13 @@ export default function TravelSection({
                 placeholder="Search destination address..."
                 value={destLocationName}
                 onChange={(e) => handleLocationSearch(e.target.value, "dest")}
-                className="flex-1 border p-2 rounded-lg text-black bg-white"
+                className={`flex-1 ${inputClass}`}
               />
               {pendingDest && (
                 <button
                   type="button"
                   onClick={() => setSaveModal("dest")}
-                  className="shrink-0 px-2 py-2 text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 font-bold transition-all"
+                  className="shrink-0 px-2 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/20 font-bold transition-all"
                   title="Save this location"
                 >
                   ⭐
@@ -409,19 +413,19 @@ export default function TravelSection({
             </div>
 
             {suggestions.dest.length > 0 && (
-              <div className="absolute z-[100] w-full bg-white border border-gray-200 rounded-lg shadow-2xl mt-1 max-h-48 overflow-auto">
+              <div className="absolute z-[100] w-full bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl mt-1 max-h-48 overflow-auto">
                 {suggestions.dest.map((s: any, i: number) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => selectLocation(s, "dest")}
-                    className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0 text-gray-700"
+                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm border-b border-white/[0.06] last:border-0 transition-colors"
                   >
-                    <span className="font-semibold">{s.properties.name}</span>
+                    <span className="font-semibold text-white/80">{s.properties.name}</span>
                     {s.properties.city && (
-                      <span className="text-gray-400 ml-1">({s.properties.city})</span>
+                      <span className="text-white/30 ml-1">({s.properties.city})</span>
                     )}
-                    <p className="text-xs text-gray-400 truncate">{s.properties.display}</p>
+                    <p className="text-xs text-white/30 truncate">{s.properties.display}</p>
                   </button>
                 ))}
               </div>
@@ -440,29 +444,34 @@ export default function TravelSection({
 
           {/* Transport mode */}
           <div>
-            <label className="text-sm font-semibold text-gray-600">Mode of Transport</label>
-            <select
-              value={transportMode}
-              onChange={(e) => onTransportModeChange(e.target.value as any)}
-              className="w-full border p-2 rounded mt-1"
-            >
-              <option value="walking">Walking</option>
-              <option value="cycling">Cycling</option>
-              <option value="driving">Driving</option>
-            </select>
+            <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-1">
+              Mode of Transport
+            </label>
+            <div className="relative">
+              <select
+                value={transportMode}
+                onChange={(e) => onTransportModeChange(e.target.value as any)}
+                className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors appearance-none cursor-pointer pr-8"
+              >
+                <option value="walking" className="bg-[#1a1a24]">Walking</option>
+                <option value="cycling" className="bg-[#1a1a24]">Cycling</option>
+                <option value="driving" className="bg-[#1a1a24]">Driving</option>
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
+            </div>
           </div>
 
           {/* Auto travel time preview */}
           {travelPreview !== null && (
-            <div className="p-2 bg-blue-50 rounded-lg flex items-center gap-2">
-              <span className="text-blue-600">{isCalculating ? "🔄" : "⏱️"}</span>
-              <span className="text-sm font-medium text-blue-800">
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2">
+              <span>{isCalculating ? "🔄" : "⏱️"}</span>
+              <span className="text-sm font-medium text-blue-300">
                 {isCalculating ? (
                   "Calculating new route..."
                 ) : (
                   <>
                     Estimated {transportMode} time:{" "}
-                    <strong>{formatMins(travelPreview, transportMode)}</strong>
+                    <strong className="text-blue-200">{formatMins(travelPreview, transportMode)}</strong>
                   </>
                 )}
               </span>
