@@ -183,27 +183,25 @@ model UserInventory {
 }
 
 model Task {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  title         String
-  description   String?
-  dueDate       DateTime?
-  completed     Boolean   @default(false)
-  completedAt   DateTime?
-  status        String    @default("todo")
-  duration      Int       @default(0)
-  durationHours String?
-  durationMins  String?
-  subtasks      String[]  @default([])
-  priority      String    @default("Low")
-  url           String?
-  bufferDays    Int?
-
-  userId String @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  examId String? @db.ObjectId
-  exam   Exam?   @relation(fields: [examId], references: [id])
-
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  status      String    @default("todo")
+  priority    String    @default("Low")
+  duration    Int       @default(0)
+  subtasks    String[]  @default([])
+  url         String?
+  userId       String  @db.ObjectId
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId       String? @db.ObjectId
+  exam         Exam?   @relation(fields: [examId], references: [id])
+  moduleId     String? @db.ObjectId
+  module       Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleTask Boolean @default(false)
+  moduleTaskGroupId String? @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -269,7 +267,7 @@ model Event {
   moduleId          String?   @db.ObjectId
   module            Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   isModuleEvent     Boolean   @default(false)
-
+  moduleEventGroupId String? @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
