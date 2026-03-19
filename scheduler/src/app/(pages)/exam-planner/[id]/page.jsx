@@ -68,8 +68,8 @@ export default function ExamDetailPage() {
         <LunarThemeWrapper>
             <main className="relative z-10 flex-1 p-8 space-y-12 max-w-7xl mx-auto w-full text-white">
                 <div className="flex flex-col gap-4 border-b border-white/10 pb-10">
-                    <h1 className="text-7xl font-black tracking-tighter uppercase leading-none text-white-400">{exam.title} Hub</h1>
-                    <p className="text-white/30 font-bold uppercase tracking-[0.4em] text-[11px]">
+                    <h1 className="lunar-page-title">{exam.title} Hub</h1>
+                    <p className="lunar-page-subtitle">
                         Target Goal: {exam.maxTimePerDay} mins/day | Exam Date: {new Date(exam.examDate).toLocaleDateString()}
                     </p>
                 </div>
@@ -158,7 +158,7 @@ export default function ExamDetailPage() {
                 {/* Filtered Task Board */}
                 <div className="mt-20 pt-20 border-t border-white/10 relative z-30">
                     <div className="mt-8">
-                        <h2 className="text-5xl font-black uppercase tracking-tighter text-white">Revision</h2>
+                        <h2 className="lunar-page-title">Revision</h2>
                     </div>
 
                     {exam && (

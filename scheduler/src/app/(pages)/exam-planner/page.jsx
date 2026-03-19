@@ -58,8 +58,8 @@ export default function ExamPlannerPage() {
       <div className="flex flex-1 flex-col p-8 gap-8 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-[#020617] to-[#020617] min-h-screen text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-5xl font-bold tracking-tight uppercase">Exam Planner</h1>
-            <p className="text-white/40 font-bold uppercase tracking-[0.3em] text-[12px] mt-2">Organise your revision</p>
+            <h1 className="lunar-page-title">Exam Planner</h1>
+            <p className="lunar-page-subtitle">Organise your revision</p>
           </div>
           <ExamFormDialog
             onExamAdded={(newExam) => setExams([...exams, newExam])}
@@ -81,7 +81,7 @@ export default function ExamPlannerPage() {
               return (
                 <div
                   key={exam.id}
-                  className="group relative p-8 bg-[#111629]/60 border border-white/5 backdrop-blur-md rounded-[2rem] shadow-2xl flex flex-col gap-6 transition-all hover:bg-[#111629]/80 hover:border-blue-500/20"
+                  className="lunar-card group relative p-8 flex flex-col gap-6"
                 >
                   {/* Exam Title and Tasks */}
                   <div className="flex justify-between items-start">

@@ -5,6 +5,7 @@ import { getMyExams } from "@/src/app/actions/examActions";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StarField } from "@/components/landing/HeroSection";
+import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 export default function TasksPage() {
   const { data: session, status } = useSession();
@@ -50,7 +51,7 @@ export default function TasksPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#020617] relative overflow-hidden text-white">
+    <LunarThemeWrapper>
       {/* Space background elements */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <StarField />
@@ -72,6 +73,6 @@ export default function TasksPage() {
           />
       </div>
       </div>
-    </main>
+    </LunarThemeWrapper>
   );
 }
