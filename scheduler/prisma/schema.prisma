@@ -232,8 +232,6 @@ model Task {
   relativeOffsetDays  Int?
   eventLinkMode       String?
   progress            Int?      @default(0)
-  module              Module?   @relation(fields: [moduleId], references: [id])
-  moduleId            String?   @db.ObjectId
 }
 
 model Exam {
@@ -455,6 +453,7 @@ model GroupMember {
   role     GroupRole @default(MEMBER)
   joinedAt DateTime  @default(now())
   @@unique([groupId, userId])
+}
 
 model Category {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
