@@ -3,8 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ModulesPageClient from "@/app/(pages)/modules/ModulesPageClient";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
-
+//mocks
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
 }));
@@ -33,8 +32,7 @@ jest.mock("@/components/modules/JoinModule", () => ({
   ),
 }));
 
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
-
+//constants
 const makeModule = (overrides = {}) => ({
   id: "mod1",
   name: "CS101",
@@ -47,8 +45,7 @@ const makeModule = (overrides = {}) => ({
   ...overrides,
 });
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
+//tests
 describe("ModulesPageClient", () => {
   it("renders the page header", () => {
     render(<ModulesPageClient modules={[]} />);

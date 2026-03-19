@@ -4,8 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { createGroupEvent, updateGroupEvent } from "@/app/actions/groups";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//types
 interface ExistingEvent {
   groupEventGroupId: string | null;
   title: string;
@@ -34,7 +33,6 @@ interface EventFormState {
 
 const CATEGORIES = ["Social", "Study", "Lecture", "Exam", "Personal", "Lab"] as const;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
  * Splits a Date into separate YYYY-MM-DD and HH:MM strings for form inputs
@@ -49,7 +47,6 @@ function splitDateTime(date: Date): { date: string; time: string } {
   };
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 /**
  * Modal for creating or editing a group-wide event distributed to all members

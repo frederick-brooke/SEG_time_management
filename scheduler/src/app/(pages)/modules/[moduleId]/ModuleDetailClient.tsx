@@ -94,6 +94,7 @@ const EMPTY_TASK_FORM = {
   name: "", description: "", dueDate: "", url: "",
   subtasks: "", durationHours: "0", durationMinutes: "0",
   priority: "Low", examId: "none",
+  bufferDays: 0, isRecurring: false, recurrence: null,
 };
 
 const PRIORITY_STYLES: Record<string, string> = {
@@ -426,23 +427,23 @@ export default function ModuleDetailClient({
    * @param {TaskWithProgress} task - The task to edit
    * @return {void}
    */
-  const openEditTask = (task: TaskWithProgress) => {
-    const totalMins = task.duration;
-    setTaskFormData({
-      name: task.title,
-      description: task.description || "",
-      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "",
-      url: task.url || "",
-      subtasks: "",
-      durationHours: String(Math.floor(totalMins / 60)),
-      durationMinutes: String(totalMins % 60),
-      priority: task.priority,
-      examId: "none",
-    });
-    setEditingTask(task);
-    setShowTaskForm(true);
-  };
-
+const openEditTask = (task: TaskWithProgress) => {
+  const totalMins = task.duration;
+  setTaskFormData({
+    name: task.title,
+    description: task.description || "",
+    dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : "",
+    url: task.url || "",
+    subtasks: "",
+    durationHours: String(Math.floor(totalMins / 60)),
+    durationMinutes: String(totalMins % 60),
+    priority: task.priority,
+    examId: "none",
+    bufferDays: 0, isRecurring: false, recurrence: null,
+  });
+  setEditingTask(task);
+  setShowTaskForm(true);
+};
   /**
    * Confirms and deletes all member copies of a module task
    * @param {string} groupId - The task group ID to delete

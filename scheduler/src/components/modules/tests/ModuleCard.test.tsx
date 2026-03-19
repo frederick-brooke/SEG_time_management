@@ -3,12 +3,10 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { ModuleCard } from "@/src/components/modules/ModuleCard";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
-
+//mocks
 jest.mock("next/link", () => ({ children, href }: any) => <a href={href}>{children}</a>);
 
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
-
+//constants
 const baseModule = {
   id: "mod1",
   name: "CS101",
@@ -19,8 +17,7 @@ const baseModule = {
   creator: { username: "prof1", fname: "Prof", lname: "One" },
 };
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
+//tests
 describe("ModuleCard", () => {
   it("renders the module name", () => {
     render(<ModuleCard module={baseModule} />);

@@ -18,7 +18,6 @@ interface CreateGroupProps {
   onSuccess: () => void;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 /**
  * Modal for creating a new group by selecting friends to add

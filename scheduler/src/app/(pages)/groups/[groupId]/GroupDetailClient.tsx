@@ -16,8 +16,7 @@ import { TaskFormDialog } from "components/tasks/TaskFormDialog";
 import GroupEventModal from "components/groups/GroupEventModal";
 import { formatDuration, formatTaskDate, formatEventDate } from "@/lib/format";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//types
 interface MemberUser {
   id: string;
   username: string;
@@ -72,12 +71,11 @@ interface GroupDetailClientProps {
   tasksWithProgress: TaskWithProgress[];
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
+//constants
 const EMPTY_TASK_FORM = {
   name: "", description: "", dueDate: "", url: "",
   subtasks: "", durationHours: "0", durationMinutes: "0",
-  priority: "Low", examId: "none",
+  priority: "Low", examId: "none", bufferDays: 0,isRecurring: false,recurrence: "none",
 };
 
 const PRIORITY_STYLES: Record<string, string> = {
@@ -86,8 +84,7 @@ const PRIORITY_STYLES: Record<string, string> = {
   Low: "bg-gray-100 text-gray-700",
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
+//subcomponents
 /**
  * Displays an Owner badge for group owners
  * @param {{ role: string }} props - Member role string
@@ -278,8 +275,7 @@ function TaskRow({
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
+//main component
 /**
  * Client component for the group detail page
  * All members can create, edit, delete events and tasks, and complete their own tasks
@@ -295,7 +291,7 @@ export default function GroupDetailClient({
   const [showMembers, setShowMembers] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [taskFormData, setTaskFormData] = useState(EMPTY_TASK_FORM);
+  const [taskFormData, setTaskFormData] = useState<any>(EMPTY_TASK_FORM);
   const [editingTask, setEditingTask] = useState<TaskWithProgress | null>(null);
   const [editingEvent, setEditingEvent] = useState<GroupEvent | null>(null);
 
@@ -383,6 +379,9 @@ export default function GroupDetailClient({
       durationMinutes: String(task.duration % 60),
       priority: task.priority,
       examId: "none",
+      bufferDays: 0,
+      isRecurring: false,
+      recurrence: "none"
     });
     setEditingTask(task);
     setShowTaskForm(true);

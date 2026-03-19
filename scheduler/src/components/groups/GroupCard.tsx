@@ -17,7 +17,6 @@ interface GroupCardProps {
   };
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 /**
  * Displays a group card with name, description, member count and owner badge
