@@ -1,6 +1,13 @@
-export default function GlassCard({ children, className = "" }) {
+interface GlassCardProps {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
+
+export default function GlassCard({ children, className = "", onClick }: GlassCardProps) {
   return (
     <div
+    onClick={onClick}
       className={`
         relative p-6 rounded-2xl 
         border border-white/10 

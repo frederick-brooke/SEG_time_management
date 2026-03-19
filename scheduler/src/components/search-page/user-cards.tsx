@@ -1,12 +1,13 @@
 "use client";
+import GlassCard from "@/components/ui/glassCard";
 
 export default function UserCard({ user, onClick }) {
   return (
-    <div onClick={onClick} className="flex items-center justify-between rounded-xl gap-3 p-3 hover:bg-gray-100 cursor-pointer transition">
+    <GlassCard onClick={onClick} className="flex items-center justify-between gap-3 p-4 cursor-pointer hover:scale-[1.01] transition-transform duration-300">
 
       <div className="flex items-center gap-4">
         {/* profile image */}
-          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center text-sm font-semibold text-white overflow-hidden border border-white/10">
             {user.pfp ? (
               <img
                 src={user.pfp}
@@ -23,20 +24,20 @@ export default function UserCard({ user, onClick }) {
 
           {/* user info */}
           <div className="flex flex-col">
-            <span className="font-medium text-sm text-gray-900">{user.username}</span>
+            <span className="font-medium text-sm text-white">{user.username}</span>
 
             {user.fname && user.lname && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-white/60">
                 {user.fname} {user.lname}
               </span>
             )}
           </div>
 
           {/* optional action */}
-          <button className="text-xs px-3 py-1 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition">
+          <button className="text-xs px-3 py-1 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition">
             View
           </button>
       </div>     
-    </div>
+    </GlassCard>
   );
 }
