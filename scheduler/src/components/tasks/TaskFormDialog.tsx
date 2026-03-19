@@ -15,8 +15,7 @@ import { X } from "lucide-react";
 
 const labelStyle = "lunar-label"
 const cardStyle = "lunar-card"
-const inputStyle = "bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-blue-500/40 rounded-xl transition-all [color-scheme:dark]";
-const selectStyle = "bg-[#0a0f1d] border-white/10 text-white rounded-xl focus:ring-2 focus:ring-blue-500/40";
+
 
 export function TaskFormDialog({
   isOpen,
@@ -33,12 +32,12 @@ export function TaskFormDialog({
       {showTrigger && (
         <Button 
           onClick={() => onOpenChange(true)}
-          className="bg-blue-600 text-white font-black rounded-xl px-8 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all uppercase tracking-widest text-xs border border-blue-400/50">
+          className="lunar-button-primary">
           + NEW TASK
         </Button>
       )}
 
-      <div className={`fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xl z-[9999] ${!isOpen && 'hidden'}`} 
+      <div className={`lunar-overlay ${!isOpen && 'hidden'}`} 
         onClick={(e) => {
             if (e.target === e.currentTarget) onOpenChange(false)
         }}>
@@ -52,7 +51,7 @@ export function TaskFormDialog({
           </button>
 
           <div className="mb-8">
-            <h3 className="text-2xl font-black uppercase tracking-tighter text-white">
+            <h3 className="lunar-header">
               {editingTaskId !== null ? "Edit Task" : "Create New Task"}
             </h3>
             <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2">
@@ -64,50 +63,50 @@ export function TaskFormDialog({
 
           <div className="grid gap-2 py-2">
             <div className="grid gap-2">
-              <Label htmlFor="task-name" className={labelStyle}>Task Name</Label>
+              <Label htmlFor="task-name" className="lunar-label">Task Name</Label>
               <Input
                 id="task-name"
                 type="text"
                 placeholder="Enter task name"
                 value={formData.name || ""}
-                className={inputStyle}
+                className="lunar-input"
                 onChange={(e) => onFormChange({ name: e.target.value })}
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="task-description" className={labelStyle}>Task Description</Label>
+              <Label htmlFor="task-description" className="lunar-label">Task Description</Label>
               <Input
                 id="task-description"
                 type="text"
                 placeholder="Enter task description"
                 value={formData.description || ""}
-                className={inputStyle}
+                className="lunar-input"
                 onChange={(e) => onFormChange({ description: e.target.value })}
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="task-due-date" className={labelStyle}>Due Date</Label>
+              <Label htmlFor="task-due-date" className="lunar-label">Due Date</Label>
               <Input
                 id="task-due-date"
                 type="date"
                 value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0]: ""}
-                className={inputStyle}
+                className="lunar-input"
                 onChange={(e) => onFormChange({ dueDate: e.target.value })}
 
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="task-url" className={labelStyle}>Study Resource URL</Label>
+              <Label htmlFor="task-url" className="lunar-label">Study Resource URL</Label>
               <div className="flex gap-2">
                 <Input
                   id="task-url"
                   type="text"
                   placeholder="No URL attached"
                   value={formData.url || ""}
-                  className={inputStyle}
+                  className="lunar-input"
                   onChange={(e) => onFormChange({ url: e.target.value })}
                 />
 
@@ -122,19 +121,19 @@ export function TaskFormDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="subtasks" className={labelStyle}>Subtasks (comma separated)</Label>
+              <Label htmlFor="subtasks" className="lunar-label">Subtasks (comma separated)</Label>
               <Input
                 id="subtasks"
                 type="text"
                 placeholder="e.g. Research, Edit"
                 value={formData.subtasks || ""}
-                className={inputStyle}
+                className="lunar-input"
                 onChange={(e) => onFormChange({ subtasks: e.target.value })}
               />
             </div>
 
             <div className="grid gap-2">
-              <Label className={labelStyle}>Time Estimate</Label>
+              <Label className="lunar-label">Time Estimate</Label>
               <div className="flex gap-2">
                 <Select
                   value={formData.durationHours}
@@ -142,12 +141,12 @@ export function TaskFormDialog({
                     onFormChange({ durationHours: value })
                   }
                 >
-                  <SelectTrigger className={inputStyle}>
-                    <SelectValue placeholder="Hours" />
+                  <SelectTrigger className="lunar-input">
+                    <SelectValue placeholder="Hours"/>
                   </SelectTrigger>
-                  <SelectContent className={selectStyle}>
+                  <SelectContent className="lunar-select-content">
                     {[...Array(9)].map((_, i) => (
-                      <SelectItem key={i} value={i.toString()} className={selectStyle}>
+                      <SelectItem key={i} value={i.toString()} className="lunar-select-item">
                         {i}h
                       </SelectItem>
                     ))}
@@ -160,10 +159,10 @@ export function TaskFormDialog({
                     onFormChange({ durationMinutes: value })
                   }
                 >
-                  <SelectTrigger className={selectStyle}>
-                    <SelectValue placeholder="Mins" className={selectStyle}/>
+                  <SelectTrigger className="lunar-input">
+                    <SelectValue placeholder="Mins"/>
                   </SelectTrigger>
-                  <SelectContent className={selectStyle}>
+                  <SelectContent className="lunar-select-content">
                     {[
                       "0",
                       "5",
@@ -177,7 +176,7 @@ export function TaskFormDialog({
                       "50",
                       "55",
                     ].map((m) => (
-                      <SelectItem key={m} value={m} className={selectStyle}>
+                      <SelectItem key={m} value={m} className="lunar-select-item">
                         {m}m
                       </SelectItem>
                     ))}
@@ -187,19 +186,19 @@ export function TaskFormDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="exam-link" className={labelStyle}>Link to Exam (Optional)</Label>
+              <Label htmlFor="exam-link" className="lunar-label">Link to Exam (Optional)</Label>
               <Select
                 value={formData.examId || "none"}
                 onValueChange={(value) => onFormChange({ examId: value })}
-                className={selectStyle}
+                className="lunar-select-trigger"
               >
-                <SelectTrigger id="exam-link" className={selectStyle}>
-                  <SelectValue placeholder="Select and exam" className={selectStyle}/>
+                <SelectTrigger id="exam-link" className="lunar-input">
+                  <SelectValue placeholder="Select and exam"/>
                 </SelectTrigger>
-                <SelectContent className={selectStyle}>
-                  <SelectItem value="none" className={selectStyle}>General Task (No Exam)</SelectItem>
+                <SelectContent className="lunar-select-content">
+                  <SelectItem value="none" className="lunar-select-item">General Task (No Exam)</SelectItem>
                   {exams.map((exam) => (
-                    <SelectItem key={exam.id} value={exam.id} className={selectStyle}>
+                    <SelectItem key={exam.id} value={exam.id} className="lunar-select-item">
                       {exam.title}
                     </SelectItem>
                   ))}
@@ -208,7 +207,7 @@ export function TaskFormDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label className={labelStyle}>Task Priority</Label>
+              <Label className="lunar-label">Task Priority</Label>
               <ToggleGroup
                 variant="outline"
                 type="single"
@@ -238,7 +237,7 @@ export function TaskFormDialog({
           <div className="mt-8 flex justify-end">
             <Button 
               type="button" 
-              onClick={() => onSubmit(formData)} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl px-10 py-6 uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/50 transition-all active:scale-95">
+              onClick={() => onSubmit(formData)} className="lunar-btn-primary w-full text-sm">
               {editingTaskId !== null ? "Update Task" : "Create Task"}
             </Button>
           </div>
