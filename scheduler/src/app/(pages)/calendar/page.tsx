@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import CalendarView from "@/components/CalendarView";
+import CalendarView from "@/src/components/calendar/CalendarView";
 import GoogleLinkButton from "@/components/googleLinkButton";
 import { StarBackground } from "@/components/ui/StarBackground";
 
@@ -25,12 +25,12 @@ export default async function CalendarPage() {
 
   return (
     <main 
-      className="chat-bg container mx-auto p-8 relative min-h-screen"
+      className="chat-bg container mx-auto px-6 pt-4 pb-8 relative min-h-screen"
       style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}
     >
       <StarBackground />
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-3">
         <h1 className="text-2xl font-bold">My Schedule</h1>
         <GoogleLinkButton isConnected={session.user.googleConnected} />
       </div>
