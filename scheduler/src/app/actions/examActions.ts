@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
 import { examPlannerLogic  } from "lib/examPlannerLogic";
+import { createNotification } from "./notifications";
+import { NotificationType } from "@prisma/client";
 
 /**
  * Updates specific settings for an existing exam record.
@@ -44,20 +46,53 @@ export async function createExam(formData: FormData) {
     try {
         const title = formData.get("title") as string;
         const examDate = new Date(formData.get("examDate") as string);
+        const startTimeStr = formData.get("startTime") as string;
+        const endTimeStr = formData.get("endTime") as string;
         const maxTimePerDay = parseInt(formData.get("maxTimePerDay") as string);
+        
+        const datePart = (formData.get("examDate") as string);
+        const examStart = new Date(`${datePart}T${startTimeStr}:00`);
+        const examEnd = new Date(`${datePart}T${endTimeStr}:00`);
 
-        const newExam = await prisma.exam.create({
-            data: {
-                userId: session.user.id,
-                title,
-                examDate,
-                maxTimePerDay,
-                unavailableDays: [],
-            },
+        const result = await prisma.$transaction(async (tx) => {
+            const category = await tx.category.create({
+                data: {
+                    userId: session.user.id,
+                    name: title,
+                    color: "#ef4444",
+                }
+            });
+
+            const exam = await tx.exam.create({
+                data: {
+                    userId: session.user.id,
+                    title,
+                    examDate: examStart,
+                    endTime: examEnd,
+                    maxTimePerDay,
+                    unavailableDays: [],
+                },
+            });
+
+            await tx.event.create({
+                data: {
+                    userId: session.user.id,
+                    title: `Exam: ${title}`,
+                    start: examStart,
+                    end: examEnd,
+                    category: category.name,
+                }
+            });
+
+            return exam;
         });
 
         revalidatePath("/exam-planner");
-        return { success: true, data: newExam};
+        revalidatePath("/calendar");
+        revalidatePath("/exam-planner");
+       
+        return { success: true, data: result};
+
     }   catch (error) {
             console.error("Error creating exam:", error)
             return { success: false, error: "Failed to create exam"};
@@ -165,7 +200,17 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
         revalidatePath(`/exam-planner`);
         revalidatePath(`/exam-hub`);
         revalidatePath(`/exam-planner/${examId}`);
+
+        await createNotification(
+            exam.userId,
+            "Study Plan Generated",
+            `Your revision plan for this exam is ready.`,
+            NotificationType.SUCCESS
+        );
+
         return { success: true };
+
+        
 
     } catch (error) {
         console.error("Plan generation error:", error);
@@ -224,6 +269,11 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
     const hours = Math.floor(topic.duration / 60);
     const mins = topic.duration % 60;
 
+    const exam = await prisma.exam.findUnique({
+        where: { id: examId },
+        select: { title: true }
+    });
+
     await prisma.task.create({
         data: {
             title: `${topic.title}`,
@@ -232,10 +282,9 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
             dueDate: dueDate,
             examId: examId,
             userId: userId,
-            durationHours: hours.toString(),
-            durationMins: mins.toString(),
             duration: topic.duration,
-            url: topic.url || null
+            url: topic.url || null,
+            category: exam?.title || "Exam",
         }
     });
 
@@ -251,4 +300,50 @@ async function saveTopicAsTask(examId: string, userId: string, topic: any, dueDa
         });
     }
 
+}
+
+/**
+ * Deadline minder protocol.
+ * Scans the database for tasks and exams due within the next 72 hours.
+ * Automatically dispatches system notifications for urgent items
+ * that haven't been completed yet.
+ * @param {string} userId The unique identifier of the user to check.
+ * @returns {Promise<void>} Resolves once all notifications have been processed. 
+ */
+export async function checkUpcomingDeadlines(userId: string) {
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+
+    const urgentTasks = await prisma.task.findMany({
+        where: {
+            userId,
+            status: { not: "completed" },
+            dueDate: { gte: now, lte: threeDaysFromNow }
+        }
+    });
+
+    const urgentExams = await prisma.exam.findMany({
+        where: {
+            userId,
+            examDate: { gte: now, lte: threeDaysFromNow }
+        }
+    });
+
+    for (const task of urgentTasks) {
+        await createNotification(
+            userId,
+            "Task Due Soon",
+            `"${task.title}" is due ${new Date(task.dueDate).toLocaleDateString()}`,
+            NotificationType.WARNING
+        );
+    }
+
+    for (const exam of urgentExams) {
+        await createNotification(
+            userId,
+            "Exam Approaching",
+            `"${exam.title}" is on ${new Date(exam.examDate).toLocaleDateString()}`,
+            NotificationType.WARNING
+        );
+    }
 }

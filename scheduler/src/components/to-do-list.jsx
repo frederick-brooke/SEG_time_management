@@ -13,16 +13,9 @@ import {
 import { Button } from "components/ui/button";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
-import { TaskViewDialog } from "./tasks/TaskViewDialog";
+import  TaskViewDialog  from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
-
-interface ToDoListProps {
-  userId: string;
-  exams?: any[];
-  filterExamId?: string | null;
-  highligthId?: string | null;
-}
 
 export function ToDoList({ userId, exams = [], filterExamId = null, highlightId = null }) {
   const {
@@ -170,6 +163,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onView={handleViewTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
+              getPriorityStyle={getPriorityStyle}
             />
             <TaskColumn
               title="In Progress"
@@ -180,6 +174,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onView={handleViewTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
+              getPriorityStyle={getPriorityStyle}
             />
             <TaskColumn
               title="Completed"
@@ -190,6 +185,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onView={handleViewTask}
               onEdit={handleEditTask}
               onDelete={handleDeleteTask}
+              getPriorityStyle={getPriorityStyle}
             />
             <TaskColumn
               title="Overdue"
@@ -199,7 +195,8 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
               onToggle={toggleTaskStatus}
               onView={handleViewTask}
               onEdit={handleEditTask}
-              onDelete={handleDeleteTask}              
+              onDelete={handleDeleteTask}
+              getPriorityStyle={getPriorityStyle}
             />
           </div>
         )}
@@ -213,7 +210,8 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
       <TaskViewDialog
         task={viewTask}
         isOpen={viewTask !== null}
-        onClose={() => setViewTask(null)}        
+        onClose={() => setViewTask(null)}
+        getPriorityStyle={getPriorityStyle}
       />
     </Card>
   );
