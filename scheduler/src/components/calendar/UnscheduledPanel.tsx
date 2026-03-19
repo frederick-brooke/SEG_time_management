@@ -126,7 +126,7 @@ export default function UnscheduledPanel({
       <div style={panelStyle}>
         <h2 style={headingStyle}>Unscheduled Tasks</h2>
         {unscheduledTasks.length === 0 ? (
-          <p style={emptyStyle}>All tasks are scheduled 🎉</p>
+          <p style={emptyStyle}>All tasks are scheduled!</p>
         ) : (
           <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
             {unscheduledTasks.map((t: any) => {

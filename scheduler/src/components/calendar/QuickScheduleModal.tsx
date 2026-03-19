@@ -37,50 +37,49 @@ export default function QuickScheduleModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
+      className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
       onClick={onClose}
     >
       <div
-        className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-sm relative"
+        className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] shadow-2xl w-full max-w-sm relative"
+        style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 32px 64px rgba(0,0,0,0.6)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-gray-400 hover:text-black text-xl"
+          className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
         >
           ✕
         </button>
-        <h3 className="text-xl font-black mb-1 text-gray-900">Schedule Task</h3>
-        <p className="text-sm text-gray-500 mb-5 font-medium truncate">
+        <h3 className="text-xl font-black mb-1 text-white">Schedule Task</h3>
+        <p className="text-sm text-white/40 mb-5 font-medium truncate">
           {task.title}
         </p>
-
         <div className="mb-4">
-          <label className="text-xs font-bold text-gray-400 uppercase">
+          <label className="text-xs font-bold text-white/30 uppercase">
             Date
           </label>
           <input
             type="date"
             id="quick-schedule-date"
             defaultValue={format(new Date(), "yyyy-MM-dd")}
-            className="w-full border p-2 rounded-xl mt-1 text-sm"
+            className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
         <div className="mb-6">
-          <label className="text-xs font-bold text-gray-400 uppercase">
+          <label className="text-xs font-bold text-white/30 uppercase">
             Time
           </label>
           <input
             type="time"
             id="quick-schedule-time"
             defaultValue={format(new Date(), "HH:mm")}
-            className="w-full border p-2 rounded-xl mt-1 text-sm"
+            className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
-
         <button
           onClick={handleSchedule}
-          className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+          className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all"
         >
           Schedule Task
         </button>
