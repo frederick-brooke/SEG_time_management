@@ -53,7 +53,7 @@ export default function ExamPlannerPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Exam Planner</h1>
-          <p className="text-muted-foreground">Organsie your revision</p>
+          <p className="text-muted-foreground">Organise your revision</p>
         </div>
         <ExamFormDialog
           onExamAdded={(newExam) => setExams([...exams, newExam])}
