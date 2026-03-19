@@ -119,7 +119,7 @@ function FutureTasksPanel({ state, patch, futureTasks, toggleId }: any) {
                     : "bg-white/5 text-purple-300 border-purple-500/20 hover:border-purple-400/40"
                 }`}
               >
-                {m === "auto" ? "✨ Auto-pick" : "✋ I'll choose"}
+                {m === "auto" ? "✨ Auto-pick" : "✋ I&apos;ll choose"}
               </button>
             ))}
           </div>
@@ -254,7 +254,7 @@ function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
       {state.missedDeadlineTasks.length > 0 && !state.requiresConfirmation && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
           <p className="text-sm font-bold text-red-400 mb-2">
-            ⚠️ Couldn't meet deadlines
+            ⚠️ Couldn&apos;t meet deadlines
           </p>
           {state.missedDeadlineTasks.map((w: any) => (
             <p key={w.taskId} className="text-xs text-red-400/70">
@@ -425,7 +425,7 @@ export default function ScheduleDrawer({
           {state.scheduleMode === "week" && (
             <div>
               <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2">
-                Days you're unavailable
+                Days you&apos;re unavailable
               </p>
               <div className="flex gap-2 flex-wrap">
                 {allDays.map((d) => {
