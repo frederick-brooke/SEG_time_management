@@ -1,22 +1,23 @@
 import React from "react";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { FriendMap } from "./map";
 
-// Mock next/dynamic to immediately return a simple component
 jest.mock("next/dynamic", () => {
-  return (loader: () => Promise<unknown>, _options: unknown) => {
-    const Dummy = (props: any) => (
-      <div data-testid="dynamic-friend-map">{JSON.stringify(props)}</div>
+  return (_loader: () => Promise<unknown>, _options: unknown) => {
+    const Dummy = (_props: any) => (
+      <div data-testid="dynamic-friend-map" />
     );
-    // expose the loader so it can be inspected if needed
-    // @ts-ignore
-    Dummy.preload = loader;
     return Dummy;
   };
 });
 
 describe("FriendMap dynamic wrapper", () => {
-  it("renders the dynamic FriendMap component with friends prop", () => {
+  it("renders without crashing", () => {
+    render(<FriendMap friends={[]} />);
+    expect(screen.getByTestId("dynamic-friend-map")).toBeInTheDocument();
+  });
+
+  it("renders with a populated friends array", () => {
     const friends = [
       {
         id: "friend-1",
@@ -28,10 +29,7 @@ describe("FriendMap dynamic wrapper", () => {
         pfp: "friend1.png",
       },
     ];
-
-    const { getByTestId } = render(<FriendMap friends={friends} />);
-
-    expect(getByTestId("dynamic-friend-map")).toBeInTheDocument();
+    render(<FriendMap friends={friends} />);
+    expect(screen.getByTestId("dynamic-friend-map")).toBeInTheDocument();
   });
 });
-
