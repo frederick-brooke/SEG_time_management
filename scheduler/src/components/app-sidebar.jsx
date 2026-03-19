@@ -66,8 +66,8 @@ const data = {
       icon: IconUser,
     },
     {
-      title: "Friends Map",
-      url: "/friend-map",
+      title: "Map",
+      url: "/map",
       icon: Map,
     },
     {
