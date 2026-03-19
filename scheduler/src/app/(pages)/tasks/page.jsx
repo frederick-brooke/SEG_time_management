@@ -3,10 +3,23 @@ import { ToDoList } from "@/src/components/to-do-list";
 import { useSession } from "next-auth/react";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { StarField } from "@/components/landing/HeroSection";
 
 export default function TasksPage() {
   const { data: session, status } = useSession();
   const [exams, setExams] = useState([]);
+  const searchParams = useSearchParams();
+  const [highlightId, setHighlightId] = useState(null);
+
+  useEffect(() => {
+    const id = searchParams.get("highlight");
+    if (id) {
+      setHighlightId(id);;
+      const timer = setTimeout(() => setHighlightId(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function loadExams() {
@@ -37,17 +50,28 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Tasks</h1>
-        <p className="text-muted-foreground">
-          Manage your tasks and track your progress
-        </p>
+    <main className="min-h-screen bg-[#020617] relative overflow-hidden text-white">
+      {/* Space background elements */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <StarField />
+        {/* Animated start field */}
+        <div className="absolute inset-0 opacity-20 bg-[url('/stars.png')] bg-repeat" />
+        {/* Glow orbs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h=[50%] bg-blue-500/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-500/10 blur-[120px] rounded-full" />
       </div>
 
-      {/* To-Do List Component */}
-      <ToDoList userId={session.user.id} exams={exams} />
-    </div>
+      {/* Content */}
+      <div className="relative z-10 flex flex-col gap-6 p-6 md:p-12 max-w-[1600px] mx-auto">
+        {/* To-Do List Component */}
+        <div className="mt-4">
+          <ToDoList 
+            userId={session.user.id} 
+            exams={exams} 
+            highlightId={highlightId}
+          />
+      </div>
+      </div>
+    </main>
   );
 }
