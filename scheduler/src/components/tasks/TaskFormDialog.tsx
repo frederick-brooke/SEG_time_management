@@ -237,7 +237,7 @@ export function TaskFormDialog({
           <div className="mt-8 flex justify-end">
             <Button 
               type="button" 
-              onClick={() => onSubmit(formData)} className="lunar-btn-primary w-full text-sm">
+              onClick={() => onSubmit(formData)} className="lunar-button-primary w-full text-sm">
               {editingTaskId !== null ? "Update Task" : "Create Task"}
             </Button>
           </div>

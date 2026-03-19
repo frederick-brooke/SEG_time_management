@@ -89,18 +89,18 @@ export default function Page() {
           {/* Left Side: Greeting & Action Buttons */}
           <div className="flex-1 space-y-4">
             <div>
-              <h1 className="text-4xl font-semiblack tracking-light text-white">
+              <h1 className="lunar-header text-4xl">
                 Welcome, {profile?.fname || session?.user?.name || 'User'}! 
               </h1>
             </div>
 
             <div className="flex items-center gap-3">
               {!googleConnected &&  (
-                <button onClick={handleLinkGoogle} className="bg-blue-500/10 text-blue-300 px-5 py-2.5 rounded-xl text-[10px] font-bold tracking-widest hover:bg-blue-500/20 transition-all border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                <button onClick={handleLinkGoogle} className="lunar-button-primary">
                   Connect Google Calendar
                 </button>
               )}
-              <button onClick={() => signOut({ callbackUrl: "/login" })} className="bg-white/5 text-white/60 px-5 py-2.5 rounded0xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md">
+              <button onClick={() => signOut({ callbackUrl: "/login" })} className="bg-white/5 text-white/60 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md">
                 Sign Out
               </button>
             </div>
@@ -108,7 +108,7 @@ export default function Page() {
 
           {/* Right Side: The Three Stats */}
           <div className="flex flex-col gap-3 shrink-0">
-            <p className="text-[14px] font-bold text-white uppercase tracking-[0.4em]">Your Progress</p>
+            <p className="lunar-label text-[15px]">Your Progress</p>
             {profile && <ProfileStats profile={profile} />}
           </div>
         </div>
