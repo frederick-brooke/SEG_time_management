@@ -9,6 +9,12 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
     const start = (filters.page - 1) * filters.limit + 1;
     const end = Math.min(filters.page * filters.limit, totalUsers);
 
+    console.log({
+        page: filters.page,
+        limit: filters.limit,
+        skip: (filters.page - 1) * filters.limit
+    });
+
     return(
         <div>
             <section className="mb-4 flex flex-col h-[660px]">

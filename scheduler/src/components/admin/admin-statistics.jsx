@@ -12,6 +12,8 @@ export default function AdminStatistics(){
         { label: "Total Appeals", value: totalAppeals },
     ];
 
+    console.log(totalUsers);
+
     return(
         <section className="mb-10">
             <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-white">

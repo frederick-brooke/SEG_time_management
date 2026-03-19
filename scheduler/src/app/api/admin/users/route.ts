@@ -41,40 +41,41 @@ export async function GET(req: Request) {
     const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
 
     //dynamically build the query set
-    const where: Prisma.UserWhereInput = { isDeleted: { not: true } };
+    const where: Prisma.UserWhereInput = { };
 
-    if (search.trim()) {
-        where.username = {
-            contains: search,
-            mode: "insensitive",
-        };
-    }
+
 
     //date filtering of theusers
     if (startDate || endDate) {
-        where.createdAt = {};
+        const createdAtFilter: Prisma.DateTimeFilter = {};
 
-        if (startDate) {
-            where.createdAt.gte = new Date(startDate);
+        if (startDate && !isNaN(Date.parse(startDate))) {
+            createdAtFilter.gte = new Date(startDate);
         }
 
-        if (endDate) {
-            where.createdAt.lte = new Date(endDate);
+        if (endDate && !isNaN(Date.parse(endDate))) {
+            createdAtFilter.lte = new Date(endDate);
+        }
+
+        if (Object.keys(createdAtFilter).length > 0) {
+            where.createdAt = createdAtFilter;
         }
     }
 
     //category filtering
-    if (categories) {
-        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase() as Role);
-            
-        where.role = { in: categoryArray };
+    if (categories && categories.trim() !== "") {
+        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase() as Role).filter(Boolean); // removes empty values
+
+        if (categoryArray.length > 0) {
+            where.role = { in: categoryArray };
+        }
     }
 
     // run queries in parallel
     const [users, totalMatchingUsers] = await Promise.all([
         prisma.user.findMany({
             where,
-            orderBy: { [safeSortBy]: order },
+            orderBy: [{ [safeSortBy]: order }, { id: "asc" }],
             skip: (page - 1) * limit,
             take: limit,
             include: {
