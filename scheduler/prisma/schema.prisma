@@ -43,6 +43,7 @@ enum ShopItemType {
   TITLE
   FRAME
   FUNCTIONAL
+  AVATAR
 }
 
 enum ModuleRole {
@@ -67,6 +68,7 @@ model User {
   city     String?
   country  String?
   location Json? // { lat: number, lng: number }
+  savedLocations SavedLocation[]
 
   role       Role      @default(BASIC)
   isBanned   Boolean   @default(false)
@@ -442,4 +444,25 @@ model CheckIn {
   date        DateTime // the day being checked in for
   taskEntries Json // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
   createdAt   DateTime @default(now())
+}
+
+
+enum SavedLocationType {
+  HOME
+  WORK
+  FAVOURITE
+}
+
+model SavedLocation {
+  id        String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String             @db.ObjectId
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String             
+  address   String             
+  lat       Float
+  lng       Float
+  type      SavedLocationType  @default(FAVOURITE)
+  createdAt DateTime           @default(now())
+
+  @@index([userId])
 }
