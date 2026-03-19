@@ -7,8 +7,7 @@ import { revalidatePath } from "next/cache";
 import { GroupRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//types
 const MEMBER_USER_SELECT = {
   id: true,
   username: true,
@@ -17,8 +16,7 @@ const MEMBER_USER_SELECT = {
   pfp: true,
 } as const;
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+//helpers
 /**
  * Retrieves the current session and throws if the user is not authenticated
  * @return {Promise<Session>} - Authenticated session object

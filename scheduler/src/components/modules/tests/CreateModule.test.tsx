@@ -3,8 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CreateModule from "@/components/modules/CreateModule";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
-
+//mocks
 jest.mock("@/app/actions/module", () => ({
   createModule: jest.fn(),
 }));
@@ -17,8 +16,7 @@ jest.mock("react", () => ({
 const mockOnClose = jest.fn();
 const mockOnSuccess = jest.fn();
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
+//tests
 describe("CreateModule", () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -3,8 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ModuleDetailClient from "@/app/(pages)/modules/[moduleId]/ModuleDetailClient";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
-
+//mocks
 const mockPush = jest.fn();
 const mockRefresh = jest.fn();
 
@@ -47,8 +46,7 @@ jest.mock("@/lib/format", () => ({
   formatEventDate: () => "Mon 1 Jan, 09:00",
 }));
 
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
-
+//constants
 const baseModule = {
   id: "mod1",
   name: "CS101",

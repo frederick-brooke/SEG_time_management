@@ -16,8 +16,7 @@ import { TaskFormDialog } from "components/tasks/TaskFormDialog";
 import GroupEventModal from "components/groups/GroupEventModal";
 import { formatDuration, formatTaskDate, formatEventDate } from "@/lib/format";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//types
 interface MemberUser {
   id: string;
   username: string;
@@ -72,8 +71,7 @@ interface GroupDetailClientProps {
   tasksWithProgress: TaskWithProgress[];
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
+//constants
 const EMPTY_TASK_FORM = {
   name: "", description: "", dueDate: "", url: "",
   subtasks: "", durationHours: "0", durationMinutes: "0",
@@ -86,8 +84,7 @@ const PRIORITY_STYLES: Record<string, string> = {
   Low: "bg-gray-100 text-gray-700",
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
+//subcomponents
 /**
  * Displays an Owner badge for group owners
  * @param {{ role: string }} props - Member role string
@@ -278,8 +275,7 @@ function TaskRow({
   );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
+//main component
 /**
  * Client component for the group detail page
  * All members can create, edit, delete events and tasks, and complete their own tasks

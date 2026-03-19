@@ -3,8 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ModuleEventModal from "@/components/modules/ModuleEventModal";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
-
+//mocks
 jest.mock("@/app/actions/module", () => ({
   createModuleEvent: jest.fn().mockResolvedValue({ success: true }),
   updateModuleEvent: jest.fn().mockResolvedValue({ success: true }),
@@ -13,8 +12,7 @@ jest.mock("@/app/actions/module", () => ({
 const mockOnClose = jest.fn();
 const mockOnSuccess = jest.fn();
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
-
+//tests
 describe("ModuleEventModal — create mode", () => {
   beforeEach(() => {
     jest.clearAllMocks();
