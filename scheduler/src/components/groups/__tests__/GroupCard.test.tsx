@@ -11,7 +11,7 @@ const baseGroup = {
   name: "Study Squad",
   description: "Group for studying",
   memberCount: 4,
-  userRole: "MEMBER",s
+  userRole: "MEMBER",
   creator: { username: "alice", fname: "Alice", lname: "Smith" },
 };
 

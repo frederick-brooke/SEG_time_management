@@ -75,7 +75,7 @@ interface GroupDetailClientProps {
 const EMPTY_TASK_FORM = {
   name: "", description: "", dueDate: "", url: "",
   subtasks: "", durationHours: "0", durationMinutes: "0",
-  priority: "Low", examId: "none",
+  priority: "Low", examId: "none", bufferDays: 0,isRecurring: false,recurrence: "none",
 };
 
 const PRIORITY_STYLES: Record<string, string> = {
@@ -291,7 +291,7 @@ export default function GroupDetailClient({
   const [showMembers, setShowMembers] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [taskFormData, setTaskFormData] = useState(EMPTY_TASK_FORM);
+  const [taskFormData, setTaskFormData] = useState<any>(EMPTY_TASK_FORM);
   const [editingTask, setEditingTask] = useState<TaskWithProgress | null>(null);
   const [editingEvent, setEditingEvent] = useState<GroupEvent | null>(null);
 
@@ -379,6 +379,9 @@ export default function GroupDetailClient({
       durationMinutes: String(task.duration % 60),
       priority: task.priority,
       examId: "none",
+      bufferDays: 0,
+      isRecurring: false,
+      recurrence: "none"
     });
     setEditingTask(task);
     setShowTaskForm(true);

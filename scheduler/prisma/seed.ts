@@ -178,7 +178,6 @@ async function main() {
 }
 
   console.log('\n✅ Seeding complete!')
-}
 
 main()
   .catch((e) => {
