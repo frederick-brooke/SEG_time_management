@@ -229,10 +229,16 @@ model Task {
   relativeOffsetDays  Int?
   eventLinkMode       String?
   progress            Int?      @default(0)
-  moduleId            String?   @db.ObjectId
-  module              Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  groupId             String?   @db.ObjectId
-  group               Group?    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  moduleId           String?   @db.ObjectId
+  module             Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleTask       Boolean   @default(false)
+  moduleTaskGroupId  String?   @db.ObjectId
+
+  groupId            String?   @db.ObjectId
+  group              Group?    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  isGroupTask        Boolean   @default(false)
+  groupTaskGroupId   String?   @db.ObjectId
 }
 
 model Exam {

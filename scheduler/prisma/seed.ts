@@ -175,7 +175,6 @@ async function main() {
       })
     }
   }
-}
 
   console.log('\n✅ Seeding complete!')
 

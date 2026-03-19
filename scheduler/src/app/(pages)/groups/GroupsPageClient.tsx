@@ -6,8 +6,7 @@ import { GroupCard } from "@/components/groups/GroupCard";
 import CreateGroup from "@/components/groups/CreateGroup";
 import { Plus, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+//types
 interface GroupItem {
   id: string;
   name: string;
@@ -28,8 +27,7 @@ interface GroupsPageClientProps {
 
 type SortKey = "newest" | "oldest" | "name-asc" | "name-desc" | "members-desc" | "members-asc";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
+//constants
 const PAGE_SIZE = 10;
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -41,8 +39,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "members-asc",  label: "Fewest members" },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
+//helpers
 /**
  * Sorts a list of groups by the given sort key
  * @param {GroupItem[]} groups - Unsorted group list
@@ -62,8 +59,7 @@ function sortGroups(groups: GroupItem[], key: SortKey): GroupItem[] {
   }
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
+//component
 /**
  * Client component for the groups list page with sorting, pagination, and create modal
  * @param {GroupsPageClientProps} props - Initial groups data from server

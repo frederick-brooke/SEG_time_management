@@ -209,7 +209,13 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
               </div>
             </div>
 
-            {showReport && <ReportModal reportedUserId={profile.id} onClose={() => setShowReport(false)} />}
+            {showReport && (
+              <ReportModal
+                reportedUserId={profile.id}
+                reportedUsername={profile.username}
+                onClose={() => setShowReport(false)}
+              />
+            )}
 
             {/* Bio Display */}
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
