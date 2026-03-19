@@ -1,0 +1,502 @@
+/* src/components/calendar/CalendarBody.module.css */
+
+/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+.wrapper {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .outerPanel {
+    padding: 1rem;
+    background: #0f172a;
+    border-radius: 0.75rem;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    min-height: 700px;
+  }
+  
+  /* ── Search / Undo bar ───────────────────────────────────────────────────── */
+  .searchBar {
+    height: 3.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  
+  .undoBar {
+    position: absolute;
+    inset: 0;
+    background: #1e293b;
+    color: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    border: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 60;
+  }
+  
+  .undoIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #cbd5e1;
+  }
+  
+  .undoLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .undoText {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e2e8f0;
+  }
+  
+  .undoActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .undoButton {
+    background: #6366f1;
+    color: white;
+    padding: 0.375rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  
+  .undoButton:hover {
+    background: #818cf8;
+  }
+  
+  .undoArrow {
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+  
+  .undoDismiss {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.125rem;
+    color: #64748b;
+    transition: color 0.15s;
+  }
+  
+  .undoDismiss:hover {
+    color: #e2e8f0;
+  }
+  
+  /* ── Search input ────────────────────────────────────────────────────────── */
+  .searchContainer {
+    position: relative;
+    height: 100%;
+  }
+  
+  .searchInput {
+    width: 100%;
+    height: 100%;
+    padding: 0 1rem 0 2.75rem;
+    border-radius: 1rem;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  
+  .searchInput::placeholder {
+    color: #475569;
+  }
+  
+  .searchInput:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+  }
+  
+  .searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #475569;
+    pointer-events: none;
+  }
+  
+  .searchClear {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #475569;
+    font-size: 1rem;
+    transition: color 0.15s;
+  }
+  
+  .searchClear:hover {
+    color: #94a3b8;
+  }
+  
+  /* ── Search results dropdown ─────────────────────────────────────────────── */
+  .searchDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    background: #1e293b;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    border: 1px solid #334155;
+    max-height: 24rem;
+    overflow-y: auto;
+    z-index: 70;
+    padding: 0.5rem;
+  }
+  
+  .searchResultItem {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  
+  .searchResultItem:hover {
+    background: #273549;
+  }
+  
+  .searchResultDot {
+    width: 0.375rem;
+    height: 2rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
+  
+  .searchResultTitle {
+    font-weight: 700;
+    color: #f1f5f9;
+    font-size: 0.875rem;
+  }
+  
+  .searchResultMeta {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.08em;
+  }
+  
+  .searchEmpty {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: #475569;
+  }
+  
+  /* ── Calendar card ───────────────────────────────────────────────────────── */
+  .calendarCard {
+    background: #0f172a;
+    padding: 1rem;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    border: 1px solid #1e293b;
+  }
+  
+  .calendarHeight {
+    height: 600px;
+  }
+  
+  /* ── Event wrappers (static styles; dynamic colors set via style prop) ───── */
+  .travelEventWrapper {
+    border-radius: 6px;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    cursor: default;
+    z-index: 1;
+  }
+  
+  .taskEventWrapper {
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.8rem;
+    padding: 4px;
+  }
+  
+  .calendarEventWrapper {
+    border-radius: 6px;
+    border: none;
+    color: white;
+    font-size: 0.85rem;
+    padding: 4px;
+  }
+  
+  /* ── Scheduled day highlight (applied via dayPropGetter) ─────────────────── */
+  .scheduledDay {
+    background-color: rgba(99, 102, 241, 0.12) !important;
+    border-top: 3px solid #818cf8 !important;
+  }
+  
+  /* ── Travel event inner layout ───────────────────────────────────────────── */
+  .travelEvent {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+    padding: 0 4px;
+    pointer-events: none;
+  }
+  
+  .travelInner {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+  }
+  
+  .travelIcon {
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  
+  .travelLabel {
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* ── react-big-calendar dark overrides ───────────────────────────────────── */
+  .calendarCard :global(.rbc-toolbar) {
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .calendarCard :global(.rbc-btn-group) {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .calendarCard :global(.rbc-toolbar .rbc-btn-group + .rbc-btn-group) {
+    margin-left: 0.5rem;
+  }
+  
+  .calendarCard :global(.rbc-toolbar button) {
+    color: #94a3b8;
+    border: 1px solid #334155;
+    background: transparent;
+    border-radius: 0.5rem !important;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  
+  .calendarCard :global(.rbc-toolbar button:hover) {
+    background: #1e293b;
+    color: #e2e8f0;
+  }
+  
+  .calendarCard :global(.rbc-toolbar button.rbc-active) {
+    background: #6366f1;
+    color: white;
+    border-color: #6366f1;
+  }
+
+  .calendarCard :global(.rbc-toolbar button.rbc-active:hover) {
+    background: #818cf8;
+    border-color: #818cf8;
+  }
+  
+  .calendarCard :global(.rbc-toolbar-label) {
+    color: #f1f5f9;
+    font-weight: 700;
+    flex: 1;
+    text-align: center;
+  }
+  
+  .calendarCard :global(.rbc-header) {
+    background: #0f172a;
+    color: #64748b;
+    border-color: #1e293b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 0;
+  }
+  
+  .calendarCard :global(.rbc-month-view) {
+    background: #0f172a;
+    border-color: #1e293b;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  
+  .calendarCard :global(.rbc-month-row) {
+    border-color: #1e293b;
+  }
+  
+  .calendarCard :global(.rbc-day-bg) {
+    border-color: #1e293b;
+  }
+  
+  .calendarCard :global(.rbc-day-bg:hover) {
+    background: rgba(99, 102, 241, 0.06);
+  }
+  
+  .calendarCard :global(.rbc-off-range-bg) {
+    background: #080d18;
+  }
+  
+  .calendarCard :global(.rbc-today) {
+    background: rgba(99, 102, 241, 0.1);
+  }
+  
+  .calendarCard :global(.rbc-date-cell) {
+    color: #94a3b8;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .calendarCard :global(.rbc-date-cell.rbc-now button) {
+    background: #6366f1;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .calendarCard :global(.rbc-off-range .rbc-date-cell) {
+    color: #334155;
+  }
+  
+  .calendarCard :global(.rbc-time-view) {
+    background: #0f172a;
+    border-color: #1e293b;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  
+  .calendarCard :global(.rbc-time-header) {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  
+  .calendarCard :global(.rbc-time-header-content) {
+    border-color: #1e293b;
+  }
+  
+  .calendarCard :global(.rbc-time-content) {
+    border-color: #1e293b;
+  }
+  
+  .calendarCard :global(.rbc-timeslot-group) {
+    border-color: #1e293b;
+  }
+  
+  .calendarCard :global(.rbc-time-slot) {
+    border-color: #1e293b;
+    color: #475569;
+    font-size: 0.7rem;
+  }
+  
+  .calendarCard :global(.rbc-day-slot .rbc-time-slot) {
+    border-color: #1a2438;
+  }
+  
+  .calendarCard :global(.rbc-current-time-indicator) {
+    background: #818cf8;
+  }
+  
+  .calendarCard :global(.rbc-label) {
+    color: #475569;
+    font-size: 0.7rem;
+  }
+  
+  .calendarCard :global(.rbc-show-more) {
+    color: #818cf8;
+    font-size: 0.7rem;
+    background: transparent;
+  }
+  
+  .calendarCard :global(.rbc-event) {
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+  
+  .calendarCard :global(.rbc-event:focus) {
+    outline: 2px solid #818cf8;
+  }
+  
+  .calendarCard :global(.rbc-selected) {
+    box-shadow: 0 0 0 2px #818cf8;
+  }
+
+  .calendarCard :global(.rbc-agenda-empty) {
+  color: #475569;
+  padding: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.calendarCard :global(.rbc-agenda-view) {
+  color: #94a3b8;
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+.calendarCard :global(.rbc-agenda-view table) {
+  border-color: #1e293b;
+}
+
+.calendarCard :global(.rbc-agenda-date-cell),
+.calendarCard :global(.rbc-agenda-time-cell) {
+  color: #475569;
+  border-color: #1e293b;
+  background: #0f172a;
+}
+
+.calendarCard :global(.rbc-agenda-event-cell) {
+  color: #e2e8f0;
+  border-color: #1e293b;
+}
