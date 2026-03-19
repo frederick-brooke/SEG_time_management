@@ -10,6 +10,7 @@ const customJestConfig = {
     "^components/(.*)$": "<rootDir>/src/components/$1",
     "\\.module\\.css$": "identity-obj-proxy",
     "^hooks/(.*)$": "<rootDir>/src/hooks/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
   transformIgnorePatterns: [
     "/node_modules/(?!(jose|openid-client|next-auth|@fullcalendar|preact|preact-render-to-string|@panva|bson|uuid)/)",

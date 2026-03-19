@@ -48,6 +48,11 @@ export default function Timer({storageKey, onTick}) {
                 setReminderOffsetMs={setReminderOffsetMs}
                 reminderFired={reminderFired}
             />
+
+            {/* Wellbeing Tip */}
+            <p className="text-gray-800 text-xs text-center max-w-xs">
+              Tip: Set a reminder to take a drink - Hydration is important.
+            </p>
         </div>
     );
 }
@@ -207,12 +212,11 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
       </div>
 
       {/* Wellbeing Tip */}
-      {!hasStarted && (
-        <p className="text-gray-800 text-xs text-center max-w-xs">
-          Tip: Taking short breaks every 30–60 minutes improves focus
-          and helps reduce mental fatigue.
-        </p>
-      )}
+      <p className="text-gray-800 text-xs text-center max-w-xs">
+        Tip: Taking short breaks every 30–60 minutes improves focus
+        and helps reduce mental fatigue.
+      </p>
+    
 
     </div>
   );

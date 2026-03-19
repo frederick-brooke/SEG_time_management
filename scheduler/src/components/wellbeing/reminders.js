@@ -10,16 +10,6 @@ export default function Reminders() {
     return (
         <div className="flex p-10 flex-col gap-4">
             <ReminderContainer
-                id="focus"
-                iconOn= {<IconLock className="w-5 h-5" />}
-                iconOff= {<IconLockOff className="w-5 h-5" />}
-                settingsTitle="Focus Time"
-                settingsText="Select time for focus."
-                firedTitle="Time for a Break"
-                firedText="Your focus session has ended."
-            />
-
-            <ReminderContainer
                 id="water"
                 iconOn= {<IconDroplet className="w-5 h-5" />}
                 iconOff= {<IconDroplet className="w-5 h-5" />}
@@ -28,7 +18,6 @@ export default function Reminders() {
                 firedTitle="Hydration Time"
                 firedText="Time to drink a glass of water!"
             />   
-
             {/* Add successive customisable reminders here, up to 5 more*/}
         </div>
     );
