@@ -96,7 +96,7 @@ export default function AppealFilter({ filters, setFilters, onClose, applyFilter
             Status
           </label>
 
-          {["PENDING", "RESOLVED", "REJECTED"].map((stat) => (
+          {["PENDING", "APPROVED", "REJECTED"].map((stat) => (
             <label key={stat} className="flex items-center space-x-2 mb-1">
               <input
                 type="radio"

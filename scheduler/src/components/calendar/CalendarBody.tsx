@@ -26,14 +26,25 @@ interface Props {
   onUndoDismiss: () => void;
 }
 
+const TRANSPORT_ICONS: Record<string, string> = {
+  walking: "🚶",
+  cycling: "🚴",
+  driving: "🚗",
+};
+
+function formatTravelTime(mins: number): string {
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
 function TaskEventContent({ event }: { event: any }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-1">
         <span className="text-[9px]">✓</span>
-        <span className="font-semibold truncate text-[11px]">
-          {event.title}
-        </span>
+        <span className="font-semibold truncate text-[11px]">{event.title}</span>
       </div>
       <span className="text-[9px] opacity-80">{event.priority} priority</span>
     </div>
@@ -41,31 +52,80 @@ function TaskEventContent({ event }: { event: any }) {
 }
 
 function CalendarEventContent({ event }: { event: any }) {
-  const travelMins =
-    typeof event.travelDuration === "number" ? event.travelDuration : null;
   return (
     <div className="flex flex-col h-full">
-      {travelMins !== null && (
-        <div className="mb-1 px-1 py-[2px] rounded bg-white/20 text-[9px] flex items-center gap-1 font-bold">
-          <span>🚗</span>
-          <span>{travelMins} min travel</span>
-        </div>
-      )}
       <div className="font-semibold truncate leading-tight">{event.title}</div>
     </div>
   );
 }
 
-function EventComponent({ event }: any) {
-  return event._type === "task" ? (
-    <TaskEventContent event={event} />
-  ) : (
-    <CalendarEventContent event={event} />
+function TravelEventContent({ event }: { event: any }) {
+  const icon = TRANSPORT_ICONS[event._transportMode] ?? "🚗";
+  return (
+    <div
+      className="flex flex-col h-full justify-center px-1"
+      style={{ pointerEvents: "none" }}
+    >
+      <div className="flex items-center gap-1 truncate">
+        <span style={{ fontSize: "10px" }}>{icon}</span>
+        <span
+          style={{
+            fontSize: "10px",
+            fontWeight: 600,
+            opacity: 0.85,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          Travel
+        </span>
+      </div>
+    </div>
   );
+}
+
+function EventComponent({ event }: any) {
+  if (event._type === "_travel") return <TravelEventContent event={event} />;
+  if (event._type === "task") return <TaskEventContent event={event} />;
+  return <CalendarEventContent event={event} />;
+}
+
+function hexToRgb(hex: string): string {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return "99, 102, 241";
+  return `${r}, ${g}, ${b}`;
 }
 
 function makeEventPropGetter(categories: any[], events: any[]) {
   return (event: any) => {
+    if (event._type === "_travel") {
+      const cat = categories.find((c) => c.name === event._eventCategory);
+      const baseColor = cat?.color ?? "#6366f1";
+      const rgb = hexToRgb(baseColor);
+      return {
+        style: {
+          background: `repeating-linear-gradient(
+            -45deg,
+            rgba(${rgb}, 0.13) 0px,
+            rgba(${rgb}, 0.13) 4px,
+            rgba(${rgb}, 0.06) 4px,
+            rgba(${rgb}, 0.06) 8px
+          )`,
+          border: `1.5px dashed rgba(${rgb}, 0.5)`,
+          borderRadius: "6px",
+          color: baseColor,
+          fontSize: "0.75rem",
+          padding: "2px 4px",
+          cursor: "default",
+          zIndex: 1,
+        },
+      };
+    }
+
     if (event._type === "task") {
       const linked = events.find((e) => e.id === event.eventId);
       const cat = linked
@@ -93,7 +153,6 @@ function makeEventPropGetter(categories: any[], events: any[]) {
         color: "white",
         fontSize: "0.85rem",
         padding: "4px",
-        minHeight: typeof event.travelDuration === "number" ? "48px" : "32px",
       },
     };
   };
@@ -152,6 +211,15 @@ export default function CalendarBody({
 }: Props) {
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const handleSelectEvent = (event: any) => {
+    if (event._type === "_travel") return;
+    onSelectEvent(event);
+  };
+
+  const realSearchResults = searchResults.filter(
+    (e) => e._type !== "_travel",
+  );
+
   return (
     <div className="flex-1 min-w-0">
       <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px]">
@@ -203,8 +271,8 @@ export default function CalendarBody({
               )}
               {showSearchResults && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-[70] p-2">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((ev) => (
+                  {realSearchResults.length > 0 ? (
+                    realSearchResults.map((ev) => (
                       <button
                         key={ev.occurrenceId || ev.id}
                         onClick={() => onSearchResultClick(ev)}
@@ -253,7 +321,7 @@ export default function CalendarBody({
               onSelectSlot={({ start }) =>
                 onSelectSlot(format(start, "yyyy-MM-dd"))
               }
-              onSelectEvent={onSelectEvent}
+              onSelectEvent={handleSelectEvent}
               eventPropGetter={makeEventPropGetter(categories, filteredItems)}
               dayPropGetter={makeDayPropGetter(scheduleLogs)}
               components={{ event: EventComponent }}

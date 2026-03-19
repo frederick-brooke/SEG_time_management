@@ -43,11 +43,17 @@ enum ShopItemType {
   TITLE
   FRAME
   FUNCTIONAL
+  AVATAR
 }
 
 enum ModuleRole {
   OWNER
   ADMIN
+  MEMBER
+}
+
+enum GroupRole {
+  OWNER
   MEMBER
 }
 
@@ -67,6 +73,7 @@ model User {
   city     String?
   country  String?
   location Json? // { lat: number, lng: number }
+  savedLocations SavedLocation[]
 
   role       Role      @default(BASIC)
   isBanned   Boolean   @default(false)
@@ -102,8 +109,14 @@ model User {
   createdModules Module[]                  @relation("ModuleCreator")
   moduleMembers  ModuleMember[]
 
+  createdGroups Group[]       @relation("GroupCreator")
+  groupMembers  GroupMember[]
+ 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  isDeleted Boolean @default(false)
 }
 
 model Account {
@@ -179,27 +192,31 @@ model UserInventory {
 }
 
 model Task {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  title         String
-  description   String?
-  dueDate       DateTime?
-  completed     Boolean   @default(false)
-  completedAt   DateTime?
-  status        String    @default("todo")
-  duration      Int       @default(0)
-  durationHours String?
-  durationMins  String?
-  subtasks      String[]  @default([])
-  priority      String    @default("Low")
-  url           String?
-  bufferDays    Int?
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  status      String    @default("todo")
+  priority    String    @default("Low")
+  duration    Int       @default(0)
+  subtasks    String[]  @default([])
+  url         String?
+  userId       String  @db.ObjectId
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId       String? @db.ObjectId
+  exam         Exam?   @relation(fields: [examId], references: [id])
+  
+  moduleId     String? @db.ObjectId
+  module       Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleTask Boolean @default(false)
+  moduleTaskGroupId String? @db.ObjectId
 
-  userId String @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  examId String? @db.ObjectId
-  exam   Exam?   @relation(fields: [examId], references: [id])
-
+  groupTaskGroupId  String?  @db.ObjectId
+  groupId           String?  @db.ObjectId
+  group             Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  isGroupTask       Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -215,8 +232,6 @@ model Task {
   relativeOffsetDays  Int?
   eventLinkMode       String?
   progress            Int?      @default(0)
-  module              Module?   @relation(fields: [moduleId], references: [id])
-  moduleId            String?   @db.ObjectId
 }
 
 model Exam {
@@ -262,10 +277,16 @@ model Event {
   exceptions        String[]  @default([])
   googleEventId     String?
   lastSyncedAt      DateTime?
+
   moduleId          String?   @db.ObjectId
   module            Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   isModuleEvent     Boolean   @default(false)
+  moduleEventGroupId String? @db.ObjectId
 
+  groupEventGroupId String?  @db.ObjectId
+  groupId           String?  @db.ObjectId
+  group             Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  isGroupEvent      Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -368,7 +389,8 @@ model ConversationParticipant {
   role           String       @default("member")
   joinedAt       DateTime     @default(now())
   deletedAt      DateTime?
-
+  lastReadAt     DateTime?
+  
   @@unique([conversationId, userId])
 }
 
@@ -409,6 +431,30 @@ model ModuleMember {
   @@unique([moduleId, userId])
 }
 
+model Group {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  creatorId   String  @db.ObjectId
+  creator     User    @relation("GroupCreator", fields: [creatorId], references: [id])
+  members     GroupMember[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events  Event[]
+  tasks   Task[]
+}
+
+model GroupMember {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  groupId  String    @db.ObjectId
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String    @db.ObjectId
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  @@unique([groupId, userId])
+}
+
 model Category {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
@@ -439,4 +485,25 @@ model CheckIn {
   date        DateTime // the day being checked in for
   taskEntries Json // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
   createdAt   DateTime @default(now())
+}
+
+
+enum SavedLocationType {
+  HOME
+  WORK
+  FAVOURITE
+}
+
+model SavedLocation {
+  id        String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String             @db.ObjectId
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String             
+  address   String             
+  lat       Float
+  lng       Float
+  type      SavedLocationType  @default(FAVOURITE)
+  createdAt DateTime           @default(now())
+
+  @@index([userId])
 }
