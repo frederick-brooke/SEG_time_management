@@ -3,11 +3,8 @@ import { useState } from "react";
 import SearchUsers from "@/components/search-page/searchUsers";
 import { useUsers } from "@/hooks/useUsers";
 import UserFilter from "@/components/admin/user-filter-panel";
-import TaskFilter from "@/components/search-page/task-filter-panel";
 
 import SearchControls from "@/components/search-page/search-controls";
-import { useTaskSearch } from "@/hooks/useTaskSearch";
-import SearchTasks from "@/components/search-page/searchTasks";
 
 export default function SearchPage() {
     //User management states
@@ -24,22 +21,7 @@ export default function SearchPage() {
     const [selectedUser, setSelectedUser] = useState(null);   //user profile view
     const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  //search values to be checked and filtered for the usesrs
 
-    const defaultTaskFilters = {search: "", sortBy: "createdAt", order: "desc", startDate: "", endDate:"", status: [], priority: [], completed: "", page: 1, limit: 12};
-
-    const [appliedTaskFilters, setAppliedTaskFilters] = useState(defaultTaskFilters);
-    const [draftTaskFilters, setDraftTaskFilters] = useState(defaultTaskFilters);
-
-    function resetTaskFilters(){
-        setDraftTaskFilters(defaultTaskFilters);
-        setAppliedTaskFilters(defaultTaskFilters);
-    }
-
-    const [selectedTask, setSelectedTask] = useState(null);
-    const [isTaskFilterOpen, setIsTaskFilterOpen] = useState(false);
-
-    const {users, totalUserPages, totalUsers} = useUsers(appliedUserFilters, "/api/users/search");
-    const {tasks, totalTaskPages, totalTasks, loading, fetchTasks} = useTaskSearch(appliedTaskFilters, "api/tasks/search");
-    
+    const {users, totalUserPages, totalUsers} = useUsers(appliedUserFilters, "/api/users/search");    
     const [currentTab, setCurrentTab] = useState("users");  //display the current search being done
 
     //manage users, tasks, events search 
@@ -62,26 +44,7 @@ export default function SearchPage() {
                     setFilters={setAppliedUserFilters}
                     resetFilters={resetUserFilters}
                 />
-            </>
-            
-        ),
-    
-        tasks:(
-            <SearchTasks
-                tasks={tasks}
-                totalTasks={totalTasks}
-                totalTaskPages={totalTaskPages}
-                setIsTaskFilterOpen={setIsTaskFilterOpen}
-                selectedTask={selectedTask}
-                setSelectedTask={setSelectedTask}
-                filters={appliedTaskFilters}
-                setFilters={setAppliedTaskFilters}
-                resetFilters={resetTaskFilters}
-            />
-        ),
-
-        modules:(
-            <p>Modules</p>
+            </>    
         ),
     }
     
@@ -97,50 +60,6 @@ export default function SearchPage() {
                         placeholder="Search users..."
                     />
                 )}
-
-                {currentTab=="tasks" && (
-                    <SearchControls
-                        filters={appliedTaskFilters}
-                        setFilters={setAppliedTaskFilters}
-                        resetFilters={resetTaskFilters}
-                        onOpenFilter={() => setIsTaskFilterOpen(true)}
-                        placeholder="Search your own tasks..."
-                    />
-                )}
-
-
-
-                {/* tabs header title */}
-                <div className="flex border-b mb-4">
-                    <button
-                        onClick={() => setCurrentTab("users")}
-                        className={`px-4 py-2 font-medium ${
-                            currentTab === "users" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-                        }`}
-                    >
-                        Users
-                    </button>
-
-                    <button
-                        onClick={() => setCurrentTab("tasks")}
-                        className={`px-4 py-2 font-medium ${
-                            currentTab === "tasks" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-                        }`}
-                    >
-                        Tasks
-                    </button>
-
-                    <button
-                        onClick={() => setCurrentTab("modules")}
-                        className={`px-4 py-2 font-medium ${
-                            currentTab === "modules" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-                        }`}
-                    >
-                        Modules
-                    </button>
-
-
-                </div>
 
                 {/* render the active tab */}
                 {tabs[currentTab]}
@@ -160,22 +79,7 @@ export default function SearchPage() {
                     }} 
                     type={"search"} /* needed to hide admin category sorting etc*/              
                 />
-            )}   
-
-            {isTaskFilterOpen && (
-                <TaskFilter
-                    filters={draftTaskFilters}
-                    setFilters={setDraftTaskFilters}
-                    onClose={() => setIsTaskFilterOpen(false)}
-                    applyFilters={() => {
-                        setAppliedTaskFilters(draftTaskFilters);
-                        setIsTaskFilterOpen(false);
-                    }}
-                    resetFilters={() => {
-                        setAppliedTaskFilters(defaultTaskFilters);
-                    }} 
-                />
-            )}     
+            )}    
         </>       
     );
 }

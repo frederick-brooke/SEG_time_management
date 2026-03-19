@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { calculateStreak } from "./profile";
 
-export async function getFriendsLeaderboard() {
+export async function getFriendsLeaderboard(timeframe: 'day' | 'week' | 'month' | 'all' = 'all') {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return null;
 
@@ -32,27 +32,51 @@ export async function getFriendsLeaderboard() {
     currentUser.id 
   ];
 
+  let dateThreshold: Date | null = null;
+  const now = new Date();
+  
+  if (timeframe === 'day') {
+    dateThreshold = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+  } else if (timeframe === 'week') {
+    dateThreshold = new Date(now.setDate(now.getDate() - 7)); // 7 days ago
+  } else if (timeframe === 'month') {
+    dateThreshold = new Date(now.setMonth(now.getMonth() - 1)); // 1 month ago
+  }
+
   const users = await prisma.user.findMany({
-    where: { id: { in: friendIds } },
+    where: { 
+      id: { in: friendIds },
+      isDeleted: false
+    },
     select: {
       id: true,
       username: true,
       fname: true,
       lname: true,
       pfp: true,
-      tasks: { select: { completed: true, duration: true } }
+      // ✅ FIX 1: We must select the dates from the DB so we can filter by them!
+      tasks: { select: { completed: true, duration: true, completedAt: true, createdAt: true } }
     }
   });
 
   const leaderboard = await Promise.all(users.map(async (user) => {
-    const totalTasks = user.tasks.length;
-    const completedTasksList = user.tasks.filter(t => t.completed);
+    let validTasks = user.tasks;
+    if (dateThreshold) {
+      validTasks = user.tasks.filter(t => {
+        if (t.completed && t.completedAt) {
+          return new Date(t.completedAt) >= dateThreshold!;
+        }
+        return new Date(t.createdAt) >= dateThreshold!;
+      });
+    }
+    
+    // ✅ FIX 2: Calculate stats using `validTasks` (the filtered list), not all-time tasks
+    const totalTasks = validTasks.length;
+    const completedTasksList = validTasks.filter(t => t.completed);
     const completedTasksCount = completedTasksList.length;
 
-    // Completion Rate Math
     const completionRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
 
-    // Focus Time Math
     const totalMinutes = completedTasksList.reduce((sum, task) => sum + (task.duration || 0), 0);
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;

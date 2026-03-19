@@ -1,5 +1,14 @@
 "use client";
+
+/**
+ * @file AddMemberModal.tsx
+ * @description Modal component for adding friends to an existing group conversation.
+ * Fetches the current user's friends, filters out existing members, and posts
+ * a new member to the conversation via the REST API.
+ */
+
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type Friend = {
   id: string;
@@ -19,6 +28,7 @@ export function AddMemberModal({ conversationId, existingMemberIds, onClose, onA
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // q= with no value returns all friends from the search endpoint
   useEffect(() => {
     fetch("/api/user/search?q=")
       .then((r) => r.json())
@@ -65,7 +75,13 @@ export function AddMemberModal({ conversationId, existingMemberIds, onClose, onA
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
               {f.pfp ? (
-                <img src={f.pfp} className="w-7 h-7 rounded-full object-cover" />
+                <Image
+                  src={f.pfp}
+                  alt={f.username}
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 rounded-full object-cover"
+                />
               ) : (
                 <div
                   className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center"

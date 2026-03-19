@@ -41,7 +41,7 @@ export async function GET(req: Request) {
             where,
             skip,
             take: limit,
-            include: { user: true, report: true },
+            include: { user: true, report: true, handledBy: true },
             orderBy: { [sortBy]: order },
         }),
         prisma.appeal.count({ where }),

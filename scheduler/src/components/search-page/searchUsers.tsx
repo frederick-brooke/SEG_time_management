@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import UserPanel from "@/components/admin/admin-user-panel";
 import UserCard from "./user-cards";
 import { addRecentUser, getRecentUsers, removeRecentUser, clearRecentUsers } from "@/lib/recent-users";
+import { IconX } from "@tabler/icons-react";
 
 export default function SearchUsers({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
 {    
@@ -20,17 +21,14 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
 
     return(
         <div className="p-6">
-            <section className="bg-white shadow rounded p-4 flex flex-col h-full">
+            <section className="flex flex-col h-full">
 
-                {/* 
-                If the search box is empty we show RECENT USERS instead of the search message.
-                This replaces the previous "Start typing..." message.
-                */}
                 {filters.search === "" ? (
                     <>
-                        {/* Header for recent users + clear button */}
-                        <div className="flex justify-between items-center mb-3">
-                            <p className="text-sm font-semibold">Recent</p>
+                        {/* Header for recent users and clear button */}
+                        <div className="flex justify-between items-center mb-4">
+                            <p className="text-sm font-semibold text-gray-700">Recent Searches</p>
+                            <div className="border-b mb-3"></div>
 
                             {/* Clear all recent users from local storage */}
                             <button
@@ -43,18 +41,19 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                                 Clear All
                             </button>
                         </div>
+
                         {/* If no recent users exist show empty message */}
                         {recentUsers.length === 0 ? (
-                            <p className="text-gray-500 text-center mt-6">
+                            <p className="text-sm text-gray-400 text-center mt-10">
                                 No recent searches
                             </p>
                         ) : (
-                            <div className="flex flex-col">
+                            <div className="flex flex-col gap-1">
                                 {/* Display stored recent users */}
                                 {recentUsers.map((user) => (
                                     <div
                                         key={user.username}
-                                        className="flex items-center justify-between"
+                                        className="flex items-center justify-between gap-2"
                                     >
                                         {/* Clicking a recent user navigates to their profile */}
                                         <UserCard
@@ -73,7 +72,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                                             }}
                                             className="text-gray-400 hover:text-red-500 ml-2"
                                         >
-                                            ✕
+                                            <IconX/>
                                         </button>
 
                                     </div>
@@ -147,7 +146,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                                             page: prev.page - 1,
                                         }))
                                     }
-                                    className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1 text-sm border rounded-md hover:bg-gray-100 disabled:opacity-40"
                                 >
                                     Previous
                                 </button>
@@ -164,7 +163,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                                             page: prev.page + 1
                                         }))
                                     }
-                                    className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1 text-sm border rounded-md hover:bg-gray-100 disabled:opacity-40"
                                 >
                                     Next
                                 </button>
