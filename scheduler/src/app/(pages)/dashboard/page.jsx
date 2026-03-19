@@ -1,16 +1,19 @@
 // scheduler/src/app/(pages)/dashboard/page.tsx
+"use client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { redirect } from "next/navigation";
-import { getMyProfile } from "@/src/app/actions/profile";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
-
 import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
-
 import { ProfileStats } from "@/src/components/profile/StatModules";
 import { getMyProfile } from "@/src/app/actions/profile";
-
+import { ComingUpSoon } from "@/src/components/coming-up-soon";
+import WellbeingPage from "../wellbeing/page";
+import Panel from "@/components/panel";
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 export default function Page() {
@@ -23,16 +26,23 @@ export default function Page() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
+    let isMounted = true; // Prevents fetching if the user moves away from screen
     async function loadData() {
-      const [examData, profileData] = await Promise.all([
-        getMyExams(),
-        getMyProfile()
-      ]);
-      setExams(examData);
-      setProfile(profileData);
+      if (status === "authenticated" && !profile) {
+        const [examData, profileData] = await Promise.all([
+          getMyExams(),
+          getMyProfile()
+        ]);
+        if (isMounted) {
+          setExams(examData);
+          setProfile(profileData);
+        }
+      }
     }
     loadData();
-  }, []);
+
+    return () => { isMounted = false; };
+  }, [status]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -58,15 +68,17 @@ export default function Page() {
     }
   }, [searchParams, router]);
 
-  // Parallel data fetching for performance (Band 5 optimization)
-  const [profile, exams] = await Promise.all([
-    getMyProfile(),
-    getMyExams()
-  ]);
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+   }, [status, router]);
 
-  if (!profile) {
-    redirect("/login");
-  }
+   const googleConnected = profile?.accounts?.some(acc => acc.provider === 'google');
+
+   const handleLinkGoogle = () => {
+    router.push("/api/auth/signin/google");
+   };
 
   return (
     <LunarThemeWrapper>
