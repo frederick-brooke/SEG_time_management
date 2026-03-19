@@ -26,11 +26,6 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
     const [serverError, setServerError] = useState("");
     const [isPending, setIsPending] = useState(false);
 
-    // Styling constants for the Lunar aesthetic
-    const formLabelStyle = "block text-[12px] font-black uppercase tracking-widest text-white/40 ml-1";
-    const inputStyle = "w-full bg-white/10 border-white/10 text-white placeholder:text-white/20 focus:ring-2 focus:ring-blue-500/40 rounded-xl transition-all outline-none text-base font-medium shadow-inner [color-scheme:dark]";
-    const saveStyle = "bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl px-2 py-2 uppercase tracking-widest shadow-[0_0_20px_rgba(37,99,235,0.4)] border border-blue-400/50 transition-all";
-
     /**
      * Handles the asynchronous submission of the exam data.
      */
@@ -91,54 +86,54 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             )}
 
             <div>
-                <label className={formLabelStyle}>Exam Title</label>
+                <label className="lunar-label">Exam Title</label>
                 <input 
                     name="title" 
                     defaultValue={editingExam?.title || ""}
                     required
-                    className={inputStyle}  
+                    className="lunar-input"  
                 />
             </div>
             <div>
-                <label className={formLabelStyle}>Exam Date</label>
+                <label className="lunar-label">Exam Date</label>
                 <input 
                     name="examDate" 
                     type="date" 
                     defaultValue={editingExam ? new Date(editingExam.examDate).toISOString().split('T')[0] : ""}
                     required 
-                    className={inputStyle} 
+                    className="lunar-input" 
                 />                        
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className={formLabelStyle}>Start Time</label>
+                    <label className="lunar-label">Start Time</label>
                     <input
                         name="startTime"
                         type="time"
                         defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
                         required
-                        className={inputStyle}
+                        className="lunar-input"
                     />
                 </div>
                 <div>
-                    <label className={formLabelStyle}>End Time</label>
+                    <label className="lunar-label">End Time</label>
                     <input
                         name="endTime"
                         type="time"
                         defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
                         required
-                        className={inputStyle}
+                        className="lunar-input"
                     />
                 </div>    
             </div>
             <div>
-                <label className={formLabelStyle}>Daily Study Goal (mins)</label>
+                <label className="lunar-label">Daily Study Goal (mins)</label>
                 <input 
                     name="maxTimePerDay" 
                     type="number" 
                     defaultValue={editingExam?.maxTimePerDay || ""}
                     required 
-                    className={inputStyle}
+                    className="lunar-input"
                 />                        
             </div>
             <div className="flex justify-end gap-3 pt-4">
@@ -151,7 +146,7 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 </button>
                 <button 
                     type="submit" 
-                    className={saveStyle}
+                    className="lunar-button-primary"
                 >
                     {isPending? "Saving..." : editingExam ? "Update Settings" : "Save Exam"}
                 </button>            
