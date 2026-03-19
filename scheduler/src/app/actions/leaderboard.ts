@@ -3,7 +3,7 @@
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
-import { calculateStreak } from "./profile";
+import { calculateStreak } from "lib/streak";
 
 export async function getFriendsLeaderboard() {
   const session = await getServerSession(authOptions);
