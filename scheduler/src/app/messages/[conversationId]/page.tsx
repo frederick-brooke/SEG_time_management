@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file page.tsx
+ * @description Full conversation view for a single direct or group conversation.
+ * Handles paginated message loading, optimistic sends, real-time updates via Pusher
+ * (new messages, typing indicators), and group management (members, roles, leave).
+ */
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,6 +17,7 @@ import { MembersPanel } from "@/components/messaging/MembersPanel";
 import { AddMemberModal } from "@/components/messaging/AddMemberModal";
 import { MessageBubble } from "@/components/messaging/MessageBubble";
 import { MessageInput } from "@/components/messaging/MessageInput";
+import { StarBackground } from "@/components/ui/StarBackground";
 
 type Message = {
   id: string;
@@ -35,26 +43,6 @@ type ConversationDetails = {
 const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
 });
-
-/**
- * Displays an animated three-dot bubble to indicate another user is typing.
- * @returns JSX typing indicator element
- */
-function TypingBubble() {
-  return (
-    <div className="flex items-end gap-2 mt-2">
-      <div className="w-7" />
-      <div
-        className="rounded-2xl px-4 py-3 flex gap-1 items-center"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}
-      >
-        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
-        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
-        <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />
-      </div>
-    </div>
-  );
-}
 
 /**
  * Main conversation page handling messages, real-time updates, and group management.
@@ -98,7 +86,7 @@ export default function ConversationPage() {
   }, [conversationId]);
 
   /**
-   * Fetches a page of messages (optionally from a cursor for pagination).
+   * Fetches a page of messages.
    * @param cursorId - ID of the last message from the previous page (omitted for the initial load)
    * @returns Reversed array of messages (oldest first), or undefined on failure
    */
@@ -120,9 +108,15 @@ export default function ConversationPage() {
     fetchDetails();
   }, [conversationId, fetchMessages, fetchDetails]);
 
-  useEffect(() => { initialLoadDone.current = false; }, [conversationId]);
+  useEffect(() => {
+    if (!conversationId) return;
+    fetch(`/api/conversations/${conversationId}`, { method: "PATCH" }).catch(() => {});
+  }, [conversationId]);
 
-  // Scroll to bottom on initial message load
+  useEffect(() => {
+    initialLoadDone.current = false;
+  }, [conversationId]);
+
   useEffect(() => {
     if (messages.length > 0 && !initialLoadDone.current) {
       initialLoadDone.current = true;
@@ -159,10 +153,10 @@ export default function ConversationPage() {
     return () => { if (el) observer.unobserve(el); };
   }, [loadMore]);
 
-  // Subscribe to Pusher channel for real-time new messages and typing events
   useEffect(() => {
     if (!conversationId) return;
     const channel = pusher.subscribe(`conversation-${conversationId}`);
+
     channel.bind("new-message", (newMessage: Message) => {
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMessage.id)) return prev;
@@ -172,6 +166,7 @@ export default function ConversationPage() {
       setTypingUser(null);
       setTimeout(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, 50);
     });
+
     channel.bind("typing", ({ userId, username, isTyping }: { userId: string; username: string; isTyping: boolean }) => {
       if (userId === session?.user?.id) return;
       setTypingUser(isTyping ? username : null);
@@ -180,6 +175,7 @@ export default function ConversationPage() {
         typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
       }
     });
+
     return () => { channel.unbind_all(); pusher.unsubscribe(`conversation-${conversationId}`); };
   }, [conversationId, session?.user?.id]);
 
@@ -189,11 +185,11 @@ export default function ConversationPage() {
   }, [typingUser]);
 
   /**
-   * Updates input state and fires a typing indicator to the API that auto-clears after 2 seconds
+   * Updates input state and fires a typing indicator to the API that auto-clears after 2 seconds.
    * @param e - Input change event
    * @returns void
    */
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     fetch(`/api/conversations/${conversationId}/typing`, {
       method: "POST", headers: { "Content-Type": "application/json" },
@@ -209,7 +205,7 @@ export default function ConversationPage() {
   };
 
   /**
-   * Adds message to the UI and sends it to the API
+   * Adds message to the UI and sends it to the API.
    * Replaces temporary message with the real one on success and removes it on failure.
    * @returns void
    */
@@ -254,7 +250,7 @@ export default function ConversationPage() {
    * @param e - Keyboard event from the input
    * @returns void
    */
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
@@ -302,6 +298,7 @@ export default function ConversationPage() {
     fetchDetails();
   };
 
+  // Group consecutive messages by sender and date for visual bubbling
   const grouped = messages.map((msg, i) => {
     const prev = messages[i - 1];
     const next = messages[i + 1];
@@ -310,11 +307,22 @@ export default function ConversationPage() {
     const showDateDivider = prevDate !== currDate;
     const sameSenderAsPrev = prev?.sender.id === msg.sender.id && !showDateDivider;
     const sameSenderAsNext = next?.sender.id === msg.sender.id && new Date(next.createdAt).toDateString() === currDate;
-    return { msg, showDateDivider, isFirst: !sameSenderAsPrev, isLast: !sameSenderAsNext };
+
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const dateDividerLabel =
+      currDate === today ? "Today"
+      : currDate === yesterday ? "Yesterday"
+      : new Date(msg.createdAt).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+
+    return { msg, showDateDivider, dateDividerLabel, isFirst: !sameSenderAsPrev, isLast: !sameSenderAsNext };
   });
 
   return (
-    <div className="flex flex-col h-full" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
+    <div className="chat-bg relative flex flex-col h-full" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
+      
+      <StarBackground />
+
       {convDetails?.isGroup && (
         <GroupHeader
           name={convDetails.name}
@@ -350,7 +358,7 @@ export default function ConversationPage() {
           )}
         </div>
 
-        {grouped.map(({ msg, showDateDivider, isFirst, isLast }) => (
+        {grouped.map(({ msg, showDateDivider, dateDividerLabel, isFirst, isLast }) => (
           <MessageBubble
             key={msg.id}
             msg={msg}
@@ -358,13 +366,27 @@ export default function ConversationPage() {
             isFirst={isFirst}
             isLast={isLast}
             showDateDivider={showDateDivider}
+            dateDividerLabel={dateDividerLabel}
             isHovered={hoveredId === msg.id}
             onMouseEnter={() => setHoveredId(msg.id)}
             onMouseLeave={() => setHoveredId(null)}
+            onAvatarClick={(username) => router.push(`/profile/${username}`)}
           />
         ))}
 
-        {typingUser && <TypingBubble />}
+        {typingUser && (
+          <div className="flex items-end gap-2 mt-2">
+            <div className="w-7" />
+            <div
+              className="rounded-2xl px-4 py-3 flex gap-1 items-center"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />
+            </div>
+          </div>
+        )}
+
         <div ref={bottomRef} />
       </div>
 

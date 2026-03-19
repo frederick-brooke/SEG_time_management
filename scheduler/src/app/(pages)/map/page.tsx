@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
 import MapView from "@/src/components/MapView";
+import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
 
 export default async function MapPage() {
   const session = await getServerSession(authOptions);
@@ -33,7 +34,7 @@ export default async function MapPage() {
   }));
 
   return (
-    <main className="container mx-auto p-8">
+    <main className="container mx-auto p-6 lg:p-8">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Event Map</h1>
@@ -49,7 +50,16 @@ export default async function MapPage() {
         </a>
       </div>
 
-      <MapView events={serialized} />
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-w-0">
+          <MapView events={serialized} />
+        </div>
+
+        {/* Saved locations sidebar */}
+        <div className="w-full lg:w-72 shrink-0">
+          <SavedLocationsPanel />
+        </div>
+      </div>
     </main>
   );
 }

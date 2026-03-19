@@ -3,7 +3,7 @@ import { calculateTravelTime } from "@/src/lib/travel";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const mode = (searchParams.get("mode") || "walking") as "walking" | "cycling" | "driving" | "transit";
+  const mode = (searchParams.get("mode") || "walking") as "walking" | "cycling" | "driving" ;
   const startStr = searchParams.get("start");
   const destStr = searchParams.get("dest");
 

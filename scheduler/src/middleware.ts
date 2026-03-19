@@ -14,6 +14,10 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
+  if (token?.isDeleted) {
+    return NextResponse.redirect(new URL("/account-deleted", req.url));
+  }
+
   if (!token) return NextResponse.next();
 
   if (token.isBanned) {

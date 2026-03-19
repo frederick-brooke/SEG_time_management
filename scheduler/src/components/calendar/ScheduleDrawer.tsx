@@ -1,0 +1,465 @@
+"use client";
+// src/components/calendar/ScheduleDrawer.tsx
+import { format, addDays } from "date-fns";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import { PRIORITY_TEXT } from "@/lib/ui";
+import type { ScheduleState } from "@/hooks/useSchedule";
+
+interface Props {
+  state: ScheduleState;
+  patch: (p: Partial<ScheduleState>) => void;
+  onSchedule: () => void;
+  onScheduleForced: () => void;
+  onClose: () => void;
+}
+
+// ── Reusable task row ─────────────────────────────────────────────────────────
+
+function TaskRow({
+  task,
+  selected,
+  onToggle,
+  accent,
+}: {
+  task: any;
+  selected: boolean;
+  onToggle: (id: string) => void;
+  accent: string;
+}) {
+  return (
+    <div
+      onClick={() => onToggle(task.id)}
+      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selected ? `border-${accent}-400 bg-${accent}-50` : "border-gray-100 bg-gray-50 hover:border-gray-300"}`}
+    >
+      <div
+        className={`w-4 h-4 rounded-md flex items-center justify-center flex-shrink-0 ${selected ? `bg-${accent}-600` : "border-2 border-gray-300"}`}
+      >
+        {selected && (
+          <span className="text-white text-[10px] font-bold">✓</span>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-800 truncate">
+          {task.title}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className={`text-xs font-bold ${PRIORITY_TEXT[task.priority]}`}>
+            {task.priority}
+          </span>
+          {task.dueDate && (
+            <span className="text-xs text-gray-400">
+              Due {format(new Date(task.dueDate), "MMM d")}
+            </span>
+          )}
+          <span className="text-xs text-gray-400">{task.duration}m</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── FutureTasksPanel ──────────────────────────────────────────────────────────
+
+function FutureTasksPanel({ state, patch, futureTasks, toggleId }: any) {
+  if (futureTasks.length === 0) return null;
+  return (
+    <div className="border border-purple-100 rounded-2xl overflow-hidden">
+      <div
+        className="flex items-center justify-between p-4 bg-purple-50 cursor-pointer"
+        onClick={() => patch({ showFutureTasks: !state.showFutureTasks })}
+      >
+        <div>
+          <p className="text-sm font-bold text-purple-800">
+            Tackle future tasks this {state.scheduleMode}?
+          </p>
+          <p className="text-xs text-purple-400 mt-0.5">
+            {futureTasks.length} task{futureTasks.length !== 1 ? "s" : ""}{" "}
+            beyond this period
+          </p>
+        </div>
+        <div
+          className={`w-10 h-5 rounded-full relative flex-shrink-0 ${state.showFutureTasks ? "bg-purple-600" : "bg-gray-200"}`}
+        >
+          <div
+            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${state.showFutureTasks ? "left-5" : "left-0.5"}`}
+          />
+        </div>
+      </div>
+      {state.showFutureTasks && (
+        <div className="p-4 border-t border-purple-100">
+          <div className="flex gap-2 mb-3">
+            {(["auto", "manual"] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => patch({ futureModeAuto: m === "auto" })}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${(state.futureModeAuto ? m === "auto" : m === "manual") ? "bg-purple-600 text-white border-purple-600" : "bg-white text-purple-600 border-purple-200 hover:border-purple-400"}`}
+              >
+                {m === "auto" ? "✨ Auto-pick" : "✋ I'll choose"}
+              </button>
+            ))}
+          </div>
+          {state.futureModeAuto ? (
+            <p className="text-xs text-gray-400">
+              The algorithm fills spare capacity automatically.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2 max-h-44 overflow-y-auto">
+              {futureTasks.map((t: any) => (
+                <TaskRow
+                  key={t.id}
+                  task={t}
+                  accent="purple"
+                  selected={state.selectedFutureTaskIds.includes(t.id)}
+                  onToggle={(id) =>
+                    patch({
+                      selectedFutureTaskIds: toggleId(
+                        id,
+                        state.selectedFutureTaskIds,
+                      ),
+                    })
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── BreakSettings ─────────────────────────────────────────────────────────────
+
+function BreakSettings({
+  state,
+  patch,
+}: {
+  state: ScheduleState;
+  patch: (p: Partial<ScheduleState>) => void;
+}) {
+  return (
+    <div className="border border-gray-100 rounded-2xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+          Break Settings
+        </p>
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => patch({ skipBreaks: !state.skipBreaks })}
+        >
+          <div
+            className={`w-9 h-5 rounded-full relative ${state.skipBreaks ? "bg-gray-900" : "bg-gray-200"}`}
+          >
+            <div
+              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${state.skipBreaks ? "left-4" : "left-0.5"}`}
+            />
+          </div>
+          <span className="text-xs text-gray-500">Skip breaks</span>
+        </div>
+      </div>
+      {!state.skipBreaks && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Work session (mins)</p>
+            <input
+              type="number"
+              min={15}
+              max={240}
+              step={5}
+              value={state.breakSessionMins}
+              onChange={(e) =>
+                patch({ breakSessionMins: Number(e.target.value) })
+              }
+              className="w-full border border-gray-200 rounded-xl p-2 text-sm"
+            />
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Break length (mins)</p>
+            <input
+              type="number"
+              min={5}
+              max={60}
+              step={5}
+              value={state.breakLengthMins}
+              onChange={(e) =>
+                patch({ breakLengthMins: Number(e.target.value) })
+              }
+              className="w-full border border-gray-200 rounded-xl p-2 text-sm"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── WarningBanners ────────────────────────────────────────────────────────────
+
+function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
+  return (
+    <>
+      {state.requiresConfirmation && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+          <p className="text-sm font-bold text-amber-800 mb-1">
+            ⚠️ Not all tasks fit
+          </p>
+          {state.overCapacityTasks.map((w: any) => (
+            <p key={w.taskId} className="text-xs text-amber-700">
+              • {w.title}
+            </p>
+          ))}
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={onScheduleForced}
+              className="flex-1 bg-amber-600 text-white rounded-xl py-2 text-sm font-bold"
+            >
+              Schedule What Fits
+            </button>
+            <button
+              onClick={() =>
+                patch({ requiresConfirmation: false, overCapacityTasks: [] })
+              }
+              className="flex-1 bg-white border border-amber-200 text-amber-700 rounded-xl py-2 text-sm font-bold"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
+      {state.missedDeadlineTasks.length > 0 && !state.requiresConfirmation && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+          <p className="text-sm font-bold text-red-700 mb-2">
+            ⚠️ Couldn't meet deadlines
+          </p>
+          {state.missedDeadlineTasks.map((w: any) => (
+            <p key={w.taskId} className="text-xs text-red-600">
+              • {w.title}
+            </p>
+          ))}
+          <button
+            onClick={onClose}
+            className="mt-3 w-full bg-red-600 text-white rounded-xl py-2 text-sm font-bold"
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function ScheduleDrawer({
+  state,
+  patch,
+  onSchedule,
+  onScheduleForced,
+  onClose,
+}: Props) {
+  const ws = new Date(state.scheduleWeekStart + "T12:00:00");
+  const we = addDays(ws, 6);
+  const d0 = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const toggleId = (id: string, list: string[]) =>
+    list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+  const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const allDays =
+    state.scheduleMode === "day"
+      ? [format(new Date(state.scheduleDate + "T12:00:00"), "yyyy-MM-dd")]
+      : Array.from({ length: 7 }, (_, i) =>
+          format(addDays(ws, i), "yyyy-MM-dd"),
+        );
+
+  const source = state.scheduleDialogTasks;
+  const weekTasks = source.filter(
+    (t) =>
+      !t.completed &&
+      t.scheduledDate &&
+      d0(new Date(t.scheduledDate)) >= d0(ws) &&
+      d0(new Date(t.scheduledDate)) <= d0(we),
+  );
+  const unscheduled = source.filter((t) => !t.completed && !t.scheduledDate);
+  const weekIdSet = new Set(weekTasks.map((t) => t.id));
+  const futureTasks = source.filter(
+    (t) =>
+      !t.completed &&
+      !weekIdSet.has(t.id) &&
+      t.scheduledDate &&
+      d0(new Date(t.scheduledDate)) > d0(we),
+  );
+
+  return (
+    <Drawer
+      open={state.showScheduleDialog}
+      onOpenChange={onClose}
+      direction="bottom"
+    >
+      <DrawerContent className="max-h-[92vh] flex flex-col">
+        <DrawerHeader className="border-b border-gray-100 px-6 pt-4 pb-4 flex-shrink-0">
+          <div className="flex items-start justify-between">
+            <div>
+              <DrawerTitle className="text-xl font-black text-gray-900">
+                {state.scheduleMode === "day"
+                  ? "Schedule My Day"
+                  : "Schedule My Week"}
+              </DrawerTitle>
+              <DrawerDescription className="text-sm text-gray-400 mt-0.5">
+                {state.scheduleMode === "day"
+                  ? format(
+                      new Date(state.scheduleDate + "T12:00:00"),
+                      "EEEE, MMM d, yyyy",
+                    )
+                  : `${format(ws, "MMM d")} – ${format(we, "MMM d, yyyy")}`}
+              </DrawerDescription>
+            </div>
+            <DrawerClose
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"
+            >
+              ✕
+            </DrawerClose>
+          </div>
+        </DrawerHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
+          <div>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+              {state.scheduleMode === "day" ? "Day" : "Week Starting"}
+            </p>
+            <input
+              type="date"
+              value={
+                state.scheduleMode === "day"
+                  ? state.scheduleDate
+                  : state.scheduleWeekStart
+              }
+              onChange={(e) =>
+                patch({
+                  requiresConfirmation: false,
+                  overCapacityTasks: [],
+                  missedDeadlineTasks: [],
+                  showFutureTasks: false,
+                  selectedFutureTaskIds: [],
+                  unavailableDays: [],
+                  ...(state.scheduleMode === "day"
+                    ? { scheduleDate: e.target.value }
+                    : { scheduleWeekStart: e.target.value }),
+                })
+              }
+              className="w-full border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-indigo-400"
+            />
+          </div>
+
+          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+            <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-widest mb-2">
+              Scheduled this {state.scheduleMode}
+            </p>
+            {weekTasks.length === 0 ? (
+              <p className="text-sm text-indigo-400">
+                No tasks scheduled yet for this period.
+              </p>
+            ) : (
+              weekTasks.map((t) => (
+                <div key={t.id} className="flex items-center gap-2">
+                  <div className="w-1 h-1 rounded-full bg-indigo-300 flex-shrink-0" />
+                  <span className="text-xs text-indigo-700 flex-1 truncate">
+                    {t.title}
+                  </span>
+                  <span className="text-xs text-indigo-400 flex-shrink-0">
+                    {t.duration}m
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+          {unscheduled.length > 0 && (
+            <div>
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Add unscheduled tasks
+              </p>
+              <div className="flex flex-col gap-2 max-h-44 overflow-y-auto">
+                {unscheduled.map((t) => (
+                  <TaskRow
+                    key={t.id}
+                    task={t}
+                    accent="indigo"
+                    selected={state.selectedTaskIds.includes(t.id)}
+                    onToggle={(id) =>
+                      patch({
+                        selectedTaskIds: toggleId(id, state.selectedTaskIds),
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {state.scheduleMode === "week" && (
+            <div>
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Days you're unavailable
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {allDays.map((d) => {
+                  const isOff = state.unavailableDays.includes(d);
+                  const dd = new Date(d + "T12:00:00");
+                  return (
+                    <button
+                      key={d}
+                      onClick={() =>
+                        patch({
+                          unavailableDays: toggleId(d, state.unavailableDays),
+                        })
+                      }
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${isOff ? "bg-red-50 border-red-300 text-red-600" : "bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-400"}`}
+                    >
+                      {DAY_ABBR[dd.getDay()]} {format(dd, "d")}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <FutureTasksPanel
+            state={state}
+            patch={patch}
+            futureTasks={futureTasks}
+            toggleId={toggleId}
+          />
+          <BreakSettings state={state} patch={patch} />
+          <WarningBanners
+            state={state}
+            patch={patch}
+            onClose={onClose}
+            onScheduleForced={onScheduleForced}
+          />
+        </div>
+
+        {!state.requiresConfirmation &&
+          state.missedDeadlineTasks.length === 0 && (
+            <DrawerFooter className="border-t border-gray-100 px-6 py-4 flex-shrink-0">
+              <button
+                onClick={onSchedule}
+                disabled={state.isScheduling}
+                className="w-full bg-gray-900 text-white rounded-2xl py-4 text-sm font-bold hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {state.isScheduling ? "Scheduling…" : "Create Schedule"}
+              </button>
+            </DrawerFooter>
+          )}
+      </DrawerContent>
+    </Drawer>
+  );
+}

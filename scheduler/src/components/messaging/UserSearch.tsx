@@ -1,4 +1,12 @@
 "use client";
+
+/**
+ * @file MessageInput.tsx
+ * @description Auto-growing textarea input for composing and sending messages.
+ * Expands vertically with content up to a max height, then scrolls.
+ * The Send button is disabled while a message is in-flight or the input is empty.
+ */
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -31,8 +39,9 @@ export default function UserSearch() {
       .then((data) => setGroups(data.filter((c: GroupConversation) => c.isGroup)));
   }, []);
 
+  // Only show results after 2 characters to avoid noisy single-letter matches
   const filteredFriends = query.length < 2 ? [] : friends.filter((f) =>
-    `${f.fname} ${f.lname} ${f.username}`.toLowerCase().includes(query.toLowerCase())
+    `${f.fname ?? ""} ${f.lname ?? ""} ${f.username}`.toLowerCase().includes(query.toLowerCase())
   );
 
   const filteredGroups = query.length < 2 ? [] : groups.filter((g) =>

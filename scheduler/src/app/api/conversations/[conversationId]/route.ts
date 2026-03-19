@@ -1,3 +1,11 @@
+/**
+ * @file route.ts
+ * @description Handles message operations within a conversation.
+ * POST creates and broadcasts a new message via Pusher.
+ * DELETE soft-clears history for the requesting user only (sets deletedAt).
+ * PATCH marks the conversation as read by updating lastReadAt.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
@@ -12,25 +20,97 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+/**
+ * Sends a message to Pusher for a given channel and event.
+ * Logs errors but does not throw.
+ * @param channel - The Pusher channel name
+ * @param event - The Pusher event name
+ * @param data - The data payload
+ */
+async function triggerPusher(channel: string, event: string, data: any) {
+  try {
+    await pusher.trigger(channel, event, data);
+  } catch (err) {
+    console.error(`Pusher error on channel ${channel}:`, err);
+  }
+}
+
+/**
+ * Updates the conversation's last message and timestamp.
+ * @param conversationId - The conversation to update
+ * @param lastMessage - The content of the last message
+ */
+async function updateConversation(conversationId: string, lastMessage: string) {
+  return prisma.conversation.update({
+    where: { id: conversationId },
+    data: {
+      lastMessage,
+      lastMessageAt: new Date(),
+    },
+  });
+}
+
+/**
+ * Notifies all conversation participants (sidebar updates) about the latest message.
+ * @param conversationId - The conversation ID
+ * @param senderId - The ID of the message sender
+ * @param lastMessage - The content of the last message
+ */
+async function notifyParticipants(
+  conversationId: string,
+  senderId: string,
+  lastMessage: string
+) {
+  const participants = await prisma.conversationParticipant.findMany({
+    where: { conversationId },
+    select: { userId: true },
+  });
+
+  const conversationUpdate = {
+    id: conversationId,
+    lastMessage,
+    lastMessageAt: new Date().toISOString(),
+    senderId,
+  };
+
+  await Promise.all(
+    participants.map((p) =>
+      triggerPusher(`user-${p.userId}`, "conversation-updated", conversationUpdate)
+    )
+  );
+}
+
+/**
+ * Creates a new message in the database including the sender info.
+ * @param conversationId - The conversation ID
+ * @param senderId - The ID of the sender
+ * @param content - The message content
+ */
+async function createMessage(
+  conversationId: string,
+  senderId: string,
+  content: string
+) {
+  return prisma.message.create({
+    data: { conversationId, senderId, content },
+    include: {
+      sender: { select: { id: true, username: true, pfp: true } },
+    },
+  });
+}
+
+/**
+ * Main handler for creating a message in a conversation.
+ */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { conversationId } = await params;
-
-  let body: { content?: string } | null = null;
-  try {
-    body = await req.json();
-  } catch (err) {
-    console.error("Failed to parse JSON", err);
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
-
+  const body = await parseRequestBody(req);
   if (!body?.content || !conversationId) {
     return NextResponse.json(
       { error: "Missing content or conversationId" },
@@ -39,30 +119,13 @@ export async function POST(
   }
 
   try {
-    const message = await prisma.message.create({
-      data: {
-        content: body.content,
-        conversationId,
-        senderId: session.user.id,
-      },
-      include: {
-        sender: {
-          select: { id: true, username: true, pfp: true },
-        },
-      },
-    });
+    // Create message and update conversation
+    const message = await createMessage(conversationId, session.user.id, body.content);
+    await updateConversation(conversationId, body.content);
 
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: {
-        lastMessage: body.content,
-        lastMessageAt: new Date(),
-      },
-    });
-
-    pusher
-      .trigger(`conversation-${conversationId}`, "new-message", message)
-      .catch((err) => console.error("Pusher error:", err));
+    // Notify Pusher channels
+    triggerPusher(`conversation-${conversationId}`, "new-message", message);
+    await notifyParticipants(conversationId, session.user.id, body.content);
 
     return NextResponse.json(message);
   } catch (err) {
@@ -71,6 +134,24 @@ export async function POST(
   }
 }
 
+/**
+ * Safely parses the request JSON.
+ * Returns null if invalid.
+ */
+async function parseRequestBody(req: NextRequest) {
+  try {
+    return await req.json();
+  } catch (err) {
+    console.error("Failed to parse JSON", err);
+    return null;
+  }
+}
+
+/**
+ * DELETE /api/conversations/[conversationId]/messages
+ * Clears the conversation history for the current user by setting `deletedAt`.
+ * Does not delete messages globally — other participants are unaffected.
+ */
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
@@ -89,12 +170,9 @@ export async function DELETE(
     },
   });
 
-  if (!participant) {
-    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
-  }
+  if (!participant) { return NextResponse.json({ error: "Conversation not found" }, { status: 404 }); }
 
   try {
-    // Record when this user cleared the chat — only affects what they see
     await prisma.conversationParticipant.updateMany({
       where: {
         conversationId,
@@ -105,9 +183,34 @@ export async function DELETE(
       },
     });
 
+    await pusher
+      .trigger(`user-${session.user.id}`, "conversation-deleted", { id: conversationId })
+      .catch((err) => console.error("Pusher delete error:", err));
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Failed to clear conversation", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
+}
+
+/**
+ * PATCH /api/conversations/[conversationId]/messages
+ * Marks the conversation as read for the current user by updating `lastReadAt`.
+ */
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ conversationId: string }> }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { conversationId } = await params;
+
+  await prisma.conversationParticipant.updateMany({
+    where: { conversationId, userId: session.user.id },
+    data: { lastReadAt: new Date() },
+  });
+
+  return NextResponse.json({ success: true });
 }
