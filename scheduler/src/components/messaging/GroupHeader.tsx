@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file GroupHeader.tsx
+ * @description Header bar rendered at the top of a group conversation view.
+ * Displays the group name and member count (clicking either toggles the member list),
+ * and provides a "Leave group" button.
+ */
+
 type Props = {
   name: string | null;
   participantCount: number;
@@ -22,6 +29,7 @@ export function GroupHeader({ name, participantCount, onToggleMembers, onLeave }
           {participantCount} members
         </span>
       </button>
+
       <button
         onClick={onLeave}
         className="text-xs font-medium transition-colors"

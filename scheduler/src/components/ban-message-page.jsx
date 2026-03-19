@@ -2,83 +2,109 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
+import { AlertTriangle } from "lucide-react";
 
 export default function BannedPage() {
-  const [banInfo, setBanInfo] = useState(null);     //get the API ban information for the user if any
-  const [showAppeal, setShowAppeal] = useState(false);      //determine if the ban info or appeal gets rendered
+    const [banInfo, setBanInfo] = useState(null);     //get the API ban information for the user if any
+    const [showAppeal, setShowAppeal] = useState(false);      //determine if the ban info or appeal gets rendered
 
-  useEffect(() => {
-    async function fetchBanInfo() {
-        try {
-        const res = await fetch("/api/ban-info", {
-            credentials: "include",
-        });
+    useEffect(() => {
+        async function fetchBanInfo() {
+            try {
+            const res = await fetch("/api/ban-info", { credentials: "include", });
 
-        if (!res.ok) {
-            if (res.status === 401) {
-            setBanInfo({
-                reason: "You must be logged in",
-                expires: null,
-            });
-            return; 
+            if (!res.ok) {
+                if (res.status === 401) {
+                    setBanInfo({
+                        reason: "You must be logged in",
+                        expires: null,
+                    });
+                    return; 
+                }
+                const text = await res.text();
+                throw new Error(text || "Failed to fetch");
             }
-            const text = await res.text();
-            throw new Error(text || "Failed to fetch");
+            const data = await res.json();
+            setBanInfo(data);
+            } catch (err) {
+            console.error(err);
+            }
         }
-        const data = await res.json();
-        setBanInfo(data);
-        } catch (err) {
-        console.error(err);
-        }
-    }
-    fetchBanInfo();
+
+        fetchBanInfo();
     }, []);
 
-  if (!banInfo) return <p>Loading...</p>;
+    if (!banInfo) {
+        return (
+        <div className="flex items-center justify-center h-screen">
+            <p className="text-gray-500">Loading...</p>
+        </div>
+        );
+    }
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-xl">
-        {!showAppeal && (
-            <div>
-                <h1 className="text-xl font-bold mb-4 text-red-600">
-                    Account Banned
-                </h1>
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+            <div className="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl p-6 space-y-6">
+                {!showAppeal && (
+                    <>
+                        {/* Header */}
+                        <div className="flex items-center gap-3">
+                            <div className="bg-red-100 p-2 rounded-full">
+                                <AlertTriangle className="text-red-600 w-5 h-5" />
+                            </div>
 
-                <p><strong>Reason:</strong> {banInfo.reason}</p>
-                <p><strong>Expires:</strong> {banInfo.expires ?? "Permanent"}</p>
+                            <h1 className="text-lg font-semibold text-gray-800">
+                                Account Banned
+                            </h1>
+                        </div>
+                    
+                        {/* Ban Details */}
+                        <div className="text-sm text-gray-600 space-y-2">
+                            <p>
+                                <span className="font-medium text-gray-800">Reason:</span>{" "}
+                                {banInfo.reason}
+                            </p>
 
-                <button
-                    onClick={() => setShowAppeal(true)}
-                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded"
-                >
-                    Submit Appeal
-                </button> 
+                            {/* If temporary show the date that it will expire at */}
+                            <p>
+                                <span className="font-medium text-gray-800">Ban Expires:</span>{" "}
+                                {banInfo.expires ? new Date(banInfo.expires).toLocaleString() : "Permanent"}
+                            </p>
+                        </div>
 
-                <button 
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded"
-                >
-                    Logout
-                </button>       
+                        {/* Buttons */}
+                        <div className="flex flex-col gap-3 pt-2">
+                            <button
+                                onClick={() => setShowAppeal(true)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition"
+                            >
+                                Submit Appeal
+                            </button>
+
+                            <button
+                                onClick={() => signOut({ callbackUrl: "/login" })}
+                                className="w-full border border-gray-300 hover:bg-gray-50 py-2 rounded-lg text-gray-700 transition"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    </>
+                )}
+
+                {showAppeal && (
+                    <AppealModal
+                        onClose={() => setShowAppeal(false)}
+                        reportId={banInfo?.reportId}
+                    />
+                )}        
             </div>
-        )}
-
-        {showAppeal && (
-            <AppealModal
-                onClose={() => setShowAppeal(false)}
-                reportId={banInfo?.reportId}
-            />
-        )}        
-      </div>
-    </div>
-  );
+        </div>
+    );
 }
 
 function AppealModal({onClose, reportId}){
     const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(false);          //custom message displayed when loading
-    console.log("AppealModal props reportId:", reportId);
 
     async function handleSubmit() {
         try {
@@ -92,8 +118,7 @@ function AppealModal({onClose, reportId}){
             });
 
             if (!res.ok) throw new Error("Failed to submit appeal");
-            alert("Successfully submitted an appeal, pleas wait while our admin reviews it!")
-
+            alert("Appeal submitted. Please wait while an admin reviews it.");
             onClose(); // close appeal modal
         } catch (err) {
             console.error(err);
@@ -101,27 +126,31 @@ function AppealModal({onClose, reportId}){
         } finally {
             setLoading(false);
         }
-
-        console.log("REPORT ID:", reportId);
     }
 
     return(
-        <div>
-            <h2 className="text-lg font-semibold mb-4">Submit Appeal</h2>
+        <div className="space-y-4">
+
+            <h2 className="text-lg font-semibold text-gray-800">
+                Submit Appeal
+            </h2>
+
+            <p className="text-sm text-gray-500">
+                Explain why you believe this ban was issued incorrectly.
+            </p>
 
             <textarea
-                placeholder="Reasoning for the Appeal?"
+                placeholder="Provide details about your appeal..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full border p-2 rounded mb-4"
+                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={4}
             />
 
-            {/* Input for Image/screenshot proof later on add here */}
-
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3 pt-2">
                 <button
                     onClick={onClose}
-                    className="px-4 py-2 border rounded"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
                 >
                     Cancel
                 </button>
@@ -129,7 +158,7 @@ function AppealModal({onClose, reportId}){
                 <button
                     onClick={handleSubmit}
                     disabled={!description || loading}
-                    className="px-4 py-2 bg-red-500 text-white rounded"
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition disabled:opacity-50"
                 >
                     {loading ? "Submitting..." : "Submit Appeal"}
                 </button>

@@ -9,7 +9,7 @@ import {
 import { Calendar } from "lucide-react";
 import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
-import  TaskViewDialog  from "./tasks/TaskViewDialog";
+import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 
@@ -35,34 +35,18 @@ export function ComingUpSoon({ userId }) {
     cancelDelete,
   } = useTasks(userId);
 
-  const getPriorityStyle = (priority) => {
-    switch (priority) {
-      case "High":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
-      case "Medium":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-      case "Low":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-  };
-
   const isComingSoon = (task) => {
-    if (!task.dueDate) return false;
-    if (task.status === "completed") return false;
-
+    if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(task.dueDate);
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
-
-    return dueDate >= today && dueDate <= sevenDaysFromNow;
+    const due = new Date(task.dueDate);
+    return due >= today && due <= sevenDaysFromNow;
   };
 
   const comingSoonTasks = tasks
-    .filter((t) => isComingSoon(t))
+    .filter(isComingSoon)
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
 
   if (isLoading) {
@@ -84,7 +68,6 @@ export function ComingUpSoon({ userId }) {
           </CardTitle>
           <Calendar className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
-
         <CardContent>
           {comingSoonTasks.length === 0 ? (
             <p className="text-sm text-muted-foreground">No tasks due soon</p>
@@ -98,7 +81,6 @@ export function ComingUpSoon({ userId }) {
                   onView={handleViewTask}
                   onEdit={handleEditTask}
                   onDelete={handleDeleteTask}
-                  getPriorityStyle={getPriorityStyle}
                 />
               ))}
             </div>
@@ -106,7 +88,6 @@ export function ComingUpSoon({ userId }) {
         </CardContent>
       </Card>
 
-      {/* Shared dialogs */}
       <TaskFormDialog
         isOpen={isDialogOpen}
         onOpenChange={(open) => {
@@ -118,16 +99,17 @@ export function ComingUpSoon({ userId }) {
         onFormChange={handleFormChange}
         onSubmit={handleSubmitTask}
       />
+
       <DeleteTaskDialog
         isOpen={taskToDelete !== null}
         onConfirm={confirmDeleteTask}
         onCancel={cancelDelete}
       />
+
       <TaskViewDialog
         task={viewTask}
         isOpen={viewTask !== null}
         onClose={() => setViewTask(null)}
-        getPriorityStyle={getPriorityStyle}
       />
     </>
   );

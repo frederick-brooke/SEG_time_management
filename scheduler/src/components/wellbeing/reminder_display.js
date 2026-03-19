@@ -5,7 +5,7 @@ import { useUI } from "@/context/UIContext";
 
 import { Button } from "components/ui/button";
 import { IconSettings } from "@tabler/icons-react";
-import Modal from "components/ui/modal";
+import ReminderModal from "@/components/ui/reminderModal";
 import ReminderPicker from "./reminder_timer_picker";
 import {useReminders} from "hooks/useReminders";
 
@@ -22,7 +22,6 @@ export default function ReminderContainer({
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isFiredOpen, setIsFiredOpen] = useState(false);
     const {wellbeingOpen, setWellbeingOpen} = useUI();      //shared global state via the UI
-
 
     const reminder = useReminders({
         id,
@@ -57,15 +56,12 @@ export default function ReminderContainer({
                 className={`relative w-14 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300
                 ${reminder.enabled ? "bg-green-500" : "bg-gray-300"}`}
             >
-                <div
-                    className={`absolute left-1 flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-md text-sm transition-transform duration-300
+                <div className={`absolute left-1 flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-md text-sm transition-transform duration-300
                     ${reminder.enabled ? "translate-x-6" : "translate-x-0"}
                     `}
                 >
                     {reminder.enabled ? iconOn : iconOff}
                 </div>
-
-                
             </div>
 
             {reminder.enabled && reminder.remainingMs != null && (
@@ -85,7 +81,7 @@ export default function ReminderContainer({
             </Button>
 
             {/* Reminder setup modal asking for time inputs */}
-            <Modal
+            <ReminderModal
                 open={isSettingsOpen}
                 onClose={() => {
                     setIsSettingsOpen(false);
@@ -104,10 +100,10 @@ export default function ReminderContainer({
                     }}
                     initialDuration = {reminder.durationMs}
                 />
-            </Modal>
+            </ReminderModal>
 
             {/* Break modal for focus time */}
-            <Modal
+            <ReminderModal
                 open={isFiredOpen}
                 onClose={() => {
                     setIsFiredOpen(false);
@@ -117,10 +113,8 @@ export default function ReminderContainer({
                 title={firedTitle}
             >
                 <p>{firedText}</p>
-                <Button onClick={() => {setIsFiredOpen(false); setWellbeingOpen(true)}}>
-                    OK!
-                </Button>
-            </Modal>
+                
+            </ReminderModal>
         </div>
     );
 }

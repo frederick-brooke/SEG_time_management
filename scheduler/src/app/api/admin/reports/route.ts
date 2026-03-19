@@ -76,3 +76,38 @@ export async function GET(req: Request) {
         totalMatchingReports
     });
 }
+
+export async function POST(req: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  
+    const { reportedUserId, reason, description } = await req.json();
+  
+    // Prevent reporting yourself
+    if (reportedUserId === session.user.id) {
+      return NextResponse.json({ error: "You cannot report yourself." }, { status: 400 });
+    }
+  
+    // Prevent duplicate reports
+    const existing = await prisma.report.findFirst({
+      where: {
+        reportedUserId,
+        reportedById: session.user.id,
+      },
+    });
+  
+    if (existing) {
+      return NextResponse.json({ error: "You have already reported this user." }, { status: 409 });
+    }
+  
+    const report = await prisma.report.create({
+      data: {
+        reportedUserId,
+        reportedById: session.user.id,
+        reason,
+        description,
+      },
+    });
+  
+    return NextResponse.json(report);
+  }

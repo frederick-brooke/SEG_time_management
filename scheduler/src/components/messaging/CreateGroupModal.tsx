@@ -1,5 +1,15 @@
 "use client";
+
+/**
+ * @file CreateGroupModal.tsx
+ * @description Modal for creating a new group conversation.
+ * Allows the user to name the group and select members from their friend list.
+ * Detects duplicate groups by checking the age of the returned conversation
+ * and prompts the user to open the existing one instead.
+ */
+
 import { useState } from "react";
+import Image from "next/image";
 
 type User = { id: string; username: string; fname?: string | null; pfp?: string | null };
 
@@ -15,15 +25,24 @@ export function CreateGroupModal({
   const [name, setName] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [duplicate, setDuplicate] = useState(false);
 
-  const toggle = (id: string) =>
+  const toggle = (id: string) => {
+    setDuplicate(false);  // clear warning when selection changes
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+  };
 
+  /**
+   * Submits the group creation request.
+   * If the API returns an existing conversation (age > 5s), sets the duplicate warning
+   * instead of navigating away.
+   */
   const handleCreate = async () => {
     if (!name.trim() || selected.length === 0) return;
     setLoading(true);
+    setDuplicate(false);
     try {
       const res = await fetch("/api/conversations", {
         method: "POST",
@@ -31,6 +50,16 @@ export function CreateGroupModal({
         body: JSON.stringify({ name, memberIds: selected, isGroup: true }),
       });
       const conv = await res.json();
+
+      // The API returns the existing conversation if a duplicate is found
+      // We detect this by checking the age of the conversation (> 5s)
+      const ageMs = Date.now() - new Date(conv.createdAt).getTime();
+      if (ageMs > 5000) {
+        setDuplicate(true);
+        setLoading(false);
+        return;
+      }
+
       onCreated(conv);
       onClose();
     } finally {
@@ -58,16 +87,16 @@ export function CreateGroupModal({
             color: "rgba(210,220,255,0.85)",
             caretColor: "rgba(99,111,255,0.8)",
           }}
-          placeholder="Group name (e.g. Study Squad)"
+          placeholder="Group name (e.g. Dream Team)"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => { setName(e.target.value); setDuplicate(false); }}
           onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,111,255,0.4)")}
           onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
         />
 
         <p className="text-sm font-medium mb-2" style={{ color: "rgba(148,163,255,0.5)" }}>Add friends</p>
         <div
-          className="space-y-1 max-h-52 overflow-y-auto mb-5 rounded-lg p-2"
+          className="space-y-1 max-h-52 overflow-y-auto mb-4 rounded-lg p-2"
           style={{ border: "1px solid rgba(255,255,255,0.06)" }}
         >
           {friends.map((u) => (
@@ -79,7 +108,7 @@ export function CreateGroupModal({
             >
               <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="accent-indigo-500" />
               {u.pfp ? (
-                <img src={u.pfp} className="w-7 h-7 rounded-full object-cover" />
+                <Image src={u.pfp} alt={u.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
               ) : (
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium"
@@ -88,10 +117,45 @@ export function CreateGroupModal({
                   {u.username[0].toUpperCase()}
                 </div>
               )}
-              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{u.fname ?? u.username}</span>
+              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{u.fname?.trim() || u.username}</span>
             </label>
           ))}
         </div>
+
+        {/* Duplicate warning */}
+        {duplicate && (
+          <div
+            className="flex items-center gap-2 rounded-lg px-3 py-2 mb-4 text-xs"
+            style={{
+              background: "rgba(255,180,0,0.08)",
+              border: "1px solid rgba(255,180,0,0.2)",
+              color: "rgba(255,200,80,0.9)",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            A group with these members already exists. Open it instead?{" "}
+            <button
+              className="underline font-medium ml-1"
+              style={{ color: "rgba(255,200,80,0.9)" }}
+              onClick={() => {
+                setDuplicate(false);
+                // Re-fetch and navigate to existing group
+                fetch("/api/conversations", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ name, memberIds: selected, isGroup: true }),
+                })
+                  .then((r) => r.json())
+                  .then((conv) => { onCreated(conv); onClose(); });
+              }}
+            >
+              Open
+            </button>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2">
           <button
