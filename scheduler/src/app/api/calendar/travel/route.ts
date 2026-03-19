@@ -1,6 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getTravelTime } from "@/src/lib/map";
+/**
+ * API route for calculating travel time between two coordinates.
+ * Wraps the getTravelTime utility and validates input before calling it.
+ */
 
+import { NextRequest, NextResponse } from "next/server";
+import { getTravelTime } from "@/lib/map";
+
+/**
+ * POST /api/travel-time
+ * @param {NextRequest} req - Body: { start, end, mode? }
+ * @returns {NextResponse} { duration } on success or { message } on failure
+ */
 export async function POST(req: NextRequest) {
   try {
     const { start, end, mode } = await req.json();
@@ -11,8 +21,9 @@ export async function POST(req: NextRequest) {
 
     const duration = await getTravelTime(start, end, mode ?? "driving");
     return NextResponse.json({ duration });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "An unexpected error occurred";
     console.error("Travel route error:", e);
-    return NextResponse.json({ message: e.message }, { status: 500 });
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
