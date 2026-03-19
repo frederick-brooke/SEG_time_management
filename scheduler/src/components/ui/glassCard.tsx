@@ -9,7 +9,7 @@ export default function GlassCard({ children, className = "", onClick }: GlassCa
     <div
     onClick={onClick}
       className={`
-        relative p-6 rounded-2xl 
+        relative rounded-2xl 
         border border-white/10 
         bg-white/[0.04] 
         backdrop-blur-sm 
