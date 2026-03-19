@@ -43,6 +43,14 @@ export async function GET(req: Request) {
     //dynamically build the query set
     const where: Prisma.UserWhereInput = { };
 
+    //validation input
+    if (search.trim() !== "") {
+        where.username = {
+            contains: search,
+            mode: "insensitive",
+        };
+    }
+
     //date filtering of theusers
     if (startDate || endDate) {
         const createdAtFilter: Prisma.DateTimeFilter = {};
