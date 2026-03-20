@@ -38,7 +38,7 @@ jest.mock("next/server", () => ({
       json: async () => body,
     }),
   },
-  // Keep NextRequest as the real implementation
+  
   NextRequest: jest.requireActual("next/server").NextRequest,
 }));
 

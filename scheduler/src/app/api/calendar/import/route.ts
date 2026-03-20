@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
-import { parseICal, parseRRule, ParsedVEvent } from "@/src/lib/ical-parser";
+import { parseICal, parseRRule, ParsedVEvent } from "@/src/lib/calendar/ical-parser";
 
 // ---------------------------------------------------------------------------
 // Helpers — encode/decode the source URL inside googleEventId

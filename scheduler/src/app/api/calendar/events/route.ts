@@ -4,8 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ObjectId } from "mongodb";
 import { calculateTravelTime } from "@/src/lib/travel";
-import { expandRecurringEvents } from "@/src/lib/eventHelpers";
-import { handleSingleInstanceUpdate, handleSeriesUpdate } from "@/src/lib/eventMutations";
+import { expandRecurringEvents } from "@/src/lib/calendar/eventHelpers";
+import { handleSingleInstanceUpdate, handleSeriesUpdate } from "@/src/lib/calendar/eventMutations";
 import {
   syncGoogleCalendar,
   insertGoogleEvent,
@@ -14,7 +14,7 @@ import {
   deleteSingleOccurrence,
   upsertGoogleEvent,
   fetchAllGoogleEvents,
-} from "@/src/lib/googleSync";
+} from "@/src/lib/calendar/googleSync";
 
 // Global lock to prevent multiple syncs running at once per server instance
 let isSyncing = false;
