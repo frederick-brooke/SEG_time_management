@@ -1,0 +1,209 @@
+/* src/components/calendar/SearchBar.module.css */
+
+/* ── Search / Undo bar ───────────────────────────────────────────────────── */
+.searchBar {
+    height: 3.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  
+  .undoBar {
+    position: absolute;
+    inset: 0;
+    background: #1e293b;
+    color: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+    border: 1px solid #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    z-index: 60;
+  }
+  
+  .undoIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: #cbd5e1;
+  }
+  
+  .undoLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .undoText {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #e2e8f0;
+  }
+  
+  .undoActions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .undoButton {
+    background: #6366f1;
+    color: white;
+    padding: 0.375rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  
+  .undoButton:hover {
+    background: #818cf8;
+  }
+  
+  .undoArrow {
+    font-size: 1.125rem;
+    line-height: 1;
+  }
+  
+  .undoDismiss {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.125rem;
+    color: #64748b;
+    transition: color 0.15s;
+  }
+  
+  .undoDismiss:hover {
+    color: #e2e8f0;
+  }
+  
+  /* ── Search input ────────────────────────────────────────────────────────── */
+  .searchContainer {
+    position: relative;
+    height: 100%;
+  }
+  
+  .searchInput {
+    width: 100%;
+    height: 100%;
+    padding: 0 1rem 0 2.75rem;
+    border-radius: 1rem;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  
+  .searchInput::placeholder {
+    color: #475569;
+  }
+  
+  .searchInput:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+  }
+  
+  .searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #475569;
+    pointer-events: none;
+  }
+  
+  .searchClear {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #475569;
+    font-size: 1rem;
+    transition: color 0.15s;
+  }
+  
+  .searchClear:hover {
+    color: #94a3b8;
+  }
+  
+  /* ── Search results dropdown ─────────────────────────────────────────────── */
+  .searchDropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    background: #1e293b;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    border: 1px solid #334155;
+    max-height: 24rem;
+    overflow-y: auto;
+    z-index: 70;
+    padding: 0.5rem;
+  }
+  
+  .searchResultItem {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  
+  .searchResultItem:hover {
+    background: #273549;
+  }
+  
+  .searchResultDot {
+    width: 0.375rem;
+    height: 2rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
+  
+  .searchResultTitle {
+    font-weight: 700;
+    color: #f1f5f9;
+    font-size: 0.875rem;
+  }
+  
+  .searchResultMeta {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #475569;
+    letter-spacing: 0.08em;
+  }
+  
+  .searchEmpty {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: #475569;
+  }

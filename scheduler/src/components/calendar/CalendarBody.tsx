@@ -5,6 +5,7 @@ import { Calendar } from "react-big-calendar";
 import { format } from "date-fns";
 import { CATEGORY_COLORS } from "@/lib/ui";
 import styles from "./CalendarBody.module.css";
+import searchStyles from "./SearchBar.module.css";
 
 interface Props {
   localizer: any;
@@ -88,7 +89,6 @@ function makeEventPropGetter(categories: any[], events: any[]) {
       const rgb = hexToRgb(baseColor);
       return {
         className: styles.travelEventWrapper,
-        // Only truly dynamic values that are derived from event data at runtime
         style: {
           background: `repeating-linear-gradient(
             -45deg,
@@ -181,59 +181,59 @@ export default function CalendarBody({
     <div className={styles.wrapper}>
       <div className={styles.outerPanel}>
         {/* Search / undo bar */}
-        <div className={styles.searchBar}>
+        <div className={searchStyles.searchBar}>
           {showUndo ? (
-            <div className={styles.undoBar}>
-              <div className={styles.undoLabel}>
-                <span className={styles.undoIcon}>!</span>
-                <p className={styles.undoText}>Event deleted</p>
+            <div className={searchStyles.undoBar}>
+              <div className={searchStyles.undoLabel}>
+                <span className={searchStyles.undoIcon}>!</span>
+                <p className={searchStyles.undoText}>Event deleted</p>
               </div>
-              <div className={styles.undoActions}>
-                <button onClick={onUndo} className={styles.undoButton}>
-                  <span className={styles.undoArrow}>↺</span> Undo
+              <div className={searchStyles.undoActions}>
+                <button onClick={onUndo} className={searchStyles.undoButton}>
+                  <span className={searchStyles.undoArrow}>↺</span> Undo
                 </button>
-                <button onClick={onUndoDismiss} className={styles.undoDismiss}>
+                <button onClick={onUndoDismiss} className={searchStyles.undoDismiss}>
                   ✕
                 </button>
               </div>
             </div>
           ) : (
-            <div className={styles.searchContainer} ref={searchRef}>
+            <div className={searchStyles.searchContainer} ref={searchRef}>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 onFocus={onSearchFocus}
                 placeholder="Search events..."
-                className={styles.searchInput}
+                className={searchStyles.searchInput}
               />
-              <div className={styles.searchIcon}>🔍</div>
+              <div className={searchStyles.searchIcon}>🔍</div>
               {searchQuery && (
-                <button onClick={onSearchClear} className={styles.searchClear}>
+                <button onClick={onSearchClear} className={searchStyles.searchClear}>
                   ✕
                 </button>
               )}
               {showSearchResults && (
-                <div className={styles.searchDropdown}>
+                <div className={searchStyles.searchDropdown}>
                   {realSearchResults.length > 0 ? (
                     realSearchResults.map((ev) => (
                       <button
                         key={ev.occurrenceId || ev.id}
                         onClick={() => onSearchResultClick(ev)}
-                        className={styles.searchResultItem}
+                        className={searchStyles.searchResultItem}
                       >
                         <div
-                          className={styles.searchResultDot}
+                          className={searchStyles.searchResultDot}
                           style={{
                             backgroundColor:
                               CATEGORY_COLORS[ev.category] || "#6366f1",
                           }}
                         />
                         <div>
-                          <div className={styles.searchResultTitle}>
+                          <div className={searchStyles.searchResultTitle}>
                             {ev.title}
                           </div>
-                          <div className={styles.searchResultMeta}>
+                          <div className={searchStyles.searchResultMeta}>
                             {format(ev.start, "PPP")}
                             {ev.isRecurring && " · Recurring"}
                           </div>
@@ -241,7 +241,7 @@ export default function CalendarBody({
                       </button>
                     ))
                   ) : (
-                    <div className={styles.searchEmpty}>No matching events</div>
+                    <div className={searchStyles.searchEmpty}>No matching events</div>
                   )}
                 </div>
               )}
