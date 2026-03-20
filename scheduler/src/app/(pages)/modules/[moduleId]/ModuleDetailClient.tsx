@@ -12,6 +12,7 @@ import ModuleEvents from "components/modules/ModuleEvents";
 import ModuleTasks from "components/modules/ModuleTasks";
 import { TaskFormDialog } from "components/tasks/TaskFormDialog";
 import ModuleEventModal from "components/modules/ModuleEventModal";
+import ModuleSettingsModal from "components/modules/ModuleSettingsModal";
 
 const EMPTY_TASK_FORM = {
   name: "", description: "", dueDate: "", url: "", subtasks: "", 
@@ -29,6 +30,7 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
   const [taskFormData, setTaskFormData] = useState<any>(EMPTY_TASK_FORM);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const handleSubmitTask = async () => {
     if (!taskFormData.name.trim()) {
@@ -108,9 +110,10 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
             module={module} isOwner={isOwner} isOwnerOrAdmin={isOwnerOrAdmin}
             onOpenTaskModal={() => { setEditingTask(null); setTaskFormData(EMPTY_TASK_FORM); setShowTaskForm(true); }}
             onOpenEventModal={() => { setEditingEvent(null); setShowEventForm(true); }}
+            onOpenSettings={() => setShowSettings(true)}
           />
 
-          <ModuleMembersList members={module.members} />
+          <ModuleMembersList members={module.members} isOwner={isOwner} moduleId={module.id} currentUserRole={module.userRole} />
 
           <ModuleEvents 
             events={events} isOwner={isOwner} 
@@ -131,6 +134,13 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
 
       {showTaskForm && (
         <TaskFormDialog isOpen={showTaskForm} onOpenChange={(open) => { setShowTaskForm(open); if (!open) setEditingTask(null); }} editingTaskId={editingTask?.moduleTaskGroupId ?? null} formData={taskFormData} onFormChange={(updates) => setTaskFormData((prev: any) => ({ ...prev, ...updates }))} onSubmit={handleSubmitTask} exams={[]} />
+      )}
+      {showSettings && (
+        <ModuleSettingsModal 
+          module={module} 
+          onClose={() => setShowSettings(false)} 
+          onSuccess={() => router.refresh()} 
+        />
       )}
     </>
   );

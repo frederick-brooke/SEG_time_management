@@ -21,11 +21,13 @@ jest.mock('lucide-react', () => ({
   Calendar: () => <svg data-testid="calendar-icon" />,
   Copy: () => <svg data-testid="copy-icon" />,
   LogOut: () => <svg data-testid="logout-icon" />,
+  Settings: () => <svg data-testid="settings-icon" />, 
 }));
 
 describe('ModuleHeader Component', () => {
   const mockTaskModal = jest.fn();
   const mockEventModal = jest.fn();
+  const mockSettingsModal = jest.fn(); 
   
   const mockModule = {
     id: 'mod1',
@@ -51,7 +53,16 @@ describe('ModuleHeader Component', () => {
   });
 
   it('renders core module information correctly', () => {
-    render(<ModuleHeader module={mockModule} isOwner={false} isOwnerOrAdmin={false} onOpenTaskModal={mockTaskModal} onOpenEventModal={mockEventModal} />);
+    render(
+      <ModuleHeader 
+        module={mockModule} 
+        isOwner={false} 
+        isOwnerOrAdmin={false} 
+        onOpenTaskModal={mockTaskModal} 
+        onOpenEventModal={mockEventModal} 
+        onOpenSettings={mockSettingsModal} 
+      />
+    );
     
     expect(screen.getByText('Advanced Algorithms')).toBeInTheDocument();
     expect(screen.getByText('A very hard module.')).toBeInTheDocument();
@@ -60,9 +71,19 @@ describe('ModuleHeader Component', () => {
   });
 
   it('renders owner actions and PIN display when isOwner is true', () => {
-    render(<ModuleHeader module={mockModule} isOwner={true} isOwnerOrAdmin={true} onOpenTaskModal={mockTaskModal} onOpenEventModal={mockEventModal} />);
+    render(
+      <ModuleHeader 
+        module={mockModule} 
+        isOwner={true} 
+        isOwnerOrAdmin={true} 
+        onOpenTaskModal={mockTaskModal} 
+        onOpenEventModal={mockEventModal} 
+        onOpenSettings={mockSettingsModal} 
+      />
+    );
     
     // Buttons
+    expect(screen.getByText('Settings')).toBeInTheDocument(); 
     expect(screen.getByText('Create Task')).toBeInTheDocument();
     expect(screen.getByText('Create Event')).toBeInTheDocument();
     expect(screen.getByText('Copy PIN')).toBeInTheDocument();
@@ -73,16 +94,39 @@ describe('ModuleHeader Component', () => {
   });
 
   it('renders leave module button when user is a regular member', () => {
-    render(<ModuleHeader module={mockModule} isOwner={false} isOwnerOrAdmin={false} onOpenTaskModal={mockTaskModal} onOpenEventModal={mockEventModal} />);
+    render(
+      <ModuleHeader 
+        module={mockModule} 
+        isOwner={false} 
+        isOwnerOrAdmin={false} 
+        onOpenTaskModal={mockTaskModal} 
+        onOpenEventModal={mockEventModal} 
+        onOpenSettings={mockSettingsModal} 
+      />
+    );
     
     expect(screen.getByText('Leave Module')).toBeInTheDocument();
     expect(screen.queryByText('Create Task')).not.toBeInTheDocument();
+    expect(screen.queryByText('Settings')).not.toBeInTheDocument(); 
     expect(screen.queryByText('ALGO-123')).not.toBeInTheDocument();
   });
 
   it('fires modal callbacks when owner buttons are clicked', () => {
-    render(<ModuleHeader module={mockModule} isOwner={true} isOwnerOrAdmin={true} onOpenTaskModal={mockTaskModal} onOpenEventModal={mockEventModal} />);
+    render(
+      <ModuleHeader 
+        module={mockModule} 
+        isOwner={true} 
+        isOwnerOrAdmin={true} 
+        onOpenTaskModal={mockTaskModal} 
+        onOpenEventModal={mockEventModal} 
+        onOpenSettings={mockSettingsModal} 
+      />
+    );
     
+    // Test the new Settings button callback
+    fireEvent.click(screen.getByText('Settings'));
+    expect(mockSettingsModal).toHaveBeenCalledTimes(1);
+
     fireEvent.click(screen.getByText('Create Task'));
     expect(mockTaskModal).toHaveBeenCalledTimes(1);
 
@@ -91,7 +135,16 @@ describe('ModuleHeader Component', () => {
   });
 
   it('copies PIN to clipboard when Copy PIN button is clicked', () => {
-    render(<ModuleHeader module={mockModule} isOwner={true} isOwnerOrAdmin={true} onOpenTaskModal={mockTaskModal} onOpenEventModal={mockEventModal} />);
+    render(
+      <ModuleHeader 
+        module={mockModule} 
+        isOwner={true} 
+        isOwnerOrAdmin={true} 
+        onOpenTaskModal={mockTaskModal} 
+        onOpenEventModal={mockEventModal} 
+        onOpenSettings={mockSettingsModal} 
+      />
+    );
     
     fireEvent.click(screen.getByText('Copy PIN'));
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('ALGO-123');

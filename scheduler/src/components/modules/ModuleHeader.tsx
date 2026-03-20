@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Users, ListTodo, Calendar, Copy, LogOut } from "lucide-react";
+import { BookOpen, Users, ListTodo, Calendar, Copy, LogOut, Settings } from "lucide-react";
 import { leaveModule } from "@/app/actions/module";
 
 export interface ModuleHeaderProps {
@@ -19,6 +19,7 @@ export interface ModuleHeaderProps {
   isOwnerOrAdmin: boolean;
   onOpenTaskModal: () => void;
   onOpenEventModal: () => void;
+  onOpenSettings: () => void; // <-- ADDED THIS NEW PROP
 }
 
 export default function ModuleHeader({
@@ -27,6 +28,7 @@ export default function ModuleHeader({
   isOwnerOrAdmin,
   onOpenTaskModal,
   onOpenEventModal,
+  onOpenSettings, // <-- ADDED THIS NEW PROP
 }: ModuleHeaderProps) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -75,6 +77,14 @@ export default function ModuleHeader({
         <div className="flex gap-2 flex-wrap">
           {isOwner && (
             <>
+              {/* NEW SETTINGS BUTTON */}
+              <button
+                onClick={onOpenSettings}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg border border-gray-200 font-medium hover:bg-gray-100 transition-colors"
+                title="Module Settings"
+              >
+                <Settings size={16} /> Settings
+              </button>
               <button
                 onClick={onOpenTaskModal}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg border border-purple-200 font-medium hover:bg-purple-100 transition-colors"

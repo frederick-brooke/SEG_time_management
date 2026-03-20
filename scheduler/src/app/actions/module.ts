@@ -629,3 +629,113 @@ export async function getModuleTasksWithProgress(moduleId: string) {
 
   return Array.from(groupMap.values());
 }
+/**
+ * Updates a member's role (Promote to ADMIN or Demote to MEMBER)
+ * Only the module OWNER can perform this action.
+ */
+export async function updateMemberRole(moduleId: string, targetUserId: string, newRole: 'ADMIN' | 'MEMBER') {
+  const session = await requireSession();
+
+  // Verify the person making the request is the actual OWNER
+  if (!(await isModuleOwner(moduleId, session.user.id))) {
+    return { success: false, error: "Only module owners can change member roles" };
+  }
+
+  // Prevent the owner from accidentally demoting themselves
+  if (session.user.id === targetUserId) {
+    return { success: false, error: "You cannot change your own role" };
+  }
+
+  //Update the role
+  await prisma.moduleMember.update({
+    where: { moduleId_userId: { moduleId, userId: targetUserId } },
+    data: { role: newRole },
+  });
+
+  revalidatePath(`/modules/${moduleId}`);
+  return { success: true };
+}
+/**
+ * Updates core module settings (Name, Description, Max Members)
+ * Only the module OWNER can perform this action.
+ */
+export async function updateModuleSettings(
+  moduleId: string, 
+  data: { name: string; description: string; maxMembers: number }
+) {
+  const session = await requireSession();
+
+  if (!(await isModuleOwner(moduleId, session.user.id))) {
+    return { success: false, error: "Only module owners can edit settings" };
+  }
+
+  if (data.maxMembers < 2 || data.maxMembers > 100) {
+    return { success: false, error: "Max members must be between 2 and 100" };
+  }
+
+  const currentMemberCount = await prisma.moduleMember.count({
+    where: { moduleId }
+  });
+
+  if (data.maxMembers < currentMemberCount) {
+    return { 
+      success: false, 
+      error: `Cannot set max members lower than current member count (${currentMemberCount}). Remove members first.` 
+    };
+  }
+
+  await prisma.module.update({
+    where: { id: moduleId },
+    data: {
+      name: data.name.trim(),
+      description: data.description?.trim() || null,
+      maxMembers: data.maxMembers,
+    },
+  });
+
+  revalidatePath(`/modules/${moduleId}`);
+  return { success: true };
+}
+
+/**
+ * Removes a member from the module and deletes their module-specific tasks/events
+ */
+export async function removeMember(moduleId: string, targetUserId: string) {
+  const session = await requireSession();
+
+  // Get the requester's role
+  const requester = await prisma.moduleMember.findUnique({
+    where: { moduleId_userId: { moduleId, userId: session.user.id } }
+  });
+
+  if (!requester || (requester.role !== 'OWNER' && requester.role !== 'ADMIN')) {
+    return { success: false, error: "Only owners and admins can remove members" };
+  }
+
+  // Get the target's role
+  const target = await prisma.moduleMember.findUnique({
+    where: { moduleId_userId: { moduleId, userId: targetUserId } }
+  });
+
+  if (!target) return { success: false, error: "Member not found" };
+  if (target.role === 'OWNER') return { success: false, error: "Cannot remove the owner" };
+  if (requester.role === 'ADMIN' && target.role === 'ADMIN') {
+    return { success: false, error: "Admins cannot remove other admins" };
+  }
+
+  // Delete their membership
+  await prisma.moduleMember.delete({
+    where: { moduleId_userId: { moduleId, userId: targetUserId } }
+  });
+
+  // PREVENT CRASHES: Clean up their module tasks and events!
+  await prisma.event.deleteMany({
+    where: { moduleId, userId: targetUserId, isModuleEvent: true }
+  });
+  await prisma.task.deleteMany({
+    where: { moduleId, userId: targetUserId, isModuleTask: true }
+  });
+
+  revalidatePath(`/modules/${moduleId}`);
+  return { success: true };
+}
