@@ -81,22 +81,21 @@ function inferCategory(title: string): string {
 }
 
 async function updateICalEvent(
-  id: string,
+  existing: { id: string; description: string | null; recurrence: any; exceptions: string[] },
   ev: ParsedVEvent,
   recurrence: object | null,
   exceptions: string[],
 ): Promise<void> {
-  const existing = await prisma.event.findUnique({ where: { id } });
   await prisma.event.update({
-    where: { id },
+    where: { id: existing.id },
     data: {
       title: ev.summary,
-      description: ev.description ?? existing?.description,
+      description: ev.description ?? existing.description,
       start: ev.dtstart,
       end: ev.dtend,
       allDay: ev.allDay,
-      recurrence: recurrence ?? existing?.recurrence,
-      exceptions: exceptions.length > 0 ? exceptions : existing?.exceptions,
+      recurrence: recurrence ?? existing.recurrence,
+      exceptions: exceptions.length > 0 ? exceptions : existing.exceptions,
       lastSyncedAt: new Date(),
     },
   });
@@ -131,7 +130,7 @@ async function upsertICalEvent(
   const exceptions = ev.exdates.map((d) => d.toISOString());
   const existing = await prisma.event.findFirst({ where: { userId, googleEventId: importId } });
   if (existing) {
-    await updateICalEvent(existing.id, ev, recurrence, exceptions);
+    await updateICalEvent(existing, ev, recurrence, exceptions);
     return "updated";
   }
   await createICalEvent(userId, importId, ev, recurrence, exceptions);
