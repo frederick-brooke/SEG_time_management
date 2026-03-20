@@ -17,50 +17,42 @@ export function parseDts(ge: any): { startDt: Date; endDt: Date } {
 }
 
 // ---------------------------------------------------------------------------
-// upsertGoogleEvent
-// Upserts a single Google Calendar event into the local Prisma database.
-// Used by both the background sync (GET) and the force re-sync (PUT).
+// upsertGoogleEvent helpers
 // ---------------------------------------------------------------------------
-export async function upsertGoogleEvent(
-  ge: any,
-  userId: string,
-  matchByTitleDate = false,
-): Promise<"created" | "updated" | "skipped"> {
-  if (!ge.id || ge.status === "cancelled") return "skipped";
 
-  const { startDt, endDt } = parseDts(ge);
-
-  const where = matchByTitleDate
-    ? {
-        userId,
-        OR: [
-          { googleEventId: ge.id },
-          { title: ge.summary || "Untitled", start: startDt, end: endDt },
-        ],
-      }
-    : { googleEventId: ge.id, userId };
-
-  const existing = await prisma.event.findFirst({ where });
-
-  if (existing) {
-    if (matchByTitleDate && existing.lastSyncedAt) {
-      const diff = Date.now() - new Date(existing.lastSyncedAt).getTime();
-      if (diff < 10000) return "skipped";
-    }
-    await prisma.event.update({
-      where: { id: existing.id },
-      data: {
-        title: ge.summary || existing.title || "Untitled",
-        description: ge.description || existing.description || "",
-        start: startDt,
-        end: endDt,
-        allDay: !ge.start?.dateTime,
-        lastSyncedAt: new Date(),
-      },
-    });
-    return "updated";
+function buildUpsertWhere(ge: any, userId: string, matchByTitleDate: boolean, startDt: Date, endDt: Date) {
+  if (matchByTitleDate) {
+    return {
+      userId,
+      OR: [
+        { googleEventId: ge.id },
+        { title: ge.summary || "Untitled", start: startDt, end: endDt },
+      ],
+    };
   }
+  return { googleEventId: ge.id, userId };
+}
 
+async function updateGoogleEvent(existing: any, ge: any, startDt: Date, endDt: Date, matchByTitleDate: boolean): Promise<"updated" | "skipped"> {
+  if (matchByTitleDate && existing.lastSyncedAt) {
+    const diff = Date.now() - new Date(existing.lastSyncedAt).getTime();
+    if (diff < 10000) return "skipped";
+  }
+  await prisma.event.update({
+    where: { id: existing.id },
+    data: {
+      title: ge.summary || existing.title || "Untitled",
+      description: ge.description || existing.description || "",
+      start: startDt,
+      end: endDt,
+      allDay: !ge.start?.dateTime,
+      lastSyncedAt: new Date(),
+    },
+  });
+  return "updated";
+}
+
+async function createGoogleEvent(ge: any, userId: string, startDt: Date, endDt: Date): Promise<"created"> {
   await prisma.event.create({
     data: {
       googleEventId: ge.id,
@@ -75,6 +67,26 @@ export async function upsertGoogleEvent(
     },
   });
   return "created";
+}
+
+// ---------------------------------------------------------------------------
+// upsertGoogleEvent
+// Upserts a single Google Calendar event into the local Prisma database.
+// Used by both the background sync (GET) and the force re-sync (PUT).
+// ---------------------------------------------------------------------------
+export async function upsertGoogleEvent(
+  ge: any,
+  userId: string,
+  matchByTitleDate = false,
+): Promise<"created" | "updated" | "skipped"> {
+  if (!ge.id || ge.status === "cancelled") return "skipped";
+
+  const { startDt, endDt } = parseDts(ge);
+  const where = buildUpsertWhere(ge, userId, matchByTitleDate, startDt, endDt);
+  const existing = await prisma.event.findFirst({ where });
+
+  if (existing) return updateGoogleEvent(existing, ge, startDt, endDt, matchByTitleDate);
+  return createGoogleEvent(ge, userId, startDt, endDt);
 }
 
 // ---------------------------------------------------------------------------
