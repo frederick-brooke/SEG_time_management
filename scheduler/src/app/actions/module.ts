@@ -307,7 +307,10 @@ export async function createModuleEvent(moduleId: string, eventData: any) {
   if (!(await isModuleOwner(moduleId, session.user.id))) {
     return { success: false, error: "Only module owners can create module events" };
   }
-
+  //fetch the module to get its name
+  const module = await prisma.module.findUnique({ where: { id: moduleId }, select: { name: true } });
+  if (!module) return { success: false, error: "Module not found" };
+  
   const members = await prisma.moduleMember.findMany({
     where: { moduleId },
     select: { userId: true },
