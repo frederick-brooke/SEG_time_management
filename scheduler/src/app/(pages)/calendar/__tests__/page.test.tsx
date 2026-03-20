@@ -3,10 +3,13 @@
  *
  * Covers:
  * - Unauthenticated users are redirected to /login
- * - Authenticated users see the page heading
+ * - getServerSession is called with the correct authOptions
+ * - Authenticated users see the page heading (as an h1)
  * - GoogleLinkButton receives the correct isConnected prop
  * - CalendarView receives the correct userId and googleConnected props
  * - CalendarView always receives empty arrays as initial props
+ * - Edge case: googleConnected is undefined on the session user
+ * - Snapshot guard against layout regressions
  */
 
 import { render, screen } from "@testing-library/react";
@@ -31,7 +34,7 @@ jest.mock("@/lib/auth", () => ({
   authOptions: {},
 }));
 
-jest.mock("@/components/CalendarView", () => ({
+jest.mock("@/src/components/calendar/CalendarView", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => (
     <div data-testid="calendar-view" data-props={JSON.stringify(props)} />
@@ -99,14 +102,25 @@ describe("CalendarPage", () => {
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
+  it("should call getServerSession with authOptions", async () => {
+    const { authOptions } = require("@/lib/auth");
+    mockGetServerSession.mockResolvedValue(createMockSession());
+
+    await CalendarPage();
+
+    expect(mockGetServerSession).toHaveBeenCalledWith(authOptions);
+  });
+
   // ── Rendering ───────────────────────────────────────────────────────────────
 
-  it("should render the page heading", async () => {
+  it("should render the page heading as an h1", async () => {
     mockGetServerSession.mockResolvedValue(createMockSession());
 
     render(await CalendarPage());
 
-    expect(screen.getByText("My Schedule")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "My Schedule" })
+    ).toBeInTheDocument();
   });
 
   it("should render the StarBackground component", async () => {
@@ -140,8 +154,9 @@ describe("CalendarPage", () => {
 
     render(await CalendarPage());
 
-    const calendarView = screen.getByTestId("calendar-view");
-    const props = JSON.parse(calendarView.getAttribute("data-props") || "{}");
+    const props = JSON.parse(
+      screen.getByTestId("calendar-view").getAttribute("data-props") ?? "{}"
+    );
     expect(props.userId).toBe("user-123");
   });
 
@@ -150,8 +165,9 @@ describe("CalendarPage", () => {
 
     render(await CalendarPage());
 
-    const calendarView = screen.getByTestId("calendar-view");
-    const props = JSON.parse(calendarView.getAttribute("data-props") || "{}");
+    const props = JSON.parse(
+      screen.getByTestId("calendar-view").getAttribute("data-props") ?? "{}"
+    );
     expect(props.events).toEqual([]);
     expect(props.tasks).toEqual([]);
     expect(props.allTasks).toEqual([]);
@@ -163,8 +179,9 @@ describe("CalendarPage", () => {
 
     render(await CalendarPage());
 
-    const calendarView = screen.getByTestId("calendar-view");
-    const props = JSON.parse(calendarView.getAttribute("data-props") || "{}");
+    const props = JSON.parse(
+      screen.getByTestId("calendar-view").getAttribute("data-props") ?? "{}"
+    );
     expect(props.googleConnected).toBe(false);
   });
 
@@ -173,8 +190,9 @@ describe("CalendarPage", () => {
 
     render(await CalendarPage());
 
-    const calendarView = screen.getByTestId("calendar-view");
-    const props = JSON.parse(calendarView.getAttribute("data-props") || "{}");
+    const props = JSON.parse(
+      screen.getByTestId("calendar-view").getAttribute("data-props") ?? "{}"
+    );
     expect(props.googleConnected).toBe(true);
   });
 
@@ -183,8 +201,9 @@ describe("CalendarPage", () => {
 
     render(await CalendarPage());
 
-    const googleButton = screen.getByTestId("google-link-button");
-    expect(googleButton.getAttribute("data-connected")).toBe("false");
+    expect(
+      screen.getByTestId("google-link-button").getAttribute("data-connected")
+    ).toBe("false");
   });
 
   it("should pass isConnected=true to GoogleLinkButton when Google is connected", async () => {
@@ -192,7 +211,32 @@ describe("CalendarPage", () => {
 
     render(await CalendarPage());
 
-    const googleButton = screen.getByTestId("google-link-button");
-    expect(googleButton.getAttribute("data-connected")).toBe("true");
+    expect(
+      screen.getByTestId("google-link-button").getAttribute("data-connected")
+    ).toBe("true");
+  });
+
+  // ── Edge Cases ───────────────────────────────────────────────────────────────
+
+  it("should handle googleConnected being undefined on the session user", async () => {
+    mockGetServerSession.mockResolvedValue({
+      user: { id: "user-123", email: "test@example.com" },
+    });
+
+    render(await CalendarPage());
+
+    expect(
+      screen.getByTestId("google-link-button").getAttribute("data-connected")
+    ).toBe("false");
+  });
+
+  // ── Snapshot ─────────────────────────────────────────────────────────────────
+
+  it("should match snapshot", async () => {
+    mockGetServerSession.mockResolvedValue(createMockSession());
+
+    const { container } = render(await CalendarPage());
+
+    expect(container).toMatchSnapshot();
   });
 });

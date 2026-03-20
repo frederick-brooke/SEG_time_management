@@ -1,9 +1,10 @@
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
+
 import { authOptions } from "@/lib/auth";
 import CalendarView from "@/src/components/calendar/CalendarView";
-import GoogleLinkButton from "@/components/googleLinkButton";
-import { StarBackground } from "@/components/ui/StarBackground";
+import GoogleLinkButton from "@/src/components/googleLinkButton";
+import { StarBackground } from "@/src/components/ui/StarBackground";
 
 /**
  * Server-side calendar page component.
@@ -32,7 +33,7 @@ export default async function CalendarPage() {
 
       <div className="flex justify-between items-center mb-3">
         <h1 className="text-2xl font-bold">My Schedule</h1>
-        <GoogleLinkButton isConnected={session.user.googleConnected} />
+        <GoogleLinkButton isConnected={session.user.googleConnected ?? false} />
       </div>
       <div className="relative z-10">
         {/*
@@ -45,7 +46,7 @@ export default async function CalendarPage() {
           allTasks={[]}
           unscheduledTasks={[]}
           userId={session.user.id}
-          googleConnected={session.user.googleConnected}
+          googleConnected={session.user.googleConnected ?? false}
         />
       </div>
     </main>
