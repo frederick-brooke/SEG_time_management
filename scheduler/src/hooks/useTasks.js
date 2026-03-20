@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { createNotification } from "../app/actions/notifications";
+import { NotificationType } from "@prisma/client";
 
 export function useTasks(userId) {
   const [tasks, setTasks] = useState([]);
@@ -160,6 +162,16 @@ export function useTasks(userId) {
       } else {
         await createTask(taskData);
       }
+
+      await createNotification(
+        userId,
+        editingTaskId ? "Task Updated" : "Task Created",
+        editingTaskId
+          ? `"${taskData.title}" has been updated.`
+          : `"${taskData.title}" has been added to your tasks.`,
+        editingTaskId ? NotificationType.INFO : NotificationType.SUCCESS
+      );
+
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {

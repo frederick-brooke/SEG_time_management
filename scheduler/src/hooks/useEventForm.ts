@@ -89,13 +89,23 @@ export function useEventForm(
   );
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // ── Conflict / prompt ─────────────────────────────────────────────────────
+  const hadCoordsOnLoad = !!(initialEvent?.startCoords && initialEvent?.destinationCoords);
+  const [travelTimeMode, setTravelTimeMode] = useState<"auto" | "manual">(
+    initialEvent?.travelDuration && !hadCoordsOnLoad ? "manual" : "auto",
+  );
+  const [manualTravelTime, setManualTravelTime] = useState<number | null>(
+    initialEvent?.travelDuration && !hadCoordsOnLoad
+      ? initialEvent.travelDuration
+      : null,
+  );
+
+  //  Conflict / prompt
   const [showConflict, setShowConflict] = useState(false);
   const [pendingPayload, setPendingPayload] = useState<any>(null);
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
   const [createdEventId, setCreatedEventId] = useState<string | null>(null);
 
-  // ── Effects ───────────────────────────────────────────────────────────────
+  // Effects 
   useEffect(() => {
     fetch("/api/categories")
       .then((r) => r.json())
@@ -110,6 +120,7 @@ export function useEventForm(
   }, [recurrenceType, startDate]);
 
   useEffect(() => {
+    if (travelTimeMode !== "auto") return;
     if (!startCoords || !destCoords) return;
     let cancelled = false;
     setIsCalculating(true);
@@ -127,9 +138,12 @@ export function useEventForm(
     return () => {
       cancelled = true;
     };
-  }, [startCoords, destCoords, transportMode]);
+  }, [startCoords, destCoords, transportMode, travelTimeMode]);
 
-  // ── Build payload ─────────────────────────────────────────────────────────
+  const effectiveTravelDuration =
+    travelTimeMode === "manual" ? (manualTravelTime ?? 0) : (travelPreview ?? 0);
+
+  // Build payload 
   const buildPayload = (start: Date, end: Date) => ({
     id: initialEvent?.id,
     title,
@@ -146,19 +160,21 @@ export function useEventForm(
       recurrenceUntil && !isNaN(Date.parse(recurrenceUntil))
         ? new Date(recurrenceUntil).toISOString()
         : undefined,
-    startCoords: startCoords?.lat
-      ? { lat: startCoords.lat, lng: startCoords.lng }
-      : null,
-    destCoords: destCoords?.lat
-      ? { lat: destCoords.lat, lng: destCoords.lng }
-      : null,
-    travelDuration: travelPreview || 0,
-    startLocationName: startLocName,
-    destLocationName: destLocName,
+    startCoords:
+      travelTimeMode === "auto" && startCoords?.lat
+        ? { lat: startCoords.lat, lng: startCoords.lng }
+        : null,
+    destCoords:
+      travelTimeMode === "auto" && destCoords?.lat
+        ? { lat: destCoords.lat, lng: destCoords.lng }
+        : null,
+    travelDuration: effectiveTravelDuration,
+    startLocationName: travelTimeMode === "auto" ? startLocName : "",
+    destLocationName: travelTimeMode === "auto" ? destLocName : "",
     transportMode,
   });
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // Save
   const saveEvent = async (payload: any) => {
     const res = await fetch("/api/calendar/events", {
       method: initialEvent?.id ? "PATCH" : "POST",
@@ -263,6 +279,10 @@ export function useEventForm(
     setTransportMode,
     travelPreview,
     isCalculating,
+    travelTimeMode,
+    setTravelTimeMode,
+    manualTravelTime,
+    setManualTravelTime,
     showConflict,
     setShowConflict,
     pendingPayload,

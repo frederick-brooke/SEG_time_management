@@ -1,19 +1,20 @@
 import AppealPanel from "./admin-appeal-panel";
 
+import { motion } from "framer-motion";
+
 export default function AppealsManagement({appeals, totalAppeals, totalAppealPages, currentAppealPage, setCurrentAppealPage, selectedAppeal, setSelectedAppeal, fetchAppeals, setIsAppealFilterOpen, filters, setFilters, resetFilters}) {
-  const PAGE_SIZE = 5;
-  const page = filters.page ?? 1;
+  const PAGE_SIZE = filters?.limit ?? 5;
+  const page = filters?.page ?? 1;
 
   const start = appeals.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const end = appeals.length === 0
-    ? 0
-    : Math.min((page - 1) * PAGE_SIZE + appeals.length, totalAppeals);
+
+  const end = appeals.length === 0 ? 0 : start + appeals.length - 1;
 
   return (
-    <section className="mb-10 bg-white shadow rounded p-6 flex flex-col h-[600px]">
+    <section className="mb-6 flex flex-col h-[600px]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="text-xl text-white font-semibold">
           Appeals Management
         </h2>
 
@@ -21,7 +22,7 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
         <button
             type="button"
             onClick={() => setIsAppealFilterOpen(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+            className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
         >
             Filter
         </button>
@@ -29,19 +30,22 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
       </div>
 
       {/* List */}
-      <ul className="space-y-2 flex-1 overflow-y-auto min-h-0">
-        {appeals.map((appeal) => (
-          <li
+      <ul className="space-y-2 flex-1 overflow-y-auto min-h-0 pr-1">
+        {appeals.map((appeal, i) => (
+          <motion.div
             key={appeal.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.03 }}
             onClick={() => setSelectedAppeal(appeal)}
-            className="border p-3 rounded flex justify-between cursor-pointer items-center"
+            className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
           >
             <div>
-              <p className="font-medium">
+              <p className="font-medium text-white">
                 Appeal ID: {appeal.id}
               </p>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-white">
                 User: {appeal.user?.email}
               </p>
 
@@ -49,54 +53,60 @@ export default function AppealsManagement({appeals, totalAppeals, totalAppealPag
                 Status: {appeal.status}
               </p>
             </div>
-          </li>
+          </motion.div>
         ))}
       </ul>
 
       {/* Count Display (same as reports) */}
-      <div className="mt-4 flex justify-center">
+      <div className="mt-4 flex justify-center flex-shrink-0">
           {appeals.length !== 0 ? (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-white/60">
                 Showing{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-white">
                   {start}-{end}
               </span>{" "}
                 of{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-white">
                   {totalAppeals}
               </span>{" "}
                 appeals
               </p>
           ) : (
-              <p className="text-sm text-gray-500 mt-4">
-              No appeals found.
+              <p className="text-sm text-white/40 mt-4">
+                No appeals found.
               </p>
           )}
       </div>
 
       {/* pagination of the appeals */}
       {totalAppealPages >= 1 && (
-        <div className="flex items-center justify-between mt-6 pt-4 border-t flex-shrink-0">
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10 flex-shrink-0">
           <button
-            disabled={currentAppealPage === 1}
+            disabled={page === 1}
             onClick={() =>
-              setCurrentAppealPage((prev) => prev - 1)
+              setFilters(prev => ({
+                ...prev,
+                page: (prev.page ?? 1) - 1
+              }))
             }
-            className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
 
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-white-600">
             Page {currentAppealPage} of {totalAppealPages}
           </span>
 
           <button
-            disabled={currentAppealPage === totalAppealPages}
+            disabled={page === totalAppealPages}
             onClick={() =>
-              setCurrentAppealPage((prev) => prev + 1)
+              setFilters(prev => ({
+                ...prev,
+                page: (prev.page ?? 1) + 1
+              }))
             }
-            className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>

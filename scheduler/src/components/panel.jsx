@@ -7,7 +7,7 @@ export default function Panel({ open, onClose, title, children }){
             open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             onClick={onclose}
         >
-            <div className={`absolute right-0 top-0 h-full w-[420px] bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300 ${
+            <div className={`absolute right-0 top-0 h-full w-[600px] bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300 ${
                 open ? "translate-x-0" : "translate-x-full"
                 }`}
                 onClick={(e) => e.stopPropagation()}

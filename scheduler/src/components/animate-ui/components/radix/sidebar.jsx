@@ -136,7 +136,7 @@ function Sidebar({
   collapsible = "offcanvas",
   className,
   children,
-  animateOnHover = true,
+  animateOnHover = false,
   containerClassName,
   transition = { type: "spring", stiffness: 350, damping: 35 },
   ...props
@@ -356,7 +356,7 @@ function SidebarSeparator({ className, ...props }) {
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("bg-sidebar-border mx-2 w-auto", className)}
+      className={cn("bg-white/10 mx-4 w-auto h-[1px] my-2", className)}
       {...props}
     />
   );
@@ -509,8 +509,9 @@ function SidebarMenuButton({
 
   const button = (
     <HighlightItem
+      enabled={false}
       suppressHydrationWarning
-      activeClassName={sidebarMenuButtonActiveVariants({ variant })}
+      activeClassName=""
     >
       <Comp
         suppressHydrationWarning

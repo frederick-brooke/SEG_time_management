@@ -1,7 +1,10 @@
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { act } from "react";
 import TimerController from "../timer_controller";
+import React from "react";
 
-// mock UI context
+// ---- Mocks ----
+
 const mockSetWellbeingOpen = jest.fn();
 
 jest.mock("@/context/UIContext", () => ({
@@ -11,78 +14,105 @@ jest.mock("@/context/UIContext", () => ({
   }),
 }));
 
-// Mock Modal
-jest.mock("components/ui/modal", () => ({
-  __esModule: true,
-  default: ({ open, children, title, onClose }) =>
-    open ? (
-      <div>
-        <div>{title}</div>
-        {children}
-        <button onClick={onClose}>CloseModal</button>
-      </div>
-    ) : null,
-}));
+let capturedOnTick;
 
-// Mock Timer
-let mockOnTick;
-
-jest.mock("components/wellbeing/timer", () => ({
+jest.mock("@/components/wellbeing/timer", () => ({
   __esModule: true,
   default: ({ onTick }) => {
-    mockOnTick = onTick;
+    capturedOnTick = onTick;
     return <div>MockTimer</div>;
   },
 }));
 
+jest.mock("@/components/ui/reminderModal", () => ({
+  __esModule: true,
+  default: ({ open, onClose, title, children }) =>
+    open ? (
+      <div>
+        <span>{title}</span>
+        <span>{children}</span>
+        <button onClick={onClose}>close</button>
+      </div>
+    ) : null,
+}));
 
 describe("TimerController", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedOnTick = null;
   });
 
-  test("does not show modal initially", () => {
-    render(<TimerController />);
-    expect(screen.queryByText("Break time")).not.toBeInTheDocument();
+  test("renders Timer", () => {
+    render(<TimerController initialReminderAt={1000} />);
+    expect(screen.getByText("MockTimer")).toBeInTheDocument();
   });
 
-  test("shows modal when reminder threshold is reached", () => {
-    render(<TimerController />);
+  test("does not trigger when remainingMs is null", async () => {
+    render(<TimerController initialReminderAt={1000} />);
 
-    // Simulate reminderAtTime being set internally
-    // Since it's null by default, we simulate tick <= null (0 <= null is true)
-    act(() => {
-        mockOnTick(0);
+    await act(async () => {
+      capturedOnTick(null);
     });
 
-    expect(screen.getByText("Break time")).toBeInTheDocument();
+    expect(screen.queryByText(/Break time/i)).not.toBeInTheDocument();
+  });
+
+  test("does not trigger when remainingMs > reminderAtTime", async () => {
+    render(<TimerController initialReminderAt={1000} />);
+
+    await act(async () => {
+      capturedOnTick(2000);
+    });
+
+    expect(screen.queryByText(/Break time/i)).not.toBeInTheDocument();
+  });
+
+  test("triggers reminder correctly", async () => {
+    render(<TimerController initialReminderAt={1000} />);
+
+    await act(async () => {
+      capturedOnTick(500);
+    });
+
+    // DEBUG (keep this if needed)
+    // screen.debug();
+
+    expect(screen.getByText(/Break time/i)).toBeInTheDocument();
     expect(mockSetWellbeingOpen).toHaveBeenCalledWith(false);
   });
 
-  test("fires only once", () => {
-    render(<TimerController />);
+  test("modal closes correctly", async () => {
+    render(<TimerController initialReminderAt={1000} />);
 
-    act(() => {
-        mockOnTick(0);
-    }); // first fire
+    await act(async () => {
+      capturedOnTick(500);
+    });
 
-    act(() => {
-        mockOnTick(0);
-    }); // second attempt
+    fireEvent.click(screen.getByText(/close/i));
+
+    expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
+  });
+
+  test("fires only once before reset", async () => {
+    render(<TimerController initialReminderAt={1000} />);
+
+    await act(async () => {
+      capturedOnTick(500); // fire
+      capturedOnTick(400); // should NOT fire again
+    });
 
     expect(mockSetWellbeingOpen).toHaveBeenCalledTimes(1);
   });
 
-  test("closes modal correctly", () => {
-    render(<TimerController />);
+  test("resets after reaching 0", async () => {
+    render(<TimerController initialReminderAt={1000} />);
 
-    act(() => {
-        mockOnTick(0);
+    await act(async () => {
+      capturedOnTick(500); // fire
+      capturedOnTick(0);   // reset
+      capturedOnTick(500); // fire again
     });
 
-    fireEvent.click(screen.getByText("CloseModal"));
-
-    expect(screen.queryByText("Break time")).not.toBeInTheDocument();
-    expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
+    expect(mockSetWellbeingOpen).toHaveBeenCalledTimes(2);
   });
 });

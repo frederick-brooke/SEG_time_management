@@ -1,6 +1,5 @@
 "use client";
 // src/components/calendar/FilterSidebar.tsx
-
 interface Filter {
   key: string;
   label: string;
@@ -8,9 +7,9 @@ interface Filter {
 }
 
 const TASK_FILTERS: Filter[] = [
-  { key: "tasks", label: "Tasks", color: "#6b7280" },
-  { key: "priorityTasks", label: "Priority Tasks", color: "#dc2626" },
-  { key: "completed", label: "Completed", color: "#9ca3af" },
+  { key: "tasks", label: "Tasks", color: "#94a3ff" },
+  { key: "priorityTasks", label: "Priority Tasks", color: "#f87171" },
+  { key: "completed", label: "Completed", color: "rgba(148,163,255,0.4)" },
 ];
 
 interface Props {
@@ -33,11 +32,20 @@ function FilterCheckbox({
 }) {
   return (
     <div
-      className="w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
-      style={{ backgroundColor: active ? color : "white", borderColor: color }}
+      className="w-4 h-4 rounded flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
+      style={{
+        backgroundColor: active ? color : "transparent",
+        border: `2px solid ${active ? color : "rgba(148,163,255,0.25)"}`,
+        boxShadow: active ? `0 0 6px ${color}55` : "none",
+        transition: "all 0.15s",
+      }}
       onClick={onToggle}
     >
-      {active && <span className="text-white text-[10px] font-bold">✓</span>}
+      {active && (
+        <span style={{ color: "#0a0f1e", fontSize: "10px", fontWeight: 700, lineHeight: 1 }}>
+          ✓
+        </span>
+      )}
     </div>
   );
 }
@@ -52,9 +60,20 @@ export default function FilterSidebar({
 }: Props) {
   return (
     <div className="w-56 flex-shrink-0">
-      <div className="bg-white rounded-2xl border p-4 shadow-sm sticky top-4 flex flex-col gap-4">
+      <div
+        className="sticky top-4 flex flex-col gap-4 rounded-2xl p-4"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
+        {/* Tasks section */}
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
+          <h3
+            className="text-xs font-bold uppercase tracking-widest mb-3"
+            style={{ color: "rgba(148,163,255,0.45)" }}
+          >
             Tasks
           </h3>
           <div className="flex flex-col gap-3">
@@ -68,7 +87,14 @@ export default function FilterSidebar({
                   active={activeFilters[f.key]}
                   onToggle={() => onToggleFilter(f.key)}
                 />
-                <span className="text-sm text-gray-600 group-hover:text-gray-900">
+                <span
+                  className="text-sm transition-colors"
+                  style={{
+                    color: activeFilters[f.key]
+                      ? "rgba(220,225,255,0.9)"
+                      : "rgba(148,163,255,0.55)",
+                  }}
+                >
                   {f.label}
                 </span>
               </label>
@@ -76,14 +102,30 @@ export default function FilterSidebar({
           </div>
         </div>
 
-        <div className="border-t pt-4">
+        {/* Divider */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }} />
+
+        {/* Categories section */}
+        <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">
+            <h3
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: "rgba(148,163,255,0.45)" }}
+            >
               Categories
             </h3>
             <button
               onClick={onManageCategories}
-              className="text-xs text-indigo-600 font-bold hover:text-indigo-800"
+              className="text-xs font-bold transition-colors"
+              style={{ color: "rgba(148,163,255,0.7)" }}
+              onMouseEnter={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.color =
+                  "rgba(148,163,255,1)")
+              }
+              onMouseLeave={(e) =>
+                ((e.currentTarget as HTMLButtonElement).style.color =
+                  "rgba(148,163,255,0.7)")
+              }
             >
               + Manage
             </button>
@@ -99,7 +141,14 @@ export default function FilterSidebar({
                   active={categoryFilters[cat.id]}
                   onToggle={() => onToggleCategory(cat.id)}
                 />
-                <span className="text-sm text-gray-600 group-hover:text-gray-900">
+                <span
+                  className="text-sm transition-colors"
+                  style={{
+                    color: categoryFilters[cat.id]
+                      ? "rgba(220,225,255,0.9)"
+                      : "rgba(148,163,255,0.55)",
+                  }}
+                >
                   {cat.name}
                 </span>
               </label>

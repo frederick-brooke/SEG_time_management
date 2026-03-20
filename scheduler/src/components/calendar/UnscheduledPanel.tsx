@@ -14,7 +14,8 @@ function DeadlineBadge({ task, events }: { task: any; events: any[] }) {
     const urgent = daysLeft <= 3;
     return (
       <span
-        className={`text-xs font-semibold ${urgent ? "text-red-500" : "text-gray-400"}`}
+        className={`text-xs font-semibold`}
+        style={{ color: urgent ? "#f87171" : "rgba(148,163,255,0.5)" }}
       >
         {urgent ? "⚠️ " : ""}Due {format(due, "MMM d, yyyy")}
         {daysLeft === 0
@@ -49,7 +50,8 @@ function DeadlineBadge({ task, events }: { task: any; events: any[] }) {
       const urgent = daysLeft <= 3;
       return (
         <span
-          className={`text-xs font-semibold ${urgent ? "text-red-500" : "text-gray-400"}`}
+          className="text-xs font-semibold"
+          style={{ color: urgent ? "#f87171" : "rgba(148,163,255,0.5)" }}
         >
           {urgent ? "⚠️ " : ""}Finish by {format(deadline, "MMM d, yyyy")}
           {daysLeft === 0
@@ -64,37 +66,15 @@ function DeadlineBadge({ task, events }: { task: any; events: any[] }) {
     }
   }
 
-  return <span className="text-xs text-gray-400 italic">No deadline</span>;
-}
-
-// ---------------------------------------------------------------------------
-// FilterCheckbox
-// ---------------------------------------------------------------------------
-function FilterCheckbox({
-  color,
-  active,
-  onToggle,
-}: {
-  color: string;
-  active: boolean;
-  onToggle: () => void;
-}) {
   return (
-    <div
-      className="w-4 h-4 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 cursor-pointer"
-      style={{ backgroundColor: active ? color : "white", borderColor: color }}
-      onClick={onToggle}
+    <span
+      className="text-xs italic"
+      style={{ color: "rgba(148,163,255,0.35)" }}
     >
-      {active && <span className="text-white text-[10px] font-bold">✓</span>}
-    </div>
+      No deadline
+    </span>
   );
 }
-
-const TASK_FILTERS = [
-  { key: "tasks", label: "Tasks", color: "#6b7280" },
-  { key: "priorityTasks", label: "Priority Tasks", color: "#dc2626" },
-  { key: "completed", label: "Completed", color: "#9ca3af" },
-];
 
 // ---------------------------------------------------------------------------
 // UnscheduledPanel
@@ -114,6 +94,28 @@ interface Props {
   onDeleteLog: (logId: string) => void;
 }
 
+// Shared panel styles matching the messaging page glass aesthetic
+const panelStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(12px)",
+  borderRadius: "1rem",
+  padding: "1rem",
+};
+
+const headingStyle: React.CSSProperties = {
+  fontWeight: 700,
+  color: "rgba(220,225,255,0.9)",
+  marginBottom: "0.75rem",
+  fontSize: "0.875rem",
+  letterSpacing: "0.02em",
+};
+
+const emptyStyle: React.CSSProperties = {
+  fontSize: "0.75rem",
+  color: "rgba(148,163,255,0.35)",
+};
+
 export default function UnscheduledPanel({
   unscheduledTasks,
   scheduleLogs,
@@ -130,73 +132,11 @@ export default function UnscheduledPanel({
 }: Props) {
   return (
     <div className="w-64 flex-shrink-0 flex flex-col gap-4 sticky top-4 self-start">
-      {/* ── Filters ── */}
-      <div className="bg-white rounded-2xl border p-4 shadow-sm">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
-          Tasks
-        </h3>
-        <div className="flex flex-col gap-3 mb-4">
-          {TASK_FILTERS.map((f) => (
-            <label
-              key={f.key}
-              className="flex items-center gap-2 cursor-pointer group"
-            >
-              <FilterCheckbox
-                color={f.color}
-                active={activeFilters[f.key]}
-                onToggle={() => onToggleFilter(f.key)}
-              />
-              <span className="text-sm text-gray-600 group-hover:text-gray-900">
-                {f.label}
-              </span>
-            </label>
-          ))}
-        </div>
-        <div className="border-t pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">
-              Categories
-            </h3>
-            <button
-              onClick={onManageCategories}
-              className="text-xs text-indigo-600 font-bold hover:text-indigo-800"
-            >
-              + Manage
-            </button>
-          </div>
-          <div className="flex flex-col gap-3">
-            {categories.map((cat: any) => (
-              <label
-                key={cat.id}
-                className="flex items-center gap-2 cursor-pointer group"
-              >
-                <FilterCheckbox
-                  color={cat.color}
-                  active={categoryFilters[cat.id]}
-                  onToggle={() => onToggleCategory(cat.id)}
-                />
-                <span className="text-sm text-gray-600 group-hover:text-gray-900">
-                  {cat.name}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Unscheduled Tasks ── */}
-      <div
-        className="bg-white rounded-2xl border shadow-sm flex flex-col"
-        style={{ maxHeight: "480px" }}
-      >
-        {/* Heading pinned — never scrolls away */}
-        <div className="px-4 pt-4 pb-3 border-b flex-shrink-0">
-          <h2 className="font-bold text-gray-900">Unscheduled Tasks</h2>
-        </div>
+      {/* Unscheduled Tasks */}
+      <div style={panelStyle}>
+        <h2 style={headingStyle}>Unscheduled Tasks</h2>
         {unscheduledTasks.length === 0 ? (
-          <p className="text-xs text-gray-400 px-4 py-3">
-            All tasks are scheduled 🎉
-          </p>
+          <p style={emptyStyle}>All tasks are scheduled!</p>
         ) : (
           /* Cards render at full natural height — container scrolls */
           <div className="overflow-y-auto flex flex-col gap-2 p-3">
@@ -208,32 +148,49 @@ export default function UnscheduledPanel({
                 ? categories.find((c: any) => c.name === linkedEvent.category)
                 : null;
               const tagColor = linkedCat?.color ?? null;
+
               return (
                 <div
                   key={t.id}
-                  className="rounded-xl border cursor-pointer hover:border-indigo-300 transition-all group overflow-hidden flex-shrink-0"
+                  className="group overflow-hidden cursor-pointer transition-all"
                   onClick={() => onTaskClick(t)}
-                  style={tagColor ? { borderColor: tagColor + "60" } : {}}
+                  style={{
+                    borderRadius: "0.75rem",
+                    border: `1px solid ${tagColor ? tagColor + "40" : "rgba(255,255,255,0.07)"}`,
+                    background: "rgba(255,255,255,0.02)",
+                    transition: "border-color 0.15s, background 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.background =
+                      tagColor ? tagColor + "18" : "rgba(148,163,255,0.06)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor =
+                      tagColor ? tagColor + "70" : "rgba(148,163,255,0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.background =
+                      "rgba(255,255,255,0.02)";
+                    (e.currentTarget as HTMLDivElement).style.borderColor =
+                      tagColor ? tagColor + "40" : "rgba(255,255,255,0.07)";
+                  }}
                 >
                   {tagColor && (
                     <div
-                      className="h-1 w-full flex-shrink-0"
-                      style={{ backgroundColor: tagColor }}
+                      className="h-0.5 w-full"
+                      style={{ backgroundColor: tagColor, opacity: 0.8 }}
                     />
                   )}
-                  <div
-                    className="p-3 transition-all group-hover:bg-indigo-50"
-                    style={
-                      tagColor
-                        ? { backgroundColor: tagColor + "12" }
-                        : { backgroundColor: "#f9fafb" }
-                    }
-                  >
+                  <div className="p-3">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-gray-800 truncate">
+                      <p
+                        className="text-sm font-semibold truncate"
+                        style={{ color: "rgba(220,225,255,0.85)" }}
+                      >
                         {t.title}
                       </p>
-                      <span className="text-xs text-indigo-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
+                      <span
+                        className="text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1"
+                        style={{ color: "rgba(148,163,255,0.8)" }}
+                      >
                         Schedule →
                       </span>
                     </div>
@@ -247,13 +204,26 @@ export default function UnscheduledPanel({
                         </span>
                       )}
                       <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={
                           t.priority === "High"
-                            ? "bg-red-100 text-red-600"
+                            ? {
+                                background: "rgba(239,68,68,0.15)",
+                                color: "#f87171",
+                                border: "1px solid rgba(239,68,68,0.25)",
+                              }
                             : t.priority === "Medium"
-                              ? "bg-orange-100 text-orange-600"
-                              : "bg-green-100 text-green-600"
-                        }`}
+                              ? {
+                                  background: "rgba(251,146,60,0.15)",
+                                  color: "#fb923c",
+                                  border: "1px solid rgba(251,146,60,0.25)",
+                                }
+                              : {
+                                  background: "rgba(74,222,128,0.1)",
+                                  color: "#4ade80",
+                                  border: "1px solid rgba(74,222,128,0.2)",
+                                }
+                        }
                       >
                         {t.priority}
                       </span>
@@ -267,51 +237,96 @@ export default function UnscheduledPanel({
         )}
       </div>
 
-      {/* ── Schedule Log ── */}
-      <div
-        className="bg-white rounded-2xl border shadow-sm flex flex-col"
-        style={{ maxHeight: "400px" }}
-      >
-        <div className="px-4 pt-4 pb-3 border-b flex-shrink-0">
-          <h2 className="font-bold text-gray-900">Schedule Log</h2>
-        </div>
+      {/* Schedule Log */}
+      <div style={panelStyle}>
+        <h2 style={headingStyle}>Schedule Log</h2>
         {scheduleLogs.length === 0 ? (
-          <p className="text-xs text-gray-400 px-4 py-3">
-            No schedules created yet.
-          </p>
+          <p style={emptyStyle}>No schedules created yet.</p>
         ) : (
           <div className="overflow-y-auto flex flex-col gap-3 p-3">
             {scheduleLogs.map((log) => (
               <div
                 key={log.id}
-                className="p-3 bg-gray-50 rounded-xl border flex-shrink-0"
+                className="p-3 rounded-xl"
+                style={{
+                  background: "rgba(255,255,255,0.025)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
               >
                 <div className="flex items-center justify-between mb-1">
                   <span
-                    className={`text-xs font-bold px-2 py-0.5 rounded-full ${log.mode === "day" ? "bg-gray-900 text-white" : "bg-indigo-600 text-white"}`}
+                    className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={
+                      log.mode === "day"
+                        ? {
+                            background: "rgba(220,225,255,0.1)",
+                            color: "rgba(220,225,255,0.8)",
+                            border: "1px solid rgba(220,225,255,0.15)",
+                          }
+                        : {
+                            background: "rgba(148,163,255,0.15)",
+                            color: "rgba(148,163,255,0.9)",
+                            border: "1px solid rgba(148,163,255,0.25)",
+                          }
+                    }
                   >
                     {log.mode === "day" ? "Day" : "Week"}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span
+                    className="text-xs"
+                    style={{ color: "rgba(148,163,255,0.4)" }}
+                  >
                     {format(new Date(log.scheduledAt), "MMM d, h:mm a")}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-gray-800">
+                <p
+                  className="text-sm font-semibold"
+                  style={{ color: "rgba(220,225,255,0.85)" }}
+                >
                   {log.dateLabel}
                 </p>
-                <p className="text-xs text-gray-400 mb-2">
+                <p
+                  className="text-xs mb-2"
+                  style={{ color: "rgba(148,163,255,0.45)" }}
+                >
                   {log.taskIds.length} task{log.taskIds.length !== 1 ? "s" : ""}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => onEditLog(log)}
-                    className="flex-1 text-xs bg-gray-900 text-white py-1.5 rounded-lg font-bold hover:bg-black"
+                    className="flex-1 text-xs py-1.5 rounded-lg font-bold transition-all"
+                    style={{
+                      background: "rgba(148,163,255,0.12)",
+                      color: "rgba(148,163,255,0.9)",
+                      border: "1px solid rgba(148,163,255,0.2)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(148,163,255,0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(148,163,255,0.12)";
+                    }}
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => onDeleteLog(log.id)}
-                    className="flex-1 text-xs bg-red-50 text-red-600 py-1.5 rounded-lg font-bold hover:bg-red-100"
+                    className="flex-1 text-xs py-1.5 rounded-lg font-bold transition-all"
+                    style={{
+                      background: "rgba(239,68,68,0.08)",
+                      color: "#f87171",
+                      border: "1px solid rgba(239,68,68,0.18)",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(239,68,68,0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(239,68,68,0.08)";
+                    }}
                   >
                     Delete
                   </button>

@@ -3,7 +3,7 @@
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
-import { calculateStreak } from "./profile";
+import { calculateStreak } from "lib/streak";
 
 export async function getFriendsLeaderboard(timeframe: 'day' | 'week' | 'month' | 'all' = 'all') {
   const session = await getServerSession(authOptions);
@@ -44,7 +44,9 @@ export async function getFriendsLeaderboard(timeframe: 'day' | 'week' | 'month' 
   }
 
   const users = await prisma.user.findMany({
-    where: { id: { in: friendIds } },
+    where: { 
+      id: { in: friendIds },
+    },
     select: {
       id: true,
       username: true,

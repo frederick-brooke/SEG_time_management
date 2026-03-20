@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
+import LocationInput from "./LocationInput";
 
 interface TravelSectionProps {
   startLocationName: string;
@@ -12,6 +14,16 @@ interface TravelSectionProps {
   onStartNameChange: (name: string) => void;
   onDestNameChange: (name: string) => void;
   onTransportModeChange: (mode: "walking" | "cycling" | "driving") => void;
+  travelTimeMode: "auto" | "manual";
+  manualTravelTime: number | null;
+  onTravelTimeModeChange: (mode: "auto" | "manual") => void;
+  onManualTravelTimeChange: (mins: number | null) => void;
+}
+
+function formatMins(mins: number, mode: string) {
+  if (mins < 60) return `${mins} min${mins !== 1 ? "s" : ""}`;
+  if (mins % 60 === 0) return `${Math.floor(mins / 60)}h`;
+  return `${Math.floor(mins / 60)}h ${mins % 60}m`;
 }
 
 export default function TravelSection({
@@ -25,13 +37,21 @@ export default function TravelSection({
   onStartNameChange,
   onDestNameChange,
   onTransportModeChange,
+  travelTimeMode,
+  manualTravelTime,
+  onTravelTimeModeChange,
+  onManualTravelTimeChange,
 }: TravelSectionProps) {
-  const [suggestions, setSuggestions] = useState<{ start: any[]; dest: any[] }>(
-    { start: [], dest: [] },
-  );
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const [suggestions, setSuggestions] = useState<{ start: any[]; dest: any[] }>({
+    start: [],
+    dest: [],
+  });
+  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [pendingStart, setPendingStart] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  const [pendingDest, setPendingDest] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  const [saveModal, setSaveModal] = useState<"start" | "dest" | null>(null);
+
+  const { locations, saveLocation, refresh } = useSavedLocations();
 
   useEffect(
     () => () => {
@@ -51,18 +71,13 @@ export default function TravelSection({
         return;
       }
       try {
-        const res = await fetch(
-          `/api/location/search?q=${encodeURIComponent(text)}`,
-        );
+        const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
         if (!res.ok) {
           setSuggestions((prev) => ({ ...prev, [type]: [] }));
           return;
         }
         const data = await res.json();
-        setSuggestions((prev) => ({
-          ...prev,
-          [type]: Array.isArray(data) ? data : [],
-        }));
+        setSuggestions((prev) => ({ ...prev, [type]: Array.isArray(data) ? data : [] }));
       } catch {}
     }, 400);
     setDebounceTimer(timer);
@@ -73,141 +88,182 @@ export default function TravelSection({
     const lng = parseFloat(feature.geometry.coordinates[0]);
     const lat = parseFloat(feature.geometry.coordinates[1]);
     const name = feature.properties.name;
+    const address = feature.properties.display || name;
+
     if (type === "start") {
       onStartNameChange(name);
       onStartCoordsChange({ lat, lng });
+      setPendingStart({ lat, lng, address });
     } else {
       onDestNameChange(name);
       onDestCoordsChange({ lat, lng });
+      setPendingDest({ lat, lng, address });
     }
     setSuggestions((prev) => ({ ...prev, [type]: [] }));
+  };
+
+  const selectSavedLocation = (loc: SavedLocation, type: "start" | "dest") => {
+    if (type === "start") {
+      onStartNameChange(loc.label);
+      onStartCoordsChange({ lat: loc.lat, lng: loc.lng });
+      setPendingStart({ lat: loc.lat, lng: loc.lng, address: loc.address });
+    } else {
+      onDestNameChange(loc.label);
+      onDestCoordsChange({ lat: loc.lat, lng: loc.lng });
+      setPendingDest({ lat: loc.lat, lng: loc.lng, address: loc.address });
+    }
   };
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
     navigator.geolocation.getCurrentPosition((pos) => {
-      onStartCoordsChange({
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-      });
+      onStartCoordsChange({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       onStartNameChange("📍 My Current Location");
     });
   };
 
+  const handleSave = async (
+    type: "start" | "dest",
+    label: string,
+    locType: "HOME" | "WORK" | "FAVOURITE",
+  ) => {
+    const pending = type === "start" ? pendingStart : pendingDest;
+    if (!pending) return;
+    await saveLocation({
+      label,
+      address: pending.address,
+      lat: pending.lat,
+      lng: pending.lng,
+      type: locType,
+    });
+    await refresh();
+  };
+
   return (
-    <div className="space-y-4 border-t pt-4 mt-4">
-      {/* Start location */}
-      <div className="relative">
-        <div className="flex justify-between items-center">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            Starting Point
-          </label>
-          <button
-            type="button"
-            onClick={useCurrentLocation}
-            className="text-[10px] text-blue-600 font-bold hover:text-blue-800"
-          >
-            📍 Use My Location
-          </button>
-        </div>
-        <input
-          type="text"
-          placeholder="Where are you coming from?"
-          value={startLocationName}
-          onChange={(e) => handleLocationSearch(e.target.value, "start")}
-          className="w-full border p-2 rounded-lg mt-1 text-black bg-white"
-        />
-        {suggestions.start.length > 0 && (
-          <div className="absolute z-[100] w-full bg-white border border-gray-200 rounded-lg shadow-2xl mt-1 max-h-48 overflow-auto">
-            {suggestions.start.map((s: any, i: number) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => selectLocation(s, "start")}
-                className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0 text-gray-700"
-              >
-                <span className="font-semibold">{s.properties.name}</span>
-                {s.properties.city && (
-                  <span className="text-gray-400 ml-1">
-                    ({s.properties.city})
-                  </span>
-                )}
-                <p className="text-xs text-gray-400 truncate">
-                  {s.properties.display}
-                </p>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="space-y-4 border-t border-white/[0.06] pt-4 mt-4">
 
-      {/* Destination */}
-      <div className="relative">
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-          Destination
-        </label>
-        <input
-          type="text"
-          placeholder="Search destination address..."
-          value={destLocationName}
-          onChange={(e) => handleLocationSearch(e.target.value, "dest")}
-          className="w-full border p-2 rounded-lg mt-1 text-black bg-white"
-        />
-        {suggestions.dest.length > 0 && (
-          <div className="absolute z-[100] w-full bg-white border border-gray-200 rounded-lg shadow-2xl mt-1 max-h-48 overflow-auto">
-            {suggestions.dest.map((s: any, i: number) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => selectLocation(s, "dest")}
-                className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm border-b border-gray-100 last:border-0 text-gray-700"
-              >
-                <span className="font-semibold">{s.properties.name}</span>
-                {s.properties.city && (
-                  <span className="text-gray-400 ml-1">
-                    ({s.properties.city})
-                  </span>
-                )}
-                <p className="text-xs text-gray-400 truncate">
-                  {s.properties.display}
-                </p>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Transport mode */}
+      {/* ── Travel time mode toggle ── */}
       <div>
-        <label className="text-sm font-semibold text-gray-600">
-          Mode of Transport
+        <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
+          Travel Time
         </label>
-        <select
-          value={transportMode}
-          onChange={(e) => onTransportModeChange(e.target.value as any)}
-          className="w-full border p-2 rounded mt-1"
-        >
-          <option value="walking">Walking</option>
-          <option value="cycling">Cycling</option>
-          <option value="driving">Driving</option>
-        </select>
+        <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl mb-4">
+          {(["auto", "manual"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => onTravelTimeModeChange(m)}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                travelTimeMode === m
+                  ? "bg-white/10 text-white border border-white/20"
+                  : "text-white/30 hover:text-white/60"
+              }`}
+            >
+              {m === "auto" ? "• Auto-calculate •" : "• Enter manually •"}
+            </button>
+          ))}
+        </div>
+
+        {/* Manual input */}
+        {travelTimeMode === "manual" && (
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              min={0}
+              max={600}
+              placeholder="e.g. 25"
+              value={manualTravelTime ?? ""}
+              onChange={(e) =>
+                onManualTravelTimeChange(
+                  e.target.value === "" ? null : Math.max(0, Number(e.target.value)),
+                )
+              }
+              className="w-32 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+            <span className="text-sm text-white/40">minutes</span>
+            {manualTravelTime !== null && manualTravelTime > 0 && (
+              <span className="text-xs text-indigo-300 font-semibold bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded-full">
+                {formatMins(manualTravelTime, transportMode)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Travel time preview */}
-      {travelPreview !== null && (
-        <div className="mt-2 p-2 bg-blue-50 rounded-lg flex items-center gap-2">
-          <span className="text-blue-600">{isCalculating ? "🔄" : "⏱️"}</span>
-          <span className="text-sm font-medium text-blue-800">
-            {isCalculating ? (
-              "Calculating new route..."
-            ) : (
-              <>
-                Estimated {transportMode} time:{" "}
-                <strong>{travelPreview} mins</strong>
-              </>
-            )}
-          </span>
-        </div>
+      {travelTimeMode === "auto" && (
+        <>
+          {/* Start location */}
+          <LocationInput
+            label="Starting Point"
+            placeholder="Where are you coming from?"
+            value={startLocationName}
+            suggestions={suggestions.start}
+            pending={pendingStart}
+            showSaveModal={saveModal === "start"}
+            locations={locations}
+            showCurrentLocation
+            onSearchChange={(text) => handleLocationSearch(text, "start")}
+            onSelectSuggestion={(feature) => selectLocation(feature, "start")}
+            onSelectSaved={(loc) => selectSavedLocation(loc, "start")}
+            onOpenSaveModal={() => setSaveModal("start")}
+            onCloseSaveModal={() => setSaveModal(null)}
+            onSaveLocation={(label, type) => handleSave("start", label, type)}
+            onUseCurrentLocation={useCurrentLocation}
+          />
+
+          {/* Destination */}
+          <LocationInput
+            label="Destination"
+            placeholder="Search destination address..."
+            value={destLocationName}
+            suggestions={suggestions.dest}
+            pending={pendingDest}
+            showSaveModal={saveModal === "dest"}
+            locations={locations}
+            onSearchChange={(text) => handleLocationSearch(text, "dest")}
+            onSelectSuggestion={(feature) => selectLocation(feature, "dest")}
+            onSelectSaved={(loc) => selectSavedLocation(loc, "dest")}
+            onOpenSaveModal={() => setSaveModal("dest")}
+            onCloseSaveModal={() => setSaveModal(null)}
+            onSaveLocation={(label, type) => handleSave("dest", label, type)}
+          />
+
+          {/* Transport mode */}
+          <div>
+            <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-1">
+              Mode of Transport
+            </label>
+            <div className="relative">
+              <select
+                value={transportMode}
+                onChange={(e) => onTransportModeChange(e.target.value as any)}
+                className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors appearance-none cursor-pointer pr-8"
+              >
+                <option value="walking" className="bg-[#1a1a24]">Walking</option>
+                <option value="cycling" className="bg-[#1a1a24]">Cycling</option>
+                <option value="driving" className="bg-[#1a1a24]">Driving</option>
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
+            </div>
+          </div>
+
+          {/* Auto travel time preview */}
+          {travelPreview !== null && (
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2">
+              <span>{isCalculating ? "🔄" : "⏱️"}</span>
+              <span className="text-sm font-medium text-blue-300">
+                {isCalculating ? (
+                  "Calculating new route..."
+                ) : (
+                  <>
+                    Estimated {transportMode} time:{" "}
+                    <strong className="text-blue-200">{formatMins(travelPreview, transportMode)}</strong>
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

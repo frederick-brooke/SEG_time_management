@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { FunnelXIcon } from "lucide-react";
-import { Value } from "@radix-ui/react-select";
+
+//UI components
+import GlassCard from "@/components/ui/glassCard";
 
 export default function SearchControls({
     filters,
@@ -25,53 +27,44 @@ export default function SearchControls({
     }
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="flex flex-wrap items-center gap-2 mb-6"
-        >
-            <input
-                type="text"
-                placeholder={placeholder}
-                value={inputValue}
-                onChange={(e) => {
-                    const value = e.target.value;
-                    setInputValue(value);
+        <GlassCard className="p-4 flex flex-wrap items-center gap-2 bg-gradient-to-r from-[#0a0a1a] via-[#1a1a3f] to-[#05051a] border-blue-300/30">
+            <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2 w-full">
+                <input
+                    type="text"
+                    placeholder={placeholder}
+                    value={inputValue}
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        setInputValue(value);
 
-                    setFilters(prev => ({
+                        setFilters(prev => ({
                         ...prev,
                         search: value,
                         page: 1,
-                    }));
-                }}
-                className="border rounded px-3 py-2 flex-1 min-w-[200px]"
-            />
+                        }));
+                    }}
+                    className="flex-1 min-w-[200px] px-3 py-2 rounded-xl bg-white/5 border border-white/10 placeholder:text-white/40 text-white focus:outline-none focus:ring-1 focus:ring-blue-300/50 transition"
+                />
 
-            <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-                Search
-            </button>
+                <button type="submit" className="px-4 py-2 rounded-xl bg-blue-400 text-gray-950 font-semibold hover:scale-105 transition">
+                    Search
+                </button>
 
-            <button
-                type="button"
-                onClick={onOpenFilter}
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-                Filter
-            </button>
+                <button type="button" onClick={onOpenFilter} className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+                    Filter
+                </button>
 
-            <button
-                type="button"
-                onClick={() => {
-                    setInputValue("");
-                    resetFilters();
-                }}
-                className="bg-gray-200 px-3 py-2 rounded flex items-center"
-            >
-                <FunnelXIcon size={16} className="mr-1"/>
-                Reset
-            </button>
-        </form>
+                <button type="button"
+                    onClick={() => {
+                        setInputValue("");
+                        resetFilters();
+                    }}
+                    className="px-3 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 flex items-center gap-1 transition"
+                >
+                    <FunnelXIcon size={16} />
+                    Reset
+                </button>
+            </form>
+        </GlassCard>
     );
 }

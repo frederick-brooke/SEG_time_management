@@ -4,6 +4,8 @@ import { useRef, useEffect } from "react";
 import { Calendar } from "react-big-calendar";
 import { format } from "date-fns";
 import { CATEGORY_COLORS } from "@/lib/ui";
+import styles from "./CalendarBody.module.css";
+import searchStyles from "./SearchBar.module.css";
 
 interface Props {
   localizer: any;
@@ -26,14 +28,18 @@ interface Props {
   onUndoDismiss: () => void;
 }
 
+const TRANSPORT_ICONS: Record<string, string> = {
+  walking: "🚶",
+  cycling: "🚴",
+  driving: "🚗",
+};
+
 function TaskEventContent({ event }: { event: any }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-1">
         <span className="text-[9px]">✓</span>
-        <span className="font-semibold truncate text-[11px]">
-          {event.title}
-        </span>
+        <span className="font-semibold truncate text-[11px]">{event.title}</span>
       </div>
       <span className="text-[9px] opacity-80">{event.priority} priority</span>
     </div>
@@ -41,31 +47,62 @@ function TaskEventContent({ event }: { event: any }) {
 }
 
 function CalendarEventContent({ event }: { event: any }) {
-  const travelMins =
-    typeof event.travelDuration === "number" ? event.travelDuration : null;
   return (
     <div className="flex flex-col h-full">
-      {travelMins !== null && (
-        <div className="mb-1 px-1 py-[2px] rounded bg-white/20 text-[9px] flex items-center gap-1 font-bold">
-          <span>🚗</span>
-          <span>{travelMins} min travel</span>
-        </div>
-      )}
       <div className="font-semibold truncate leading-tight">{event.title}</div>
     </div>
   );
 }
 
-function EventComponent({ event }: any) {
-  return event._type === "task" ? (
-    <TaskEventContent event={event} />
-  ) : (
-    <CalendarEventContent event={event} />
+function TravelEventContent({ event }: { event: any }) {
+  const icon = TRANSPORT_ICONS[event._transportMode] ?? "🚗";
+  return (
+    <div className={styles.travelEvent}>
+      <div className={styles.travelInner}>
+        <span className={styles.travelIcon}>{icon}</span>
+        <span className={styles.travelLabel}>Travel</span>
+      </div>
+    </div>
   );
+}
+
+function EventComponent({ event }: any) {
+  if (event._type === "_travel") return <TravelEventContent event={event} />;
+  if (event._type === "task") return <TaskEventContent event={event} />;
+  return <CalendarEventContent event={event} />;
+}
+
+function hexToRgb(hex: string): string {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return "99, 102, 241";
+  return `${r}, ${g}, ${b}`;
 }
 
 function makeEventPropGetter(categories: any[], events: any[]) {
   return (event: any) => {
+    if (event._type === "_travel") {
+      const cat = categories.find((c) => c.name === event._eventCategory);
+      const baseColor = cat?.color ?? "#818cf8";
+      const rgb = hexToRgb(baseColor);
+      return {
+        className: styles.travelEventWrapper,
+        style: {
+          background: `repeating-linear-gradient(
+            -45deg,
+            rgba(${rgb}, 0.18) 0px,
+            rgba(${rgb}, 0.18) 4px,
+            rgba(${rgb}, 0.08) 4px,
+            rgba(${rgb}, 0.08) 8px
+          )`,
+          border: `1.5px dashed rgba(${rgb}, 0.6)`,
+          color: baseColor,
+        },
+      };
+    }
+
     if (event._type === "task") {
       const linked = events.find((e) => e.id === event.eventId);
       const cat = linked
@@ -73,29 +110,16 @@ function makeEventPropGetter(categories: any[], events: any[]) {
         : null;
       const color = cat?.color ?? "#6b7280";
       return {
-        style: {
-          backgroundColor: color + "33",
-          border: `2px solid #00000033`,
-          borderRadius: "6px",
-          color: "#111111",
-          fontSize: "0.8rem",
-          padding: "4px",
-          fontWeight: "600",
-        },
+        className: styles.taskEventWrapper,
+        style: { backgroundColor: color },
       };
     }
+
     const cat = categories.find((c) => c.name === event.category);
-    const color = cat?.color || "#3b82f6";
+    const color = cat?.color || "#6366f1";
     return {
-      style: {
-        backgroundColor: color,
-        borderRadius: "6px",
-        border: "none",
-        color: "white",
-        fontSize: "0.85rem",
-        padding: "4px",
-        minHeight: typeof event.travelDuration === "number" ? "48px" : "32px",
-      },
+      className: styles.calendarEventWrapper,
+      style: { backgroundColor: color },
     };
   };
 }
@@ -120,14 +144,7 @@ function makeDayPropGetter(scheduleLogs: any[]) {
       }
       return false;
     });
-    return hit
-      ? {
-          style: {
-            backgroundColor: "rgba(99,102,241,0.09)",
-            borderTop: "3px solid #6366f1",
-          },
-        }
-      : {};
+    return hit ? { className: styles.scheduledDay } : {};
   };
 }
 
@@ -152,94 +169,71 @@ export default function CalendarBody({
   onUndoDismiss,
 }: Props) {
   const searchRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<HTMLDivElement>(null);
 
-  // Scroll calendar to 9am on mount
-  useEffect(() => {
-    if (!calendarRef.current) return;
-    const tryScroll = () => {
-      const scrollContainer =
-        calendarRef.current?.querySelector(".rbc-time-content");
-      if (scrollContainer) {
-        // 64px per hour × 9 hours = 576px
-        scrollContainer.scrollTop = 576;
-      }
-    };
-    // Small delay to let react-big-calendar finish rendering its internal DOM
-    const timer = setTimeout(tryScroll, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const handleSelectEvent = (event: any) => {
+    if (event._type === "_travel") return;
+    onSelectEvent(event);
+  };
+
+  const realSearchResults = searchResults.filter((e) => e._type !== "_travel");
 
   return (
-    <div className="flex-1 min-w-0">
-      <div className="p-4 bg-gray-50 rounded-xl shadow-inner min-h-[700px]">
+    <div className={styles.wrapper}>
+      <div className={styles.outerPanel}>
         {/* Search / undo bar */}
-        <div className="h-14 mb-4 relative">
+        <div className={searchStyles.searchBar}>
           {showUndo ? (
-            <div className="absolute inset-0 bg-gray-900 text-white rounded-2xl shadow-xl flex items-center justify-between px-6 z-[60]">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-full text-[10px] font-bold">
-                  !
-                </span>
-                <p className="text-sm font-medium">Event deleted</p>
+            <div className={searchStyles.undoBar}>
+              <div className={searchStyles.undoLabel}>
+                <span className={searchStyles.undoIcon}>!</span>
+                <p className={searchStyles.undoText}>Event deleted</p>
               </div>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={onUndo}
-                  className="bg-blue-500 hover:bg-blue-400 text-white px-5 py-1.5 rounded-lg font-bold text-sm flex items-center gap-2"
-                >
-                  <span className="text-lg leading-none">↺</span> Undo
+              <div className={searchStyles.undoActions}>
+                <button onClick={onUndo} className={searchStyles.undoButton}>
+                  <span className={searchStyles.undoArrow}>↺</span> Undo
                 </button>
-                <button
-                  onClick={onUndoDismiss}
-                  className="text-gray-400 hover:text-white text-lg"
-                >
+                <button onClick={onUndoDismiss} className={searchStyles.undoDismiss}>
                   ✕
                 </button>
               </div>
             </div>
           ) : (
-            <div className="relative h-full" ref={searchRef}>
+            <div className={searchStyles.searchContainer} ref={searchRef}>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 onFocus={onSearchFocus}
                 placeholder="Search events..."
-                className="w-full h-full px-4 pl-11 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-black shadow-sm bg-white"
+                className={searchStyles.searchInput}
               />
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                🔍
-              </div>
+              <div className={searchStyles.searchIcon}>🔍</div>
               {searchQuery && (
-                <button
-                  onClick={onSearchClear}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                >
+                <button onClick={onSearchClear} className={searchStyles.searchClear}>
                   ✕
                 </button>
               )}
               {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border max-h-96 overflow-y-auto z-[70] p-2">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((ev) => (
+                <div className={searchStyles.searchDropdown}>
+                  {realSearchResults.length > 0 ? (
+                    realSearchResults.map((ev) => (
                       <button
                         key={ev.occurrenceId || ev.id}
                         onClick={() => onSearchResultClick(ev)}
-                        className="w-full text-left p-3 hover:bg-gray-50 rounded-lg flex items-center gap-3"
+                        className={searchStyles.searchResultItem}
                       >
                         <div
-                          className="w-1.5 h-8 rounded-full flex-shrink-0"
+                          className={searchStyles.searchResultDot}
                           style={{
                             backgroundColor:
-                              CATEGORY_COLORS[ev.category] || "#3b82f6",
+                              CATEGORY_COLORS[ev.category] || "#6366f1",
                           }}
                         />
                         <div>
-                          <div className="font-bold text-gray-900 text-sm">
+                          <div className={searchStyles.searchResultTitle}>
                             {ev.title}
                           </div>
-                          <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                          <div className={searchStyles.searchResultMeta}>
                             {format(ev.start, "PPP")}
                             {ev.isRecurring && " · Recurring"}
                           </div>
@@ -247,9 +241,7 @@ export default function CalendarBody({
                       </button>
                     ))
                   ) : (
-                    <div className="p-4 text-center text-sm text-gray-400">
-                      No matching events
-                    </div>
+                    <div className={searchStyles.searchEmpty}>No matching events</div>
                   )}
                 </div>
               )}
@@ -258,11 +250,8 @@ export default function CalendarBody({
         </div>
 
         {/* Calendar grid */}
-        <div
-          className="bg-white p-4 rounded-3xl shadow-md border border-gray-100"
-          ref={calendarRef}
-        >
-          <div className="h-[600px]">
+        <div className={styles.calendarCard}>
+          <div className={styles.calendarHeight}>
             <Calendar
               localizer={localizer}
               events={filteredItems}
@@ -274,7 +263,7 @@ export default function CalendarBody({
               onSelectSlot={({ start }) =>
                 onSelectSlot(format(start, "yyyy-MM-dd"))
               }
-              onSelectEvent={onSelectEvent}
+              onSelectEvent={handleSelectEvent}
               eventPropGetter={makeEventPropGetter(categories, filteredItems)}
               dayPropGetter={makeDayPropGetter(scheduleLogs)}
               components={{ event: EventComponent }}

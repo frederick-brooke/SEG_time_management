@@ -282,7 +282,7 @@ async function main() {
           examDate: randomFutureDate(30),
           maxTimePerDay: faker.helpers.arrayElement([60, 90, 120, 180]),
         },
-      });
+      })
     }
   }
 }

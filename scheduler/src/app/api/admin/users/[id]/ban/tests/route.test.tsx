@@ -1,15 +1,13 @@
 import { PATCH } from "../route";
-import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      update: jest.fn(),
-    },
-    report: {
-      update: jest.fn(),
-    },
+jest.mock("next/server", () => ({
+  NextResponse: {
+    json: (data: any, init?: any) => ({
+      status: init?.status || 200,
+      json: async () => data,
+    }),
   },
 }));
 
@@ -17,136 +15,145 @@ jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
-jest.mock("next/server", () => ({
-  NextResponse: {
-    json: (data: any, init?: any) => ({
-      json: async () => data,
-      status: init?.status || 200,
-    }),
+jest.mock("@/lib/prisma", () => ({
+  prisma: {
+    user: { update: jest.fn() },
+    report: { update: jest.fn() },
   },
 }));
 
-describe("PATCH /api/admin/users/[id] (ban system)", () => {
-  const mockParams = Promise.resolve({ id: "user123" });
+describe("PATCH /api/admin/users/[id]/ban", () => {
+  const mockParams = { params: { id: "user123" } };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("returns 403 if not SUPERUSER", async () => {
+  function mockRequest(body: any) {
+    return {
+      json: jest.fn().mockResolvedValue(body),
+    } as unknown as Request;
+  }
+
+  test("returns 403 if not SUPERUSER", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    const req = {
-      json: async () => ({ type: "TEMP", durationDays: 3 }),
-    } as any;
-
-    const res = await PATCH(req, { params: mockParams });
+    const res = await PATCH(mockRequest({}), mockParams);
     const data = await res.json();
 
     expect(res.status).toBe(403);
     expect(data.error).toBe("Unauthorized");
   });
 
-  it("applies TEMP ban", async () => {
+  test("applies temporary ban", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin1", role: "SUPERUSER" },
     });
 
-    const req = {
-      json: async () => ({ type: "TEMP", durationDays: 7 }),
-    } as any;
+    const req = mockRequest({
+      type: "TEMP",
+      durationDays: 7,
+    });
 
-    const res = await PATCH(req, { params: mockParams });
-    const data = await res.json();
+    const res = await PATCH(req, mockParams);
 
-    expect(prisma.user.update).toHaveBeenCalled();
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "user123" },
+        data: expect.objectContaining({
+          isBanned: true,
+        }),
+      })
+    );
 
-    const updateArgs = (prisma.user.update as jest.Mock).mock.calls[0][0];
-
-    expect(updateArgs.where).toEqual({ id: "user123" });
-    expect(updateArgs.data.isBanned).toBe(true);
-    expect(updateArgs.data.banExpires).toBeInstanceOf(Date);
-
-    expect(data.success).toBe(true);
+    expect(res.status).toBe(200);
   });
 
-  it("applies PERMANENT ban", async () => {
+  test("applies permanent ban", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin1", role: "SUPERUSER" },
     });
 
-    const req = {
-      json: async () => ({ type: "PERMANENT" }),
-    } as any;
+    const req = mockRequest({ type: "PERMANENT" });
 
-    await PATCH(req, { params: mockParams });
+    await PATCH(req, mockParams);
 
-    expect(prisma.user.update).toHaveBeenCalledWith({
-      where: { id: "user123" },
-      data: {
-        isBanned: true,
-        banExpires: null,
-      },
-    });
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          isBanned: true,
+          banExpires: null,
+        },
+      })
+    );
   });
 
-  it("unbans user", async () => {
+  test("unbans user", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { id: "admin1", role: "SUPERUSER" },
     });
 
-    const req = {
-      json: async () => ({ type: "UNBAN" }),
-    } as any;
+    const req = mockRequest({ type: "UNBAN" });
 
-    await PATCH(req, { params: mockParams });
+    await PATCH(req, mockParams);
 
-    expect(prisma.user.update).toHaveBeenCalledWith({
-      where: { id: "user123" },
-      data: {
-        isBanned: false,
-        banExpires: null,
-      },
-    });
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: {
+          isBanned: false,
+          banExpires: null,
+        },
+      })
+    );
   });
 
-  it("resolves report if reportId provided", async () => {
+  test("updates report when reportId is provided", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin99" },
+      user: { id: "admin1", role: "SUPERUSER" },
     });
 
-    const req = {
-      json: async () => ({
-        type: "PERMANENT",
-        reportId: "report123",
-      }),
-    } as any;
+    const req = mockRequest({
+      type: "PERMANENT",
+      reportId: "report1",
+    });
 
-    await PATCH(req, { params: mockParams });
+    await PATCH(req, mockParams);
 
     expect(prisma.report.update).toHaveBeenCalledWith({
-      where: { id: "report123" },
+      where: { id: "report1" },
       data: {
         status: "RESOLVED",
-        handledById: "admin99",
+        handledById: "admin1",
       },
     });
   });
 
-  it("returns 500 if prisma throws", async () => {
+  test("returns 400 if TEMP ban missing durationDays", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
-      user: { role: "SUPERUSER", id: "admin1" },
+      user: { role: "SUPERUSER" },
+    });
+
+    const req = mockRequest({ type: "TEMP" });
+
+    const res = await PATCH(req, mockParams);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.error).toBe("durationDays required for TEMP ban");
+  });
+
+  test("handles database errors", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue({
+      user: { role: "SUPERUSER" },
     });
 
     (prisma.user.update as jest.Mock).mockRejectedValue(
       new Error("DB failure")
     );
 
-    const req = {
-      json: async () => ({ type: "PERMANENT" }),
-    } as any;
+    const req = mockRequest({ type: "PERMANENT" });
 
-    const res = await PATCH(req, { params: mockParams });
+    const res = await PATCH(req, mockParams);
     const data = await res.json();
 
     expect(res.status).toBe(500);

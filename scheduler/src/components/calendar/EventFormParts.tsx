@@ -59,7 +59,7 @@ function RelativePicker({
           className={`py-1.5 px-2 rounded-xl text-xs font-semibold border transition-all text-left ${
             value === opt.key
               ? "bg-indigo-600 text-white border-indigo-600"
-              : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+              : "bg-white/5 text-white/50 border-white/10 hover:border-indigo-500/50 hover:text-white/80"
           }`}
         >
           {opt.label}
@@ -83,44 +83,45 @@ function CustomDatePicker({
   setRangeEnd,
 }: any) {
   return (
-    <div className="p-3 bg-white rounded-xl border border-indigo-100 flex flex-col gap-2">
-      <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600">
+    <div className="p-3 bg-white/5 rounded-xl border border-indigo-500/20 flex flex-col gap-2">
+      <label className="flex items-center gap-2 cursor-pointer text-xs text-white/50">
         <input
           type="checkbox"
           checked={useRange}
           onChange={(e) => setUseRange(e.target.checked)}
+          className="accent-indigo-500"
         />
         <span>Use a date range</span>
       </label>
       {useRange ? (
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-gray-400">From</label>
+            <label className="text-xs text-white/30">From</label>
             <input
               type="date"
               value={rangeStart}
               onChange={(e) => setRangeStart(e.target.value)}
-              className="w-full border p-2 rounded-lg text-sm mt-1"
+              className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg text-sm mt-1 focus:outline-none focus:border-indigo-500"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-400">To</label>
+            <label className="text-xs text-white/30">To</label>
             <input
               type="date"
               value={rangeEnd}
               onChange={(e) => setRangeEnd(e.target.value)}
-              className="w-full border p-2 rounded-lg text-sm mt-1"
+              className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg text-sm mt-1 focus:outline-none focus:border-indigo-500"
             />
           </div>
         </div>
       ) : (
         <div>
-          <label className="text-xs text-gray-400">Date</label>
+          <label className="text-xs text-white/30">Date</label>
           <input
             type="date"
             value={customDate}
             onChange={(e) => setCustomDate(e.target.value)}
-            className="w-full border p-2 rounded-lg text-sm mt-1"
+            className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg text-sm mt-1 focus:outline-none focus:border-indigo-500"
           />
         </div>
       )}
@@ -200,29 +201,29 @@ export function LinkedTaskCard({
   ]);
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+    <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/[0.03]">
       <div className="flex items-center gap-3 p-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-gray-800 truncate">
+          <p className="text-sm font-bold text-white truncate">
             {task.title}
           </p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="text-xs text-gray-400">{task.duration}m</span>
+            <span className="text-xs text-white/30">{task.duration}m</span>
             <span
               className={`text-xs font-bold ${PRIORITY_TEXT[task.priority]}`}
             >
               {task.priority}
             </span>
-            <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs bg-indigo-500/15 text-indigo-300 border border-indigo-500/20 px-1.5 py-0.5 rounded-full font-medium">
               {config.label}
             </span>
             {scheduleTime && (
-              <span className="text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-medium">
                 ⏰ {specificTime}
               </span>
             )}
             {isRecurring && (
-              <span className="text-xs bg-purple-100 text-purple-600 px-1.5 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-purple-500/15 text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded-full font-medium">
                 🔁
               </span>
             )}
@@ -230,23 +231,23 @@ export function LinkedTaskCard({
         </div>
         <button
           onClick={() => setExpanded((p) => !p)}
-          className="text-xs text-gray-400 hover:text-gray-700 px-2"
+          className="text-xs text-white/30 hover:text-white/70 px-2 transition-colors"
         >
           {expanded ? "▲" : "▼"}
         </button>
         <button
           onClick={() => onRemove(index)}
-          className="text-red-400 hover:text-red-600 text-lg leading-none"
+          className="text-red-400/60 hover:text-red-400 text-lg leading-none transition-colors"
         >
           ✕
         </button>
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 p-3 flex flex-col gap-3 bg-gray-50">
+        <div className="border-t border-white/[0.06] p-3 flex flex-col gap-3 bg-black/20">
           <div>
-            <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
-              Finish task by
+            <label className="text-xs font-bold text-white/30 uppercase mb-1.5 block">
+              Schedule relative to event
             </label>
             <RelativePicker value={mode} onChange={setMode} />
           </div>
@@ -264,7 +265,7 @@ export function LinkedTaskCard({
               }}
             />
           )}
-          <div className="p-3 bg-white rounded-xl border border-gray-100 flex flex-col gap-2">
+          <div className="p-3 bg-white/5 rounded-xl border border-white/[0.07] flex flex-col gap-2">
             <Toggle
               on={scheduleTime}
               onToggle={() => setScheduleTime((p: boolean) => !p)}
@@ -275,15 +276,15 @@ export function LinkedTaskCard({
                 type="time"
                 value={specificTime}
                 onChange={(e) => setSpecificTime(e.target.value)}
-                className="w-full border p-2 rounded-lg text-sm"
+                className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
               />
             ) : (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-white/30">
                 Task will appear in Unscheduled Tasks until you schedule it.
               </p>
             )}
           </div>
-          <div className="border-t pt-3">
+          <div className="border-t border-white/[0.06] pt-3">
             <Toggle
               on={isRecurring}
               onToggle={() => setIsRecurring((p: boolean) => !p)}
@@ -334,6 +335,9 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
   const [scheduleTime, setScheduleTime] = useState(false);
   const [specificTime, setSpecificTime] = useState("09:00");
 
+  const inputClass =
+    "w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors";
+
   const reset = () => {
     setTitle("");
     setDuration("60");
@@ -374,20 +378,20 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
   };
 
   return (
-    <div className="border border-dashed border-gray-300 rounded-2xl p-4 flex flex-col gap-3">
-      <p className="text-xs font-bold text-gray-400 uppercase">Add a task</p>
+    <div className="border border-dashed border-white/10 rounded-2xl p-4 flex flex-col gap-3">
+      <p className="text-xs font-bold text-white/30 uppercase">Add a task</p>
       <input
         type="text"
         placeholder="Task title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-        className="border p-2 rounded-lg text-sm"
+        className={inputClass}
       />
 
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs font-bold text-gray-400">
+          <label className="text-xs font-bold text-white/30">
             Duration (mins)
           </label>
           <input
@@ -396,26 +400,29 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
             min="5"
             step="5"
             onChange={(e) => setDuration(e.target.value)}
-            className="w-full border p-2 rounded-lg text-sm mt-1"
+            className={`${inputClass} mt-1`}
           />
         </div>
         <div>
-          <label className="text-xs font-bold text-gray-400">Priority</label>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="w-full border p-2 rounded-lg text-sm mt-1"
-          >
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-          </select>
+          <label className="text-xs font-bold text-white/30">Priority</label>
+          <div className="relative mt-1">
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className={`${inputClass} appearance-none cursor-pointer pr-8`}
+            >
+              <option value="Low" className="bg-[#1a1a24]">Low</option>
+              <option value="Medium" className="bg-[#1a1a24]">Medium</option>
+              <option value="High" className="bg-[#1a1a24]">High</option>
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
+          </div>
         </div>
       </div>
 
       <div>
-        <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
-          Finish task by
+        <label className="text-xs font-bold text-white/30 uppercase mb-1.5 block">
+          Schedule relative to event
         </label>
         <RelativePicker value={mode} onChange={setMode} />
       </div>
@@ -433,8 +440,7 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
           }}
         />
       )}
-
-      <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 flex flex-col gap-2">
+      <div className="p-3 bg-white/5 rounded-xl border border-white/[0.07] flex flex-col gap-2">
         <Toggle
           on={scheduleTime}
           onToggle={() => setScheduleTime((p) => !p)}
@@ -445,16 +451,15 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
             type="time"
             value={specificTime}
             onChange={(e) => setSpecificTime(e.target.value)}
-            className="w-full border p-2 rounded-lg text-sm"
+            className={inputClass}
           />
         ) : (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-white/30">
             Task will appear in Unscheduled Tasks — you can place it later.
           </p>
         )}
       </div>
-
-      <div className="border-t pt-3">
+      <div className="border-t border-white/[0.06] pt-3">
         <Toggle
           on={isRecurring}
           onToggle={() => setIsRecurring((p) => !p)}
@@ -482,7 +487,7 @@ function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
       <button
         type="button"
         onClick={handleAdd}
-        className="w-full bg-indigo-600 text-white py-2 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
+        className="w-full bg-indigo-600 text-white py-2 rounded-xl font-bold text-sm hover:bg-indigo-500 transition-all"
       >
         + Add Task
       </button>
@@ -530,11 +535,11 @@ export function TaskPromptSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="bg-indigo-50 p-4 rounded-xl">
-        <h3 className="font-bold text-gray-900 mb-1">
+      <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl">
+        <h3 className="font-bold text-white mb-1">
           Link tasks to this event?
         </h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-white/40">
           Tasks will be scheduled relative to each occurrence, or left
           unscheduled for you to place manually.
         </p>
@@ -569,7 +574,7 @@ export function TaskPromptSection({
 
       <button
         onClick={handleSave}
-        className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+        className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all"
       >
         {linkedTasks.length > 0 ? "Save Tasks & Finish" : "Skip — No Tasks"}
       </button>
