@@ -15,21 +15,16 @@ export default function LunarDrawer({
       {/* backdrop */}
       <div
         onClick={onClose}
-        className={`
-          fixed inset-0 z-40
-          bg-black/20 backdrop-blur-sm
-          transition-opacity duration-300
+        className={`fixed inset-0 z-8000 bg-black/20 backdrop-blur-sm transition-opacity duration-300
           ${open ? "opacity-100" : "opacity-0 pointer-events-none"}
         `}
       />
 
       {/* drawer */}
       <div
-        className={`fixed top-0 ${
-          isLeft ? "left-0 border-r" : "right-0 border-l"
-        } h-screen flex flex-col
+        className={`fixed top-0 ${isLeft ? "left-0 border-r" : "right-0 border-l"} h-screen flex flex-col
         bg-gradient-to-b from-gray-900 via-indigo-900 to-blue-900
-        shadow-2xl z-50 transform transition-transform duration-300 ease-out
+        shadow-2xl z-9999 transform transition-transform duration-300 ease-out
         ${
           open
             ? "translate-x-0"
@@ -41,7 +36,7 @@ export default function LunarDrawer({
       >
         {/* header */}
         <div className="p-5 border-b border-white/10 flex-shrink-0">
-          <h2 className="text-2xl font-semibold text-white tracking-wide">
+          <h2 className="lunar-header text-2xl font-semibold text-white tracking-wide">
             {title}
           </h2>
         </div>

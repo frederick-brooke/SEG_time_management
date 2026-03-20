@@ -112,7 +112,7 @@ export default function AdminPage() {
   return (
     <LunarThemeWrapper>
       <div className="min-h-screen bg-gray-950 text-white relative">
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-10">
+        <h1 className="lunar-header text-4xl md:text-5xl font-semibold tracking-tight mb-10">
           Admin Dashboard
         </h1>
 
@@ -154,7 +154,7 @@ export default function AdminPage() {
                   <div className="flex border-b mb-4">
                     <button
                       onClick={() => setCurrentTab("reports")}
-                      className={`px-4 py-2 font-medium ${
+                      className={`lunar-page-subtitle px-4 py-2 font-medium ${
                         currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
                       }`}
                     >
@@ -163,7 +163,7 @@ export default function AdminPage() {
 
                     <button
                       onClick={() => setCurrentTab("appeals")}
-                      className={`px-4 py-2 font-medium ${
+                      className={`lunar-page-subtitle px-4 py-2 font-medium ${
                         currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
                       }`}
                     >

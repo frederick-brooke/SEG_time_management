@@ -18,7 +18,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
     return(
         <div>
             <section className="mb-4 flex flex-col h-[660px]">
-                <h2 className="text-xl font-semibold mb-4 text-white">User Management</h2>
+                <h2 className="lunar-header text-xl font-semibold mb-4 text-white">User Management</h2>
                 
                 <form
                     onSubmit={(e) => {
@@ -50,14 +50,14 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 
                     <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition"
+                        className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition"
                     >
                         Search
                     </button>
 
                     <button
                         type="button"
-                        className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+                        className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
                         onClick={() => setIsUserFilterOpen(true)}
                     >
                         Filter
@@ -65,7 +65,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
 
                     <button 
                         type="button" 
-                        className="p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+                        className="lunar-page-subtitle p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
                         onClick={() => {setInputValue(""); resetFilters()}}
                     >
                         <FunnelXIcon size={18}/>
@@ -96,7 +96,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                             users
                         </p>
                     ) : (
-                        <p className="text-sm text-white/40 mt-4">
+                        <p className="lunar-page-subtitle text-sm text-white/40 mt-4">
                         No users found.
                         </p>
                     )}
@@ -113,7 +113,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                                     page: prev.page - 1,
                                 }))
                             }
-                            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="lunar-page-subtitle px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Previous
                         </button>
@@ -130,7 +130,7 @@ export default function UserManagement({users,totalUsers, totalUserPages, setIsU
                                     page: prev.page + 1
                                 }))
                             }
-                            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="lunar-page-subtitle px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Next
                         </button>
