@@ -19,6 +19,7 @@ import StarField from "@/components/effects/starField";
 import GlowBackground from "@/components/ui/glowBackground";
 import GlassCard from "@/components/ui/glassCard";
 import { motion } from "framer-motion";
+import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 export default function AdminPage() {
   //User management states
@@ -109,123 +110,128 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white relative overflow-hidden">
-      <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-10">
-        Admin Dashboard
-      </h1>
+    <LunarThemeWrapper>
+      <div className="min-h-screen bg-gray-950 text-white relative">
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-10">
+          Admin Dashboard
+        </h1>
 
-      {/* background effects */}
-      <StarField density={100} />
-      <GlowBackground />
+        {/* background effects */}
+        <StarField density={100} />
+        <GlowBackground />
 
-      {/* admin statistics */}
-      <AdminStatistics/>
+        {/* admin statistics */}
+        <AdminStatistics/>
 
-      {/* Container for the user reporting system*/}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <GlassCard>
-            <UserManagement
-              users={users}
-              totalUsers={totalUsers}
-              totalUserPages={totalUserPages}
-              setIsUserFilterOpen={setIsUserFilterOpen}
-              selectedUser={selectedUser}
-              setSelectedUser={setSelectedUser}
-              filters={appliedUserFilters}
-              setFilters={setAppliedUserFilters}
-              resetFilters={resetUserFilters}
-            />
-          </GlassCard>
-
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0}}
-        >
-          <GlassCard>
-            {/* tabs header title */}
-            <div className="flex border-b mb-4">
-              <button
-                onClick={() => setCurrentTab("reports")}
-                className={`px-4 py-2 font-medium ${
-                  currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-                }`}
+            {/* Container for the user reporting system*/}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                Reports
-              </button>
+                <GlassCard>
+                  <UserManagement
+                    users={users}
+                    totalUsers={totalUsers}
+                    totalUserPages={totalUserPages}
+                    setIsUserFilterOpen={setIsUserFilterOpen}
+                    selectedUser={selectedUser}
+                    setSelectedUser={setSelectedUser}
+                    filters={appliedUserFilters}
+                    setFilters={setAppliedUserFilters}
+                    resetFilters={resetUserFilters}
+                  />
+                </GlassCard>
 
-              <button
-                onClick={() => setCurrentTab("appeals")}
-                className={`px-4 py-2 font-medium ${
-                  currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
-                }`}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0}}
               >
-                Appeals
-              </button>
+                <GlassCard>
+                  {/* tabs header title */}
+                  <div className="flex border-b mb-4">
+                    <button
+                      onClick={() => setCurrentTab("reports")}
+                      className={`px-4 py-2 font-medium ${
+                        currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
+                      }`}
+                    >
+                      Reports
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab("appeals")}
+                      className={`px-4 py-2 font-medium ${
+                        currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
+                      }`}
+                    >
+                      Appeals
+                    </button>
+                  </div>
+
+                  {/* render the active tab */}
+                  {tabs[currentTab]}
+                </GlassCard>
+                
+              </motion.div>
+
             </div>
+            
+            {isUserFilterOpen && (
+              <UserFilter 
+                filters={draftUserFilters}
+                setFilters={setDraftUserFilters}
+                onClose={() => setIsUserFilterOpen(false)}
+                applyFilters={() => {
+                  setAppliedUserFilters(prev => ({
+                    ...prev,
+                    ...draftUserFilters,
+                    page: 1
+                  }));
+                  setIsUserFilterOpen(false);
+                }}
+                resetFilters={() => {
+                  setAppliedUserFilters(defaultUserFilters);
+                }} 
+                type={"admin"} /* needed to show admin category sorting etc*/           
+              />
+            )} 
+              
+            {isReportFilterOpen && (
+              <ReportFilter 
+                filters={draftReportFilters}
+                setFilters={setDraftReportFilters}
+                onClose={() => setIsReportFilterOpen(false)}
+                  applyFilters={() => {
+                    setAppliedReportFilters(draftReportFilters);
+                    setIsReportFilterOpen(false);
+                  }}
+                  resetFilters={() => {
+                    setAppliedReportFilters(defaultReportFilters);
+                  }}
+              />
+            )} 
 
-            {/* render the active tab */}
-            {tabs[currentTab]}
-          </GlassCard>
-          
-        </motion.div>
+            {isAppealFilterOpen && (
+              <AppealFilter
+                filters={draftAppealFilters}
+                setFilters={setDraftAppealFilters}
+                onClose={() => setIsAppealFilterOpen(false)}
+                  applyFilters={() => {
+                    setAppliedAppealFilters(draftAppealFilters);
+                    setIsAppealFilterOpen(false);
+                  }}
+                  resetFilters={() => {
+                    setAppliedAppealFilters(defaultAppealFilters);
+                  }}
+              />
+            )}
+          </div>
 
-      </div>
-      
-      {isUserFilterOpen && (
-        <UserFilter 
-          filters={draftUserFilters}
-          setFilters={setDraftUserFilters}
-          onClose={() => setIsUserFilterOpen(false)}
-          applyFilters={() => {
-            setAppliedUserFilters(prev => ({
-              ...prev,
-              ...draftUserFilters,
-              page: 1
-            }));
-            setIsUserFilterOpen(false);
-          }}
-          resetFilters={() => {
-            setAppliedUserFilters(defaultUserFilters);
-          }} 
-          type={"admin"} /* needed to show admin category sorting etc*/           
-        />
-      )} 
-        
-      {isReportFilterOpen && (
-        <ReportFilter 
-          filters={draftReportFilters}
-          setFilters={setDraftReportFilters}
-          onClose={() => setIsReportFilterOpen(false)}
-            applyFilters={() => {
-              setAppliedReportFilters(draftReportFilters);
-              setIsReportFilterOpen(false);
-            }}
-            resetFilters={() => {
-              setAppliedReportFilters(defaultReportFilters);
-            }}
-        />
-      )} 
+    </LunarThemeWrapper>
 
-      {isAppealFilterOpen && (
-        <AppealFilter
-          filters={draftAppealFilters}
-          setFilters={setDraftAppealFilters}
-          onClose={() => setIsAppealFilterOpen(false)}
-            applyFilters={() => {
-              setAppliedAppealFilters(draftAppealFilters);
-              setIsAppealFilterOpen(false);
-            }}
-            resetFilters={() => {
-              setAppliedAppealFilters(defaultAppealFilters);
-            }}
-        />
-      )}
-    </div>
+    
   );
 }

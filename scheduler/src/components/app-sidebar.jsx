@@ -46,6 +46,11 @@ const data = {
   },
   navMain: [
     {
+      title: "Search",
+      action: "search",
+      icon: IconSearch,
+    },
+    {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
@@ -156,11 +161,7 @@ const data = {
     },
   ],
   navSecondary: [
-    {
-      title: "Search",
-      action: "search",
-      icon: IconSearch,
-    },
+    
   ],
 };
 
@@ -182,9 +183,7 @@ export function AppSidebar({ onSearchClick, ...props }) {
 
   return (
     <>
-      <Sidebar collapsible="offcanvas" 
-                className="!bg-transparent !border-none !shadow-none"
-                {...props}>
+      <Sidebar collapsible="offcanvas" className="!bg-transparent !border-none !shadow-none"{...props}>
         <div className="lunar-sidebar-ink">
           <SidebarHeader>
             <SidebarMenu>
@@ -203,8 +202,8 @@ export function AppSidebar({ onSearchClick, ...props }) {
           </SidebarHeader>
 
           <SidebarContent className="lunar-scroll px-2">
-            <NavMain items={data.navMain} label="" onNotifClick={() => setNotifOpen(true)} />
-            <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
+            <NavMain items={data.navMain} label="" onNotifClick={() => setNotifOpen(true)} onSearchClick={() => setSearchOpen(true)}/>
+            <NavSecondary items={data.navSecondary} className="mt-auto"/>
           </SidebarContent>
           <SidebarFooter>
             <NavUser user={data.user} />

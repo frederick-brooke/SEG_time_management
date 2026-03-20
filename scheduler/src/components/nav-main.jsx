@@ -9,7 +9,7 @@ import {
 } from "components/ui/sidebar"
 import Link from "next/link"
 
-export function NavMain({ items, label, onNotifClick }) {
+export function NavMain({ items, label, onNotifClick, onSearchClick }) {
   return (
     <SidebarGroup>
       {label && <SidebarGroupLabel className="lunar-label !text-blue-400/80 mb-4 px-2 uppercase text-[10px]">{label}</SidebarGroupLabel>}
@@ -20,11 +20,12 @@ export function NavMain({ items, label, onNotifClick }) {
               <SidebarMenuButton 
                 asChild={item.title !== "Notifications"}
                 className="lunar-sidebar-item"
-                onClick={(e) => {
-                  if (item.title === "Notifications") {
-                    e.preventDefault();
-                    onNotifClick();
-                  } 
+                onClick={() => {
+                  if (item.action === "search") {
+                    onSearchClick?.();
+                  } else if (item.action === "notifications") {
+                    onNotifClick?.();
+                  }
                 }}
             >
               {item.title === "Notifications" ? (
