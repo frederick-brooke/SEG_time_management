@@ -9,6 +9,7 @@ import { useUsers } from "@/hooks/useUsers";
 
 //UI components
 import GlassCard from "@/components/ui/glassCard";
+import LunarDrawer from "../layout/lunar-drawer";
 
 export default function SearchPanel({ open, onClose }) {
     const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:6 };
@@ -39,20 +40,10 @@ export default function SearchPanel({ open, onClose }) {
     const [isUserFilterOpen,setIsUserFilterOpen] = useState(false);
     const {users,totalUserPages,totalUsers} = useUsers(appliedUserFilters,"/api/users/search");
 
-    if (!open) return null;
-
     return (
-    <>
-        {/* backdrop */}
-        <div onClick={onClose} className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"/>
-
-            {/* drawer */}
-            <div className={`fixed top-0 left-0 h-screen w-[500px] flex flex-col bg-gradient-to-b from-gray-900 via-indigo-900 to-blue-900 border-r shadow-2xl z-50 transform transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}>
-                {/* header */}
-                <div className="p-5 border-b border-white/10 flex-shrink-0">
-                    <h2 className="text-2xl font-semibold text-white tracking-wide">Search Panel</h2>
-                </div>
-
+        <>
+            {/* backdrop */}
+            <LunarDrawer open={open} onClose={onClose} side="left" title="Search Panel">
                 {/* search controls */}
                 <div className="p-4 flex-shrink-0">
                     <GlassCard className="p-3">
@@ -77,7 +68,7 @@ export default function SearchPanel({ open, onClose }) {
                         setFilters={setAppliedUserFilters}
                     />
                 </div>
-            </div>
+            </LunarDrawer>
 
             {/* filters */}
             {isUserFilterOpen && (
