@@ -43,7 +43,7 @@ export default function TimerController({ initialReminderAt = null }) {
                     setWellbeingOpen(true)
                 }}
 
-                title="Break time "
+                title="Break time"
             >
                 <p>Time to take a break</p>
             </ReminderModal>

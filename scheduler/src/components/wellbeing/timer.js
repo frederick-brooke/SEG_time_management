@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useTimer } from "hooks/useTimer";
 
 import Reminders from "./reminders";
+import GlassCard from "../ui/glassCard";
 
 //main reusable frontend timer component 
 export default function Timer({storageKey, onTick}) {
@@ -50,7 +51,7 @@ export default function Timer({storageKey, onTick}) {
             />
 
             {/* Wellbeing Tip */}
-            <p className="text-gray-800 text-xs text-center max-w-xs">
+            <p className="lunar-page-subtitle text-s text-center">
               Tip: Set a reminder to take a drink - Hydration is important.
             </p>
         </div>
@@ -94,25 +95,24 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
       {/* Section Header */}
       <div className="text-center">
-        <h2 className="text-xl font-semibold text-gray-800">
+        <h2 className="lunar-label text-xl font-semibold text-white">
           Focus Session
         </h2>
 
         {!hasStarted && (
-          <p className="text-gray-500 text-sm mt-1 max-w-sm">
+          <p className="lunar-page-subtitle text-white-500 text-sm mt-1 max-w-sm">
             Set how long you'd like to focus before taking a break.
           </p>
         )}
       </div>
 
       {/* Timer Card */}
-      <div className="w-full max-w-lg rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 p-8 shadow-xl text-white flex flex-col items-center gap-6">
-
+      <GlassCard className="lunar-glass flex flex-col items-center gap-6 p-8 w-full max-w-lg mx-auto">
         {/* Timer Display */}
         <div className="text-center">
 
           {hasStarted && (
-            <p className="text-blue-100 text-sm mb-1">
+            <p className="lunar-page-subtitle text-blue-400 text-s mb-1">
               Remaining Time
             </p>
           )}
@@ -120,7 +120,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
           {!hasStarted ? (
             <div className="flex flex-col items-center gap-3">
 
-              <label className="text-blue-100 text-sm">
+              <label className="lunar-label text-blue-400 text-sm mb-1">
                 Session Duration
               </label>
 
@@ -129,19 +129,18 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
                 step="1"
                 value={timeInput}
                 onChange={(e) => setTimeInput(e.target.value)}
-                className="bg-white/20 backdrop-blur-sm text-white text-center text-2xl rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-white/70"
+                className="lunar-input text-center text-2xl font-mono"
               />
 
               {/* Quick Preset Buttons */}
               <div className="flex gap-2 flex-wrap justify-center mt-2">
-
-                {[15, 25, 45, 60].map((m) => (
+                {[15, 25, 45].map((m) => (
                   <button
                     key={m}
                     onClick={() =>
                       setTimeInput(`00:${String(m).padStart(2, "0")}:00`)
                     }
-                    className="text-xs bg-white/20 px-3 py-1 rounded-full hover:bg-white/30 transition"
+                    className="lunar-button-ghost text-xs"
                   >
                     {m} min
                   </button>
@@ -153,7 +152,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
           ) : (
 
-            <div className="font-mono text-5xl tracking-wider">
+            <div className="lunar-label text-white text-5xl tracking-wider">
               {format(hours)}:{format(minutes)}:{format(seconds)}
             </div>
 
@@ -162,7 +161,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
         {/* Session Status */}
         {hasStarted && (
-          <p className="text-blue-100 text-sm">
+          <p className="lunar-page-subtitle text-blue-100 text-s">
 
             {isRunning && "Focus session in progress"}
 
@@ -172,12 +171,12 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
         )}
 
         {/* Timer Buttons */}
-        <div className="flex gap-4 flex-wrap justify-center">
+        <div className="flex gap-4 p-4 flex-wrap justify-center">
 
           {!hasStarted && (
             <button
               onClick={submitTime}
-              className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition"
+              className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
             >
               Start Focus
             </button>
@@ -186,7 +185,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
           {isRunning && (
             <button
               onClick={pauseTimer}
-              className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition"
+              className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
             >
               Pause Session
             </button>
@@ -195,7 +194,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
           {hasStarted && !isRunning && (
             <button
               onClick={resumeTimer}
-              className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition"
+              className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
             >
               Resume Focus
             </button>
@@ -203,16 +202,16 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
           {hasStarted && (
             <button onClick={stopTimer}
-              className="px-6 py-2 rounded-full bg-white text-blue-700 font-medium shadow hover:scale-105 active:scale-95 transition"
+              className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
             >
               End Session
             </button>
           )}
         </div>
-      </div>
+      </GlassCard>
 
       {/* Wellbeing Tip */}
-      <p className="text-gray-800 text-xs text-center max-w-xs">
+      <p className="lunar-page-subtitle text-white/50 text-xs text-center max-w-xs mt-4">
         Tip: Taking short breaks every 30–60 minutes improves focus
         and helps reduce mental fatigue.
       </p>
