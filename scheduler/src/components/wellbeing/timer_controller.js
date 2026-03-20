@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Timer from "components/wellbeing/timer";
+import Timer from "@/components/wellbeing/timer";
 import ReminderModal from "@/components/ui/reminderModal";
 import { useUI } from "@/context/UIContext";
 
-export default function TimerController() {
-    const [reminderAtTime, setReminderAtTime] = useState(null); //when the 
+export default function TimerController({ initialReminderAt = null }) {
+    const [reminderAtTime, setReminderAtTime] = useState(initialReminderAt); //when the 
     const [showReminderModal, setShowReminderModal] = useState(false);
     const {wellbeingOpen, setWellbeingOpen} = useUI();      //shared global state via the UI
     const reminder_fired_ref = useRef(false)

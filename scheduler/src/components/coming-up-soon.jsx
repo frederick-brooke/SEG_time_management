@@ -6,14 +6,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@/src/components/ui/card";
-import { Calendar } from "lucide-react";
 import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
 
-export function ComingUpSoon({ userId }) {
+/**
+ * Dashboard component which filters and displays tasks due within the next 7 days.
+ * Integrates task management tools and synchronises linked exam data across dialogs.
+ * @param {string} userId The unique identifier for fetching user tasks.
+ * @param {Array} exams Array of user-created exams to populate the link dropdown.
+ * @returns {JSX.Element} The rendered 'Coming Up Soon' section.
+ */
+export function ComingUpSoon({ userId, exams = [] }) {
   const {
     tasks,
     isLoading,
@@ -35,6 +41,11 @@ export function ComingUpSoon({ userId }) {
     cancelDelete,
   } = useTasks(userId);
 
+  /**
+   * Logic to determine if a task is due within the next 7 days.
+   * @param {Object} task The task record from the database.
+   * @returns {boolean} Whether the task is due in the next 7 days or not.
+   */
   const isComingSoon = (task) => {
     if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
@@ -61,22 +72,40 @@ export function ComingUpSoon({ userId }) {
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base font-semibold">
+      <div className="flex flex-col h-full">
+        <div className="flex flex-row items-center justify-between px-1 mb-6">
+          <h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
             Coming Up Soon
-          </CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
+          </h2>
+
+          <div className="flex items-center">
+            <TaskFormDialog
+              isOpen={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}
+              editingTaskId={editingTaskId}
+              formData={formData}
+              onFormChange={handleFormChange}
+              onSubmit={handleSubmitTask}
+              showTrigger={true}
+              exams={exams}
+            />
+          </div>
+        </div>
+        
+        {/* Task list in a scrollable container */}
+        <div className="overflow-y-auto pt-0 pb-6 px-2 custom-scrollbar transition-all" style={{ maxHeight: "350px" }}>
           {comingSoonTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tasks due soon</p>
+            <p className="text-sm text-white/30 text-center py-8 italic font-medium">No tasks due soon</p>
           ) : (
             <div className="space-y-3">
               {comingSoonTasks.map((task) => (
                 <TaskCard
                   key={task.id}
                   task={task}
+                  exams={exams}
                   onToggle={toggleTaskStatus}
                   onView={handleViewTask}
                   onEdit={handleEditTask}
@@ -84,22 +113,11 @@ export function ComingUpSoon({ userId }) {
                 />
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+        </div>
+      </div>
 
-      <TaskFormDialog
-        isOpen={isDialogOpen}
-        onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}
-        editingTaskId={editingTaskId}
-        formData={formData}
-        onFormChange={handleFormChange}
-        onSubmit={handleSubmitTask}
-      />
-
+      {/* Shared dialogs */}
       <DeleteTaskDialog
         isOpen={taskToDelete !== null}
         onConfirm={confirmDeleteTask}

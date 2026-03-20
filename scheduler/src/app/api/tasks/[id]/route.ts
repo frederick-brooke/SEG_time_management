@@ -46,7 +46,14 @@ export async function PATCH(
     if (body.carriedFrom !== undefined)
       d.carriedFrom = body.carriedFrom ?? null;
     if (body.examId !== undefined)
-      d.examId = body.examId && body.examId !== "none" ? body.examId : null;
+      if (body.examId && body.examId !== "none") {
+        const linkedExam = await prisma.exam.findUnique({ where: { id: body.examId }});
+        d.category = linkedExam?.title || "General";
+        d.examId = body.examId;
+      } else {
+        d.category = "General";
+        d.examId = null;
+      }
     if (body.eventId !== undefined) d.eventId = body.eventId || null;
     if (body.scheduledDate !== undefined)
       d.scheduledDate = body.scheduledDate

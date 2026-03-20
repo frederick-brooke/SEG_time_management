@@ -1,44 +1,48 @@
 export default function ReportFilter({ filters, setFilters, onClose, applyFilters, resetFilters}) {
   return (
     <div
-      className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-50 border-l"
+      className="fixed inset-0 z-50 flex justify-end bg-blue/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="p-6 space-y-6"
+        className="h-full w-96 p-6 flex flex-col gap-6 bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-xl font-semibold mb-4">
-          Filter and Sort Reports
-        </h3>
+        {/* HEADER */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white">
+            Filters
+          </h3>
+
+          <button
+            onClick={resetFilters}
+            className="px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
+          >
+            Reset
+          </button>
+        </div>
 
         {/* Sort By */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Sort By
+        <div className="space-y-3">
+          <label className="text-xs uppercase text-white/40 tracking-wider">
+            Sorting
           </label>
 
           <select
             value={filters.sortBy}
-            onChange={(e) => setFilters(saved_result => ({
-              ...saved_result,
-              sortBy: e.target.value,
-            }))
+              onChange={(e) => setFilters(saved_result => ({
+                ...saved_result,
+                sortBy: e.target.value,
+              }))
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none"
           >
             <option value="createdAt">Date Created</option>
             <option value="status">Status</option>
             <option value="id">Report ID</option>
           </select>
-        </div>
 
-        {/* Order */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Order
-          </label>
-
+          {/* Order */}
           <select
             value={filters.order}
             onChange={(e) =>
@@ -47,18 +51,19 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
                 order: e.target.value,
               }))
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none"
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
           </select>
         </div>
 
-        {/* Start Date */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Start Date
-          </label>
+        {/* Date manipulation */}
+        <div className="space-y-3">
+          <p className="text-xs uppercase text-white/40 tracking-wider">
+            Dates
+          </p>
+
           <input
             type="date"
             value={filters.startDate}
@@ -68,85 +73,76 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
                 startDate: e.target.value,
               }))
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white"
           />
-        </div>
 
-        {/* End Date */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            End Date
-          </label>
+          {/* End Date */}
           <input
             type="date"
             value={filters.endDate}
             onChange={(e) =>
-              setFilters(saved_result => ({
-                ...saved_result,
+              setFilters((prev) => ({
+                ...prev,
                 endDate: e.target.value,
+                page: 1,
               }))
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white"
           />
         </div>
 
         {/* Status Filter */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
+        <div className="space-y-3">
+          <p className="text-xs uppercase text-white/40 tracking-wider">
             Status
-          </label>
+          </p>
 
-          {["PENDING", "RESOLVED", "REJECTED"].map((stat) => (
-            <label key={stat} className="flex items-center space-x-2 mb-1">
-              <input
-                type="radio"
-                name="status"
-                value={stat} 
-                checked={filters.status === stat}
-                onChange={() =>
-                  setFilters(saved_result => ({
-                    ...saved_result,
-                    status: stat,
-                  }))
-                }
-              />
-              <span>{stat}</span>
-            </label>
-          ))}
+          <div className="flex flex-col gap-2">
+            {["PENDING", "RESOLVED", "REJECTED"].map((stat) => {
+              const active = filters.status === stat;
 
-          {/* Clear status */}
-          <button
-            type="button"
-            onClick={() =>
-              setFilters(saved_result => ({
-                ...saved_result,
-                status: "",
-              }))
-            }
-            className="text-sm text-blue-600 mt-2"
-          >
-            Clear Status Filter
-          </button>
+              return (
+                <button
+                  key={stat}
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      status: active ? "" : stat,
+                      page: 1,
+                    }))
+                  }
+                  className={`
+                    px-3 py-2 rounded-lg text-left transition
+                    ${
+                      active
+                        ? "bg-blue-300 text-gray-900"
+                        : "bg-white/5 text-white/70 hover:bg-white/10"
+                    }
+                  `}
+                >
+                  {stat}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <button onClick={applyFilters}
-            className="w-full bg-blue-800 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
+        {/* actions */}
+        <div className="mt-auto space-y-3">
+          <button
+            onClick={applyFilters}
+            className="w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition"
+          >
             Apply Filters
-        </button>
+          </button>
 
-        <button onClick={resetFilters}
-            className="w-full bg-red-800 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
-            Reset Filters
-        </button>
-
-        <button
-          onClick={onClose}
-          className="mt-6 w-full bg-gray-800 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
-          Close
-        </button>
+          <button
+            onClick={onClose}
+            className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );

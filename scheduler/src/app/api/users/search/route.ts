@@ -6,7 +6,6 @@ import { cookies } from "next/headers";
 
 //fetches a list of users based on passed in filters at that point
 export async function GET(req: Request) {
-    // Debug: Check if cookies are being received
     const cookieStore = await cookies();
 
     cookieStore.get("__Secure-next-auth.session-token");

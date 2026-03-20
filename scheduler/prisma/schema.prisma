@@ -52,6 +52,11 @@ enum ModuleRole {
   MEMBER
 }
 
+enum GroupRole {
+  OWNER
+  MEMBER
+}
+
 model User {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
   email                 String  @unique
@@ -103,6 +108,10 @@ model User {
   sentMessages   Message[]
   createdModules Module[]                  @relation("ModuleCreator")
   moduleMembers  ModuleMember[]
+
+  createdGroups Group[]       @relation("GroupCreator")
+  groupMembers  GroupMember[]
+ 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -185,6 +194,7 @@ model UserInventory {
 model Task {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   title         String
+  category      String?
   description   String?
   dueDate       DateTime?
   completed     Boolean   @default(false)
@@ -219,8 +229,16 @@ model Task {
   relativeOffsetDays  Int?
   eventLinkMode       String?
   progress            Int?      @default(0)
-  module              Module?   @relation(fields: [moduleId], references: [id])
-  moduleId            String?   @db.ObjectId
+
+  moduleId           String?   @db.ObjectId
+  module             Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  isModuleTask       Boolean   @default(false)
+  moduleTaskGroupId  String?   @db.ObjectId
+
+  groupId            String?   @db.ObjectId
+  group              Group?    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  isGroupTask        Boolean   @default(false)
+  groupTaskGroupId   String?   @db.ObjectId
 }
 
 model Exam {
@@ -229,6 +247,7 @@ model Exam {
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   title             String
   examDate          DateTime
+  endTime           DateTime?
   maxTimePerDay     Int
   unavailableDays   DateTime[]
   tasks             Task[]
@@ -266,10 +285,16 @@ model Event {
   exceptions        String[]  @default([])
   googleEventId     String?
   lastSyncedAt      DateTime?
+
   moduleId          String?   @db.ObjectId
   module            Module?   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   isModuleEvent     Boolean   @default(false)
+  moduleEventGroupId String? @db.ObjectId
 
+  groupEventGroupId String?  @db.ObjectId
+  groupId           String?  @db.ObjectId
+  group             Group?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  isGroupEvent      Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -412,6 +437,30 @@ model ModuleMember {
   joinedAt DateTime   @default(now())
 
   @@unique([moduleId, userId])
+}
+
+model Group {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  creatorId   String  @db.ObjectId
+  creator     User    @relation("GroupCreator", fields: [creatorId], references: [id])
+  members     GroupMember[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  events  Event[]
+  tasks   Task[]
+}
+
+model GroupMember {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  groupId  String    @db.ObjectId
+  group    Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId   String    @db.ObjectId
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  @@unique([groupId, userId])
 }
 
 model Category {

@@ -2,6 +2,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { checkUpcomingDeadlines } from "../app/actions/examActions";
 
 import {
   IconCamera,
@@ -15,8 +16,11 @@ import {
   IconSearch,
   IconSettings,
   IconUserCog,
-  IconBook
+  IconBook,
+  IconBell,
+  IconCalendar,
 } from "@tabler/icons-react";
+
 import { GraduationCap, Map } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
@@ -32,6 +36,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import SearchPanel from "@/components/search-page/search-panel";
+import NotificationModal from "../app/components/NotificationModal";
 
 const data = {
   user: {
@@ -56,6 +61,11 @@ const data = {
       icon: IconListDetails,
     },
     {
+      title: "Calendar",
+      url: "/calendar",
+      icon: IconCalendar,
+    },
+    {
       title: "Exam Planner",
       url: "/exam-planner",
       icon: GraduationCap,
@@ -66,8 +76,8 @@ const data = {
       icon: IconUser,
     },
     {
-      title: "Friends Map",
-      url: "/friend-map",
+      title: "Map",
+      url: "/map",
       icon: Map,
     },
     {
@@ -85,6 +95,11 @@ const data = {
       url: "/admin",
       icon: IconUserCog,
       role: "SUPERUSER"
+    },
+    {
+      title: "Notifications",
+      action: "notifications",
+      icon: IconBell,
     },
     {
       title: "Settings",
@@ -151,49 +166,67 @@ const data = {
 
 export function AppSidebar({ onSearchClick, ...props }) {
   const [searchOpen,setSearchOpen] = useState(false);
-  const { data: session } = useSession();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const { data: session } = useSession()
 
-  const navMain = data.navMain.filter((item) => {
-    if (item.title === "Admin") {
-      return session?.user?.role === "SUPERUSER";
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  React.useEffect(() => {
+    if (session?.user?.id) {
+      checkUpcomingDeadlines(session.user.id);
     }
-    return true;
-  });
+  }, [session]);
 
   return (
     <>
-      <Sidebar collapsible="offcanvas" {...props}>
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="data-[slot=sidebar-menu-button]:!p-1.5"
-              >
-                <a href="#">
-                  <GraduationCap className="!size-5" />
-                  <span className="text-base font-semibold">Scheduler</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+      <Sidebar collapsible="offcanvas" 
+                className="!bg-transparent !border-none !shadow-none"
+                {...props}>
+        <div className="lunar-sidebar-ink">
+          <SidebarHeader>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  className="data-[slot=sidebar-menu-button]:!p-1.5"
+                >
+                  <a href="#">
+                    <GraduationCap className="text-blue-400 !size-7 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+                    <span className="lunar-header text-xl">Lunar</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarHeader>
 
-        <SidebarContent>
-          <NavSecondary items={data.navSecondary} onSearchClick={onSearchClick}/> 
-
-          <NavMain items={navMain} label="Main" />
-
-          <SearchPanel
-            open={searchOpen}
-            onClose={() => setSearchOpen(false)}
-          />
-                   
-        </SidebarContent>
-        <SidebarFooter>
-          <NavUser user={data.user} />
-        </SidebarFooter>
+          <SidebarContent className="lunar-scroll px-2">
+            <NavMain items={data.navMain} label="" onNotifClick={() => setNotifOpen(true)} />
+            <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
+          </SidebarContent>
+          <SidebarFooter>
+            <NavUser user={data.user} />
+          </SidebarFooter>
+        </div>
       </Sidebar>
-    </> 
+
+      {/* Notification Modal */}
+      {mounted && (
+        <NotificationModal
+          isOpen={notifOpen}
+          handleShowModal={() => setNotifOpen(false)}
+        />    
+      )}
+
+      {mounted && (
+        <SearchPanel
+          open={searchOpen}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
+    </>
+    
   );
 }

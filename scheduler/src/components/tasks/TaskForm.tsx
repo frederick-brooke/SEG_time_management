@@ -48,8 +48,6 @@ interface Props {
   scheduledRelativeTo?: string | null;
 }
 
-const INPUT =
-  "w-full border border-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400";
 const MINUTE_OPTIONS = [
   "0",
   "5",
@@ -143,7 +141,7 @@ export function TaskForm({
           type="text"
           placeholder="Enter task name"
           value={formData.name ?? ""}
-          className={INPUT}
+          className="lunar-input"
           onChange={(e) => onChange({ name: e.target.value })}
         />
       </FormField>
@@ -153,7 +151,7 @@ export function TaskForm({
           type="text"
           placeholder="Enter task description"
           value={formData.description ?? ""}
-          className={INPUT}
+          className="lunar-input"
           onChange={(e) => onChange({ description: e.target.value })}
         />
       </FormField>
@@ -167,7 +165,7 @@ export function TaskForm({
               : ""
           }
           onChange={(e) => onChange({ dueDate: e.target.value || null })}
-          className={INPUT}
+          className="lunar-input"
         />
       </FormField>
 
@@ -176,7 +174,7 @@ export function TaskForm({
           <select
             value={formData.durationHours ?? "0"}
             onChange={(e) => onChange({ durationHours: e.target.value })}
-            className={`flex-1 ${INPUT}`}
+            className={`flex-1 $"lunar-input"`}
           >
             {Array.from({ length: 9 }, (_, i) => (
               <option key={i} value={i}>
@@ -187,7 +185,7 @@ export function TaskForm({
           <select
             value={formData.durationMinutes ?? "0"}
             onChange={(e) => onChange({ durationMinutes: e.target.value })}
-            className={`flex-1 ${INPUT}`}
+            className={`flex-1 $"lunar-input"`}
           >
             {MINUTE_OPTIONS.map((m) => (
               <option key={m} value={m}>
@@ -241,7 +239,7 @@ export function TaskForm({
             placeholder="https://..."
             value={formData.url ?? ""}
             onChange={(e) => onChange({ url: e.target.value })}
-            className={`flex-1 ${INPUT}`}
+            className={`flex-1 $"lunar-input"`}
           />
           {formData.url && (
             <a
@@ -262,7 +260,7 @@ export function TaskForm({
           placeholder="e.g. Research, Draft, Review"
           value={formData.subtasks ?? ""}
           onChange={(e) => onChange({ subtasks: e.target.value })}
-          className={INPUT}
+          className="lunar-input"
         />
       </FormField>
 
@@ -271,7 +269,7 @@ export function TaskForm({
           <select
             value={formData.examId ?? "none"}
             onChange={(e) => onChange({ examId: e.target.value })}
-            className={INPUT}
+            className="lunar-input"
           >
             <option value="none">General Task (No Exam)</option>
             {exams.map((exam) => (
@@ -316,7 +314,7 @@ export function TaskForm({
         <button
           type="button"
           onClick={handleSubmit}
-          className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all"
+          className="lunar-button-primary w-full"
         >
           {isEditing ? "Update Task" : "Create Task"}
         </button>

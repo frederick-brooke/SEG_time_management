@@ -1,46 +1,48 @@
 import { TaskCard } from "./TaskCard";
 
-interface TaskColumnProps {
-  title:       string;
-  tasks:       any[];
-  status:      string;
-  onToggle:    (id: string, status?: string) => void;
-  onView:      (task: any) => void;
-  onEdit:      (id: string) => void;
-  onDelete:    (id: string) => void;
-  categories?: { id: string; name: string; color: string }[];
-  events?:     { id: string; title: string; category: string }[];
-}
-
 export function TaskColumn({
-  title, tasks, status,
-  onToggle, onView, onEdit, onDelete,
-  categories = [], events = [],
-}: TaskColumnProps) {
+  title,
+  tasks,
+  status,
+  onToggle,
+  onView,
+  onEdit,
+  onDelete,
+  highlightId,
+}) {
   return (
-    <div className={`flex-1 min-w-[300px] rounded-xl border p-4 ${
-      status === "overdue"
-        ? "bg-red-50 border-red-200"
-        : "bg-gray-50 border-gray-200"
-    }`}>
-      <div className="mb-4 pb-3 border-b border-gray-200">
-        <h3 className="font-bold text-sm text-gray-800">{title}</h3>
-        <p className="text-xs text-gray-400 mt-0.5">{tasks.length} {tasks.length === 1 ? "task" : "tasks"}</p>
+    <div
+      className={`flex-1 min-w-[300px] rounded-lg border p-4 flex flex-col h-[calc(100vh-380px)] ${
+        status === "overdue" ? 
+          "bg-red-500/5 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.05)]" 
+          : "bg-white/[0.03] border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.02)]"
+        }`}
+    >
+      <div className="mb-6 flex justify-between items-end border-b border-white/5 gap-1 px-2">
+        <h3 className={`font-black text-[11px] uppercase tracking-[0.4em] ${status === 'overdue' ? 'text-red-400' : 'text-white/80'}`}>
+          {title}
+        </h3>
+        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">
+          {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
+        </p>
       </div>
-      <div className="flex flex-col gap-2">
+
+      <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar">
         {tasks.length === 0 ? (
-          <div className="text-center py-10 text-gray-400 text-sm">No tasks</div>
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            No tasks
+          </div>
         ) : (
           tasks.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
+              isDashboard={false}
+              className={String(highlightId) === String(task.id) ? "animate-lunar-burst" : ""}
               onToggle={onToggle}
               onView={onView}
               onEdit={onEdit}
               onDelete={onDelete}
-              categories={categories}
-              events={events}
             />
           ))
         )}

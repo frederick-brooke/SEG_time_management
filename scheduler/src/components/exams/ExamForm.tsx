@@ -2,8 +2,16 @@
 
 import React, { useState } from "react";
 import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
+import { createNotification } from "@/src/app/actions/notifications";
+import { NotificationType } from "@prisma/client";
+import { useSession } from "next-auth/react";
 
 
+const formatTime = (date: Date | string | undefined) => {
+    if (!date) return "09:00";
+    const d = new Date(date);
+    return d.toTimeString().slice(0, 5);
+}
 /**
  * The core form component for creating or updating exam settings.
  * @param {Object} props The component properties.
@@ -14,9 +22,13 @@ import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
  * @returns 
  */
 export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSuccess }) {
+    const { data: session } = useSession();
     const [serverError, setServerError] = useState("");
     const [isPending, setIsPending] = useState(false);
 
+    /**
+     * Handles the asynchronous submission of the exam data.
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         setServerError("");
@@ -36,12 +48,25 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 result = await createExam(formData);
             }
             if (result.success) {
+                if (session?.user?.id) {
+                    await createNotification(
+                        session?.user?.id,
+                        editingExam ? "Exam Updated" : "Exam Added",
+                        editingExam
+                            ? `"${formData.get("title")}" has been updated.`
+                            : `"${formData.get("title")} has been added to your planner.`,
+                        editingExam ? NotificationType.INFO : NotificationType.SUCCESS
+                    );
+                }
+
                 if (editingExam) {
                     onExamUpdated?.(result.data);
                 } else {
                     onExamAdded?.(result.data);
                 }
-                onSuccess?.();
+
+                onSuccess();
+              
             } else {
                 setServerError(result.error || "Failed to save exam details");
             }
@@ -61,45 +86,67 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             )}
 
             <div>
-                <label className="block text-sm font-semibold mb-1">Exam Title</label>
+                <label className="lunar-label">Exam Title</label>
                 <input 
                     name="title" 
                     defaultValue={editingExam?.title || ""}
                     required
-                    className="w-full border-2 p-3 rounded-xl text-black"  
+                    className="lunar-input"  
                 />
             </div>
             <div>
-                <label className="block text-sm font-semibold mb-1">Exam Date</label>
+                <label className="lunar-label">Exam Date</label>
                 <input 
                     name="examDate" 
                     type="date" 
                     defaultValue={editingExam ? new Date(editingExam.examDate).toISOString().split('T')[0] : ""}
                     required 
-                    className="w-full border-2 p-3 rounded-xl text-black"  
+                    className="lunar-input" 
                 />                        
             </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="lunar-label">Start Time</label>
+                    <input
+                        name="startTime"
+                        type="time"
+                        defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
+                        required
+                        className="lunar-input"
+                    />
+                </div>
+                <div>
+                    <label className="lunar-label">End Time</label>
+                    <input
+                        name="endTime"
+                        type="time"
+                        defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
+                        required
+                        className="lunar-input"
+                    />
+                </div>    
+            </div>
             <div>
-                <label className="block text-sm font-semibold mb-1">Daily Study Goal (mins)</label>
+                <label className="lunar-label">Daily Study Goal (mins)</label>
                 <input 
                     name="maxTimePerDay" 
                     type="number" 
                     defaultValue={editingExam?.maxTimePerDay || ""}
                     required 
-                    className="w-full border-2 p-3 rounded-xl text-black"
+                    className="lunar-input"
                 />                        
             </div>
             <div className="flex justify-end gap-3 pt-4">
                 <button 
                     type="button" 
                     onClick={onSuccess} 
-                    className="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium"
+                    className="text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                 >
                     Cancel
                 </button>
                 <button 
                     type="submit" 
-                    className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition"
+                    className="lunar-button-primary"
                 >
                     {isPending? "Saving..." : editingExam ? "Update Settings" : "Save Exam"}
                 </button>            

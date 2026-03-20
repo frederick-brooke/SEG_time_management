@@ -43,7 +43,7 @@ function Star({ s, mouse }) {
   );
 }
 
-function StarField() {
+export function StarField() {
   const [mounted, setMounted] = useState(false);
   const [mouse, setMouse] = useState({ x: -9999, y: -9999 });
 

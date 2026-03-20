@@ -1,79 +1,58 @@
 'use server'
 
 import { prisma } from "lib/prisma";
+import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
-import { consumeStreakShield } from "@/src/lib/points";
+import { calculateStreak } from "lib/streak";
+import {
+  fetchUserByUsername,
+  fetchFriends,
+  fetchFriendCount,
+  fetchFriendStatus,
+  computeTaskStats,
+} from "lib/profile-queries";
 
-async function getFriendCount(userId: string) {
-  return await prisma.friendRequest.count({
+// ─── Session helper ───────────────────────────────────────────────────────────
+
+/**
+ * Retrieves the current session and throws if the user is not authenticated
+ * @return {Promise<Session>} - Authenticated session object
+ * @throws {Error} - If no valid session exists
+ */
+async function requireSession() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email || !session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+  return session;
+}
+
+// ─── Friend count helper ──────────────────────────────────────────────────────
+
+/**
+ * Counts accepted friendships for a user in both directions
+ * @param {string} userId - The user ID to count friends for
+ * @return {Promise<number>} - Total accepted friend count
+ */
+async function countFriends(userId: string): Promise<number> {
+  return prisma.friendRequest.count({
     where: {
-      status: 'ACCEPTED',
-      OR: [
-        { senderId: userId },
-        { receiverId: userId }
-      ]
-    }
+      status: PrismaFriendStatus.ACCEPTED,
+      OR: [{ senderId: userId }, { receiverId: userId }],
+    },
   });
 }
 
-export async function calculateStreak(userId: string): Promise<number> {
-  const tasks = await prisma.task.findMany({
-    where: { userId, completed: true, completedAt: { not: null } },
-    orderBy: { completedAt: 'desc' },
-    select: { completedAt: true }
-  });
+// ─── Profile reads ────────────────────────────────────────────────────────────
 
-  if (tasks.length === 0) return 0;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const completionDates = tasks
-    .map(task => {
-      if (!task.completedAt) return null;
-      const date = new Date(task.completedAt);
-      date.setHours(0, 0, 0, 0);
-      return date.getTime();
-    })
-    .filter((date): date is number => date !== null);
-
-  const uniqueDates = [...new Set(completionDates)].sort((a, b) => b - a);
-  if (uniqueDates.length === 0) return 0;
-
-  const mostRecentDate = new Date(uniqueDates[0]);
-  const daysDiff = Math.floor((today.getTime() - mostRecentDate.getTime()) / (1000 * 60 * 60 * 24));
-
-  // If missed more than 1 day, streak is broken — no shield can help
-  if (daysDiff > 2) return 0;
-
-  // If missed exactly 1 day, try to consume a streak shield
-  if (daysDiff === 2) {
-    const shieldUsed = await consumeStreakShield(userId);
-    if (!shieldUsed) return 0; // No shield available, streak broken
-    // Shield consumed — continue counting as if yesterday was completed
-  }
-
-  let streak = 0;
-  let expectedDate = today.getTime();
-
-  for (const dateTimestamp of uniqueDates) {
-    const diff = Math.floor((expectedDate - dateTimestamp) / (1000 * 60 * 60 * 24));
-    if (diff === 0 || diff === 1) {
-      streak++;
-      expectedDate = dateTimestamp - (1000 * 60 * 60 * 24);
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-}
-
+/**
+ * Fetches the current user's full profile including stats, friends, and pending requests
+ * @return {Promise<object | null>} - Own profile data or null if not authenticated
+ */
 export async function getMyProfile() {
   const session = await getServerSession(authOptions);
-
   if (!session?.user?.email) return null;
 
   const user = await prisma.user.findUnique({
@@ -102,74 +81,42 @@ export async function getMyProfile() {
     sentAcceptedRequests,
     receivedAcceptedRequests,
     friendCount,
+    streak,
   ] = await Promise.all([
     prisma.userProgress.findUnique({
       where: { userId: user.id },
-      select: {
-        points: true,
-        level: true,
-        experience: true,
-      },
+      select: { points: true, level: true, experience: true },
     }),
     prisma.task.findMany({
       where: { userId: user.id },
-      select: {
-        completed: true,
-        completedAt: true,
-      },
+      select: { completed: true, completedAt: true },
     }),
     prisma.friendRequest.findMany({
-      where: {
-        receiverId: user.id,
-        status: "PENDING",
-      },
+      where: { receiverId: user.id, status: PrismaFriendStatus.PENDING },
       include: {
         sender: {
-          select: {
-            id: true,
-            username: true,
-            fname: true,
-            lname: true,
-            pfp: true,
-          },
+          select: { id: true, username: true, fname: true, lname: true, pfp: true },
         },
       },
     }),
     prisma.friendRequest.findMany({
-      where: {
-        senderId: user.id,
-        status: "ACCEPTED",
-      },
+      where: { senderId: user.id, status: PrismaFriendStatus.ACCEPTED },
       include: {
         receiver: {
-          select: {
-            id: true,
-            username: true,
-            fname: true,
-            lname: true,
-            pfp: true,
-          },
+          select: { id: true, username: true, fname: true, lname: true, pfp: true },
         },
       },
     }),
     prisma.friendRequest.findMany({
-      where: {
-        receiverId: user.id,
-        status: "ACCEPTED",
-      },
+      where: { receiverId: user.id, status: PrismaFriendStatus.ACCEPTED },
       include: {
         sender: {
-          select: {
-            id: true,
-            username: true,
-            fname: true,
-            lname: true,
-            pfp: true,
-          },
+          select: { id: true, username: true, fname: true, lname: true, pfp: true },
         },
       },
     }),
-    getFriendCount(user.id),
+    countFriends(user.id),
+    calculateStreak(user.id),
   ]);
 
   const friends = [
@@ -180,7 +127,6 @@ export async function getMyProfile() {
   const completedTasks = tasks.filter((t) => t.completed).length;
   const totalTasks = tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const streak = await calculateStreak(user.id);
 
   return {
     ...user,
@@ -192,180 +138,44 @@ export async function getMyProfile() {
   };
 }
 
+/**
+ * Fetches another user's public profile including stats, friends, and friendship status
+ * @param {string} username - The username of the profile to fetch
+ * @return {Promise<object | null>} - Profile data with friendship status, or null if not found
+ */
 export async function getProfile(username: string) {
   const session = await getServerSession(authOptions);
-  
-  const currentUserId = session?.user?.id || "UNAUTHENTICATED";
+  const viewerId = session?.user?.id ?? "UNAUTHENTICATED";
 
-  const user = await prisma.user.findUnique({
-    where: { username },
-    select: {
-      id: true,
-      username: true,
-      fname: true,
-      lname: true,
-      email: true,
-      bio: true,
-      pfp: true,
-      createdAt: true,
-      tasks: { select: { completed: true, completedAt: true } },
-      sentRequests: { where: { receiverId: currentUserId } },
-      receivedRequests: { where: { senderId: currentUserId } }
-    }
-  });
-
+  const user = await fetchUserByUsername(username);
   if (!user) return null;
 
-  const friendCount = await getFriendCount(user.id);
-  
-  const sentFriendRequests = await prisma.friendRequest.findMany({
-    where: {
-      senderId: user.id,
-      status: 'ACCEPTED'
-    },
-    include: {
-      receiver: { 
-        select: { id: true, username: true, fname: true, lname: true, pfp: true } 
-      }
-    }
-  });
-
-  const receivedFriendRequests = await prisma.friendRequest.findMany({
-    where: {
-      receiverId: user.id,
-      status: 'ACCEPTED'
-    },
-    include: {
-      sender: { 
-        select: { id: true, username: true, fname: true, lname: true, pfp: true } 
-      }
-    }
-  });
-
-  const friends = [
-    ...sentFriendRequests.map(req => req.receiver),
-    ...receivedFriendRequests.map(req => req.sender)
-  ];
-
-  const completedTasks = user.tasks.filter(t => t.completed).length;
-  const totalTasks = user.tasks.length;
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-  const streak = await calculateStreak(user.id);
-  let friendStatus = "NONE"; 
-  const sent = user.receivedRequests[0]; 
-  const received = user.sentRequests[0]; 
-
-  if (sent?.status === 'ACCEPTED' || received?.status === 'ACCEPTED') {
-    friendStatus = "FRIENDS";
-  } else if (sent?.status === 'PENDING') {
-    friendStatus = "REQUEST_SENT";
-  } else if (received?.status === 'PENDING') {
-    friendStatus = "REQUEST_RECEIVED";
-  }
+  const [friends, friendCount, streak, { status: friendStatus, requestId }] =
+    await Promise.all([
+      fetchFriends(user.id),
+      fetchFriendCount(user.id),
+      calculateStreak(user.id),
+      fetchFriendStatus(viewerId, user.id),
+    ]);
 
   return {
     ...user,
     friends,
-    stats: { completedTasks, totalTasks, completionRate, friendCount, streak },
+    stats: { ...computeTaskStats(user.tasks), friendCount, streak },
     friendStatus,
-    requestId: received?.id 
+    requestId,
   };
 }
 
-// OUTDATED
-//
-// export async function updateProfile(formData: FormData) {
-//   const session = await getServerSession(authOptions);
-//   if (!session?.user?.email) throw new Error("Unauthorized");
+// ─── Profile mutation ─────────────────────────────────────────────────────────
 
-//   await prisma.user.update({
-//     where: { email: session.user.email },
-//     data: {
-//       fname: formData.get("fname") as string,
-//       lname: formData.get("lname") as string,
-//       bio: formData.get("bio") as string,
-//     },
-//   });
-//   revalidatePath("/profile");
-// }
-
-export async function sendFriendRequest(targetUserId: string) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  if (session.user.id === targetUserId) return; 
-
-  const existing = await prisma.friendRequest.findFirst({
-    where: {
-      OR: [
-        { senderId: session.user.id, receiverId: targetUserId },
-        { senderId: targetUserId, receiverId: session.user.id }
-      ]
-    }
-  });
-
-  if (existing) return;
-
-  await prisma.friendRequest.create({
-    data: {
-      senderId: session.user.id,
-      receiverId: targetUserId,
-      status: 'PENDING'
-    }
-  });
-  revalidatePath("/profile");
-}
-
-export async function acceptFriendRequest(requestId: string) {
-  await prisma.friendRequest.update({
-    where: { id: requestId },
-    data: { status: 'ACCEPTED' }
-  });
-  revalidatePath("/profile");
-}
-
-export async function rejectFriendRequest(requestId: string) {
-  await prisma.friendRequest.delete({
-    where: { id: requestId }
-  });
-  revalidatePath("/profile");
-}
-
-export async function removeFriend(friendUserId: string) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  await prisma.friendRequest.deleteMany({
-    where: {
-      status: 'ACCEPTED',
-      OR: [
-        { senderId: session.user.id, receiverId: friendUserId },
-        { senderId: friendUserId, receiverId: session.user.id }
-      ]
-    }
-  });
-  
-  revalidatePath("/profile");
-}
-
-export async function cancelFriendRequest(requestUserId: string) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
-
-  await prisma.friendRequest.deleteMany({
-    where: {
-      senderId: session.user.id,
-      receiverId: requestUserId,
-      status: 'PENDING'
-    }
-  });
-  
-  revalidatePath("/profile");
-}
-
+/**
+ * Updates the current user's profile fields including optional geocoding of city and country
+ * @param {FormData} formData - Form data containing fname, lname, bio, city, and country fields
+ * @return {Promise<void>}
+ */
 export async function updateProfile(formData: FormData) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  const session = await requireSession();
 
   const fname = formData.get("fname") as string;
   const lname = formData.get("lname") as string;
@@ -381,10 +191,8 @@ export async function updateProfile(formData: FormData) {
     country: country || null,
   };
 
-  // If city and country are provided, attempt to geocode them into coordinates.
-  // Always update the location when the user supplies city/country: if geocoding
-  // fails or returns no result, we explicitly clear the stored location so we
-  // don't keep stale coordinates for a new textual location.
+  // Geocode city and country into coordinates when both are provided
+  // If geocoding fails, location is explicitly cleared to avoid stale coordinates
   if (city && country) {
     updateData.location = null;
     try {
@@ -395,7 +203,6 @@ export async function updateProfile(formData: FormData) {
       } else {
         const query = encodeURIComponent(`${city}, ${country}`);
         const url = `https://api.opencagedata.com/geocode/v1/json?q=${query}&key=${apiKey}&limit=1`;
-
         const response = await fetch(url);
 
         if (response.ok) {
@@ -424,6 +231,106 @@ export async function updateProfile(formData: FormData) {
   await prisma.user.update({
     where: { id: session.user.id },
     data: updateData,
+  });
+
+  revalidatePath("/profile");
+}
+
+// ─── Friend request mutations ─────────────────────────────────────────────────
+
+/**
+ * Sends a friend request from the current user to a target user
+ * @param {string} targetUserId - The database ID of the user to send a request to
+ * @return {Promise<void>}
+ */
+export async function sendFriendRequest(targetUserId: string) {
+  const session = await requireSession();
+  const senderId = session.user.id;
+
+  if (senderId === targetUserId) return;
+
+  // Do nothing if a request already exists in either direction
+  const existing = await prisma.friendRequest.findFirst({
+    where: {
+      OR: [
+        { senderId, receiverId: targetUserId },
+        { senderId: targetUserId, receiverId: senderId },
+      ],
+    },
+  });
+
+  if (existing) return;
+
+  await prisma.friendRequest.create({
+    data: { senderId, receiverId: targetUserId, status: PrismaFriendStatus.PENDING },
+  });
+
+  revalidatePath("/profile");
+}
+
+/**
+ * Accepts a pending friend request by updating its status to ACCEPTED
+ * @param {string} requestId - The database ID of the friend request to accept
+ * @return {Promise<void>}
+ */
+export async function acceptFriendRequest(requestId: string) {
+  await prisma.friendRequest.update({
+    where: { id: requestId },
+    data: { status: PrismaFriendStatus.ACCEPTED },
+  });
+
+  revalidatePath("/profile");
+}
+
+/**
+ * Rejects a pending friend request by deleting it from the database
+ * @param {string} requestId - The database ID of the friend request to reject
+ * @return {Promise<void>}
+ */
+export async function rejectFriendRequest(requestId: string) {
+  await prisma.friendRequest.delete({
+    where: { id: requestId },
+  });
+
+  revalidatePath("/profile");
+}
+
+/**
+ * Removes an existing friendship between the current user and another user
+ * @param {string} friendUserId - The database ID of the friend to remove
+ * @return {Promise<void>}
+ */
+export async function removeFriend(friendUserId: string) {
+  const session = await requireSession();
+  const userId = session.user.id;
+
+  await prisma.friendRequest.deleteMany({
+    where: {
+      status: PrismaFriendStatus.ACCEPTED,
+      OR: [
+        { senderId: userId, receiverId: friendUserId },
+        { senderId: friendUserId, receiverId: userId },
+      ],
+    },
+  });
+
+  revalidatePath("/profile");
+}
+
+/**
+ * Cancels a pending outgoing friend request sent by the current user
+ * @param {string} targetUserId - The database ID of the user the request was sent to
+ * @return {Promise<void>}
+ */
+export async function cancelFriendRequest(targetUserId: string) {
+  const session = await requireSession();
+
+  await prisma.friendRequest.deleteMany({
+    where: {
+      senderId: session.user.id,
+      receiverId: targetUserId,
+      status: PrismaFriendStatus.PENDING,
+    },
   });
 
   revalidatePath("/profile");
