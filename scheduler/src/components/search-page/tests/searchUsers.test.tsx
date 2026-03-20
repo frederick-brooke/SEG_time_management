@@ -3,8 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import SearchUsers from "../searchUsers";
 import * as recentUsersLib from "@/lib/recent-users";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
-
+//Mocks 
 jest.mock("@/lib/recent-users", () => ({
   addRecentUser:    jest.fn(),
   getRecentUsers:   jest.fn(() => []),
@@ -41,8 +40,7 @@ jest.mock("@tabler/icons-react", () => ({
   IconX: () => <span data-testid="icon-x" />,
 }));
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
+// helpers
 const mockUsers = [
   { id: "1", username: "alice" },
   { id: "2", username: "bob" },
@@ -63,7 +61,7 @@ const defaultProps = {
 const renderComponent = (overrides = {}) =>
   render(<SearchUsers {...defaultProps} {...overrides} />);
 
-// ── Suite ─────────────────────────────────────────────────────────────────────
+// Suite 
 
 describe("SearchUsers", () => {
   beforeEach(() => {
@@ -71,7 +69,6 @@ describe("SearchUsers", () => {
     (recentUsersLib.getRecentUsers as jest.Mock).mockReturnValue([]);
   });
 
-  // ── Search mode (search !== "") ───────────────────────────────────────────
   describe("search mode", () => {
     it("shows 'Users' heading when search is active", () => {
       renderComponent();
@@ -96,7 +93,7 @@ describe("SearchUsers", () => {
     });
   });
 
-  // ── Recent searches mode (search === "") ──────────────────────────────────
+  // Recent searches mode test
   describe("recent searches mode", () => {
     const emptySearchProps = {
       ...defaultProps,
@@ -175,7 +172,7 @@ describe("SearchUsers", () => {
     });
   });
 
-  // ── Pagination ────────────────────────────────────────────────────────────
+  //  Pagination test
   describe("pagination", () => {
     it("renders pagination when search is active and users exist", () => {
       renderComponent();
@@ -228,7 +225,7 @@ describe("SearchUsers", () => {
     });
   });
 
-  // ── UserPanel ─────────────────────────────────────────────────────────────
+  //  UserPanel testing
   describe("UserPanel", () => {
     it("does not render UserPanel when selectedUser is null", () => {
       renderComponent();
