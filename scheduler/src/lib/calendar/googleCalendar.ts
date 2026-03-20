@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import { prisma } from "./prisma";
+import { prisma } from "../prisma";
 
 async function persistRefreshedTokens(accountId: string, currentAccessToken: string, tokens: any) {
   try {
