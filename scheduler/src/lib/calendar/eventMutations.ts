@@ -1,6 +1,6 @@
 // src/lib/eventMutations.ts
 import { prisma } from "@/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
+import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
 
 // ---------------------------------------------------------------------------
 // handleSingleInstanceUpdate helpers
