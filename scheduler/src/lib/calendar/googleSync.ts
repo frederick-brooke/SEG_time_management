@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
-import { buildGoogleRecurrenceRule } from "@/src/lib/eventHelpers";
+import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
+import { buildGoogleRecurrenceRule } from "@/src/lib/calendar/eventHelpers";
 
 // ---------------------------------------------------------------------------
 // parseDts
@@ -196,7 +196,7 @@ export async function createLocalEvent(
 // Fetches a full year of events from Google Calendar for force re-sync (PUT).
 // ---------------------------------------------------------------------------
 export async function fetchAllGoogleEvents(userId: string) {
-  const { getGoogleCalendarClient } = await import("@/src/lib/googleCalendar");
+  const { getGoogleCalendarClient } = await import("@/src/lib/calendar/googleCalendar");
   const calendar = await getGoogleCalendarClient(userId);
   if (!calendar) return null;
 
