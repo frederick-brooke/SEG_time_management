@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
+import LocationInput from "./LocationInput";
 
 interface TravelSectionProps {
   startLocationName: string;
@@ -17,123 +18,6 @@ interface TravelSectionProps {
   manualTravelTime: number | null;
   onTravelTimeModeChange: (mode: "auto" | "manual") => void;
   onManualTravelTimeChange: (mins: number | null) => void;
-}
-
-const TYPE_ICONS: Record<string, string> = {
-  HOME: "🏠",
-  WORK: "🏢",
-  FAVOURITE: "⭐",
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  HOME: "Home",
-  WORK: "Work",
-  FAVOURITE: "Favourite",
-};
-
-function SaveLocationModal({
-  address,
-  lat,
-  lng,
-  onSave,
-  onClose,
-}: {
-  address: string;
-  lat: number;
-  lng: number;
-  onSave: (label: string, type: "HOME" | "WORK" | "FAVOURITE") => Promise<void>;
-  onClose: () => void;
-}) {
-  const [label, setLabel] = useState(address.split(",")[0] ?? address);
-  const [type, setType] = useState<"HOME" | "WORK" | "FAVOURITE">("FAVOURITE");
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (!label.trim()) return;
-    setSaving(true);
-    await onSave(label.trim(), type);
-    setSaving(false);
-    onClose();
-  };
-
-  return (
-    <div className="absolute z-[200] left-0 right-0 mt-1 bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-bold text-white/30 uppercase tracking-wider">
-          Save Location
-        </p>
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-white/30 hover:text-white/70 text-lg leading-none transition-colors"
-        >
-          ✕
-        </button>
-      </div>
-
-      <p className="text-xs text-white/30 truncate">{address}</p>
-
-      <input
-        type="text"
-        placeholder="Label (e.g. Home, Gym...)"
-        value={label}
-        onChange={(e) => setLabel(e.target.value)}
-        className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-        autoFocus
-      />
-
-      <div className="flex gap-2">
-        {(["HOME", "WORK", "FAVOURITE"] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setType(t)}
-            className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-              type === t
-                ? "bg-indigo-600 text-white border-indigo-600"
-                : "bg-white/5 text-white/50 border-white/10 hover:border-indigo-500/50"
-            }`}
-          >
-            {TYPE_ICONS[t]} {TYPE_LABELS[t]}
-          </button>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        onClick={handleSave}
-        disabled={saving || !label.trim()}
-        className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-500 disabled:opacity-40 transition-all"
-      >
-        {saving ? "Saving…" : "Save"}
-      </button>
-    </div>
-  );
-}
-
-function SavedLocationChips({
-  locations,
-  onSelect,
-}: {
-  locations: SavedLocation[];
-  onSelect: (loc: SavedLocation) => void;
-}) {
-  if (locations.length === 0) return null;
-  return (
-    <div className="flex flex-wrap gap-1.5 mt-1 mb-1">
-      {locations.map((loc) => (
-        <button
-          key={loc.id}
-          type="button"
-          onClick={() => onSelect(loc)}
-          className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-full text-xs font-semibold border border-indigo-500/20 transition-all"
-          title={loc.address}
-        >
-          {TYPE_ICONS[loc.type]} {loc.label}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 function formatMins(mins: number, mode: string) {
@@ -255,9 +139,6 @@ export default function TravelSection({
     await refresh();
   };
 
-  const inputClass =
-    "w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors";
-
   return (
     <div className="space-y-4 border-t border-white/[0.06] pt-4 mt-4">
 
@@ -312,135 +193,40 @@ export default function TravelSection({
       {travelTimeMode === "auto" && (
         <>
           {/* Start location */}
-          <div className="relative">
-            <div className="flex justify-between items-center">
-              <label className="text-xs font-bold text-white/30 uppercase tracking-wider">
-                Starting Point
-              </label>
-              <button
-                type="button"
-                onClick={useCurrentLocation}
-                className="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors"
-              >
-                📍 Use My Location
-              </button>
-            </div>
-
-            <SavedLocationChips
-              locations={locations}
-              onSelect={(loc) => selectSavedLocation(loc, "start")}
-            />
-
-            <div className="flex gap-1.5 items-center mt-1">
-              <input
-                type="text"
-                placeholder="Where are you coming from?"
-                value={startLocationName}
-                onChange={(e) => handleLocationSearch(e.target.value, "start")}
-                className={`flex-1 ${inputClass}`}
-              />
-              {pendingStart && (
-                <button
-                  type="button"
-                  onClick={() => setSaveModal("start")}
-                  className="shrink-0 px-2 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/20 font-bold transition-all"
-                  title="Save this location"
-                >
-                  ⭐
-                </button>
-              )}
-            </div>
-
-            {suggestions.start.length > 0 && (
-              <div className="absolute z-[100] w-full bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl mt-1 max-h-48 overflow-auto">
-                {suggestions.start.map((s: any, i: number) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => selectLocation(s, "start")}
-                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm border-b border-white/[0.06] last:border-0 transition-colors"
-                  >
-                    <span className="font-semibold text-white/80">{s.properties.name}</span>
-                    {s.properties.city && (
-                      <span className="text-white/30 ml-1">({s.properties.city})</span>
-                    )}
-                    <p className="text-xs text-white/30 truncate">{s.properties.display}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {saveModal === "start" && pendingStart && (
-              <SaveLocationModal
-                address={pendingStart.address}
-                lat={pendingStart.lat}
-                lng={pendingStart.lng}
-                onSave={(label, type) => handleSave("start", label, type)}
-                onClose={() => setSaveModal(null)}
-              />
-            )}
-          </div>
+          <LocationInput
+            label="Starting Point"
+            placeholder="Where are you coming from?"
+            value={startLocationName}
+            suggestions={suggestions.start}
+            pending={pendingStart}
+            showSaveModal={saveModal === "start"}
+            locations={locations}
+            showCurrentLocation
+            onSearchChange={(text) => handleLocationSearch(text, "start")}
+            onSelectSuggestion={(feature) => selectLocation(feature, "start")}
+            onSelectSaved={(loc) => selectSavedLocation(loc, "start")}
+            onOpenSaveModal={() => setSaveModal("start")}
+            onCloseSaveModal={() => setSaveModal(null)}
+            onSaveLocation={(label, type) => handleSave("start", label, type)}
+            onUseCurrentLocation={useCurrentLocation}
+          />
 
           {/* Destination */}
-          <div className="relative">
-            <label className="text-xs font-bold text-white/30 uppercase tracking-wider">
-              Destination
-            </label>
-
-            <SavedLocationChips
-              locations={locations}
-              onSelect={(loc) => selectSavedLocation(loc, "dest")}
-            />
-
-            <div className="flex gap-1.5 items-center mt-1">
-              <input
-                type="text"
-                placeholder="Search destination address..."
-                value={destLocationName}
-                onChange={(e) => handleLocationSearch(e.target.value, "dest")}
-                className={`flex-1 ${inputClass}`}
-              />
-              {pendingDest && (
-                <button
-                  type="button"
-                  onClick={() => setSaveModal("dest")}
-                  className="shrink-0 px-2 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/20 font-bold transition-all"
-                  title="Save this location"
-                >
-                  ⭐
-                </button>
-              )}
-            </div>
-
-            {suggestions.dest.length > 0 && (
-              <div className="absolute z-[100] w-full bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl mt-1 max-h-48 overflow-auto">
-                {suggestions.dest.map((s: any, i: number) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => selectLocation(s, "dest")}
-                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm border-b border-white/[0.06] last:border-0 transition-colors"
-                  >
-                    <span className="font-semibold text-white/80">{s.properties.name}</span>
-                    {s.properties.city && (
-                      <span className="text-white/30 ml-1">({s.properties.city})</span>
-                    )}
-                    <p className="text-xs text-white/30 truncate">{s.properties.display}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {saveModal === "dest" && pendingDest && (
-              <SaveLocationModal
-                address={pendingDest.address}
-                lat={pendingDest.lat}
-                lng={pendingDest.lng}
-                onSave={(label, type) => handleSave("dest", label, type)}
-                onClose={() => setSaveModal(null)}
-              />
-            )}
-          </div>
+          <LocationInput
+            label="Destination"
+            placeholder="Search destination address..."
+            value={destLocationName}
+            suggestions={suggestions.dest}
+            pending={pendingDest}
+            showSaveModal={saveModal === "dest"}
+            locations={locations}
+            onSearchChange={(text) => handleLocationSearch(text, "dest")}
+            onSelectSuggestion={(feature) => selectLocation(feature, "dest")}
+            onSelectSaved={(loc) => selectSavedLocation(loc, "dest")}
+            onOpenSaveModal={() => setSaveModal("dest")}
+            onCloseSaveModal={() => setSaveModal(null)}
+            onSaveLocation={(label, type) => handleSave("dest", label, type)}
+          />
 
           {/* Transport mode */}
           <div>
