@@ -23,8 +23,8 @@ export async function POST(req: NextRequest) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordResetToken: token,
-        passwordResetExpires: expires,
+        // passwordResetToken: token,
+        // passwordResetExpires: expires,
       },
     });
 

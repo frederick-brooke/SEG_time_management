@@ -20,9 +20,9 @@ export default async function SettingsPage() {
       passwordHash: true,
       preferences: true,
       accounts: {
-        where: { provider: 'google' }
-      }
-    }
+        where: { provider: "google" },
+      },
+    },
   });
 
   if (!user) redirect("/login");
@@ -38,19 +38,22 @@ export default async function SettingsPage() {
             <Settings size={32} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Account Settings</h1>
-            <p className="text-gray-500">Manage your account details, security, and integrations.</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Account Settings
+            </h1>
+            <p className="text-gray-500">
+              Manage your account details, security, and integrations.
+            </p>
           </div>
         </div>
-        
-        <SettingsClient 
+
+        <SettingsClient
           user={{
             username: user.username,
             email: user.email,
-            hasPassword,
             hasGoogleConnected,
-            preferences: user.preferences
-          }} 
+            preferences: user.preferences,
+          }}
         />
       </div>
     </div>

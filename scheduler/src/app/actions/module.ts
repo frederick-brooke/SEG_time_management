@@ -484,7 +484,6 @@ export async function createModuleTask(moduleId: string, taskData: any) {
         data: {
           userId: member.userId,
           moduleId,
-          isModuleTask: true,
           title: taskData.title,
           description: taskData.description || null,
           dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
@@ -540,7 +539,6 @@ export async function deleteModuleTask(moduleId: string, taskTitle: string) {
       where: {
         moduleId,
         title: taskTitle,
-        isModuleTask: true
       }
     });
 
@@ -564,7 +562,6 @@ async function syncModuleTasksToNewMember(moduleId: string, userId: string) {
     const existingTasks = await prisma.task.findMany({
       where: {
         moduleId,
-        isModuleTask: true
       },
       distinct: ['title'], // Get unique tasks by title
       select: {
@@ -586,7 +583,6 @@ async function syncModuleTasksToNewMember(moduleId: string, userId: string) {
         data: {
           userId,
           moduleId,
-          isModuleTask: true,
           status: "todo",
           completed: false,
           ...task
@@ -643,7 +639,6 @@ export async function getModuleTasks(moduleId: string) {
     const tasks = await prisma.task.findMany({
       where: {
         moduleId,
-        isModuleTask: true,
         userId: session.user.id // Only show current user's version
       },
       orderBy: [
