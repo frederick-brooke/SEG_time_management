@@ -12,7 +12,7 @@ export interface ParsedVEvent {
 type CurEvent = Partial<ParsedVEvent> & { durationRaw?: string };
 
 function unfold(raw: string): string {
-  return raw.replace(/\r?\n[ \t]/g, "");
+  return raw.replace(/\r?\n[ \t]/g, " ");
 }
 
 function parseDt(value: string, params: string): { date: Date; allDay: boolean } {
