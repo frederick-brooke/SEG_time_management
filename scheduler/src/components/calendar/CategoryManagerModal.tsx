@@ -26,18 +26,18 @@ function CategoryRow({
             setColor(e.target.value);
             setError("");
           }}
-          className="w-8 h-8 rounded-lg border cursor-pointer"
+          className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
           disabled={!editing}
         />
         {editing ? (
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="flex-1 border p-1 rounded-lg text-sm"
+            className="flex-1 bg-white/5 border border-white/10 text-white p-1 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
             autoFocus
           />
         ) : (
-          <span className="flex-1 text-sm font-medium text-gray-700">
+          <span className="flex-1 text-sm font-medium text-white/70">
             {cat.name}
           </span>
         )}
@@ -62,14 +62,14 @@ function CategoryRow({
               setEditing(false);
               setError("");
             }}
-            className="text-xs bg-gray-900 text-white px-3 py-1 rounded-lg font-bold"
+            className="text-xs bg-white text-gray-900 px-3 py-1 rounded-lg font-bold hover:bg-white/90 transition-all"
           >
             Save
           </button>
         ) : (
           <button
             onClick={() => setEditing(true)}
-            className="text-xs text-gray-400 hover:text-gray-700"
+            className="text-xs text-white/30 hover:text-white/70 transition-colors"
           >
             Edit
           </button>
@@ -77,13 +77,13 @@ function CategoryRow({
         {canDelete && (
           <button
             onClick={() => onDelete(cat.id)}
-            className="text-xs text-red-400 hover:text-red-600"
+            className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
           >
             Delete
           </button>
         )}
       </div>
-      {error && <p className="text-xs text-red-500 pl-11">{error}</p>}
+      {error && <p className="text-xs text-red-400 pl-11">{error}</p>}
     </div>
   );
 }
@@ -106,14 +106,14 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
             setColor(e.target.value);
             setError("");
           }}
-          className="w-8 h-8 rounded-lg border cursor-pointer"
+          className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
         />
         <input
           type="text"
           placeholder="Category name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="flex-1 border p-2 rounded-lg text-sm"
+          className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
         />
         <button
           onClick={() => {
@@ -135,12 +135,12 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
             setColor("#6366f1");
             setError("");
           }}
-          className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold hover:bg-indigo-700"
+          className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold hover:bg-indigo-500 transition-all"
         >
           Add
         </button>
       </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   );
 }
@@ -161,20 +161,21 @@ export default function CategoryManagerModal({
 }: CategoryManagerModalProps) {
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
+      className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
       onClick={onClose}
     >
       <div
-        className="bg-white p-8 rounded-[32px] shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
+        className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
+        style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 32px 64px rgba(0,0,0,0.6)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 text-gray-400 hover:text-black text-xl"
+          className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
         >
           ✕
         </button>
-        <h3 className="text-2xl font-black mb-6 text-gray-900">Categories</h3>
+        <h3 className="text-2xl font-black mb-6 text-white">Categories</h3>
 
         <div className="flex flex-col gap-3 mb-6">
           {categories.map((cat) => (
@@ -199,8 +200,8 @@ export default function CategoryManagerModal({
           ))}
         </div>
 
-        <div className="border-t pt-4">
-          <p className="text-xs font-bold uppercase text-gray-400 mb-3">
+        <div className="border-t border-white/[0.06] pt-4">
+          <p className="text-xs font-bold uppercase text-white/30 mb-3">
             Add New Category
           </p>
           <AddCategoryForm

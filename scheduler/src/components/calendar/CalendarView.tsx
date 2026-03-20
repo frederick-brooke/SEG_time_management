@@ -6,15 +6,15 @@ import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-import CheckInModal from "./CheckInModal";
-import RescheduleModal from "./RescheduleModal";
-import EventDetailModal from "./calendar/EventDetailModal";
-import QuickScheduleModal from "./calendar/QuickScheduleModal";
-import CategoryManagerModal from "./calendar/CategoryManagerModal";
-import ScheduleDrawer from "./calendar/ScheduleDrawer";
-import UnscheduledPanel from "./calendar/UnscheduledPanel";
-import FilterSidebar from "./calendar/FilterSidebar";
-import CalendarBody from "./calendar/CalendarBody";
+import CheckInModal from "../CheckInModal";
+import RescheduleModal from "../RescheduleModal";
+import EventDetailModal from "./EventDetailModal";
+import QuickScheduleModal from "./QuickScheduleModal";
+import CategoryManagerModal from "./CategoryManagerModal";
+import ScheduleDrawer from "./ScheduleDrawer";
+import UnscheduledPanel from "./UnscheduledPanel";
+import FilterSidebar from "./FilterSidebar";
+import CalendarBody from "./CalendarBody";
 
 import { useCalendarData } from "@/hooks/useCalendarData";
 import { useSchedule } from "@/hooks/useSchedule";
@@ -213,32 +213,36 @@ export default function CalendarView({
           );
         })()}
 
-      <FilterSidebar
-        activeFilters={activeFilters}
-        categories={data.categories}
-        categoryFilters={data.categoryFilters}
-        onToggleFilter={(key) =>
-          setActiveFilters((p) => ({ ...p, [key]: !p[key] }))
-        }
-        onToggleCategory={(id) =>
-          data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] }))
-        }
-        onManageCategories={() => setShowCategoryManager(true)}
-      />
+      {/* Hidden on small screens, visible from lg breakpoint */}
+      <div className="hidden lg:block">
+        <FilterSidebar
+          activeFilters={activeFilters}
+          categories={data.categories}
+          categoryFilters={data.categoryFilters}
+          onToggleFilter={(key) =>
+            setActiveFilters((p) => ({ ...p, [key]: !p[key] }))
+          }
+          onToggleCategory={(id) =>
+            data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] }))
+          }
+          onManageCategories={() => setShowCategoryManager(true)}
+        />
+      </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex gap-2 mb-4">
+        {/* Schedule buttons hidden on small screens */}
+        <div className="hidden lg:flex gap-2 mb-4">
           <button
             onClick={() => sched.open("day", calendarDate)}
             className="flex-1 bg-gray-900 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-black transition-all"
           >
-            📅 Schedule My Day
+            Schedule My Day
           </button>
           <button
             onClick={() => sched.open("week", calendarDate)}
             className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
           >
-            🗓 Schedule My Week
+            Schedule My Week
           </button>
         </div>
         <CalendarBody
@@ -270,34 +274,37 @@ export default function CalendarView({
         />
       </div>
 
-      <UnscheduledPanel
-        unscheduledTasks={data.unscheduledTasks}
-        scheduleLogs={data.scheduleLogs}
-        events={data.events}
-        categories={data.categories}
-        onTaskClick={setQuickScheduleTask}
-        onEditLog={(log) => {
-          sched.patch({
-            scheduleMode: log.mode,
-            showScheduleDialog: true,
-            ...(log.mode === "day"
-              ? {
-                  scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd"),
-                }
-              : {
-                  scheduleWeekStart: format(
-                    new Date(log.scheduledAt),
-                    "yyyy-MM-dd",
-                  ),
-                }),
-          });
-        }}
-        onDeleteLog={async (id) => {
-          await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
-          await data.refreshTasks();
-          data.fetchScheduleLogs();
-        }}
-      />
+      {/* Hidden on small screens, visible from lg breakpoint */}
+      <div className="hidden lg:block">
+        <UnscheduledPanel
+          unscheduledTasks={data.unscheduledTasks}
+          scheduleLogs={data.scheduleLogs}
+          events={data.events}
+          categories={data.categories}
+          onTaskClick={setQuickScheduleTask}
+          onEditLog={(log) => {
+            sched.patch({
+              scheduleMode: log.mode,
+              showScheduleDialog: true,
+              ...(log.mode === "day"
+                ? {
+                    scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd"),
+                  }
+                : {
+                    scheduleWeekStart: format(
+                      new Date(log.scheduledAt),
+                      "yyyy-MM-dd",
+                    ),
+                  }),
+            });
+          }}
+          onDeleteLog={async (id) => {
+            await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
+            await data.refreshTasks();
+            data.fetchScheduleLogs();
+          }}
+        />
+      </div>
 
       {isModalOpen && (
         <EventDetailModal

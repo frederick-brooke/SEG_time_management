@@ -18,6 +18,7 @@ export default function PagesLayout({ children }) {
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
+        background: "#070b18",
       }}
     >
       {/* Sidebar disappears when search is open */}
@@ -36,9 +37,12 @@ export default function PagesLayout({ children }) {
         />
       )}
 
-      <SidebarInset>
+      <SidebarInset style={{
+        background: "transparent",
+        minHeight: "100vh",
+      }}>
         <div className="p-2">
-          <SidebarTrigger />
+          <SidebarTrigger className="text-white"/>
         </div>
         {children}
         <div id="modal-root"></div>
