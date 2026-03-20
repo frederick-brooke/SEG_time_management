@@ -2,150 +2,160 @@
 import { useState, useCallback } from "react";
 
 export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
-    if (!appeal) return null;
-    const [loading, setLoading] = useState(false);
+  if (!appeal) return null;
+  const [loading, setLoading] = useState(false);
 
-    const handleAction = useCallback(async (action) => {
-        setLoading(true);
-        try {
-            await fetch(`/api/admin/appeals/${appeal.id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action }),
-            });
-            fetchAppeals();
-            onClose();
-        } finally {
-            setLoading(false);
-        }
-    }, [appeal.id, fetchAppeals, onClose]);
+  const handleAction = useCallback(async (action) => {
+      setLoading(true);
+      try {
+          await fetch(`/api/admin/appeals/${appeal.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action }),
+          });
+          fetchAppeals();
+          onClose();
+      } finally {
+          setLoading(false);
+      }
+  }, [appeal.id, fetchAppeals, onClose]);
+
+  // Status colors
+  const statusStyles = appeal.status === "APPROVED" ? "bg-green-400/20 text-green-300" : appeal.status === "REJECTED" ? "bg-red-400/20 text-red-300" : "bg-yellow-400/20 text-yellow-300";
 
   return (
-    <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} // clicking backdrop closes
-    >
-      <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 border-l"
-        onClick={onClose} //click outside closes
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="h-full w-96 flex flex-col bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className="h-full overflow-y-auto p-6 space-y-6 text-sm"
-          onClick={(e) => e.stopPropagation()}
-        >
         {/* Header */}
-        <h3 className="text-xl font-semibold mb-4">
-          Appeal Details
-        </h3>
+        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white">
+            Appeal Details
+          </h3>
 
-        <h3 className="text-l font-bold mb-4">
-          <p><strong>Appeal ID:</strong> {appeal.id}</p>
-        </h3>
-
-        <div className="border-t" />
+          <button
+            onClick={onClose}
+            className="text-white/50 hover:text-white transition"
+          >
+            ✕
+          </button>
+        </div>
 
         {/* Appeal Info */}
-        <div className="grid grid-cols-2 gap-y-3">
-
-          <span className="text-gray-500">Appealing User</span>
-          <span className="font-medium">
-            {appeal.user?.username ?? appeal.user?.email}
-          </span>
-
-          <span className="text-gray-500">Submitted</span>
-          <span className="font-medium">
-            {new Date(appeal.createdAt).toLocaleString()}
-          </span>
-
-          <span className="text-gray-500">Related Report</span>
-          <span className="font-medium">
-            {appeal.report?.id ?? "Unknown"}
-          </span>
-
-          <span className="text-gray-500">Appeal Status</span>
-          <span className="font-medium">{appeal.status}</span>
-
-          <span className="text-gray-500">Handled By</span>
-          <span className="font-medium">
-            {appeal.handledBy?.username ?? "Not handled yet"}
-          </span>
-
-          {appeal.status === "APPROVED" && (
-            <>
-              <span className="text-gray-500">User Ban Status</span>
-              <span className="font-medium text-green-600">
-                Ban Lifted
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+          {/* Appeal Info */}
+          <div className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-xs uppercase text-white/40 tracking-wider">
+                Appeal ID
               </span>
-            </>
-          )}
+              <span className="font-medium text-white">{appeal.id}</span>
+            </div>
 
-          {appeal.status === "REJECTED" && (
-            <>
-              <span className="text-gray-500">Ban Status</span>
-              <span className="font-medium text-red-600">
-                Ban Remains Active
+            <div className="flex justify-between">
+              <span className="text-xs uppercase text-white/40 tracking-wider">
+                Appealing User
               </span>
-            </>
-          )}
+              <span className="font-medium text-white">
+                {appeal.user?.username ?? appeal.user?.email}
+              </span>
+            </div>
 
-        </div>
+            <div className="flex justify-between">
+              <span className="text-xs uppercase text-white/40 tracking-wider">
+                Submitted
+              </span>
+              <span className="font-medium text-white">
+                {new Date(appeal.createdAt).toLocaleString()}
+              </span>
+            </div>
 
-        <div className="border-t" />
+            <div className="flex justify-between">
+              <span className="text-xs uppercase text-white/40 tracking-wider">
+                Related Report
+              </span>
+              <span className="font-medium text-white">
+                {appeal.report?.id ?? "Unknown"}
+              </span>
+            </div>
 
-        {/* Appeal Description */}
-        <div>
-          <p className="text-gray-500 mb-1">Appeal Explanation</p>
-          <div className="bg-gray-50 border rounded-lg p-3 text-sm">
-            {appeal.description ?? "No explanation provided by the user."}
-          </div>
-        </div>
+            <div className="flex justify-between items-center">
+              <span className="text-xs uppercase text-white/40 tracking-wider">
+                Status
+              </span>
+              <span
+                className={`px-2 py-1 text-xs rounded-full font-medium ${statusStyles}`}
+              >
+                {appeal.status}
+              </span>
+            </div>
 
-        <div className="border-t" />
-
-        {/* Moderator Notes Placeholder (common in appeal systems) */}
-        {appeal.moderatorNotes && (
-          <div>
-            <p className="text-gray-500 mb-1">Moderator Notes</p>
-            <div className="bg-gray-50 border rounded-lg p-3 text-sm">
-              {appeal.moderatorNotes}
+            <div className="flex justify-between">
+              <span className="text-xs uppercase text-white/40 tracking-wider">
+                Handled By
+              </span>
+              <span className="font-medium text-white">
+                {appeal.handledBy?.username ?? "Not handled yet"}
+              </span>
             </div>
           </div>
-        )}
 
-        {/* Action Buttons */}
-        {appeal.status === "PENDING" && (
-          <div className="space-y-2">
-
-            <button
-              onClick={() => {
-                handleAction("APPROVE");
-                alert("Appeal approved. User ban has been lifted.");
-              }}
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              Approve Appeal & Lift Ban
-            </button>
-
-            <button
-              onClick={() => {
-                handleAction("REJECT");
-                alert("Appeal rejected");
-              }}
-              className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
-            >
-              Reject Appeal
-            </button>
-
+          {/* Appeal Description */}
+          <div className="space-y-1">
+            <p className="text-xs text-white/40 uppercase tracking-wider">
+              Appeal Explanation
+            </p>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
+              {appeal.description ?? "No explanation provided."}
+            </div>
           </div>
-        )}
+
+          {/* Moderator Notes Placeholder (common in appeal systems) */}
+          {appeal.moderatorNotes && (
+            <div className="space-y-1">
+              <p className="text-xs text-white/40 uppercase tracking-wider">
+                Moderator Notes
+              </p>
+              <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
+                {appeal.moderatorNotes}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          {appeal.status === "PENDING" && (
+            <div className="space-y-2">
+
+              <button
+                onClick={() => handleAction("APPROVE")}
+                disabled={loading}
+                className="w-full py-2 rounded-xl bg-green-400 text-gray-900 font-medium hover:scale-[1.02] transition"
+              >
+                Approve Appeal & Lift Ban
+              </button>
+
+              <button
+                onClick={() => handleAction("REJECT")}
+                disabled={loading}
+                className="w-full py-2 rounded-xl bg-red-400 text-gray-900 font-medium hover:scale-[1.02] transition"
+              >
+                Reject Appeal
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="w-full border py-2 rounded-lg hover:bg-gray-100 transition"
-        >
-          Close
-        </button>
+        <div className="p-6 border-t border-white/10">
+          <button
+            onClick={onClose}
+            className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+          >
+            Close
+          </button>
         </div>
       </div>
-    </div>   
-      
+    </div>      
   );
 }
