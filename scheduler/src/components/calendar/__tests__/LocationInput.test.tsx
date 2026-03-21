@@ -1,20 +1,5 @@
 /**
  * Tests for src/components/calendar/LocationInput.tsx
- *
- * Covers:
- * - Renders label and input with correct placeholder
- * - Shows/hides "Use My Location" button based on showCurrentLocation and onUseCurrentLocation
- * - onUseCurrentLocation called when Use My Location is clicked
- * - onSearchChange called when input text changes
- * - Save star button shown only when pending location is set
- * - onOpenSaveModal called when star button is clicked
- * - Suggestions dropdown shown when suggestions array is non-empty
- * - Suggestions display name, city, and address
- * - onSelectSuggestion called with correct suggestion on click
- * - No suggestions dropdown when suggestions is empty
- * - SaveLocationModal shown when showSaveModal and pending are both set
- * - SaveLocationModal not shown when showSaveModal is false
- * - SavedLocationChips rendered with correct props
  */
 
 import React from "react";
@@ -66,7 +51,7 @@ function createSavedLocation(overrides: Record<string, any> = {}) {
 }
 
 /**
- * Creates a mock suggestion (Geoapify feature format).
+ * Creates a mock suggestion.
  */
 function createSuggestion(overrides: Record<string, any> = {}) {
   return {

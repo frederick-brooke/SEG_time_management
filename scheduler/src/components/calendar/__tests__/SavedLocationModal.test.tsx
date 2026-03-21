@@ -1,17 +1,5 @@
 /**
  * Tests for src/components/calendar/SaveLocationModal.tsx
- *
- * Covers:
- * - Renders address, label input defaulting to first part of address
- * - Renders all three type buttons (HOME, WORK, FAVOURITE)
- * - Type selection changes the active button
- * - Label input reflects changes
- * - Save button disabled when label is empty
- * - Save button disabled while saving
- * - handleSave: calls onSave with trimmed label and selected type, then onClose
- * - handleSave: does not call onSave when label is empty/whitespace
- * - handleSave: shows "Saving…" while in flight
- * - ✕ button calls onClose
  */
 
 import React from "react";
@@ -117,7 +105,6 @@ describe("SaveLocationModal", () => {
   describe("type selection", () => {
     it("should default to FAVOURITE type", () => {
       render(<SaveLocationModal {...createDefaultProps()} />);
-      // FAVOURITE button should have the active indigo class
       const favButton = screen.getByText(/Favourite/).closest("button")!;
       expect(favButton.className).toContain("bg-indigo-600");
     });

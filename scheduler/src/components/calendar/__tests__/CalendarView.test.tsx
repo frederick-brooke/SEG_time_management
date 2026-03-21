@@ -1,18 +1,5 @@
 /**
  * Tests for src/components/calendar/CalendarView.tsx
- *
- * Covers:
- * - Initial render: core UI elements present, hooks called with correct args
- * - Init effects: fetchCategories, fetchExams, refreshEvents, refreshTasks, fetchScheduleLogs called on mount
- * - Visibility change effect: refreshTasks called on tab focus
- * - getFilteredItems: category filter, task filter, priority task filter, completed filter
- * - handleCheckInDone: hides check-in modal, refreshes tasks on empty queue, shows reschedule on queue
- * - handleRescheduleConfirm: empty ids refreshes tasks, patches durations, posts schedule, clears queue
- * - openModal / closeModal: modal state, selected event, editing state
- * - Schedule buttons: Schedule My Day and Schedule My Week call sched.open
- * - CategoryManager: opens on manage click, closes on close callback
- * - onSelectSlot: sets selected date and opens modal
- * - onSearchResultClick: navigates calendar to event date and opens modal
  */
 
 import React from "react";
@@ -593,7 +580,7 @@ describe("CalendarView", () => {
 
       await act(async () => { renderCalendarView(); });
 
-      // CalendarBody receives filteredItems — we verify via the mock hook return
+      // CalendarBody receives filteredItems - verify via the mock hook return
       const { useCalendarData: ucd } = require("@/hooks/useCalendarData");
       expect(ucd).toHaveBeenCalledWith("user-123");
     });
@@ -647,8 +634,7 @@ describe("CalendarView", () => {
         tasks: [{ id: "t1", completed: true, priority: "Low" }],
       });
       await act(async () => { renderCalendarView(); });
-      // The FilterSidebar mock exposes onToggleFilter — we need to trigger "completed"
-      // Since our mock only exposes "tasks", we verify the branch via the data setup
+
       expect(screen.getByTestId("calendar-body")).toBeInTheDocument();
     });
   });
@@ -658,7 +644,6 @@ describe("CalendarView", () => {
   describe("filter sidebar callbacks", () => {
     it("should toggle a filter key when onToggleFilter is called", async () => {
       await act(async () => { renderCalendarView(); });
-      // tasks filter starts true, toggling makes it false — no crash
       await act(async () => { fireEvent.click(screen.getByText("Toggle Tasks")); });
       expect(screen.getByTestId("calendar-body")).toBeInTheDocument();
     });

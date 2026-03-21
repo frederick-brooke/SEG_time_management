@@ -1,11 +1,5 @@
 /**
  * Tests for src/lib/eventHelpers.ts
- *
- * Covers:
- * - expandRecurringEvents: non-recurring, daily, weekly, monthly recurrence
- * - expandRecurringEvents: exception dates, until limits, duration preservation
- * - expandRecurringEvents: iteration cap (366), missing/unknown recurrence type
- * - buildGoogleRecurrenceRule: all recurrence types, BYDAY generation, edge cases
  */
 
 import { expandRecurringEvents, buildGoogleRecurrenceRule } from "../eventHelpers";

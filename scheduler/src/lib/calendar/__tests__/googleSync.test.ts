@@ -1,15 +1,5 @@
 /**
  * Tests for src/lib/calendar/googleSync.ts
- *
- * Covers:
- * - parseDts: dateTime events, all-day events, missing fields
- * - upsertGoogleEvent: cancelled/missing ID skipped, create, update, skipped (recently synced)
- * - syncGoogleCalendar: no calendar client, iterates events, swallows per-event errors
- * - insertGoogleEvent: no client returns null, timed event, all-day event, recurrence, error returns null
- * - createLocalEvent: correct field mapping, travelDuration rounding, fallback defaults
- * - fetchAllGoogleEvents: no client returns null, returns items
- * - deleteSingleOccurrence: invalid date, pushes exception, calls deleteGoogleEvent
- * - deleteGoogleEvent: no client, full event delete, single instance delete, swallows errors
  */
 
 import {

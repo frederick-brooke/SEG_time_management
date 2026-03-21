@@ -1,17 +1,5 @@
 /**
  * Tests for src/lib/calendar/googleCalendar.ts
- *
- * Covers:
- * - getGoogleCalendarClient: returns null when no account found
- * - getGoogleCalendarClient: returns null when account has no access_token
- * - getGoogleCalendarClient: returns a Google Calendar client on success
- * - getGoogleCalendarClient: sets credentials correctly on the OAuth2 client
- * - getGoogleCalendarClient: registers a tokens listener for auto-refresh
- * - persistRefreshedTokens: updates access_token on refresh
- * - persistRefreshedTokens: updates refresh_token when provided
- * - persistRefreshedTokens: updates expires_at when expiry_date provided
- * - persistRefreshedTokens: falls back to current access_token when new one absent
- * - persistRefreshedTokens: swallows errors without throwing
  */
 
 import { getGoogleCalendarClient } from "../googleCalendar";

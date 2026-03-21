@@ -1,14 +1,5 @@
 /**
  * Tests for the CalendarPage server component.
- *
- * Covers:
- * - Unauthenticated users are redirected to /login
- * - getServerSession is called with the correct authOptions
- * - Authenticated users see the page heading (as an h1)
- * - GoogleLinkButton receives the correct isConnected prop
- * - CalendarView receives the correct userId and googleConnected props
- * - CalendarView always receives empty arrays as initial props
- * - Edge case: googleConnected is undefined on the session user
  */
 
 import { render, screen } from "@testing-library/react";

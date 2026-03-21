@@ -1,19 +1,5 @@
 /**
  * Tests for src/components/calendar/TravelSection.tsx
- *
- * Covers:
- * - Travel Time mode toggle: auto and manual buttons rendered, switching modes
- * - Manual mode: input shown, onManualTravelTimeChange called, formatted preview shown
- * - Auto mode: LocationInput for start and destination rendered
- * - Auto mode: transport mode select rendered and calls onTransportModeChange
- * - Auto mode: travel preview shown with formatted time, hidden when null
- * - Auto mode: calculating state shows spinner text
- * - handleLocationSearch: calls onStartNameChange/onDestNameChange
- * - handleLocationSearch: fetches suggestions after debounce (short text clears)
- * - selectLocation: calls onStartCoordsChange and onStartNameChange
- * - selectSavedLocation: calls correct coord and name handlers
- * - useCurrentLocation: calls geolocation and onStartCoordsChange
- * - handleSave: calls saveLocation and refresh from useSavedLocations
  */
 
 import React from "react";
@@ -217,8 +203,6 @@ describe("TravelSection", () => {
           {...createDefaultProps({ travelTimeMode: "manual", manualTravelTime: 0 })}
         />
       );
-      // The static "minutes" label is always present in manual mode —
-      // assert the formatted badge specifically doesn't exist
       expect(screen.queryByText(/^\d+ mins$|^\d+h( \d+m)?$/)).not.toBeInTheDocument();
     });
 
@@ -298,10 +282,6 @@ describe("TravelSection", () => {
         />
       );
 
-      // Inject a suggestion via internal state — simulate a select click
-      // The mock LocationInput button calls onSelectSuggestion with a feature
-      // We need to push a suggestion through handleLocationSearch first
-      // Instead, directly test via the LocationInput mock's onSelectSaved path:
       fireEvent.click(screen.getAllByText("Select Saved")[0]);
 
       expect(onStartCoordsChange).toHaveBeenCalledWith({ lat: 51.5, lng: -0.1 });
@@ -426,7 +406,6 @@ describe("TravelSection", () => {
     it("should call saveLocation when a location is saved from the start input", async () => {
       render(<TravelSection {...createDefaultProps()} />);
 
-      // First select a saved location to set pendingStart
       fireEvent.click(screen.getAllByText("Select Saved")[0]);
 
       await act(async () => {
@@ -614,7 +593,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── selectLocation early return (no geometry) ────────────────────────────────
+  // ── selectLocation early return ────────────────────────────────
   describe("selectLocation with missing geometry", () => {
     it("should not call onStartCoordsChange when suggestion has no geometry", () => {
       const onStartCoordsChange = jest.fn();

@@ -1,13 +1,5 @@
 /**
  * Tests for src/lib/calendar/ical-parser.ts
- *
- * Covers:
- * - parseICal: basic event parsing, all-day events, folded lines, multiple events
- * - parseICal: RRULE, EXDATE, DURATION, DESCRIPTION escape sequences
- * - parseICal: incomplete events are discarded (missing uid, summary, dtstart, dtend)
- * - parseRRule: daily, weekly, monthly frequencies
- * - parseRRule: BYDAY day name mapping, UNTIL date parsing, COUNT with no until
- * - parseRRule: unsupported frequencies return null, RRULE: prefix stripped
  */
 
 import { parseICal, parseRRule, ParsedVEvent } from "../ical-parser";

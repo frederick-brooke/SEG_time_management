@@ -1,17 +1,5 @@
 /**
  * Tests for src/components/calendar/EventDetailModal.tsx
- *
- * Covers:
- * - Modal: backdrop click calls onClose, inner click does not, ✕ button calls onClose
- * - Detail view (event): title, date, description, recurring badge, edit/delete buttons
- * - Detail view (event): recurring event shows single + series delete buttons
- * - Detail view (event): non-recurring event shows single Delete Event button
- * - Detail view (task): TASK badge, duration, priority, completed badge, linked event info
- * - Detail view (task): recurring task badge, Edit Task and Delete Task buttons
- * - Task edit form: shown when isTaskEditOpen, Back button calls onSetTaskEdit(false)
- * - New event form: shown when selectedEvent is null
- * - Edit event form: shown when selectedEvent exists and isEditing is true
- * - Callbacks: onSetEditing, onSetTaskEdit, onDeleteTask, onDeleteEvent, onTaskSubmit
  */
 
 import React from "react";

@@ -1,19 +1,5 @@
 /**
  * Tests for src/components/calendar/CalendarBody.tsx
- *
- * Covers:
- * - Renders search input and calendar grid
- * - Search input interactions: change, focus, clear button visibility
- * - Search results dropdown: shown/hidden, result click, empty state
- * - Undo bar: shown instead of search, undo and dismiss button callbacks
- * - Travel events are filtered from search results
- * - Travel events do not trigger onSelectEvent when clicked
- * - Regular events and task events trigger onSelectEvent
- * - hexToRgb: valid hex, invalid hex fallback
- * - makeEventPropGetter: travel, task, and calendar event styles
- * - makeDayPropGetter: day-mode, week-mode, array-mode schedule log matching
- * - TaskEventContent, CalendarEventContent, TravelEventContent rendering
- * - All TRANSPORT_ICONS branches including unknown fallback
  */
 
 import React from "react";

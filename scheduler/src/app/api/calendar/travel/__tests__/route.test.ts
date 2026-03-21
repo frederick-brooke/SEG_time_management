@@ -1,15 +1,5 @@
 /**
  * Tests for POST /api/calendar/travel route.
- *
- * Covers:
- * - Returns duration on valid input
- * - Defaults to "driving" when no mode is provided
- * - Passes the correct mode to getTravelTime (driving, walking, cycling)
- * - Returns 400 on missing or invalid coordinates (all individual cases)
- * - Accepts coordinates with value 0
- * - Returns 500 when getTravelTime throws an Error
- * - Returns 500 with fallback message when a non-Error is thrown
- * - Returns 500 when the request body cannot be parsed
  */
 
 import { POST } from "../route";

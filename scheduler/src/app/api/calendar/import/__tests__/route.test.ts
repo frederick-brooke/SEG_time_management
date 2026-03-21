@@ -1,10 +1,5 @@
 /**
  * Tests for the iCal Calendar Import API route.
- *
- * Covers:
- * - GET: authentication, feed list retrieval, URL decoding, empty state
- * - POST: authentication, URL validation, iCal fetching, parsing, upsert outcomes, error handling
- * - DELETE: authentication, URL validation, event removal, error handling
  */
 
 import { NextRequest } from "next/server";

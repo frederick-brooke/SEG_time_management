@@ -1,13 +1,5 @@
 /**
  * Tests for src/components/calendar/CategoryManagerModal.tsx
- *
- * Covers:
- * - CategoryManagerModal: renders categories, close on backdrop, close on button
- * - CategoryRow: displays name, edit mode toggle, save validation (empty, black, duplicate colour)
- * - CategoryRow: successful save calls PATCH and onCategoriesChange
- * - CategoryRow: delete button only shown when canDelete, calls DELETE and onCategoriesChange
- * - AddCategoryForm: validation (empty name, black colour, duplicate colour)
- * - AddCategoryForm: successful add calls POST and onCategoriesChange, resets form
  */
 
 import React from "react";
@@ -153,7 +145,7 @@ describe("CategoryManagerModal", () => {
       render(<CategoryManagerModal {...createDefaultProps()} />);
       fireEvent.click(screen.getByText("Edit"));
 
-      // Set color to black — target the first color input (the one in edit mode)
+      // Set color to black — target the first color input
       const colorInputs = screen.getAllByDisplayValue(/^#/);
       fireEvent.change(colorInputs[0], { target: { value: "#000000" } });
       fireEvent.click(screen.getByText("Save"));
@@ -290,7 +282,6 @@ describe("CategoryManagerModal", () => {
     it("should show an error when colour is black (#000000)", () => {
       render(<CategoryManagerModal {...createDefaultProps()} />);
 
-      // The add form's color input defaults to #6366f1 — change to black
       const addFormColorInput = screen.getAllByRole("textbox")[0]
         .closest(".flex-col")
         ?.querySelector('input[type="color"]') as HTMLInputElement;
@@ -314,7 +305,6 @@ describe("CategoryManagerModal", () => {
       const categories = [createCategory({ color: "#6366f1" })];
       render(<CategoryManagerModal {...createDefaultProps({ categories })} />);
 
-      // Add form defaults to #6366f1 which is already used
       fireEvent.change(screen.getByPlaceholderText("Category name"), {
         target: { value: "New Cat" },
       });

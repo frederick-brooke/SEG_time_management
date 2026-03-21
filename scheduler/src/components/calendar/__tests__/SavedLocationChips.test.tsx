@@ -1,14 +1,5 @@
 /**
  * Tests for src/components/calendar/SavedLocationChips.tsx
- *
- * Covers:
- * - Returns null when locations is empty
- * - Renders a chip for each location
- * - Displays the correct icon for HOME, WORK, and FAVOURITE types
- * - Displays the location label
- * - Sets the address as the button title (tooltip)
- * - Calls onSelect with the correct location when a chip is clicked
- * - Renders multiple chips correctly
  */
 
 import React from "react";

@@ -1,22 +1,5 @@
 /**
  * Tests for src/components/calendar/EventFormParts.tsx
- *
- * Covers:
- * - RELATIVE_OPTIONS: correct keys, labels, and offsetDays
- * - TaskPromptSection: renders prompt banner, NewTaskForm, and finish button
- * - TaskPromptSection: adding a task shows LinkedTaskCard and changes button label
- * - TaskPromptSection: Skip — No Tasks calls onFinish without fetching
- * - TaskPromptSection: Save Tasks & Finish POSTs to /api/tasks and calls onFinish
- * - TaskPromptSection: dispatches tasks-updated event after saving
- * - LinkedTaskCard: renders task title, duration, priority, relative mode badge
- * - LinkedTaskCard: expand/collapse toggle shows and hides detail panel
- * - LinkedTaskCard: remove button calls onRemove with correct index
- * - LinkedTaskCard: relative picker change updates the mode badge
- * - LinkedTaskCard: calls onUpdate on mount (via useEffect)
- * - NewTaskForm: does not call onAdd when title is empty
- * - NewTaskForm: calls onAdd with correct fields on Add Task click
- * - NewTaskForm: calls onAdd when Enter is pressed in the title input
- * - NewTaskForm: resets title after successful add
  */
 
 import React from "react";

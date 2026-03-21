@@ -1,12 +1,5 @@
 /**
  * Tests for src/lib/calendar/eventMutations.ts
- *
- * Covers:
- * - handleSingleInstanceUpdate: exception pushed, Google patched, exception event created
- * - handleSingleInstanceUpdate: no Google event ID, Google client unavailable, patch failure
- * - handleSeriesUpdate: correct time calculation, Prisma update called, Google fire-and-forget
- * - handleSeriesUpdate: travelDuration rounding, null-coalescing of optional fields
- * - calcSeriesTimes: preserves original date, applies new time-of-day and duration
  */
 
 import { handleSingleInstanceUpdate, handleSeriesUpdate } from "../eventMutations";
@@ -301,7 +294,7 @@ describe("handleSingleInstanceUpdate", () => {
     await handleSingleInstanceUpdate(event, body, "user-123");
 
     const callArgs = mockClient.events.patch.mock.calls[0][0];
-    // Should be: google-event-id_20240610T090000Z
+
     expect(callArgs.eventId).toBe("google-event-id_20240610T090000Z");
   });
 });

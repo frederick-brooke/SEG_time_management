@@ -1,16 +1,5 @@
 /**
  * Tests for src/components/calendar/FilterSidebar.tsx
- *
- * Covers:
- * - Renders Tasks section heading and all three task filter labels
- * - Renders Categories section heading and Manage button
- * - Renders all provided category labels
- * - FilterCheckbox: shows ✓ when active, hides it when inactive
- * - onToggleFilter called with correct key for each task filter
- * - onToggleCategory called with correct category id
- * - onManageCategories called when + Manage is clicked
- * - Empty categories list renders no category checkboxes
- * - Active filter labels have different style to inactive ones
  */
 
 import React from "react";
@@ -52,14 +41,11 @@ describe("FilterSidebar", () => {
   describe("rendering", () => {
     it("should render the Tasks section heading", () => {
       render(<FilterSidebar {...createDefaultProps()} />);
-      // "Tasks" appears as both the h3 heading and the filter label span —
-      // assert there are exactly 2 instances, confirming both are present
       expect(screen.getAllByText("Tasks")).toHaveLength(2);
     });
 
     it("should render all three task filter labels", () => {
       render(<FilterSidebar {...createDefaultProps()} />);
-      // "Tasks" appears twice (heading + label); Priority Tasks and Completed once each
       expect(screen.getAllByText("Tasks")).toHaveLength(2);
       expect(screen.getByText("Priority Tasks")).toBeInTheDocument();
       expect(screen.getByText("Completed")).toBeInTheDocument();
@@ -100,12 +86,10 @@ describe("FilterSidebar", () => {
         <FilterSidebar
           {...createDefaultProps({
             activeFilters: { tasks: true, priorityTasks: false, completed: false },
-            // Disable all category filters so only one ✓ appears
             categoryFilters: { "cat-1": false, "cat-2": false },
           })}
         />
       );
-      // Only Tasks is active — exactly one ✓ should appear
       expect(screen.getAllByText("✓")).toHaveLength(1);
     });
 
@@ -130,7 +114,6 @@ describe("FilterSidebar", () => {
           })}
         />
       );
-      // tasks + priorityTasks + cat-1 = 3 active
       expect(screen.getAllByText("✓")).toHaveLength(3);
     });
 
@@ -154,8 +137,6 @@ describe("FilterSidebar", () => {
       const onToggleFilter = jest.fn();
       render(<FilterSidebar {...createDefaultProps({ onToggleFilter })} />);
 
-      // "Tasks" appears as both the section heading and the filter label.
-      // getAllByText returns [h3, span] — the label span is the second element.
       const taskSpan = screen.getAllByText("Tasks")[1];
       const taskLabel = taskSpan.closest("label")!;
       fireEvent.click(taskLabel.querySelector("div")!);

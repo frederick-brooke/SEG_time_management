@@ -1,17 +1,5 @@
 /**
  * Tests for src/components/calendar/EventForm.tsx
- *
- * Covers:
- * - Task prompt: shown when showTaskPrompt and createdEventId are set
- * - Conflict view: shown when showConflict, Ignore & Save calls saveEvent, Go Back hides conflict
- * - Normal form: renders title, category, date/time, submit button
- * - Google event: locked banner shown, fields disabled, submit disabled
- * - Recurring event editing: single/series mode toggle buttons shown for recurring non-Google events
- * - Recurrence select: weekly days checkboxes and until date shown when not 'none'
- * - Submit button label: Create Event, Update Series, Update Only This Day, Calculating Travel
- * - Delete button: shown for existing events, hidden for new events
- * - Delete button label: single vs series edit mode
- * - Form submit calls handleSubmit
  */
 
 import React from "react";
@@ -53,8 +41,6 @@ const mockSetRecurrenceUntil = jest.fn();
 const mockSetShowConflict = jest.fn();
 const mockSaveEvent = jest.fn();
 
-// Use `as any` to avoid TypeScript complaining about editMode union type
-// when individual tests spread and override it with a different value.
 const defaultHookReturn: any = {
   showTaskPrompt: false,
   createdEventId: null,
@@ -134,7 +120,6 @@ describe("EventForm", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHookReturn = { ...defaultHookReturn };
-    // Re-apply mocks that clearAllMocks resets
     mockHookReturn.handleSubmit = mockHandleSubmit;
     mockHookReturn.handleDelete = mockHandleDelete;
     mockHookReturn.setEditMode = mockSetEditMode;

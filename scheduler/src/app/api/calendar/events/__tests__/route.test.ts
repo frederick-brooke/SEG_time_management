@@ -1,12 +1,5 @@
 /**
  * Tests for the Calendar Events API route.
- *
- * Covers:
- * - GET: authentication, Google sync triggering, filtering, recurring event expansion
- * - POST: event creation, travel time calculation, recurrence, Google push, error handling
- * - PUT: force re-sync outcomes (created / updated / skipped), error handling
- * - PATCH: single occurrence update, series update, travel time enrichment, not found
- * - DELETE: single occurrence deletion, full event deletion, Google cleanup, invalid ID
  */
 
 import { NextRequest } from "next/server";
