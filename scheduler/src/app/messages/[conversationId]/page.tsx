@@ -319,7 +319,7 @@ export default function ConversationPage() {
   });
 
   return (
-    <div className="chat-bg relative flex flex-col h-full" style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}>
+    <div className="chat-bg relative flex flex-col h-full bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]">
       
       <StarBackground />
 
@@ -348,13 +348,13 @@ export default function ConversationPage() {
         <div ref={topRef} className="flex justify-center py-3">
           {loadingMore && (
             <div className="flex gap-1 items-center">
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.4)", animationDelay: "0ms" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.4)", animationDelay: "150ms" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.4)", animationDelay: "300ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:0ms]" />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:150ms]" />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:300ms]" />
             </div>
           )}
           {!hasMore && messages.length > 0 && (
-            <span className="text-xs" style={{ color: "rgba(148,163,255,0.35)" }}>Beginning of conversation</span>
+            <span className="text-xs text-[rgba(148,163,255,0.35)]">Beginning of conversation</span>
           )}
         </div>
 
@@ -378,11 +378,10 @@ export default function ConversationPage() {
           <div className="flex items-end gap-2 mt-2">
             <div className="w-7" />
             <div
-              className="rounded-2xl px-4 py-3 flex gap-1 items-center"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "0ms" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "150ms" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "rgba(148,163,255,0.6)", animationDelay: "300ms" }} />
+              className="rounded-2xl px-4 py-3 flex gap-1 items-center bg-white/[0.04] border border-white/[0.08] backdrop-blur-[12px]">
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:0ms]" />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:150ms]" />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:300ms]" />
             </div>
           </div>
         )}

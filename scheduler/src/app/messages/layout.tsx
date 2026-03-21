@@ -40,37 +40,26 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
   return (
     <div
-      className="flex h-screen overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}
+      className="flex h-screen overflow-hidden bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]"
     >
       {/* Sidebar — fixed full screen on mobile, static 380px on desktop */}
       <aside
-        className="flex flex-col shrink-0 transition-all duration-300 overflow-hidden"
-        style={{
-          width: sidebarOpen ? (isMobile ? "100vw" : "380px") : "0px",
-          borderRight: sidebarOpen && !isMobile ? "1px solid rgba(255,255,255,0.06)" : "none",
-          minWidth: 0,
-          ...(isMobile && {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            height: "100vh",
-            zIndex: 50,
-          }),
-        }}
+        className={`flex flex-col shrink-0 transition-all duration-300 overflow-hidden min-w-0 ${
+          isMobile ? "fixed top-0 left-0 h-screen z-50" : ""
+        } ${
+          sidebarOpen && !isMobile ? "border-r border-white/[0.06]" : ""
+        }`}
+        style={{ width: sidebarOpen ? (isMobile ? "100vw" : "380px") : "0px" }}
       >
-        <div className="flex flex-col h-full" style={{ width: isMobile ? "100vw" : "380px" }}>
-          <div className="p-4 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className={`flex flex-col h-full ${isMobile ? "w-screen" : "w-[380px]"}`}>
+          <div className="p-4 shrink-0 border-b border-white/[0.06]">
             <button
               onClick={() => router.push("/dashboard")}
-              className="text-sm flex items-center gap-1 mb-3 transition-colors"
-              style={{ color: "rgba(148,163,255,0.5)" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
-              onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.5)")}
+              className="text-sm flex items-center gap-1 mb-3 transition-colors text-[rgba(148,163,255,0.5)] hover:text-[rgba(148,163,255,0.9)]"
             >
               ←
             </button>
-            <h2 className="text-lg font-bold mb-3" style={{ color: "rgba(220,225,255,0.9)" }}>Messages</h2>
+            <h2 className="text-lg font-bold mb-3 text-[rgba(220,225,255,0.9)]">Messages</h2>
             <UserSearch />
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -84,18 +73,14 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
         <main className="flex-1 flex flex-col overflow-hidden min-w-0">
           {isMobile && conversationId && (
             <div
-              className="shrink-0 px-3 py-2"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+              className="shrink-0 px-3 py-2 border-b border-white/[0.06]"
             >
               <button
                 onClick={() => {
                   setSidebarOpen(true);
                   router.push("/messages");
                 }}
-                className="flex items-center gap-1.5 text-sm transition-colors"
-                style={{ color: "rgba(148,163,255,0.7)" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,1)")}
-                onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.7)")}
+                className="flex items-center gap-1.5 text-sm transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
               >
                 ← Back
               </button>
