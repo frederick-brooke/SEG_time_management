@@ -1,5 +1,11 @@
 "use client";
-// src/components/calendar/CalendarBody.tsx
+
+/**
+ * CalendarBody — renders the calendar grid, search bar, and undo bar.
+ * Delegates event/day styling to makeEventPropGetter and makeDayPropGetter,
+ * and routes event content rendering through EventComponent.
+ */
+
 import { useRef } from "react";
 import { Calendar } from "react-big-calendar";
 import { format } from "date-fns";
@@ -71,7 +77,9 @@ function EventComponent({ event }: any) {
   if (event._type === "task") return <TaskEventContent event={event} />;
   return <CalendarEventContent event={event} />;
 }
-
+/** 
+ * Converts a hex colour string to an "r, g, b" string for use in rgba(). 
+ * Falls back to indigo on invalid input. */
 function hexToRgb(hex: string): string {
   const clean = hex.replace("#", "");
   const r = parseInt(clean.substring(0, 2), 16);
@@ -81,6 +89,11 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
+/**
+ * Returns a prop getter for react-big-calendar events.
+ * Applies different styles for travel events (striped), task events, and calendar events.
+ * Dynamic colours are injected via the style prop; static layout via CSS modules.
+ */
 function makeEventPropGetter(categories: any[], events: any[]) {
   return (event: any) => {
     if (event._type === "_travel") {
@@ -124,6 +137,11 @@ function makeEventPropGetter(categories: any[], events: any[]) {
   };
 }
 
+/**
+ * Returns a prop getter for react-big-calendar day cells.
+ * Highlights days that have a matching schedule log by applying the scheduledDay CSS class.
+ * Supports day-mode, week-mode, and array-of-days log formats.
+ */
 function makeDayPropGetter(scheduleLogs: any[]) {
   return (date: Date) => {
     const str = date.toDateString();
@@ -169,7 +187,7 @@ export default function CalendarBody({
   onUndoDismiss,
 }: Props) {
   const searchRef = useRef<HTMLDivElement>(null);
-
+  // Travel events are not selectable — clicking them does nothing.
   const handleSelectEvent = (event: any) => {
     if (event._type === "_travel") return;
     onSelectEvent(event);
