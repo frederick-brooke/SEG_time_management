@@ -1,9 +1,7 @@
 // pages/admin.js
 "use client";
-
 import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
-
 import ReportFilter from "@/components/admin/report-filter-panel";
 import { useUsers } from "@/hooks/useUsers";
 import { useAdminReports } from "@/hooks/useAdminReports";
@@ -21,10 +19,14 @@ import GlassCard from "@/components/ui/glassCard";
 import { motion } from "framer-motion";
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
+/**
+ * Main admin dashboard component managing users, reports, and appeals with filtering and pagination.
+ * @param {Object} props - Component props.
+ * @returns {JSX.Element} The admin dashboard page.
+ */
 export default function AdminPage() {
   //User management states
   const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page:1, limit: 10};  //user search parameters
-
   const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
   const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
   
@@ -52,7 +54,6 @@ export default function AdminPage() {
 
   const [currentAppealPage, setCurrentAppealPage] = useState(1);
   const [selectedAppeal, setSelectedAppeal] = useState(null);
-  
   const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12};
   const [appliedAppealFilters, setAppliedAppealFilters] = useState(defaultAppealFilters);
   const [draftAppealFilters, setDraftAppealFilters] = useState(defaultAppealFilters);
@@ -229,9 +230,6 @@ export default function AdminPage() {
               />
             )}
           </div>
-
     </LunarThemeWrapper>
-
-    
   );
 }
