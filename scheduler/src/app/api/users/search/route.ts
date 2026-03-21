@@ -43,13 +43,10 @@ export async function GET(req: Request) {
     //dynamically build the query set
     const where: any = {
         AND: [
-        {
-            username: {
-                not: session.user.username
-            }
-            },
             {
-            isDeleted: false
+                username: {
+                    not: session.user.username
+                }
             }
         ]
     };

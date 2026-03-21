@@ -9,6 +9,9 @@ import ReminderModal from "@/components/ui/reminderModal";
 import ReminderPicker from "./reminder_timer_picker";
 import {useReminders} from "hooks/useReminders";
 
+import { IconClock } from "@tabler/icons-react";
+import GlassCard from "../ui/glassCard";
+
 export default function ReminderContainer({
     id,
     iconOn,
@@ -49,36 +52,42 @@ export default function ReminderContainer({
     };
 
     return (
-         <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-            {/* reminders containers */}
+        <>
+            <GlassCard>
+                <div className="flex items-center justify-between p-4 gap-4">
+                    {/* reminders containers to align in 1 horizontal row */}
+                    <div className="flex items-center gap-4">
+                        <div onClick={handleToggleClick}
+                            className={`relative w-14 h-8 flex items-center rounded-full cursor-pointer transition-all duration-300 
+                            ${reminder.enabled ? "bg-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "bg-white/10"}`}
+                        >
+                            <div className={`absolute left-1 flex items-center justify-center w-6 h-6 rounded-full bg-white text-black shadow-md transition-transform duration-300
+                                ${reminder.enabled ? "translate-x-6" : "translate-x-0"}`}
+                            >
+                                {reminder.enabled ? iconOn : iconOff}
+                            </div>
+                        </div>
 
-            <div onClick={handleToggleClick}
-                className={`relative w-14 h-8 flex items-center rounded-full cursor-pointer transition-colors duration-300
-                ${reminder.enabled ? "bg-green-500" : "bg-gray-300"}`}
-            >
-                <div className={`absolute left-1 flex items-center justify-center w-6 h-6 rounded-full bg-white shadow-md text-sm transition-transform duration-300
-                    ${reminder.enabled ? "translate-x-6" : "translate-x-0"}
-                    `}
-                >
-                    {reminder.enabled ? iconOn : iconOff}
-                </div>
-            </div>
+                        {/* Time countdown info*/}
+                        {reminder.enabled && reminder.remainingMs != null && (
+                            <div className="lunar-label flex flex-wrap gap-1 text-sm text-white/70 font-medium">
+                                {formatMs(reminder.remainingMs)} <IconClock size={16}/> 
+                            </div>
+                        )}
+                    </div> 
 
-            {reminder.enabled && reminder.remainingMs != null && (
-                <div className="time-text">
-                    <div className="text-sm text-gray-600 font-medium">
-                        Time remaining: {formatMs(reminder.remainingMs)}
-                    </div>
+                    {/* popup button asking for what time, appears on the right */}
+                    <Button
+                        onClick={() => {
+                            setIsSettingsOpen(true)
+                            setWellbeingOpen(false)
+                        }}
+                        className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:text-blue-400 hover:bg-blue-500/10 transition-all duration-300"
+                    > 
+                        <IconSettings className="w-4 h-4" />
+                    </Button>
                 </div>
-            )}
-            {/* popup asking for what time */}
-            <Button variant="outline" size="icon" onClick={
-                () => {
-                    setIsSettingsOpen(true)
-                    setWellbeingOpen(false)
-                }}> 
-                <IconSettings/>
-            </Button>
+            </GlassCard>
 
             {/* Reminder setup modal asking for time inputs */}
             <ReminderModal
@@ -89,14 +98,13 @@ export default function ReminderContainer({
                 }}
                 title={settingsTitle}
             >
-                <p>{settingsText}</p>
+                <p className="text-white/80">{settingsText}</p>
 
                 <ReminderPicker
                     onConfirm={(newDurationMs) => {
                         setIsSettingsOpen(false);
                         setWellbeingOpen(true);
                         reminder.setDurationMs(newDurationMs);
-                        //reminder.startReminderTimer(newDurationMs);
                     }}
                     initialDuration = {reminder.durationMs}
                 />
@@ -112,9 +120,8 @@ export default function ReminderContainer({
             }
                 title={firedTitle}
             >
-                <p>{firedText}</p>
-                
+                <p className="text-white/80">{firedText}</p>
             </ReminderModal>
-        </div>
+        </>
     );
 }

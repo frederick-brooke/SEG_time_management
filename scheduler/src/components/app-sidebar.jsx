@@ -49,6 +49,11 @@ const data = {
   },
   navMain: [
     {
+      title: "Search",
+      action: "search",
+      icon: IconSearch,
+    },
+    {
       title: "Dashboard",
       url: "/dashboard",
       icon: IconDashboard,
@@ -159,11 +164,7 @@ const data = {
     },
   ],
   navSecondary: [
-    {
-      title: "Search",
-      action: "search",
-      icon: IconSearch,
-    },
+    
   ],
 };
 
@@ -255,9 +256,7 @@ useEffect(() => {
 
   return (
     <>
-      <Sidebar collapsible="offcanvas"
-        className="!bg-transparent !border-none !shadow-none"
-        {...props}>
+      <Sidebar collapsible="offcanvas" className="!bg-transparent !border-none !shadow-none"{...props}>
         <div className="lunar-sidebar-ink">
           <SidebarHeader>
             <SidebarMenu>

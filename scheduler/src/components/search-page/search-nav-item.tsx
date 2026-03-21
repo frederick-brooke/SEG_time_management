@@ -17,7 +17,7 @@ export default function SearchNavItem() {
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl px-3 py-1 hover:border-blue-400/50 focus-within:border-blue-500 transition-all duration-300">
-      <IconSearch className="text-white/70" />
+      <IconSearch className="lunar-page-subtitle text-white/70" />
       <input
         type="text"
         value={query}
