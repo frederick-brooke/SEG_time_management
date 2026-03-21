@@ -61,15 +61,17 @@ export default function AdminListSection({
     <section className="mb-6 flex flex-col h-[600px]">
       {/*  Header  */}
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-xl text-white font-semibold">{title}</h2>
+        <h2 className="lunar-header text-xl text-white font-semibold">{title}</h2>
 
-        <button
-          type="button"
-          onClick={onFilterOpen}
-          className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
-        >
-          Filter
-        </button>
+        {!searchable && (
+          <button
+            type="button"
+            onClick={onFilterOpen}
+            className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+          >
+            Filter
+          </button>
+        )}
       </div>
 
       {/*  Search bar (for UserManagement only)  */}
@@ -85,7 +87,7 @@ export default function AdminListSection({
 
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition"
+            className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition"
           >
             Search
           </button>
@@ -93,7 +95,7 @@ export default function AdminListSection({
           <button
             type="button"
             onClick={onFilterOpen}
-            className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+            className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
           >
             Filter
           </button>
