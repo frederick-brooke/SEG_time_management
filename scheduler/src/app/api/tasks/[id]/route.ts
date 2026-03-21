@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { awardTaskPoints, revokeTaskPoints } from "@/lib/points";
 
 // ── DELETE ────────────────────────────────────────────────────────────────────
 export async function DELETE(
@@ -26,6 +27,12 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const existingTask = await prisma.task.findUnique({ where: { id } });
+    if (!existingTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+    const wasCompleted = existingTask.completed;
+
     const body = await request.json();
     const d: Record<string, unknown> = {};
 
@@ -76,12 +83,12 @@ export async function PATCH(
     }
 
     if (body.completed !== undefined) {
-      updateData.completed = body.completed;
-      updateData.completedAt = body.completed ? new Date() : null;
-      updateData.status = body.completed ? "completed" : "todo";
+      d.completed = body.completed;
+      d.completedAt = body.completed ? new Date() : null;
+      d.status = body.completed ? "completed" : "todo";
     }
 
-    const task = await prisma.task.update({ where: { id }, data: updateData });
+    const task = await prisma.task.update({ where: { id }, data: d });
 
     const isNowCompleted = task.completed;
 const priority = task.priority ?? "Low";
