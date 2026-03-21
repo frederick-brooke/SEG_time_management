@@ -46,11 +46,11 @@ export default function SearchControls({
                     className="flex-1 min-w-[200px] px-3 py-2 rounded-xl bg-white/5 border border-white/10 placeholder:text-white/40 text-white focus:outline-none focus:ring-1 focus:ring-blue-300/50 transition"
                 />
 
-                <button type="submit" className="px-4 py-2 rounded-xl bg-blue-400 text-gray-950 font-semibold hover:scale-105 transition">
+                <button type="submit" className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-400 text-gray-950 font-semibold hover:scale-105 transition">
                     Search
                 </button>
 
-                <button type="button" onClick={onOpenFilter} className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+                <button type="button" onClick={onOpenFilter} className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
                     Filter
                 </button>
 
@@ -59,7 +59,7 @@ export default function SearchControls({
                         setInputValue("");
                         resetFilters();
                     }}
-                    className="px-3 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 flex items-center gap-1 transition"
+                    className="lunar-page-subtitle x-3 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 flex items-center gap-1 transition"
                 >
                     <FunnelXIcon size={16} />
                     Reset

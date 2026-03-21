@@ -7,6 +7,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
+import { resetEventNotificationGuards } from "@/src/app/actions/calendarNotifications";
 
 /**
  * Patches a single occurrence of a Google Calendar recurring event by constructing
@@ -195,6 +196,8 @@ export async function handleSeriesUpdate(event: any, body: any, userId: string) 
       startLocationName: startLocationName ?? null,
       destLocationName: destLocationName ?? null,
       transportMode,
+      travelNotifiedAt: null,
+      eventNotifiedAt:null,
     },
   });
 

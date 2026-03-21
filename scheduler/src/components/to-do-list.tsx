@@ -47,6 +47,19 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
     cancelDelete,
   } = useTasks(userId);
 
+
+  const getPriorityStyle = (priority: string) => {
+    switch (priority) {
+      case "High":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "Medium":
+        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      case "Low":
+        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      default:
+        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+    }
+  };
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const isOverdue = (task) => {
@@ -213,7 +226,8 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
       <TaskViewDialog
         task={viewTask}
         isOpen={viewTask !== null}
-        onClose={() => setViewTask(null)}        
+        onClose={() => setViewTask(null)}  
+        getPriorityStyle={getPriorityStyle}      
       />
     </Card>
   );

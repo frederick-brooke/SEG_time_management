@@ -1,123 +1,66 @@
-import AppealPanel from "./admin-appeal-panel";
-
 import { motion } from "framer-motion";
+import AppealPanel from "./admin-appeal-panel";
+import AdminListSection from "./admin-list-section";
 
-export default function AppealsManagement({appeals, totalAppeals, totalAppealPages, currentAppealPage, setCurrentAppealPage, selectedAppeal, setSelectedAppeal, fetchAppeals, setIsAppealFilterOpen, filters, setFilters, resetFilters}) {
-  const PAGE_SIZE = filters?.limit ?? 5;
-  const page = filters?.page ?? 1;
-
-  const start = appeals.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-
-  const end = appeals.length === 0 ? 0 : start + appeals.length - 1;
-
+/**
+ * Renders the appeals management interface with an animated list of appeals and a detail panel.
+ * @param {Object} props - Component props.
+ * @param {Array} props.appeals - Array of appeal objects to display.
+ * @param {number} props.totalAppeals - Total number of appeals across all pages.
+ * @param {number} props.totalAppealPages - Total number of pages available.
+ * @param {Object|null} props.selectedAppeal - The currently selected appeal for detailed view.
+ * @param {Function} props.setSelectedAppeal - Function to set the selected appeal.
+ * @param {Function} props.fetchAppeals - Function to refetch the appeals list.
+ * @param {Function} props.setIsAppealFilterOpen - Function to open the appeal filter modal.
+ * @param {Object} props.filters - Current filter state object.
+ * @param {Function} props.setFilters - Function to update filter state.
+ * @param {Function} props.resetFilters - Function to reset all filters to default.
+ * @returns {JSX.Element} The appeals management component.
+ */
+export default function AppealsManagement({
+  appeals,
+  totalAppeals,
+  totalAppealPages,
+  selectedAppeal,
+  setSelectedAppeal,
+  fetchAppeals,
+  setIsAppealFilterOpen,
+  filters,
+  setFilters,
+  resetFilters,
+}) {
   return (
-    <section className="mb-6 flex flex-col h-[600px]">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-xl text-white font-semibold">
-          Appeals Management
-        </h2>
-
-        {/* appeal filter button */}
-        <button
-            type="button"
-            onClick={() => setIsAppealFilterOpen(true)}
-            className="px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+    <AdminListSection
+      title="Appeals Management"
+      items={appeals}
+      totalItems={totalAppeals}
+      totalPages={totalAppealPages}
+      filters={filters}
+      setFilters={setFilters}
+      onFilterOpen={() => setIsAppealFilterOpen(true)}
+      resetFilters={resetFilters}
+      itemLabel="appeals"
+      renderItem={(appeal, i) => (
+        <motion.div
+          key={appeal.id}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.03 }}
+          onClick={() => setSelectedAppeal(appeal)}
+          className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
         >
-            Filter
-        </button>
-        
-      </div>
-
-      {/* List */}
-      <ul className="space-y-2 flex-1 overflow-y-auto min-h-0 pr-1">
-        {appeals.map((appeal, i) => (
-          <motion.div
-            key={appeal.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.03 }}
-            onClick={() => setSelectedAppeal(appeal)}
-            className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
-          >
-            <div>
-              <p className="font-medium text-white">
-                Appeal ID: {appeal.id}
-              </p>
-
-              <p className="text-sm text-white">
-                User: {appeal.user?.email}
-              </p>
-
-              <p className="text-sm text-gray-500">
-                Status: {appeal.status}
-              </p>
-            </div>
-          </motion.div>
-        ))}
-      </ul>
-
-      {/* Count Display (same as reports) */}
-      <div className="mt-4 flex justify-center flex-shrink-0">
-          {appeals.length !== 0 ? (
-              <p className="text-sm text-white/60">
-                Showing{" "}
-              <span className="font-semibold text-white">
-                  {start}-{end}
-              </span>{" "}
-                of{" "}
-              <span className="font-semibold text-white">
-                  {totalAppeals}
-              </span>{" "}
-                appeals
-              </p>
-          ) : (
-              <p className="text-sm text-white/40 mt-4">
-                No appeals found.
-              </p>
-          )}
-      </div>
-
-      {/* pagination of the appeals */}
-      {totalAppealPages >= 1 && (
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10 flex-shrink-0">
-          <button
-            disabled={page === 1}
-            onClick={() =>
-              setFilters(prev => ({
-                ...prev,
-                page: (prev.page ?? 1) - 1
-              }))
-            }
-            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-
-          <span className="text-sm text-white-600">
-            Page {currentAppealPage} of {totalAppealPages}
-          </span>
-
-          <button
-            disabled={page === totalAppealPages}
-            onClick={() =>
-              setFilters(prev => ({
-                ...prev,
-                page: (prev.page ?? 1) + 1
-              }))
-            }
-            className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
+          <p className="font-medium text-white">Appeal ID: {appeal.id}</p>
+          <p className="text-sm text-white">User: {appeal.user?.email}</p>
+          <p className="text-sm text-gray-500">Status: {appeal.status}</p>
+        </motion.div>
       )}
-
-      <AppealPanel
-        appeal={selectedAppeal}
-        onClose={() => setSelectedAppeal(null)}
-        fetchAppeals={fetchAppeals}
-      />
-    </section>
+      renderPanel={() => (
+        <AppealPanel
+          appeal={selectedAppeal}
+          onClose={() => setSelectedAppeal(null)}
+          fetchAppeals={fetchAppeals}
+        />
+      )}
+    />
   );
 }

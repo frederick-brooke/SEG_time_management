@@ -82,15 +82,28 @@ export function useTasks(userId) {
   };
 
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {
+    console.log("toggleTaskStatus called", taskId, forcedStatus); 
     const task = tasks.find((t) => t.id === taskId);
-    if (!task) return;
+    if (!task) return null;
+  
     let nextStatus = forcedStatus;
     if (!nextStatus) {
       if (task.status === "todo") nextStatus = "in-progress";
       else if (task.status === "in-progress") nextStatus = "todo";
       else if (task.status === "completed") nextStatus = "in-progress";
     }
-    await updateTask(taskId, { status: nextStatus });
+  
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: nextStatus }),
+    });
+  
+    const data = await res.json();
+    console.log("toggle response:", data); // ← temp, remove later
+  
+    setTasks(prev => prev.map((t) => t.id === taskId ? { ...t, status: nextStatus, completed: nextStatus === "completed" } : t));
+    return data.rewards ?? null;
   };
 
   const sortTasks = () => {

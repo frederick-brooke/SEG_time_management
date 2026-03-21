@@ -15,7 +15,7 @@ export default function UserPanel({ user, onClose }) {
       >
         {/* Header */}
         <div className="p-6 flex items-center justify-between border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">User Details</h3>
+          <h3 className="lunar-header text-lg font-semibold text-white">User Details</h3>
           <button
             onClick={onClose}
             className="text-white/50 hover:text-white transition"
@@ -28,7 +28,7 @@ export default function UserPanel({ user, onClose }) {
         <div className="p-6 space-y-6 overflow-y-auto">
           {/* profile */}
           <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-white/10 flex items-center justify-center text-white font-semibold">
+              <div className="lunar-page-subtitle w-20 h-20 rounded-full overflow-hidden bg-white/10 flex items-center justify-center text-white font-semibold">
                 {user.pfp ? (
                   <img
                     src={user.pfp}
@@ -61,7 +61,7 @@ export default function UserPanel({ user, onClose }) {
 
           {/* Activity Stats */}
           <div>
-            <p className="text-xs uppercase text-white/40 tracking-wider mb-3">
+            <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider mb-3">
               Activity
             </p>
 
@@ -101,7 +101,7 @@ export default function UserPanel({ user, onClose }) {
         </div>
 
         {/* Actions */}
-        <div className="p-6 border-white/10 border-t mt-auto">
+        <div className="lunar-page-subtitle p-6 border-white/10 border-t mt-auto">
           <button
             onClick={onClose}
             className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
