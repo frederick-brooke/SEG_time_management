@@ -1,8 +1,11 @@
 "use client";
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { checkUpcomingDeadlines } from "../app/actions/examActions";
+import { getNotifications } from "../app/actions/notifications";
+import { ToastContainer } from "./ToastContainer"; // adjust path if needed
+import { checkUpcomingEventNotifications } from "@/src/app/actions/calendarNotifications";
 
 import {
   IconCamera,
@@ -169,17 +172,87 @@ export function AppSidebar({ onSearchClick, ...props }) {
   const [searchOpen,setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { data: session } = useSession()
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [toasts, setToasts] = useState([]);
+  const prevCountRef = useRef(0);
+  const prevIdsRef = useRef(new Set());
+  const { data: session } = useSession();
 
-  React.useEffect(() => {
-    setMounted(true);
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
-  
-  React.useEffect(() => {
-    if (session?.user?.id) {
-      checkUpcomingDeadlines(session.user.id);
+
+  const pollNotifications = useCallback(async () => {
+    try {
+      const data = await getNotifications();
+      if (!data.notifications) return;
+
+      const notifications = data.notifications;
+      const count = notifications.length;
+
+      // Find any notifications we haven't seen before
+      const newNotifs = notifications.filter(
+        (n) => !prevIdsRef.current.has(n.id)
+      );
+
+      // Show a toast for each new notification 
+      if (prevIdsRef.current.size > 0 && newNotifs.length > 0) {
+        const toShow = newNotifs.slice(0, 3);
+        setToasts((prev) => [
+          ...prev,
+          ...toShow.map((n) => ({
+            id: n.id,
+            title: n.title,
+            message: n.message,
+            type: n.type,
+          })),
+        ]);
+      }
+
+      // Update the set of known notification IDs
+      prevIdsRef.current = new Set(notifications.map((n) => n.id));
+      prevCountRef.current = count;
+      setUnreadCount(count);
+    } catch (err) {
+      console.error("Failed to poll notifications:", err);
     }
-  }, [session]);
+  }, []);
+React.useEffect(() => {
+  setMounted(true);
+}, []);
+
+React.useEffect(() => {
+  if (session?.user?.id) {
+    checkUpcomingDeadlines(session.user.id);
+    // Check for event notifications then immediately poll 
+    checkUpcomingEventNotifications(session.user.id).then(() => {
+      pollNotifications();
+    });
+  }
+}, [session]);
+
+React.useEffect(() => {
+  if (!session?.user?.id) return;
+  const interval = setInterval(() => {
+    checkUpcomingEventNotifications(session.user.id).then(() => {
+      pollNotifications(); 
+    });
+  }, 3 * 60 * 1000);
+  return () => clearInterval(interval);
+}, [session]);
+
+// Poll for new notifications every 30 seconds (updates badge + toasts)
+useEffect(() => {
+  pollNotifications();
+  const interval = setInterval(pollNotifications, 30_000);
+  return () => clearInterval(interval);
+}, [pollNotifications]);
+  
+
+  const handleOpenNotifications = () => {
+    setNotifOpen(true);
+    setUnreadCount(0); 
+  };
 
   return (
     <>
@@ -202,8 +275,8 @@ export function AppSidebar({ onSearchClick, ...props }) {
           </SidebarHeader>
 
           <SidebarContent className="lunar-scroll px-2">
-            <NavMain items={data.navMain} label="" onNotifClick={() => setNotifOpen(true)} onSearchClick={() => setSearchOpen(true)}/>
-            <NavSecondary items={data.navSecondary} className="mt-auto"/>
+            <NavMain items={data.navMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} />
+            <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
           </SidebarContent>
           <SidebarFooter>
             <NavUser user={data.user} />
@@ -211,18 +284,20 @@ export function AppSidebar({ onSearchClick, ...props }) {
         </div>
       </Sidebar>
 
+      {/* Toast pop-ups — bottom right, auto-dismiss after 5s */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       {/* Notification Modal */}
       {mounted && (
         <NotificationModal
           isOpen={notifOpen}
           handleShowModal={() => setNotifOpen(false)}
-        />    
+        />
       )}
 
       {mounted && (
-        <SearchPanel
-          open={searchOpen}
-          onClose={() => setSearchOpen(false)}
+        <SearchPanel 
+        open={searchOpen} 
+        onClose={() => setSearchOpen(false)} 
         />
       )}
     </>

@@ -150,9 +150,12 @@ model UserProgress {
   xpBoostExpires DateTime?
   streakShields  Int                @default(0)
   shieldUsedDate DateTime?
-  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions   PointTransaction[]
-  inventory      UserInventory[]
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions PointTransaction[]
+  inventory    UserInventory[]
+  coins          Int       @default(0)   
+  equippedAvatar  String?
+
 }
 
 model PointTransaction {
@@ -299,6 +302,10 @@ model Event {
   updatedAt DateTime @updatedAt
 
   tasks Task[]
+
+  travelNotifiedAt  DateTime?   // set when the "time to leave" notification fires
+  eventNotifiedAt   DateTime?   // set when the "event starting soon" notification fires
+
 }
 
 model FriendRequest {

@@ -26,7 +26,7 @@ export async function getShopData() {
   const userProgress = progress ?? await prisma.userProgress.create({
     data: {
       userId: session.user.id,
-      points: 0, level: 1, experience: 0, streak: 0, streakShields: 0,
+      points: 0, level: 1, experience: 0, coins: 0, streak: 0, streakShields: 0,
     },
     include: { inventory: { include: { item: true } } },
   });
@@ -37,11 +37,13 @@ export async function getShopData() {
     items: items.map(item => ({
       ...item,
       owned: ownedItemIds.has(item.id),
-      canAfford: userProgress.points >= item.price,
+      canAfford: userProgress.coins >= item.price,
     })),
-    points: userProgress.points,
-    equippedTitle: userProgress.equippedTitle ?? null,
-    equippedFrame: userProgress.equippedFrame ?? null,
+    points: userProgress.coins,
+    // equippedAvatar is stored in equippedFrame field for now (repurposed),
+    // OR add a dedicated equippedAvatar field to UserProgress in the schema.
+    // Using equippedAvatar field — see schema note below.
+    equippedAvatar: (userProgress as any).equippedAvatar ?? null,
     xpBoostExpires: userProgress.xpBoostExpires ?? null,
     streakShields: userProgress.streakShields ?? 0,
   };
@@ -71,7 +73,7 @@ export async function purchaseItem(itemId: string) {
 
   if (!item) throw new Error("Item not found");
   if (!progress) throw new Error("User progress not found");
-  if (progress.points < item.price) throw new Error("Not enough points");
+  if (progress.coins < item.price) throw new Error("Not enough coins");
 
   const alreadyOwned = progress.inventory.some((inv: any) => inv.itemId === itemId);
   if (alreadyOwned) throw new Error("Already owned");
@@ -79,7 +81,7 @@ export async function purchaseItem(itemId: string) {
   await prisma.$transaction([
     prisma.userProgress.update({
       where: { userId: session.user.id },
-      data: { points: { decrement: item.price } },
+      data: { coins: { decrement: item.price } },
     }),
     prisma.userInventory.create({
       data: { userId: session.user.id, itemId, progressId: progress.id },
@@ -93,6 +95,7 @@ export async function purchaseItem(itemId: string) {
     }),
   ]);
 
+  // Handle functional items
   if (item.type === "FUNCTIONAL") {
     if (item.value === "xp-boost-24h") {
       await prisma.userProgress.update({
@@ -125,6 +128,22 @@ export async function equipItem(itemId: string) {
   });
   if (!owned) throw new Error("Item not owned");
 
+  if (item.type === "AVATAR") {
+    // Store the equipped avatar value in the equippedAvatar field.
+    // Also update the user's pfp so it shows in all avatar displays.
+    await (prisma.userProgress as any).update({
+      where: { userId: session.user.id },
+      data: { equippedAvatar: item.value },
+    });
+    // Update the user pfp to the avatar image value (profile page reads profile.pfp)
+    // We store the avatar key here; ProfilePageClient resolves it via AVATAR_IMAGES.
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { pfp: `avatar:${item.value}` },
+    });
+  }
+
+  // Legacy support for TITLE / FRAME items still in DB
   if (item.type === "TITLE") {
     await prisma.userProgress.update({
       where: { userId: session.user.id },
@@ -142,14 +161,29 @@ export async function equipItem(itemId: string) {
   return { success: true };
 }
 
-export async function unequipItem(type: "TITLE" | "FRAME") {
+export async function unequipItem(type: "TITLE" | "FRAME" | "AVATAR") {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  await prisma.userProgress.update({
-    where: { userId: session.user.id },
-    data: type === "TITLE" ? { equippedTitle: null } : { equippedFrame: null },
-  });
+  if (type === "AVATAR") {
+    await (prisma.userProgress as any).update({
+      where: { userId: session.user.id },
+      data: { equippedAvatar: null },
+    });
+    // Clear the avatar pfp so it falls back to initials
+    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { pfp: true } });
+    if (user?.pfp?.startsWith("avatar:")) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { pfp: null },
+      });
+    }
+  } else {
+    await prisma.userProgress.update({
+      where: { userId: session.user.id },
+      data: type === "TITLE" ? { equippedTitle: null } : { equippedFrame: null },
+    });
+  }
 
   revalidatePath("/profile");
   revalidatePath("/shop");

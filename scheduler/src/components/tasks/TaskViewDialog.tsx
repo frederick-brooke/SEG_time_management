@@ -4,26 +4,30 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Label } from "components/ui/label";
 import { Button } from "components/ui/button";
-import { getPriorityStyle } from "@/src/lib/priority";
-import { X, CheckCircle2 } from "lucide-react"; // Added for a nice icon
-import { intervalToDuration } from "date-fns";
+import { X, CheckCircle2 } from "lucide-react"; 
 import { LunarCard } from "../ui/lunar-card";
 
 interface TaskViewDialogProps {
   task: any | null;
   isOpen: boolean;
   onClose: () => void;
+  getPriorityStyle: (priority: string) => string;
+  onReward?: (rewards: any) => void;
 }
 
-export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
+export function TaskViewDialog({ 
+  task, 
+  isOpen, 
+  onClose, 
+  getPriorityStyle, 
+  onReward 
+}: TaskViewDialogProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  
-  if (!task) return null;
 
-  /**
-   * Handles updating the task to 'completed' and awarding XP
-   */
+  // Return early if dialog shouldn't be open or task is missing
+  if (!isOpen || !task) return null;
+
   const handleCompleteTask = async () => {
     setLoading(true);
     try {
@@ -32,15 +36,15 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           status: 'completed',
-          completed: true // This is the trigger for your backend XP logic
-        })
+          completed: true,
+        }),
       });
 
       if (res.ok) {
-        // Refresh the page data so the XP bar updates immediately
-        router.refresh(); 
-        // Close the dialog after successful completion
-        onClose(); 
+        const data = await res.json();
+        router.refresh();
+        onClose();
+        if (data.rewards && onReward) onReward(data.rewards);
       }
     } catch (error) {
       console.error("Failed to update task:", error);
@@ -50,14 +54,13 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
   };
 
   return (
-
     /* Background Overlay */
-    < div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xl z-[9999]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 backdrop-blur-xl z-[9999]" onClick={onClose}>
 
       {/* Lunar Wrapper */}
       <LunarCard
           className="w-full max-w-[425px] relative p-8 bg-[#111629]/95 border-white/10 shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button onClick={onClose} className="absolute top-5 right-6 text-white/40 hover:text-white">
@@ -66,7 +69,7 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
 
         {/* Title */}
         <div className="mb-6">
-          <h3 className="text-2xl font-black text-white uppercase tracking-tighter">
+          <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
             {task.title}
             {task.status === "completed" && (
               <CheckCircle2 className="text-green-500 h-5 w-5" />
@@ -86,11 +89,9 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
 
           <div>
             <Label className="lunar-label">Priority</Label>
-            <p className="lunar-value">
-              <span
-                className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}
-              >
-                {task.priority}
+            <p className="lunar-value mt-1">
+              <span className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}>
+                {task.priority || "None"}
               </span>
             </p>
           </div>
@@ -120,7 +121,7 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
               <p className="lunar-value">No resource attached</p>
             )}
           </div>
-          
+
           <div>
             <Label className="lunar-label">Due Date</Label>
             <p className="lunar-value">
@@ -145,7 +146,9 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
             <Label className="lunar-label">Subtasks</Label>
             <ul className="list-disc list-inside text-sm text-white/50 mt-1 space-y-1">
               {task.subtasks?.length > 0 ? (
-                task.subtasks.map((sub, index) => <li key={index}>{sub}</li>)
+                task.subtasks.map((sub: string, index: number) => (
+                  <li key={index}>{sub}</li>
+                ))
               ) : (
                 <li>No subtasks</li>
               )}
@@ -154,15 +157,13 @@ export function TaskViewDialog({ task, isOpen, onClose }: TaskViewDialogProps) {
         </div>
 
         {/* Footer Buttons */}
-        <div className="flex gap-3 mt-8">
+        <div className="flex flex-col sm:flex-row gap-3 mt-8">
           <Button variant="outline" onClick={onClose} className="flex-1 bg-white/10 text-white border-white/10 hover:bg-white/20">
             Close
           </Button>
-
-          {/* Complete Task Button - Only shows if not already completed */}
           {task.status !== "completed" && (
-            <Button 
-              onClick={handleCompleteTask} 
+            <Button
+              onClick={handleCompleteTask}
               disabled={loading}
               className="flex-1 bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-[0_0_20px_rgba(59,130,246,0.4)]"
             >
