@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import CalendarView from "@/src/components/calendar/CalendarView";
 import GoogleLinkButton from "@/components/googleLinkButton";
 import { StarBackground } from "@/components/ui/StarBackground";
+import { checkUpcomingEventNotifications } from "@/src/app/actions/calendarNotifications";
 
 /**
  * Server-side calendar page component.
@@ -22,7 +23,7 @@ import { StarBackground } from "@/components/ui/StarBackground";
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-
+  await checkUpcomingEventNotifications(session.user.id);
   return (
     <main 
       className="chat-bg container mx-auto px-6 pt-4 pb-8 relative min-h-screen"
