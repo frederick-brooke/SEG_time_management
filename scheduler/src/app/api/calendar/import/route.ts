@@ -1,24 +1,31 @@
+/**
+ * iCal Calendar Import API route handles importing external calendar feeds.
+ * Supports fetching, parsing, and upserting iCal (.ics) feeds into the local database.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
 import { parseICal, parseRRule, ParsedVEvent } from "@/src/lib/calendar/ical-parser";
 
-// ---------------------------------------------------------------------------
-// Helpers — encode/decode the source URL inside googleEventId
-// Format: ical:{base64(url)}:{uid}
-// ---------------------------------------------------------------------------
 
+/** Encodes a feed URL and event UID into the internal ical: googleEventId format. */
 function encodeImportId(url: string, uid: string): string {
   const encoded = Buffer.from(url).toString("base64");
   return `ical:${encoded}:${uid}`;
 }
 
+/** Encodes a feed URL into the ical: prefix used for bulk lookups and deletions. */
 function encodeImportPrefix(url: string): string {
   const encoded = Buffer.from(url).toString("base64");
   return `ical:${encoded}:`;
 }
 
+/**
+ * Decodes the source feed URL from an ical: googleEventId.
+ * @returns The original URL string, or null if the ID is malformed.
+ */
 function decodeImportUrl(googleEventId: string): string | null {
   if (!googleEventId.startsWith("ical:")) return null;
   const withoutPrefix = googleEventId.slice(5);
@@ -31,10 +38,11 @@ function decodeImportUrl(googleEventId: string): string | null {
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST helpers
-// ---------------------------------------------------------------------------
-
+/**
+ * Normalises a raw calendar URL — converts webcal:// to https:// and
+ * collapses double slashes in the path.
+ * @returns The normalised URL string, or null if the URL is invalid.
+ */
 function normaliseUrl(raw: string): string | null {
   try {
     const normalised = raw.replace(/^webcal:/i, "https:");
@@ -47,6 +55,10 @@ function normaliseUrl(raw: string): string | null {
   }
 }
 
+/**
+ * Fetches the raw iCal text from a remote URL with a 15-second timeout.
+ * @returns `{ text }` on success or `{ error }` if the request fails.
+ */
 async function fetchICalText(url: string): Promise<{ text: string } | { error: string }> {
   try {
     const response = await fetch(url, {
@@ -71,6 +83,10 @@ async function fetchICalText(url: string): Promise<{ text: string } | { error: s
   }
 }
 
+/**
+ * Infers a local category from an event title using keyword matching.
+ * Falls back to "Personal" when no keywords match.
+ */
 function inferCategory(title: string): string {
   const t = title.toLowerCase();
   if (t.includes("lecture") || t.includes("class") || t.includes("seminar")) return "Lecture";
@@ -80,6 +96,10 @@ function inferCategory(title: string): string {
   return "Personal";
 }
 
+/**
+ * Updates an existing iCal-imported event in the database.
+ * Preserves existing description and recurrence if the new values are absent.
+ */
 async function updateICalEvent(
   existing: { id: string; description: string | null; recurrence: any; exceptions: string[] },
   ev: ParsedVEvent,
@@ -101,6 +121,10 @@ async function updateICalEvent(
   });
 }
 
+/**
+ * Creates a new iCal-imported event in the database.
+ * Category is inferred from the event title.
+ */
 async function createICalEvent(
   userId: string,
   googleEventId: string,
@@ -120,6 +144,10 @@ async function createICalEvent(
   });
 }
 
+/**
+ * Upserts a single parsed iCal event — updates if it already exists, creates otherwise.
+ * The googleEventId is encoded as `ical:{base64(url)}:{uid}` for traceability.
+ */
 async function upsertICalEvent(
   ev: ParsedVEvent,
   url: string,
@@ -137,7 +165,10 @@ async function upsertICalEvent(
   return "created";
 }
 
-
+/**
+ * Validates and parses raw iCal text into an array of events.
+ * @returns A parsed event array on success, or an error message string on failure.
+ */
 function parseICalFeed(icalText: string): ReturnType<typeof parseICal> | string {
   if (!icalText.includes("BEGIN:VCALENDAR") || !icalText.includes("BEGIN:VEVENT"))
     return "URL does not appear to be a valid iCal (.ics) calendar feed.";
@@ -151,12 +182,11 @@ function parseICalFeed(icalText: string): ReturnType<typeof parseICal> | string 
   }
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/calendar/import
-// Returns a deduplicated list of all imported calendar feeds for this user,
-// including the source URL and how many events came from it.
-// ---------------------------------------------------------------------------
-
+/**
+ * GET /api/calendar/import
+ * Returns a deduplicated list of imported calendar feeds for the user,
+ * with the source URL and event count for each.
+ */
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user)
@@ -182,11 +212,13 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(feeds);
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/calendar/import
-// Body: { url: string } — fetch and upsert events from an iCal feed
-// ---------------------------------------------------------------------------
-
+/**
+ * POST /api/calendar/import
+ * Fetches and upserts all events from an iCal feed URL.
+ * Normalises webcal:// URLs and validates the feed before importing.
+ * @returns `{ created, updated, skipped, total }` summary on success,
+ *   400 for invalid input, 422 for an unreachable or invalid feed, or 401 if not authenticated.
+ */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user)
@@ -220,11 +252,11 @@ export async function POST(req: NextRequest) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// DELETE /api/calendar/import
-// Body: { url: string } — removes ALL events imported from this feed URL
-// ---------------------------------------------------------------------------
-
+/**
+ * DELETE /api/calendar/import
+ * Removes all events imported from a given feed URL by matching the encoded prefix.
+ * @returns `{ deleted }` count on success, 400 for missing URL, or 401 if not authenticated.
+ */
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user)
