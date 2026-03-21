@@ -64,10 +64,13 @@ function calcSeriesTimes(event: any, body: any): { updatedSeriesStart: Date; upd
   const newDateReq = new Date(body.start);
   const newEndDateReq = new Date(body.end);
   const originalMasterStart = new Date(event.start);
+  
+  // Calculate the duration in milliseconds
+  const duration = newEndDateReq.getTime() - newDateReq.getTime();
   const updatedSeriesStart = new Date(originalMasterStart);
   updatedSeriesStart.setHours(newDateReq.getHours(), newDateReq.getMinutes(), 0, 0);
-  const duration = newEndDateReq.getTime() - newDateReq.getTime();
   const updatedSeriesEnd = new Date(updatedSeriesStart.getTime() + duration);
+  
   return { updatedSeriesStart, updatedSeriesEnd };
 }
 
@@ -81,18 +84,25 @@ function patchGoogleSeries(
   (async () => {
     try {
       const calendar = await getGoogleCalendarClient(userId);
-      if (calendar) {
-        await calendar.events.patch({
-          calendarId: "primary",
-          eventId: updated.googleEventId!,
-          requestBody: {
-            summary: updated.title,
-            description: updated.description || "",
-            start: { dateTime: updatedSeriesStart.toISOString(), timeZone: "UTC" },
-            end: { dateTime: updatedSeriesEnd.toISOString(), timeZone: "UTC" },
-          },
-        });
-      }
+      if (!calendar) return;
+      
+      const isAllDay = updated.allDay || 
+        (updatedSeriesStart.getHours() === 0 && updatedSeriesStart.getMinutes() === 0 &&
+         updatedSeriesEnd.getHours() === 0 && updatedSeriesEnd.getMinutes() === 0);
+      
+      const start = isAllDay 
+        ? { date: updatedSeriesStart.toISOString().split('T')[0], timeZone: "UTC" }
+        : { dateTime: updatedSeriesStart.toISOString(), timeZone: "UTC" };
+      
+      const end = isAllDay 
+        ? { date: updatedSeriesEnd.toISOString().split('T')[0], timeZone: "UTC" }
+        : { dateTime: updatedSeriesEnd.toISOString(), timeZone: "UTC" };
+      
+      await calendar.events.patch({
+        calendarId: "primary",
+        eventId: updated.googleEventId!,
+        requestBody: { summary: updated.title, description: updated.description || "", start, end },
+      });
     } catch (err) {
       console.error("Google Series Update Failed:", err);
     }
