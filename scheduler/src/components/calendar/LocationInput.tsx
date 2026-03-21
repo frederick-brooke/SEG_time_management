@@ -1,4 +1,10 @@
 "use client";
+
+/**
+ * LocationInput — address search input with autocomplete suggestions,
+ * saved location chips, and an optional save-to-favourites button.
+ */
+
 import { SavedLocation } from "hooks/useSavedLocations";
 import SavedLocationChips from "./SavedLocationChips";
 import SaveLocationModal from "./SaveLocationModal";
@@ -30,6 +36,11 @@ interface LocationInputProps {
 const inputClass =
   "w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors";
 
+/**
+ * Renders a labelled location search field. Shows autocomplete suggestions
+ * as a dropdown, a star button when a pending location can be saved,
+ * and the SaveLocationModal when saving is in progress.
+ */
 export default function LocationInput({
   label,
   placeholder,

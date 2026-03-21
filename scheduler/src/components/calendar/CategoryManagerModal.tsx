@@ -1,9 +1,16 @@
 "use client";
+
+/**
+ * CategoryManagerModal — modal for creating, editing, and deleting event categories.
+ * Composed of CategoryRow (edit existing) and AddCategoryForm (create new).
+ */
+
 import { useState } from "react";
 
-// ---------------------------------------------------------------------------
-// CategoryRow
-// ---------------------------------------------------------------------------
+/**
+ * Renders a single category row with inline edit and delete controls.
+ * Validates against black and duplicate colours before saving.
+ */
 function CategoryRow({
   cat,
   canDelete,
@@ -88,9 +95,10 @@ function CategoryRow({
   );
 }
 
-// ---------------------------------------------------------------------------
-// AddCategoryForm
-// ---------------------------------------------------------------------------
+/**
+ * Form for adding a new category with a name and colour picker.
+ * Validates against black and duplicate colours before calling onAdd.
+ */
 function AddCategoryForm({ onAdd, existingCategories }: any) {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#6366f1");
@@ -145,15 +153,17 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// CategoryManagerModal
-// ---------------------------------------------------------------------------
 interface CategoryManagerModalProps {
   categories: any[];
   onClose: () => void;
   onCategoriesChange: () => void;
 }
 
+/**
+ * Modal that lists all categories and allows the user to add, edit, or delete them.
+ * Changes are persisted immediately via the /api/categories endpoint.
+ * The last remaining category cannot be deleted.
+ */
 export default function CategoryManagerModal({
   categories,
   onClose,
