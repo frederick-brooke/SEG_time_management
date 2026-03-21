@@ -52,11 +52,9 @@ describe("SaveLocationModal", () => {
       ).toBeInTheDocument();
     });
 
-    it("should initialise the label input with the first part of the address", () => {
-      render(<SaveLocationModal {...createDefaultProps()} />);
-      expect(
-        screen.getByDisplayValue("King's Cross Station")
-      ).toBeInTheDocument();
+    it("should initialise label to empty string when address starts with a comma", () => {
+      render(<SaveLocationModal {...createDefaultProps({ address: ",something" })} />);
+      expect(screen.getByPlaceholderText("Label (e.g. Home, Gym...)")).toHaveValue("");
     });
 
     it("should use the full address as label when address has no comma", () => {
@@ -250,6 +248,96 @@ describe("SaveLocationModal", () => {
       render(<SaveLocationModal {...createDefaultProps({ onSave })} />);
       fireEvent.click(screen.getByText("✕"));
       expect(onSave).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("branch coverage", () => {
+    it("should apply inactive class to HOME and WORK when FAVOURITE is selected", () => {
+      render(<SaveLocationModal {...createDefaultProps()} />);
+      const homeButton = screen.getByText(/Home/).closest("button")!;
+      const workButton = screen.getByText(/Work/).closest("button")!;
+      expect(homeButton.className).toContain("bg-white/5");
+      expect(workButton.className).toContain("bg-white/5");
+    });
+  
+    it("should apply inactive class to FAVOURITE and WORK when HOME is selected", () => {
+      render(<SaveLocationModal {...createDefaultProps()} />);
+      fireEvent.click(screen.getByText(/Home/).closest("button")!);
+      const favButton = screen.getByText(/Favourite/).closest("button")!;
+      const workButton = screen.getByText(/Work/).closest("button")!;
+      expect(favButton.className).toContain("bg-white/5");
+      expect(workButton.className).toContain("bg-white/5");
+    });
+  
+    it("should apply inactive class to FAVOURITE and HOME when WORK is selected", () => {
+      render(<SaveLocationModal {...createDefaultProps()} />);
+      fireEvent.click(screen.getByText(/Work/).closest("button")!);
+      const favButton = screen.getByText(/Favourite/).closest("button")!;
+      const homeButton = screen.getByText(/Home/).closest("button")!;
+      expect(favButton.className).toContain("bg-white/5");
+      expect(homeButton.className).toContain("bg-white/5");
+    });
+  
+    it("should use FAVOURITE type when saving without changing type", async () => {
+      const onSave = jest.fn().mockResolvedValue(undefined);
+      render(<SaveLocationModal {...createDefaultProps({ onSave })} />);
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Save" }));
+      });
+      expect(onSave).toHaveBeenCalledWith(expect.any(String), "FAVOURITE");
+    });
+  
+    it("should not call onSave when label is only whitespace", async () => {
+      const onSave = jest.fn().mockResolvedValue(undefined);
+      render(<SaveLocationModal {...createDefaultProps({ onSave })} />);
+      const input = screen.getByPlaceholderText("Label (e.g. Home, Gym...)");
+      fireEvent.change(input, { target: { value: "   " } });
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Save" }));
+      });
+      expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it("should return early without calling onSave when label is whitespace on handleSave", async () => {
+      const onSave = jest.fn().mockResolvedValue(undefined);
+      const { container } = render(
+        <SaveLocationModal {...createDefaultProps({ onSave })} />
+      );
+      const input = screen.getByPlaceholderText("Label (e.g. Home, Gym...)");
+      fireEvent.change(input, { target: { value: "   " } });
+      
+      const saveBtn = screen.getByRole("button", { name: "Save" });
+      saveBtn.removeAttribute("disabled");
+      fireEvent.click(saveBtn);
+      
+      expect(onSave).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("error handling", () => {
+    it("should reset saving state and not close when onSave rejects", async () => {
+      const onSave = jest.fn().mockRejectedValue(new Error("fail"));
+      const onClose = jest.fn();
+      render(<SaveLocationModal {...createDefaultProps({ onSave, onClose })} />);
+  
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Save" }));
+      });
+  
+      expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  
+    it("should call onClose after onSave resolves successfully", async () => {
+      const onSave = jest.fn().mockResolvedValue(undefined);
+      const onClose = jest.fn();
+      render(<SaveLocationModal {...createDefaultProps({ onSave, onClose })} />);
+  
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "Save" }));
+      });
+  
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 });

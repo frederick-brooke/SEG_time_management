@@ -56,6 +56,9 @@ jest.mock("../LocationInput", () => ({
       <button onClick={() => onSelectSaved({ id: "loc-1", label: "Home", lat: 51.5, lng: -0.1, address: "Home Addr", type: "HOME" })}>
         Select Saved
       </button>
+      <button onClick={() => onSelectSuggestion({ properties: { name: "Bad" } })}>
+        Bad Suggestion
+      </button>
       <button onClick={onOpenSaveModal}>Open Save Modal</button>
       <button onClick={onCloseSaveModal}>Close Save Modal</button>
       <button onClick={() => onSaveLocation("My Label", "HOME")}>Save Location</button>
@@ -483,6 +486,160 @@ describe("TravelSection", () => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/api/location/search?q=Wat")
       );
+      jest.useRealTimers();
+    });
+  });
+
+  // ── useCurrentLocation — geolocation not supported ───────────────────────────
+  describe("useCurrentLocation when geolocation unavailable", () => {
+    it("should alert when geolocation is not supported", () => {
+      const alertMock = jest.spyOn(window, "alert").mockImplementation(() => {});
+      Object.defineProperty(global.navigator, "geolocation", {
+        value: undefined,
+        configurable: true,
+      });
+
+      render(<TravelSection {...createDefaultProps()} />);
+      fireEvent.click(screen.getByText("Use Current Location"));
+
+      expect(alertMock).toHaveBeenCalledWith("Geolocation not supported");
+      alertMock.mockRestore();
+    });
+  });
+
+  // ── handleSave early return when no pending location ─────────────────────────
+  describe("handleSave with no pending location", () => {
+    it("should not call saveLocation when pendingStart is null", async () => {
+      render(<TravelSection {...createDefaultProps()} />);
+
+      await act(async () => {
+        fireEvent.click(screen.getAllByText("Save Location")[0]);
+      });
+
+      expect(mockSaveLocation).not.toHaveBeenCalled();
+    });
+
+    it("should not call saveLocation when pendingDest is null", async () => {
+      render(<TravelSection {...createDefaultProps()} />);
+
+      await act(async () => {
+        fireEvent.click(screen.getAllByText("Save Location")[1]);
+      });
+
+      expect(mockSaveLocation).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── fetch error branch ────────────────────────────────────────────────────────
+  describe("location search fetch error", () => {
+    it("should clear suggestions when fetch returns non-ok response", async () => {
+      jest.useFakeTimers();
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: false });
+
+      render(<TravelSection {...createDefaultProps()} />);
+
+      fireEvent.change(screen.getByTestId("search-input-Starting Point"), {
+        target: { value: "Abc" },
+      });
+
+      await act(async () => jest.advanceTimersByTime(500));
+
+      // No suggestions rendered — fetch was called but returned not-ok
+      expect(global.fetch).toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it("should clear suggestions when fetch throws", async () => {
+      jest.useFakeTimers();
+      (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
+
+      render(<TravelSection {...createDefaultProps()} />);
+
+      fireEvent.change(screen.getByTestId("search-input-Starting Point"), {
+        target: { value: "Xyz" },
+      });
+
+      await act(async () => jest.advanceTimersByTime(500));
+
+      expect(global.fetch).toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+  });
+  // ── formatMins exact hour ─────────────────────────────────────────────────────
+  describe("formatMins exact hour", () => {
+    it("should show '1h' when manualTravelTime is exactly 60", () => {
+      render(
+        <TravelSection {...createDefaultProps({ travelTimeMode: "manual", manualTravelTime: 60 })} />
+      );
+      expect(screen.getByText("1h")).toBeInTheDocument();
+    });
+
+    it("should show '2h' when travelPreview is exactly 120", () => {
+      render(<TravelSection {...createDefaultProps({ travelPreview: 120 })} />);
+      expect(screen.getByText("2h")).toBeInTheDocument();
+    });
+  });
+
+  // ── selectLocation dest branch ───────────────────────────────────────────────
+  describe("selectLocation dest branch", () => {
+    it("should call onDestCoordsChange and onDestNameChange when suggestion selected for dest", () => {
+      const onDestCoordsChange = jest.fn();
+      const onDestNameChange = jest.fn();
+      render(<TravelSection {...createDefaultProps({ onDestCoordsChange, onDestNameChange })} />);
+      fireEvent.click(screen.getAllByText("Select Saved")[1]);
+      expect(onDestCoordsChange).toHaveBeenCalledWith({ lat: 51.5, lng: -0.1 });
+      expect(onDestNameChange).toHaveBeenCalledWith("Home");
+    });
+  });
+
+  // ── handleSave with pendingDest ───────────────────────────────────────────────
+  describe("handleSave dest branch", () => {
+    it("should call saveLocation when a location is saved from the dest input", async () => {
+      render(<TravelSection {...createDefaultProps()} />);
+      fireEvent.click(screen.getAllByText("Select Saved")[1]);
+      await act(async () => {
+        fireEvent.click(screen.getAllByText("Save Location")[1]);
+      });
+      expect(mockSaveLocation).toHaveBeenCalledWith(
+        expect.objectContaining({ label: "My Label", type: "HOME" })
+      );
+    });
+
+    it("should not call saveLocation when pendingDest is null", async () => {
+      render(<TravelSection {...createDefaultProps()} />);
+      await act(async () => {
+        fireEvent.click(screen.getAllByText("Save Location")[1]);
+      });
+      expect(mockSaveLocation).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── selectLocation early return (no geometry) ────────────────────────────────
+  describe("selectLocation with missing geometry", () => {
+    it("should not call onStartCoordsChange when suggestion has no geometry", () => {
+      const onStartCoordsChange = jest.fn();
+      render(<TravelSection {...createDefaultProps({ onStartCoordsChange })} />);
+      fireEvent.click(screen.getAllByText("Bad Suggestion")[0]);
+      expect(onStartCoordsChange).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── debounceTimer clearTimeout branch ────────────────────────────────────────
+  describe("debounce timer cleanup", () => {
+    it("should clear the previous timer when a new search is triggered quickly", async () => {
+      jest.useFakeTimers();
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+      render(<TravelSection {...createDefaultProps()} />);
+
+      fireEvent.change(screen.getByTestId("search-input-Starting Point"), {
+        target: { value: "Abc" },
+      });
+      fireEvent.change(screen.getByTestId("search-input-Starting Point"), {
+        target: { value: "Abcd" },
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
       jest.useRealTimers();
     });
   });

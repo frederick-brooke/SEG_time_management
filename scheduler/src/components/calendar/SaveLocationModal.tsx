@@ -39,16 +39,20 @@ export default function SaveLocationModal({
   onSave,
   onClose,
 }: SaveLocationModalProps) {
-  const [label, setLabel] = useState(address.split(",")[0] ?? address);
+  const [label, setLabel] = useState(address.split(",")[0] || "");
   const [type, setType] = useState<"HOME" | "WORK" | "FAVOURITE">("FAVOURITE");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!label.trim()) return;
     setSaving(true);
-    await onSave(label.trim(), type);
-    setSaving(false);
-    onClose();
+    try {
+      await onSave(label.trim(), type);
+      onClose();
+    } catch (err) {
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
