@@ -80,6 +80,10 @@
     line-height: 1;
   }
   
+  .searchIcon {
+    color: #9ca3af; /* gray-400 */
+  }
+  
   .undoDismiss {
     background: none;
     border: none;
