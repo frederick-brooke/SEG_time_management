@@ -137,12 +137,12 @@ export default function EventForm({
               type="button"
               disabled={f.isGoogle}
               onClick={() => f.setCategory(cat.name)}
-              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all test-white ${
                 f.category === cat.name
                   ? "border-white/60 scale-105 opacity-100"
                   : "border-transparent opacity-40 hover:opacity-60"
               }`}
-              style={{ backgroundColor: cat.color, color: "white" }}
+              style={{ backgroundColor: cat.color }}
             >
               {cat.name}
             </button>

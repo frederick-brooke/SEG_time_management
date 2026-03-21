@@ -69,20 +69,15 @@ function SenderAvatar({
         width={28}
         height={28}
         onClick={onClick}
-        className="w-7 h-7 rounded-full object-cover shrink-0"
-        style={{ cursor: onClick ? "pointer" : "default" }}
+        className={`w-7 h-7 rounded-full object-cover shrink-0 ${onClick ? "cursor-pointer" : "cursor-default"}`}
       />
     );
   return (
     <div
       onClick={onClick}
-      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-      style={{
-        background: "linear-gradient(135deg, rgba(88,101,242,0.5), rgba(139,92,246,0.5))",
-        cursor: onClick ? "pointer" : "default",
-      }}
+      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-gradient-to-br from-[rgba(88,101,242,0.5)] to-[rgba(139,92,246,0.5)] ${onClick ? "cursor-pointer" : "cursor-default"}`}
     >
-      <span className="text-xs font-semibold" style={{ color: "rgba(220,225,255,0.9)" }}>
+      <span className="text-xs font-semibold text-[rgba(220,225,255,0.9)]">
         {username?.[0]?.toUpperCase() ?? "?"}
       </span>
     </div>
@@ -128,18 +123,12 @@ function ReportModal({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50"
-      style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+      className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm"
     >
       <div
-        className="rounded-2xl p-6 w-full max-w-md"
-        style={{
-          background: "rgba(12,16,32,0.98)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
-        }}
+        className="rounded-2xl p-6 w-full max-w-md bg-[rgba(12,16,32,0.98)] border border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.6)]"
       >
-        <h2 className="text-lg font-semibold mb-4" style={{ color: "rgba(220,225,255,0.9)" }}>
+        <h2 className="text-lg font-semibold mb-4 text-[rgba(220,225,255,0.9)]">
           Report User
         </h2>
 
@@ -147,18 +136,13 @@ function ReportModal({
           <select
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="w-full rounded-lg px-3 py-2 pr-8 text-sm outline-none appearance-none"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: reason ? "rgba(210,220,255,0.85)" : "rgba(148,163,255,0.4)",
-            }}
+            className={`w-full rounded-lg px-3 py-2 pr-8 text-sm outline-none appearance-none bg-white/[0.05] border border-white/[0.08] ${reason ? "text-[rgba(210,220,255,0.85)]" : "text-[rgba(148,163,255,0.4)]"}`}
           >
-            <option value="" style={{ background: "#0c1020" }}>Select reason</option>
-            <option value="SPAM" style={{ background: "#0c1020" }}>Spam</option>
-            <option value="HARASSMENT" style={{ background: "#0c1020" }}>Harassment</option>
-            <option value="INAPPROPRIATE_CONTENT" style={{ background: "#0c1020" }}>Inappropriate Content</option>
-            <option value="OTHER" style={{ background: "#0c1020" }}>Other</option>
+            <option value="" className="bg-[#0c1020]">Select reason</option>
+            <option value="SPAM" className="bg-[#0c1020]">Spam</option>
+            <option value="HARASSMENT" className="bg-[#0c1020]">Harassment</option>
+            <option value="INAPPROPRIATE_CONTENT" className="bg-[#0c1020]">Inappropriate Content</option>
+            <option value="OTHER" className="bg-[#0c1020]">Other</option>
           </select>
           <svg
             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -174,30 +158,20 @@ function ReportModal({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full rounded-lg px-3 py-2 mb-4 text-sm outline-none resize-none"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "rgba(210,220,255,0.85)",
-            caretColor: "rgba(99,111,255,0.8)",
-          }}
+          className="w-full rounded-lg px-3 py-2 mb-4 text-sm outline-none resize-none bg-white/[0.05] border border-white/[0.08] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)]"
         />
 
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg transition-colors"
-            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(148,163,255,0.6)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            className="px-4 py-2 text-sm rounded-lg transition-colors border border-white/[0.08] text-[rgba(148,163,255,0.6)] hover:bg-white/[0.04]"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={!reason || loading}
-            className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40"
-            style={{ background: "rgba(220,50,50,0.7)", color: "rgba(255,220,220,0.95)" }}
+            className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40 bg-[rgba(220,50,50,0.7)] text-[rgba(255,220,220,0.95)]"
           >
             {loading ? "Submitting..." : "Submit Report"}
           </button>
@@ -243,12 +217,12 @@ export function MessageBubble({
     <>
       {showDateDivider && (
         <div className="flex items-center gap-3 my-2">
-          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-          <span className="text-xs font-medium px-1" style={{ color: "rgba(148,163,255,0.35)" }}>
+          <div className="flex-1 h-px bg-white/[0.06]" />
+          <span className="text-xs font-medium px-1 text-[rgba(148,163,255,0.35)]">
             {dateDividerLabel}
           </span>
-          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-        </div>
+          <div className="flex-1 h-px bg-white/[0.06]" />
+      </div>
       )}
 
       <div
@@ -272,22 +246,14 @@ export function MessageBubble({
 
         {/* Timestamp */}
         <span
-          className="text-xs whitespace-nowrap transition-all duration-150 self-end mb-1"
-          style={{
-            color: "rgba(148,163,255,0.35)",
-            opacity: isHovered ? 1 : 0,
-            width: isHovered ? "auto" : 0,
-            overflow: "hidden",
-            display: "inline-block",
-            flexShrink: 0,
-          }}
+          className={`text-xs whitespace-nowrap transition-all duration-150 self-end mb-1 inline-block shrink-0 overflow-hidden text-[rgba(148,163,255,0.35)] ${isHovered ? "opacity-100 w-auto" : "opacity-0 w-0"}`}
         >
           {formatTime(msg.createdAt)}
         </span>
 
         <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} max-w-[70%]`}>
           {!isMe && isFirst && (
-            <span className="text-xs mb-1 ml-1" style={{ color: "rgba(148,163,255,0.45)" }}>
+            <span className="text-xs mb-1 ml-1 text-[rgba(148,163,255,0.45)]">
               {msg.sender.username}
             </span>
           )}
@@ -295,19 +261,11 @@ export function MessageBubble({
           {/* Bubble + three-dot menu */}
           <div className={`relative flex items-center gap-1 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
             <div
-              className={`px-4 py-2 text-sm wrap-break-word transition-opacity duration-150 ${isOptimistic ? "opacity-50" : "opacity-100"} ${isMe ? myRadius : theirRadius}`}
-              style={isMe ? {
-                background: "linear-gradient(135deg, rgba(88,101,242,0.75), rgba(99,111,255,0.65))",
-                border: "1px solid rgba(99,111,255,0.3)",
-                color: "rgba(230,235,255,0.95)",
-                boxShadow: "0 2px 16px rgba(88,101,242,0.15)",
-                wordBreak: "break-all",
-              } : {
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                color: "rgba(200,210,230,0.85)",
-                wordBreak: "break-all",
-              }}
+              className={`px-4 py-2 text-sm break-all transition-opacity duration-150 ${isOptimistic ? "opacity-50" : "opacity-100"} ${isMe ? myRadius : theirRadius} ${
+                isMe
+                  ? "bg-gradient-to-br from-[rgba(88,101,242,0.75)] to-[rgba(99,111,255,0.65)] border border-[rgba(99,111,255,0.3)] text-[rgba(230,235,255,0.95)] shadow-[0_2px_16px_rgba(88,101,242,0.15)]"
+                  : "bg-white/[0.05] border border-white/[0.07] text-[rgba(200,210,230,0.85)]"
+              }`}
             >
               {msg.content}
             </div>
@@ -317,14 +275,7 @@ export function MessageBubble({
               <div className="relative">
                 <button
                   onClick={() => setShowMenu((v) => !v)}
-                  className="transition-opacity duration-150 p-1 rounded-full"
-                  style={{
-                    opacity: isHovered ? 1 : 0,
-                    color: "rgba(148,163,255,0.5)",
-                    background: "transparent",
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.5)")}
+                  className={`transition-opacity duration-150 p-1 rounded-full bg-transparent text-[rgba(148,163,255,0.5)] hover:text-[rgba(148,163,255,0.9)] ${isHovered ? "opacity-100" : "opacity-0"}`}
                 >
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                     <circle cx="8" cy="2.5" r="1.2" />
@@ -335,15 +286,7 @@ export function MessageBubble({
 
                 {showMenu && (
                   <div
-                    className="absolute z-40 rounded-xl py-1 min-w-32.5"
-                    style={{
-                      top: "100%",
-                      left: 0,
-                      background: "rgba(15,20,40,0.97)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      backdropFilter: "blur(16px)",
-                      boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-                    }}
+                    className="absolute top-full left-0 z-40 rounded-xl py-1 min-w-[130px] bg-[rgba(15,20,40,0.97)] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                   >
                     <button
                       onClick={() => {
@@ -351,13 +294,11 @@ export function MessageBubble({
                         setShowMenu(false);
                         setShowReport(true);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors"
-                      style={{
-                        color: reported ? "rgba(148,163,255,0.3)" : "rgba(255,100,100,0.85)",
-                        cursor: reported ? "default" : "pointer",
-                      }}
-                      onMouseEnter={e => { if (!reported) e.currentTarget.style.background = "rgba(255,80,80,0.08)"; }}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                        reported
+                          ? "text-[rgba(148,163,255,0.3)] cursor-default"
+                          : "text-[rgba(255,100,100,0.85)] cursor-pointer hover:bg-[rgba(255,80,80,0.08)]"
+                      }`}
                     >
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>

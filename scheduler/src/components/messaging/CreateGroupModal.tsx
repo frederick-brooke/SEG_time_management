@@ -68,56 +68,39 @@ export function CreateGroupModal({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}>
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
       <div
-        className="rounded-2xl p-6 w-full max-w-md"
-        style={{
-          background: "rgba(12,16,32,0.98)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
-        }}
+        className="rounded-2xl p-6 w-full max-w-md bg-[rgba(12,16,32,0.98)] border border-white/[0.08] shadow-[0_24px_64px_rgba(0,0,0,0.6)]"
       >
-        <h2 className="text-lg font-semibold mb-4" style={{ color: "rgba(220,225,255,0.9)" }}>New Group Chat</h2>
+        <h2 className="text-lg font-semibold mb-4 text-[rgba(220,225,255,0.9)]">New Group Chat</h2>
 
         <input
-          className="w-full rounded-lg px-3 py-2 mb-4 text-sm outline-none transition-colors"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: "rgba(210,220,255,0.85)",
-            caretColor: "rgba(99,111,255,0.8)",
-          }}
+          className="w-full rounded-lg px-3 py-2 mb-4 text-sm outline-none transition-colors bg-white/[0.05] border border-white/[0.08] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)] focus:border-[rgba(99,111,255,0.4)]"
           placeholder="Group name (e.g. Dream Team)"
           value={name}
           onChange={(e) => { setName(e.target.value); setDuplicate(false); }}
-          onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,111,255,0.4)")}
-          onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
         />
 
-        <p className="text-sm font-medium mb-2" style={{ color: "rgba(148,163,255,0.5)" }}>Add friends</p>
+        <p className="text-sm font-medium mb-2 text-[rgba(148,163,255,0.5)]">Add friends</p>
         <div
-          className="space-y-1 max-h-52 overflow-y-auto mb-4 rounded-lg p-2"
-          style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+          className="space-y-1 max-h-52 overflow-y-auto mb-4 rounded-lg p-2 border border-white/[0.06]"
         >
           {friends.map((u) => (
             <label
               key={u.id}
-              className="flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors"
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              className="flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-white/[0.04]"
             >
               <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="accent-indigo-500" />
               {u.pfp ? (
                 <Image src={u.pfp} alt={u.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
               ) : (
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium"
-                  style={{ background: "rgba(88,101,242,0.2)", color: "rgba(148,163,255,0.8)" }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.8)]"
                 >
                   {u.username[0].toUpperCase()}
                 </div>
               )}
-              <span className="text-sm" style={{ color: "rgba(200,210,230,0.8)" }}>{u.fname?.trim() || u.username}</span>
+              <span className="text-sm text-[rgba(200,210,230,0.8)]">{u.fname?.trim() || u.username}</span>
             </label>
           ))}
         </div>
@@ -125,21 +108,15 @@ export function CreateGroupModal({
         {/* Duplicate warning */}
         {duplicate && (
           <div
-            className="flex items-center gap-2 rounded-lg px-3 py-2 mb-4 text-xs"
-            style={{
-              background: "rgba(255,180,0,0.08)",
-              border: "1px solid rgba(255,180,0,0.2)",
-              color: "rgba(255,200,80,0.9)",
-            }}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 mb-4 text-xs bg-[rgba(255,180,0,0.08)] border border-[rgba(255,180,0,0.2)] text-[rgba(255,200,80,0.9)]"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             A group with these members already exists. Open it instead?{" "}
             <button
-              className="underline font-medium ml-1"
-              style={{ color: "rgba(255,200,80,0.9)" }}
+              className="underline font-medium ml-1 text-[rgba(255,200,80,0.9)]"
               onClick={() => {
                 setDuplicate(false);
                 // Re-fetch and navigate to existing group
@@ -160,18 +137,14 @@ export function CreateGroupModal({
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg transition-colors"
-            style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(148,163,255,0.6)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            className="px-4 py-2 text-sm rounded-lg transition-colors border border-white/[0.08] text-[rgba(148,163,255,0.6)] hover:bg-white/[0.04]"
           >
             Cancel
           </button>
           <button
             onClick={handleCreate}
             disabled={!name.trim() || selected.length === 0 || loading}
-            className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40"
-            style={{ background: "linear-gradient(135deg, rgba(88,101,242,0.8), rgba(139,92,246,0.7))", color: "rgba(230,235,255,0.95)" }}
+            className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40 bg-gradient-to-br from-[rgba(88,101,242,0.8)] to-[rgba(139,92,246,0.7)] text-[rgba(230,235,255,0.95)]"
           >
             {loading ? "Creating..." : "Create Group"}
           </button>
