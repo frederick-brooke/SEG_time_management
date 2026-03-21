@@ -6,7 +6,7 @@
  * - Defaults to "driving" when no mode is provided
  * - Passes the correct mode to getTravelTime (driving, walking, cycling)
  * - Returns 400 on missing or invalid coordinates (all individual cases)
- * - Documents the lat/lng === 0 falsy bug in the current validation logic
+ * - Accepts coordinates with value 0
  * - Returns 500 when getTravelTime throws an Error
  * - Returns 500 with fallback message when a non-Error is thrown
  * - Returns 500 when the request body cannot be parsed
@@ -235,19 +235,14 @@ describe("POST /api/travel-time", () => {
     expect(body.message).toBe("Invalid coordinates");
   });
 
-  it("should document that lat/lng === 0 is incorrectly rejected (known bug)", async () => {
+  it("should accept coordinates with value 0 (equator/prime meridian)", async () => {
     mockGetTravelTime.mockResolvedValue(300);
-
     const req = createRequest({
       start: { lat: 0, lng: 0 },
       end: { lat: 51.6, lng: -0.2 },
     });
-
     const res = await POST(req);
-
-    // This returns 400 due to !start?.lat treating 0 as falsy.
-    // Fix the route validation to: start?.lat == null || start?.lng == null
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(200);
   });
 
   // ── Error handling ────────────────────────────────────────────────────────────
