@@ -1,5 +1,9 @@
 "use client";
-// src/components/calendar/FilterSidebar.tsx
+
+/**
+ * FilterSidebar — sticky sidebar for filtering calendar items by task type and category.
+ */
+
 interface Filter {
   key: string;
   label: string;
@@ -21,6 +25,7 @@ interface Props {
   onManageCategories: () => void;
 }
 
+/** Styled checkbox div that shows a ✓ when active. Colour is applied dynamically via the style prop. */
 function FilterCheckbox({
   color,
   active,
@@ -50,6 +55,10 @@ function FilterCheckbox({
   );
 }
 
+/**
+ * Renders filter toggles for task types (Tasks, Priority Tasks, Completed)
+ * and per-category toggles for all user-defined event categories.
+ */
 export default function FilterSidebar({
   activeFilters,
   categories,

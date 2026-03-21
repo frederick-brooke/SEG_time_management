@@ -1,8 +1,16 @@
 "use client";
+
+/**
+ * EventDetailModal — context-aware modal that renders one of four views
+ * depending on the current state: event detail, task detail, task edit form,
+ * new event form, or edit event form.
+ */
+
 import { format } from "date-fns";
 import { TaskForm, type TaskFormData } from "@/components/tasks/TaskForm";
 import EventForm from "@/src/components/calendar/EventForm";
 
+// Colour maps for the category/priority indicator stripe at the top of the modal.
 const CATEGORY_COLORS: Record<string, string> = {
   Lecture: "#818cf8",
   "Individual Study": "#34d399",
@@ -36,6 +44,13 @@ interface EventDetailModalProps {
   onEventSuccess: () => void;
 }
 
+/**
+ * Renders the appropriate view based on selectedEvent and editing state:
+ * - No selectedEvent → new event form
+ * - selectedEvent + isEditing → edit event form
+ * - selectedEvent + isTaskEditOpen → task edit form
+ * - selectedEvent only → task or event detail view
+ */
 export default function EventDetailModal({
   selectedEvent,
   isEditing,
