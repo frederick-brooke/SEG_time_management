@@ -1,6 +1,7 @@
 // src/lib/eventMutations.ts
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
+import { resetEventNotificationGuards } from "@/src/app/actions/calendarNotifications";
 
 // ---------------------------------------------------------------------------
 // handleSingleInstanceUpdate helpers
@@ -137,6 +138,8 @@ export async function handleSeriesUpdate(event: any, body: any, userId: string) 
       startLocationName: startLocationName ?? null,
       destLocationName: destLocationName ?? null,
       transportMode,
+      travelNotifiedAt: null,
+      eventNotifiedAt: null,
     },
   });
 

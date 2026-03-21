@@ -299,6 +299,10 @@ model Event {
   updatedAt DateTime @updatedAt
 
   tasks Task[]
+
+  travelNotifiedAt  DateTime?   // set when the "time to leave" notification fires
+  eventNotifiedAt   DateTime?   // set when the "event starting soon" notification fires
+
 }
 
 model FriendRequest {
