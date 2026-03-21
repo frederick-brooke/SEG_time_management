@@ -1,11 +1,23 @@
-// src/lib/eventMutations.ts
+/**
+ * Event Mutations
+ *
+ * Handles updates and deletions for both single occurrences and full recurring
+ * series, keeping the local Prisma database and Google Calendar in sync.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
 
-// ---------------------------------------------------------------------------
-// handleSingleInstanceUpdate helpers
-// ---------------------------------------------------------------------------
-
+/**
+ * Patches a single occurrence of a Google Calendar recurring event by constructing
+ * the instance ID from the master event ID and the exception's ISO timestamp.
+ *
+ * @param event - The local master event record containing `googleEventId`.
+ * @param isoException - ISO 8601 timestamp of the occurrence to patch.
+ * @param body - The update payload containing `title`, `description`, `start`, and `end`.
+ * @param userId - The ID of the user whose Google Calendar client to use.
+ * @returns The Google event ID of the patched instance, or `null` if the patch failed or was skipped.
+ */
 async function patchGoogleInstance(
   event: any,
   isoException: string,
@@ -34,6 +46,16 @@ async function patchGoogleInstance(
   }
 }
 
+/**
+ * Creates a new local event record representing a single exception to a recurring series.
+ * Falls back to the master event's fields for any properties not supplied in `body`.
+ *
+ * @param event - The master event record to inherit default values from.
+ * @param body - The override values for the exception (title, start, end, location, etc.).
+ * @param userId - The ID of the user who owns the event.
+ * @param googleEventId - The Google event ID for the patched instance, or `null` if unavailable.
+ * @returns The newly created Prisma event record.
+ */
 async function createExceptionEvent(event: any, body: any, userId: string, googleEventId: string | null) {
   const { start, end, title, description, startCoords, destCoords, startLocationName, destLocationName, transportMode, travelDuration } = body;
   return prisma.event.create({
@@ -56,10 +78,15 @@ async function createExceptionEvent(event: any, body: any, userId: string, googl
   });
 }
 
-// ---------------------------------------------------------------------------
-// handleSeriesUpdate helpers
-// ---------------------------------------------------------------------------
-
+/**
+ * Computes the updated start and end times for a recurring series edit.
+ * Preserves the master event's original date while applying the new time-of-day
+ * and duration from `body`.
+ *
+ * @param event - The master event record, used for its original `start` date and `allDay` flag.
+ * @param body - The update payload containing the new `start` and `end` values.
+ * @returns The resolved `updatedSeriesStart` and `updatedSeriesEnd` dates.
+ */
 function calcSeriesTimes(event: any, body: any): { updatedSeriesStart: Date; updatedSeriesEnd: Date } {
   const newDateReq = new Date(body.start);
   const newEndDateReq = new Date(body.end);
@@ -74,6 +101,16 @@ function calcSeriesTimes(event: any, body: any): { updatedSeriesStart: Date; upd
   return { updatedSeriesStart, updatedSeriesEnd };
 }
 
+/**
+ * Fires a Google Calendar patch for the master recurring event asynchronously.
+ * Automatically selects `date` vs `dateTime` format based on whether the event is all-day.
+ * Errors are logged but do not propagate to the caller.
+ *
+ * @param updated - The already-saved local event record containing `googleEventId`, `title`, etc.
+ * @param updatedSeriesStart - The new start time to send to Google.
+ * @param updatedSeriesEnd - The new end time to send to Google.
+ * @param userId - The ID of the user whose Google Calendar client to use.
+ */
 function patchGoogleSeries(
   updated: any,
   updatedSeriesStart: Date,
@@ -109,10 +146,16 @@ function patchGoogleSeries(
   })();
 }
 
-// ---------------------------------------------------------------------------
-// handleSingleInstanceUpdate
-// Creates a standalone exception event for one occurrence of a recurring series.
-// ---------------------------------------------------------------------------
+/**
+ * Updates a single occurrence of a recurring event without affecting the rest of the series.
+ * Adds the occurrence date to the master event's `exceptions` list, patches it in Google
+ * Calendar, then creates a standalone local event record for the exception.
+ *
+ * @param event - The master recurring event record.
+ * @param body - The update payload, must include `originalDate` to identify the occurrence.
+ * @param userId - The ID of the user performing the update.
+ * @returns The newly created exception event record.
+ */
 export async function handleSingleInstanceUpdate(event: any, body: any, userId: string) {
   const isoException = new Date(body.originalDate).toISOString();
 
@@ -125,11 +168,16 @@ export async function handleSingleInstanceUpdate(event: any, body: any, userId: 
   return createExceptionEvent(event, body, userId, googleEventId);
 }
 
-// ---------------------------------------------------------------------------
-// handleSeriesUpdate
-// Updates the master recurring event, preserving the original date but
-// applying the new time-of-day and duration.
-// ---------------------------------------------------------------------------
+/**
+ * Updates the master recurring event, applying changes to all future occurrences.
+ * Preserves the original recurrence start date while updating time, duration, and
+ * location fields. Also patches the event in Google Calendar asynchronously.
+ *
+ * @param event - The current master event record from the database.
+ * @param body - The update payload (title, description, start, end, location, travel, etc.).
+ * @param userId - The ID of the user performing the update.
+ * @returns The updated master event record.
+ */
 export async function handleSeriesUpdate(event: any, body: any, userId: string) {
   const { id, startCoords, destCoords, startLocationName, destLocationName, transportMode, travelDuration, title, description } = body;
   const { updatedSeriesStart, updatedSeriesEnd } = calcSeriesTimes(event, body);
