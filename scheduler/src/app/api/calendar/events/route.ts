@@ -15,6 +15,8 @@ import {
   upsertGoogleEvent,
   fetchAllGoogleEvents,
 } from "@/src/lib/googleSync";
+import { deleteEventNotifications } from "@/src/app/actions/calendarNotifications";
+
 
 // Global lock to prevent multiple syncs running at once per server instance
 let isSyncing = false;
@@ -179,8 +181,7 @@ export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  const params = parseDeleteParams(req);
+    const params = parseDeleteParams(req);
   if ("error" in params) return params.error;
   const { id, mode, instanceDate } = params;
   try {
@@ -196,9 +197,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: true, message: "Occurrence removed" });
     }
 
-    if (event.googleEventId) await deleteGoogleEvent(session.user.id, event.googleEventId);
-    await prisma.event.delete({ where: { id } });
-    return NextResponse.json({ success: true, message: "Event deleted" });
+if (event.googleEventId) await deleteGoogleEvent(session.user.id, event.googleEventId);
+await deleteEventNotifications(session.user.id, event.title);
+await prisma.event.delete({ where: { id } });
+return NextResponse.json({ success: true, message: "Event deleted" });
   } catch (e: any) {
     console.error("Delete handler error:", e);
     return NextResponse.json({ message: e.message }, { status: 500 });
