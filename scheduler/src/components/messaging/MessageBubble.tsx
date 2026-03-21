@@ -37,7 +37,7 @@ function formatTime(iso: string) {
 }
 
 /** Formats an ISO date to a human-readable label: "Today", "Yesterday", a weekday, or a short date. */
-function formatDate(iso: string) {
+export function formatDate(iso: string) {
   const date = new Date(iso);
   const now = new Date();
   const days = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
