@@ -424,6 +424,7 @@ export async function updateGroupEvent(
       start: new Date(eventData.start),
       end: new Date(eventData.end),
       category: eventData.category || "Personal",
+      destLocationName: eventData.destLocationName || null,
     },
   });
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, MapPin } from "lucide-react";
 import { createGroupEvent, updateGroupEvent } from "@/app/actions/groups";
 
 //types
@@ -12,6 +12,7 @@ interface ExistingEvent {
   start: Date;
   end: Date;
   category: string;
+  destLocationName?: string | null; // <-- Added
 }
 
 interface GroupEventModalProps {
@@ -29,10 +30,10 @@ interface EventFormState {
   startTime: string;
   endDate: string;
   endTime: string;
+  destLocationName: string; // <-- Added
 }
 
 const CATEGORIES = ["Social", "Study", "Lecture", "Exam", "Personal", "Lab"] as const;
-
 
 /**
  * Splits a Date into separate YYYY-MM-DD and HH:MM strings for form inputs
@@ -47,7 +48,6 @@ function splitDateTime(date: Date): { date: string; time: string } {
   };
 }
 
-
 /**
  * Modal for creating or editing a group-wide event distributed to all members
  * Any group member can create or edit events
@@ -61,7 +61,11 @@ export default function GroupEventModal({
 
   const buildInitialState = (): EventFormState => {
     if (!editingEvent) {
-      return { title: "", description: "", category: "Social", startDate: "", startTime: "", endDate: "", endTime: "" };
+      return { 
+        title: "", description: "", category: "Social", 
+        startDate: "", startTime: "", endDate: "", endTime: "", 
+        destLocationName: "" 
+      };
     }
     const start = splitDateTime(editingEvent.start);
     const end = splitDateTime(editingEvent.end);
@@ -73,6 +77,7 @@ export default function GroupEventModal({
       startTime: start.time,
       endDate: end.date,
       endTime: end.time,
+      destLocationName: editingEvent.destLocationName || "",
     };
   };
 
@@ -115,6 +120,7 @@ export default function GroupEventModal({
       start: start.toISOString(),
       end: end.toISOString(),
       allDay: false,
+      destLocationName: formData.destLocationName || null, // <-- Passed to backend
     };
 
     const result = isEditing && editingEvent.groupEventGroupId
@@ -163,7 +169,21 @@ export default function GroupEventModal({
               placeholder="e.g. Group Study, Movie Night"
               value={formData.title}
               onChange={(e) => handleChange({ title: e.target.value })}
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent focus:outline-none transition-all"
+              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none transition-all"
+            />
+          </div>
+
+          {/* Location / Destination */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
+              <MapPin size={16} className="text-gray-400" /> Location / Destination
+            </label>
+            <input 
+              type="text" 
+              placeholder="e.g. Student Union, Coffee Shop" 
+              value={formData.destLocationName} 
+              onChange={(e) => handleChange({ destLocationName: e.target.value })} 
+              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none transition-all" 
             />
           </div>
 
@@ -171,11 +191,11 @@ export default function GroupEventModal({
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
             <textarea
-              rows={2}
+              rows={3}
               placeholder="Optional description..."
               value={formData.description}
               onChange={(e) => handleChange({ description: e.target.value })}
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent focus:outline-none transition-all resize-none"
+              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none transition-all resize-none"
             />
           </div>
 
@@ -206,19 +226,19 @@ export default function GroupEventModal({
               <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Start</label>
               <input type="date" required value={formData.startDate}
                 onChange={(e) => handleChange({ startDate: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg mb-2" />
+                className="w-full border border-gray-200 p-2 rounded-lg mb-2 focus:ring-2 focus:ring-purple-600 focus:outline-none" />
               <input type="time" required value={formData.startTime}
                 onChange={(e) => handleChange({ startTime: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg" />
+                className="w-full border border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none" />
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-2">End</label>
               <input type="date" required value={formData.endDate}
                 onChange={(e) => handleChange({ endDate: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg mb-2" />
+                className="w-full border border-gray-200 p-2 rounded-lg mb-2 focus:ring-2 focus:ring-purple-600 focus:outline-none" />
               <input type="time" required value={formData.endTime}
                 onChange={(e) => handleChange({ endTime: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg" />
+                className="w-full border border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none" />
             </div>
           </div>
 
