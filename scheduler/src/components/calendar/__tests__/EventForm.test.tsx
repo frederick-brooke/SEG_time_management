@@ -491,4 +491,95 @@ describe("EventForm", () => {
       expect(mockHandleDelete).toHaveBeenCalledWith(onSuccess);
     });
   });
+
+    // ── submitBtnClass branch coverage ──────────────────────────────────────────
+  describe("submit button class", () => {
+    it("applies indigo class for series edit mode non-Google non-calculating", () => {
+      mockHookReturn = { ...defaultHookReturn, editMode: "series", isGoogle: false, isCalculating: false };
+      renderForm({ initialEvent: { id: "ev-1" } });
+      const btn = screen.getByRole("button", { name: "Update Series" });
+      expect(btn.className).toContain("bg-indigo-600");
+    });
+
+    it("applies amber class for single edit mode", () => {
+      mockHookReturn = { ...defaultHookReturn, editMode: "single", isGoogle: false, isCalculating: false };
+      renderForm({ initialEvent: { id: "ev-1" } });
+      const btn = screen.getByRole("button", { name: "Update Only This Day" });
+      expect(btn.className).toContain("bg-amber-500");
+    });
+
+    it("applies locked class when isGoogle is true", () => {
+      mockHookReturn = { ...defaultHookReturn, isGoogle: true };
+      renderForm();
+      const btn = screen.getByRole("button", { name: "Create Event" });
+      expect(btn.className).toContain("bg-white/10");
+    });
+
+    it("applies calculating class when isCalculating is true", () => {
+      mockHookReturn = { ...defaultHookReturn, isCalculating: true, isGoogle: false };
+      renderForm();
+      const btn = screen.getByRole("button", { name: /Calculating Travel/ });
+      expect(btn.className).toContain("bg-white/20");
+    });
+  });
+
+  // ── Date/time input onChange handlers ───────────────────────────────────────
+  describe("date and time inputs", () => {
+    it("should call setStartDate when start date changes", () => {
+      renderForm();
+      const dateInputs = screen.getAllByDisplayValue("2024-06-03");
+      fireEvent.change(dateInputs[0], { target: { value: "2024-07-01" } });
+      expect(mockSetStartDate).toHaveBeenCalledWith("2024-07-01");
+    });
+
+    it("should call setStartTime when start time changes", () => {
+      renderForm();
+      const timeInputs = screen.getAllByDisplayValue("10:00");
+      fireEvent.change(timeInputs[0], { target: { value: "09:00" } });
+      expect(mockSetStartTime).toHaveBeenCalledWith("09:00");
+    });
+
+    it("should call setEndDate when end date changes", () => {
+      renderForm();
+      const dateInputs = screen.getAllByDisplayValue("2024-06-03");
+      fireEvent.change(dateInputs[1], { target: { value: "2024-07-02" } });
+      expect(mockSetEndDate).toHaveBeenCalledWith("2024-07-02");
+    });
+
+    it("should call setEndTime when end time changes", () => {
+      renderForm();
+      const timeInputs = screen.getAllByDisplayValue("11:00");
+      fireEvent.change(timeInputs[0], { target: { value: "12:00" } });
+      expect(mockSetEndTime).toHaveBeenCalledWith("12:00");
+    });
+  });
+
+  // ── Recurrence checkbox and until input ─────────────────────────────────────
+  describe("recurrence inputs", () => {
+    it("should call setRecurrenceUntil when the until date changes", () => {
+      mockHookReturn = {
+        ...defaultHookReturn,
+        recurrenceType: "daily",
+        editMode: "series",
+        isGoogle: false,
+        setRecurrenceUntil: mockSetRecurrenceUntil,
+      };
+      renderForm();
+      const untilInput = screen.getAllByDisplayValue("").find(
+        (el) => el.getAttribute("type") === "date"
+      )!;
+      fireEvent.change(untilInput, { target: { value: "2024-12-31" } });
+      expect(mockSetRecurrenceUntil).toHaveBeenCalledWith("2024-12-31");
+    });
+  });
+
+  // ── Category buttons disabled when isGoogle ──────────────────────────────────
+  describe("category buttons when google locked", () => {
+    it("should disable all category buttons when isGoogle is true", () => {
+      mockHookReturn = { ...defaultHookReturn, isGoogle: true };
+      renderForm();
+      const lectureBtn = screen.getByText("Lecture").closest("button")!;
+      expect(lectureBtn).toBeDisabled();
+    });
+  });
 });

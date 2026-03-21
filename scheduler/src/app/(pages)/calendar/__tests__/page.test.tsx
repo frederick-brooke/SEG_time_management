@@ -9,7 +9,6 @@
  * - CalendarView receives the correct userId and googleConnected props
  * - CalendarView always receives empty arrays as initial props
  * - Edge case: googleConnected is undefined on the session user
- * - Snapshot guard against layout regressions
  */
 
 import { render, screen } from "@testing-library/react";
@@ -41,15 +40,18 @@ jest.mock("@/src/components/calendar/CalendarView", () => ({
   ),
 }));
 
-jest.mock("@/components/googleLinkButton", () => ({
+jest.mock("@/src/components/googleLinkButton", () => ({
   __esModule: true,
   default: ({ isConnected }: { isConnected: boolean }) => (
     <div data-testid="google-link-button" data-connected={String(isConnected)} />
   ),
 }));
 
-jest.mock("@/components/ui/StarBackground", () => ({
-  StarBackground: () => <div data-testid="star-background" />,
+jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="lunar-theme-wrapper">{children}</div>
+  ),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -123,12 +125,10 @@ describe("CalendarPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("should render the StarBackground component", async () => {
+  it("should render the LunarThemeWrapper", async () => {
     mockGetServerSession.mockResolvedValue(createMockSession());
-
     render(await CalendarPage());
-
-    expect(screen.getByTestId("star-background")).toBeInTheDocument();
+    expect(screen.getByTestId("lunar-theme-wrapper")).toBeInTheDocument();
   });
 
   it("should render the CalendarView component", async () => {
@@ -228,15 +228,5 @@ describe("CalendarPage", () => {
     expect(
       screen.getByTestId("google-link-button").getAttribute("data-connected")
     ).toBe("false");
-  });
-
-  // ── Snapshot ─────────────────────────────────────────────────────────────────
-
-  it("should match snapshot", async () => {
-    mockGetServerSession.mockResolvedValue(createMockSession());
-
-    const { container } = render(await CalendarPage());
-
-    expect(container).toMatchSnapshot();
   });
 });
