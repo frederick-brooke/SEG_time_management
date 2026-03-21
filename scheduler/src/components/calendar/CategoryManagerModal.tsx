@@ -1,9 +1,16 @@
 "use client";
+
+/**
+ * CategoryManagerModal — modal for creating, editing, and deleting event categories.
+ * Composed of CategoryRow (edit existing) and AddCategoryForm (create new).
+ */
+
 import { useState } from "react";
 
-// ---------------------------------------------------------------------------
-// CategoryRow
-// ---------------------------------------------------------------------------
+/**
+ * Renders a single category row with inline edit and delete controls.
+ * Validates against black and duplicate colours before saving.
+ */
 function CategoryRow({
   cat,
   canDelete,
@@ -88,9 +95,10 @@ function CategoryRow({
   );
 }
 
-// ---------------------------------------------------------------------------
-// AddCategoryForm
-// ---------------------------------------------------------------------------
+/**
+ * Form for adding a new category with a name and colour picker.
+ * Validates against black and duplicate colours before calling onAdd.
+ */
 function AddCategoryForm({ onAdd, existingCategories }: any) {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#6366f1");
@@ -145,15 +153,17 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// CategoryManagerModal
-// ---------------------------------------------------------------------------
 interface CategoryManagerModalProps {
   categories: any[];
   onClose: () => void;
   onCategoriesChange: () => void;
 }
 
+/**
+ * Modal that lists all categories and allows the user to add, edit, or delete them.
+ * Changes are persisted immediately via the /api/categories endpoint.
+ * The last remaining category cannot be deleted.
+ */
 export default function CategoryManagerModal({
   categories,
   onClose,
@@ -165,8 +175,7 @@ export default function CategoryManagerModal({
       onClick={onClose}
     >
       <div
-        className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] shadow-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto"
-        style={{ boxShadow: "0 0 0 1px rgba(255,255,255,0.05), 0 32px 64px rgba(0,0,0,0.6)" }}
+        className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
-import { CreateGroupModal } from "./CreateGroupModal";
+import { CreateGroupModal } from "../CreateGroupModal";
 
 // Module mocks
 
@@ -27,14 +27,14 @@ const FRESH_CONV = {
   id: "conv-new",
   name: "Squad",
   isGroup: true,
-  createdAt: new Date(Date.now() - 1000).toISOString(), // 1s old → fresh
+  createdAt: new Date(Date.now() - 1000).toISOString(), // 1s old group is new
 };
 
 const STALE_CONV = {
   id: "conv-old",
   name: "Squad",
   isGroup: true,
-  createdAt: new Date(Date.now() - 10_000).toISOString(), // 10s old → duplicate
+  createdAt: new Date(Date.now() - 10_000).toISOString(), // 10s old group is a duplicate
 };
 
 // Helpers
@@ -69,8 +69,8 @@ describe("CreateGroupModal – rendering", () => {
   it("renders a row for each friend", () => {
     setup();
     expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("bob")).toBeInTheDocument();   // fname null → username
-    expect(screen.getByText("Carol")).toBeInTheDocument(); // fname trimmed
+    expect(screen.getByText("bob")).toBeInTheDocument();
+    expect(screen.getByText("Carol")).toBeInTheDocument();
   });
 
   it("renders an <img> for friends with a pfp", () => {

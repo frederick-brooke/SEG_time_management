@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MembersPanel } from "./MembersPanel";
+import { MembersPanel } from "../MembersPanel";
 import { useRouter } from "next/navigation";
 
 // Module mocks

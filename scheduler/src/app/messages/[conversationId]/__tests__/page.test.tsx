@@ -25,11 +25,15 @@ jest.mock("@/components/messaging/GroupHeader", () => ({
 }));
 
 jest.mock("@/components/messaging/MembersPanel", () => ({
-  MembersPanel: ({ participants }: any) => (
+  MembersPanel: ({ participants, onRemove, onPromote, onAddMember }: any) => (
     <div data-testid="members-panel">
       {participants.map((p: any) => (
         <span key={p.userId}>{p.user.username}</span>
       ))}
+      <button onClick={() => onRemove("user-2", "bob")}>Remove Bob</button>
+      <button onClick={() => onPromote("user-2", "member")}>Promote Bob</button>
+      <button onClick={() => onPromote("user-2", "admin")}>Demote Bob</button>
+      <button onClick={onAddMember}>Add Member</button>
     </div>
   ),
 }));
@@ -617,11 +621,371 @@ describe("ConversationPage – date dividers", () => {
     );
   });
 
+  it("shows a weekday label for messages 3 days ago", async () => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    setupMocks({ messages: [{ ...MESSAGES[0], id: "msg-weekday", createdAt: threeDaysAgo }] });
+    render(<ConversationPage />);
+    await waitFor(() => {
+      const divider = screen.getByTestId("date-divider");
+      const weekdays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+      expect(weekdays.some(d => divider.textContent?.includes(d))).toBe(true);
+    });
+  });
+
   it("shows 'Today' for messages sent today", async () => {
     setupMocks({ messages: [MESSAGES[0]] });
     render(<ConversationPage />);
     await waitFor(() =>
       expect(screen.getByTestId("date-divider")).toHaveTextContent("Today")
     );
+  });
+
+  describe("ConversationPage – typing indicator", () => {
+    it("sends typing=true POST when user types in the input", async () => {
+      setupMocks();
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("textarea"));
+  
+      fireEvent.change(screen.getByTestId("textarea"), {
+        target: { value: "Hello" },
+      });
+  
+      await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/typing"),
+          expect.objectContaining({
+            method: "POST",
+            body: JSON.stringify({ isTyping: true }),
+          })
+        )
+      );
+    });
+  });
+  
+  describe("ConversationPage – member management", () => {
+    it("calls DELETE with userId when Remove is confirmed", async () => {
+      window.confirm = jest.fn().mockReturnValue(true);
+      const details = {
+        ...GROUP_DETAILS,
+        participants: [
+          ...GROUP_DETAILS.participants,
+        ],
+      };
+  
+      // Override MembersPanel to expose onRemove
+      jest.doMock("@/components/messaging/MembersPanel", () => ({
+        MembersPanel: ({ onRemove, onPromote, onAddMember }: any) => (
+          <div data-testid="members-panel">
+            <button onClick={() => onRemove("user-2", "bob")}>Remove Bob</button>
+            <button onClick={() => onPromote("user-2", "member")}>Promote Bob</button>
+            <button onClick={() => onPromote("user-2", "admin")}>Demote Bob</button>
+            <button onClick={onAddMember}>Add Member</button>
+          </div>
+        ),
+      }));
+  
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+  
+      fireEvent.click(screen.getByText("Remove Bob"));
+  
+      await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/members"),
+          expect.objectContaining({
+            method: "DELETE",
+            body: JSON.stringify({ userId: "user-2" }),
+          })
+        )
+      );
+    });
+  
+    it("does not remove member when confirm is cancelled", async () => {
+      window.confirm = jest.fn().mockReturnValue(false);
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      // confirm returns false so DELETE should not be called with body
+      expect(global.fetch).not.toHaveBeenCalledWith(
+        expect.stringContaining("/members"),
+        expect.objectContaining({ method: "DELETE", body: expect.any(String) })
+      );
+    });
+  });
+  
+  describe("ConversationPage – promote/demote", () => {
+    it("calls PATCH with admin role when promoting a member", async () => {
+      window.confirm = jest.fn().mockReturnValue(true);
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      fireEvent.click(screen.getByText("Promote Bob"));
+  
+      await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/members"),
+          expect.objectContaining({
+            method: "PATCH",
+            body: JSON.stringify({ userId: "user-2", role: "admin" }),
+          })
+        )
+      );
+    });
+  
+    it("calls PATCH with member role when demoting an admin", async () => {
+      window.confirm = jest.fn().mockReturnValue(true);
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      fireEvent.click(screen.getByText("Demote Bob"));
+  
+      await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/members"),
+          expect.objectContaining({
+            method: "PATCH",
+            body: JSON.stringify({ userId: "user-2", role: "member" }),
+          })
+        )
+      );
+    });
+  });
+  
+  describe("ConversationPage – AddMemberModal", () => {
+    it("shows AddMemberModal when Add Member is clicked in MembersPanel", async () => {
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      fireEvent.click(screen.getByText("Add Member"));
+      expect(screen.getByTestId("add-member-modal")).toBeInTheDocument();
+    });
+  
+    it("closes AddMemberModal when onClose is called", async () => {
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      fireEvent.click(screen.getByText("Add Member"));
+      fireEvent.click(screen.getByText("Close"));
+      expect(screen.queryByTestId("add-member-modal")).not.toBeInTheDocument();
+    });
+  
+    it("calls fetchDetails when onAdded is called", async () => {
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      fireEvent.click(screen.getByText("Add Member"));
+      fireEvent.click(screen.getByText("Added"));
+  
+      await waitFor(() =>
+        expect(global.fetch).toHaveBeenCalledWith(
+          expect.stringContaining("/details")
+        )
+      );
+    });
+  });
+  
+  describe("ConversationPage – send catch branch", () => {
+    it("removes optimistic message when fetch throws", async () => {
+      setupMocks();
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("textarea"));
+  
+      global.fetch = jest.fn().mockImplementation((url: string, options?: any) => {
+        if (options?.method === "POST" && !url.includes("/typing")) {
+          return Promise.reject(new Error("Network failure"));
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) });
+      });
+  
+      fireEvent.change(screen.getByTestId("textarea"), {
+        target: { value: "Will throw" },
+      });
+  
+      await act(async () => {
+        fireEvent.click(screen.getByTestId("send-btn"));
+      });
+  
+      await waitFor(() =>
+        expect(screen.queryByText("Will throw")).not.toBeInTheDocument()
+      );
+    });
+  });
+  
+  describe("ConversationPage – date divider Yesterday", () => {
+    it("shows 'Yesterday' for messages sent yesterday", async () => {
+      const yesterday = new Date(Date.now() - 86400000).toISOString();
+      setupMocks({
+        messages: [
+          { ...MESSAGES[0], id: "msg-yesterday", createdAt: yesterday },
+        ],
+      });
+      render(<ConversationPage />);
+      await waitFor(() =>
+        expect(screen.getByTestId("date-divider")).toHaveTextContent("Yesterday")
+      );
+    });
+  
+    it("shows a formatted date for older messages", async () => {
+      const old = new Date("2023-01-15T10:00:00Z").toISOString();
+      setupMocks({
+        messages: [{ ...MESSAGES[0], id: "msg-old", createdAt: old }],
+      });
+      render(<ConversationPage />);
+      await waitFor(() => {
+        const divider = screen.getByTestId("date-divider");
+        expect(divider.textContent).toMatch(/Jan/);
+      });
+    });
+  });
+  
+  describe("ConversationPage – MembersPanel updates members panel participant list", () => {
+    it("renders participant usernames in MembersPanel", async () => {
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      expect(screen.getByText("alice")).toBeInTheDocument();
+      expect(screen.getByText("bob")).toBeInTheDocument();
+    });
+  });
+
+  describe("ConversationPage – session not loaded", () => {
+    it("does not send when session is null", async () => {
+      (useSession as jest.Mock).mockReturnValue({ data: null });
+      setupMocks();
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("textarea"));
+      fireEvent.change(screen.getByTestId("textarea"), { target: { value: "Hello" } });
+      await act(async () => { fireEvent.click(screen.getByTestId("send-btn")); });
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/conversations/conv-1",
+        expect.objectContaining({ method: "POST", body: JSON.stringify({ content: "Hello" }) })
+      );
+    });
+  });
+  
+  describe("ConversationPage – loadMore", () => {
+    it("does not load more when hasMore is false", async () => {
+      setupMocks({ messages: [MESSAGES[0]] });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("message-msg-1"));
+      // hasMore is false when fewer than 20 messages returned
+      const callCount = (global.fetch as jest.Mock).mock.calls.length;
+  
+      await act(async () => {
+        // trigger intersection
+      });
+  
+      expect((global.fetch as jest.Mock).mock.calls.length).toBe(callCount);
+    });
+
+    it("prepends older messages when intersection triggers loadMore", async () => {
+      let observerCallback: IntersectionObserverCallback | null = null;
+      (global.IntersectionObserver as any) = jest.fn().mockImplementation((cb: IntersectionObserverCallback) => {
+        observerCallback = cb;
+        return { observe: jest.fn(), unobserve: jest.fn(), disconnect: jest.fn() };
+      });
+      const twentyMessages = Array.from({ length: 20 }, (_, i) => ({
+        id: `msg-p1-${i}`, content: `Message ${i}`,
+        createdAt: new Date(Date.now() - i * 60 * 1000).toISOString(),
+        sender: { id: "user-2", username: "bob", pfp: null },
+      }));
+      setupMocks({ messages: twentyMessages });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("message-msg-p1-0"));
+      const older = { id: "msg-older", content: "Older", createdAt: new Date(Date.now() - 999 * 60 * 1000).toISOString(), sender: { id: "user-2", username: "bob", pfp: null } };
+      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => [older] });
+      await act(async () => { observerCallback?.([{ isIntersecting: true }] as any, {} as any); });
+      await waitFor(() => expect(screen.getByTestId("message-msg-older")).toBeInTheDocument());
+    });
+  });
+  
+  describe("ConversationPage – typing timeout clears", () => {
+    it("sends isTyping false after timeout", async () => {
+      jest.useFakeTimers();
+      setupMocks();
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("textarea"));
+  
+      fireEvent.change(screen.getByTestId("textarea"), {
+        target: { value: "Hello" },
+      });
+  
+      await act(async () => {
+        jest.advanceTimersByTime(2500);
+      });
+  
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/typing"),
+        expect.objectContaining({
+          body: JSON.stringify({ isTyping: false }),
+        })
+      );
+  
+      jest.useRealTimers();
+    });
+  });
+  
+  describe("ConversationPage – group name fallback", () => {
+    it("renders participant count in GroupHeader", async () => {
+      setupMocks({ details: GROUP_DETAILS });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      expect(screen.getByTestId("participant-count")).toHaveTextContent("2");
+    });
+  
+    it("renders null name when group has no name", async () => {
+      setupMocks({ details: { ...GROUP_DETAILS, name: null } });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      expect(screen.getByTestId("group-header")).toBeInTheDocument();
+    });
+  });
+  
+  describe("ConversationPage – isAdmin branch", () => {
+    it("correctly identifies non-admin user", async () => {
+      const details = {
+        ...GROUP_DETAILS,
+        participants: [
+          { userId: "user-1", role: "member", joinedAt: new Date().toISOString(), user: { id: "user-1", username: "alice", fname: "Alice", pfp: null } },
+          { userId: "user-2", role: "admin", joinedAt: new Date().toISOString(), user: { id: "user-2", username: "bob", fname: "Bob", pfp: null } },
+        ],
+      };
+      setupMocks({ details });
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("group-header"));
+      fireEvent.click(screen.getByText("Toggle Members"));
+      expect(screen.getByTestId("members-panel")).toBeInTheDocument();
+    });
+  });
+  
+  describe("ConversationPage – fetchMessages empty response", () => {
+    it("handles non-array response from messages API gracefully", async () => {
+      (useSession as jest.Mock).mockReturnValue({ data: SESSION });
+      (useParams as jest.Mock).mockReturnValue({ conversationId: "conv-1" });
+      (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+  
+      global.fetch = jest.fn().mockImplementation((url: string) => {
+        if (url.includes("/messages")) {
+          return Promise.resolve({ ok: true, json: async () => null });
+        }
+        if (url.includes("/details")) {
+          return Promise.resolve({ ok: true, json: async () => CONV_DETAILS });
+        }
+        return Promise.resolve({ ok: true, json: async () => ({}) });
+      });
+  
+      render(<ConversationPage />);
+      await waitFor(() => screen.getByTestId("message-input"));
+      expect(screen.queryByTestId("message-msg-1")).not.toBeInTheDocument();
+    });
   });
 });

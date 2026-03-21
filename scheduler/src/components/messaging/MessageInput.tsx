@@ -23,12 +23,10 @@ export function MessageInput({ value, sending, onChange, onKeyDown, onSend }: Pr
 
   return (
     <div
-      className="px-4 py-3"
-      style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)" }}
+      className="px-4 py-3 border-t border-white/[0.05] bg-white/[0.02]"
     >
       <div
-        className="flex items-end gap-3 rounded-2xl px-4 py-2.5"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+        className="flex items-end gap-3 rounded-2xl px-4 py-2.5 bg-white/[0.04] border border-white/[0.08]"
       >
         <textarea
           ref={textareaRef}
@@ -38,22 +36,16 @@ export function MessageInput({ value, sending, onChange, onKeyDown, onSend }: Pr
           placeholder="Message..."
           disabled={sending}
           rows={1}
-          className="flex-1 bg-transparent outline-none text-sm resize-none overflow-hidden"
-          style={{
-            color: "rgba(210,220,255,0.85)",
-            caretColor: "rgba(99,111,255,0.8)",
-            lineHeight: "1.5",
-            maxHeight: "120px",
-            overflowY: "auto",
-          }}
+          className="flex-1 bg-transparent outline-none text-sm resize-none overflow-y-auto max-h-[120px] leading-[1.5] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)]"
         />
         <button
           onClick={onSend}
           disabled={sending || !value.trim()}
-          className="text-sm font-medium transition-colors disabled:opacity-30 pb-0.5"
-          style={{ color: value.trim() ? "rgba(148,163,255,0.8)" : "rgba(148,163,255,0.3)" }}
-          onMouseEnter={e => { if (value.trim()) e.currentTarget.style.color = "rgba(148,163,255,1)"; }}
-          onMouseLeave={e => { if (value.trim()) e.currentTarget.style.color = "rgba(148,163,255,0.8)"; }}
+          className={`text-sm font-medium transition-colors disabled:opacity-30 pb-0.5 ${
+            value.trim()
+              ? "text-[rgba(148,163,255,0.8)] hover:text-[rgba(148,163,255,1)]"
+              : "text-[rgba(148,163,255,0.3)]"
+          }`}
         >
           Send
         </button>

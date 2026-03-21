@@ -69,7 +69,7 @@ function formatLastMessageTime(iso: string | null): string {
  */
 function DeliveryTick() {
   return (
-    <svg width="16" height="9" viewBox="0 0 18 10" fill="none" style={{ display: "inline-block", flexShrink: 0 }} aria-hidden>
+    <svg width="16" height="9" viewBox="0 0 18 10" fill="none" className="inline-block shrink-0" aria-hidden>
       <path d="M1 5l3 3L9 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M6 5l3 3L14 2" stroke="rgba(99,179,255,0.85)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -125,10 +125,7 @@ function ConversationMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        className="p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-        style={{ color: "rgba(148,163,255,0.4)" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.8)")}
-        onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.4)")}
+        className="p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 text-[rgba(148,163,255,0.4)] hover:text-[rgba(148,163,255,0.8)]"
         title="More options"
       >
         {/* Three-dot icon */}
@@ -140,21 +137,12 @@ function ConversationMenu({
       </button>
       {open && (
         <div
-          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-35"
-          style={{
-            background: "rgba(15,20,40,0.95)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(16px)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          }}
+          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px] bg-[rgba(15,20,40,0.95)] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         >
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors disabled:opacity-50"
-            style={{ color: "rgba(255,100,100,0.8)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,80,80,0.08)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors disabled:opacity-50 text-[rgba(255,100,100,0.8)] hover:bg-[rgba(255,80,80,0.08)]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
@@ -274,13 +262,10 @@ export default function ConversationList() {
   return (
     <>
       <div className="flex items-center justify-between px-3 pt-3 pb-1">
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(148,163,255,0.35)" }}>Messages</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(148,163,255,0.35)]">Messages</p>
         <button
           onClick={() => setShowModal(true)}
-          className="text-xs font-medium flex items-center gap-1 transition-colors"
-          style={{ color: "rgba(148,163,255,0.6)" }}
-          onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
-          onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.6)")}
+          className="text-xs font-medium flex items-center gap-1 transition-colors text-[rgba(148,163,255,0.6)] hover:text-[rgba(148,163,255,0.9)]"
           title="New group chat"
         >
           <span className="text-base leading-none">+</span> Group
@@ -307,13 +292,11 @@ export default function ConversationList() {
           return (
             <div
               key={convo.id}
-              className="group flex items-center gap-3 px-4 py-3 rounded-xl transition-colors w-full"
-              style={{
-                background: isActive ? "rgba(88,101,242,0.12)" : "transparent",
-                border: isActive ? "1px solid rgba(88,101,242,0.2)" : "1px solid transparent",
-              }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+              className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-colors w-full border ${
+                isActive
+                  ? "bg-[rgba(88,101,242,0.12)] border-[rgba(88,101,242,0.2)]"
+                  : "border-transparent hover:bg-white/[0.04]"
+              }`}
             >
               <button
                 onClick={() => {
@@ -328,11 +311,11 @@ export default function ConversationList() {
                   <Image src={avatarSrc} alt={displayName ?? ""} width={48} height={48} className="rounded-full object-cover shrink-0" />
                 ) : (
                   <div
-                    className="w-12 h-12 rounded-full font-semibold flex items-center justify-center text-base shrink-0"
-                    style={{
-                      background: isGroup ? "rgba(139,92,246,0.2)" : "rgba(88,101,242,0.2)",
-                      color: isGroup ? "rgba(167,139,250,0.9)" : "rgba(148,163,255,0.9)",
-                    }}
+                  className={`w-12 h-12 rounded-full font-semibold flex items-center justify-center text-base shrink-0 ${
+                    isGroup
+                      ? "bg-[rgba(139,92,246,0.2)] text-[rgba(167,139,250,0.9)]"
+                      : "bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.9)]"
+                  }`}
                   >
                     {avatarLetter}
                   </div>
@@ -342,18 +325,13 @@ export default function ConversationList() {
                 <div className="flex-1 min-w-0 relative">
                   <div className="flex items-center gap-1.5 pr-5">
                     <p
-                      className="text-base truncate"
-                      style={{
-                        color: "rgba(220,225,255,0.85)",
-                        fontWeight: convo.hasUnread ? 600 : 500,
-                      }}
+                      className={`text-base truncate text-[rgba(220,225,255,0.85)] ${convo.hasUnread ? "font-semibold" : "font-medium"}`}
                     >
                       {displayName}
                     </p>
                     {isGroup && (
                       <span
-                        className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
-                        style={{ background: "rgba(139,92,246,0.15)", color: "rgba(167,139,250,0.8)" }}
+                        className="text-xs px-1.5 py-0.5 rounded-full shrink-0 bg-[rgba(139,92,246,0.15)] text-[rgba(167,139,250,0.8)]"
                       >
                         Group
                       </span>
@@ -363,20 +341,19 @@ export default function ConversationList() {
                   <div className="flex items-center gap-1 min-w-0">
                     {convo.lastMessage && convo.lastMessageSentByMe && <DeliveryTick />}
                     <p
-                      className="text-sm truncate flex-1"
-                      style={{
-                        color: convo.hasUnread ? "rgba(190,210,255,0.9)" : "rgba(148,163,255,0.4)",
-                        fontWeight: convo.hasUnread ? 500 : 400,
-                      }}
+                      className={`text-sm truncate flex-1 ${
+                        convo.hasUnread
+                          ? "text-[rgba(190,210,255,0.9)] font-medium"
+                          : "text-[rgba(148,163,255,0.4)] font-normal"
+                      }`}
                     >
                       {convo.lastMessage ?? "Start a conversation"}
                     </p>
                     {convo.lastMessageAt && (
                       <>
-                        <span className="text-xs shrink-0" style={{ color: "rgba(148,163,255,0.3)" }}>·</span>
+                        <span className="text-xs shrink-0 text-[rgba(148,163,255,0.3)]">·</span>
                         <span
-                          className="text-xs shrink-0"
-                          style={{ color: convo.hasUnread ? "rgba(99,149,255,0.9)" : "rgba(148,163,255,0.35)" }}
+                          className={`text-xs shrink-0 ${convo.hasUnread ? "text-[rgba(99,149,255,0.9)]" : "text-[rgba(148,163,255,0.35)]"}`}
                         >
                           {formatLastMessageTime(convo.lastMessageAt)}
                         </span>
@@ -386,8 +363,7 @@ export default function ConversationList() {
 
                   {convo.hasUnread && (
                     <div
-                      className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
-                      style={{ background: "rgba(99,149,255,0.95)" }}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[rgba(99,149,255,0.95)]"
                     />
                   )}
                 </div>

@@ -1,4 +1,10 @@
 "use client";
+
+/**
+ * SavedLocationChips — renders a row of clickable chips for saved locations.
+ * Returns null when the locations list is empty.
+ */
+
 import { SavedLocation } from "hooks/useSavedLocations";
 
 const TYPE_ICONS: Record<string, string> = {
@@ -12,6 +18,7 @@ interface SavedLocationChipsProps {
   onSelect: (loc: SavedLocation) => void;
 }
 
+/** Displays each saved location as a pill button with its type icon and label. */
 export default function SavedLocationChips({ locations, onSelect }: SavedLocationChipsProps) {
   if (locations.length === 0) return null;
   return (

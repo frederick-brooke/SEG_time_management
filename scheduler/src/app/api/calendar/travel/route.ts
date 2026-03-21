@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
   try {
     const { start, end, mode } = await req.json();
 
-    if (!start?.lat || !start?.lng || !end?.lat || !end?.lng) {
+    if (
+      start?.lat == null || start?.lng == null ||
+      end?.lat == null || end?.lng == null
+    ) {
       return NextResponse.json({ message: "Invalid coordinates" }, { status: 400 });
     }
 

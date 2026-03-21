@@ -1,6 +1,23 @@
-import { google } from "googleapis";
-import { prisma } from "./prisma";
+/**
+ * Google Calendar Client
+ *
+ * Provides an authenticated Google Calendar API client for a given user.
+ * Handles OAuth2 token refresh automatically, persisting any new tokens
+ * back to the database.
+ */
 
+import { google } from "googleapis";
+import { prisma } from "../prisma";
+
+/**
+ * Writes a refreshed OAuth2 token set back to the user's account record.
+ * Only updates fields present in the refresh response; errors are logged but
+ * not propagated so they don't interrupt the in-flight API call.
+ *
+ * @param accountId - The Prisma account record to update.
+ * @param currentAccessToken - Fallback if the refresh response omits a new access token.
+ * @param tokens - Token object emitted by the OAuth2 `"tokens"` event.
+ */
 async function persistRefreshedTokens(accountId: string, currentAccessToken: string, tokens: any) {
   try {
     await prisma.account.update({
@@ -16,6 +33,12 @@ async function persistRefreshedTokens(accountId: string, currentAccessToken: str
   }
 }
 
+/**
+ * Returns an authenticated Google Calendar client for the given user,
+ * or `null` if they have no linked Google account or missing access token.
+ *
+ * @param userId - The user whose linked Google account to use.
+ */
 export async function getGoogleCalendarClient(userId: string) {
   const account = await prisma.account.findFirst({
     where: { userId, provider: "google" },
