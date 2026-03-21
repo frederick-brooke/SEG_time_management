@@ -1,4 +1,11 @@
 "use client";
+
+/**
+ * TravelSection — form section for configuring travel time between two locations.
+ * Supports auto-calculation via the location search API or manual entry.
+ * Only shown in auto mode are the location inputs and transport mode selector.
+ */
+
 import { useState, useEffect } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 import LocationInput from "./LocationInput";
@@ -20,6 +27,7 @@ interface TravelSectionProps {
   onManualTravelTimeChange: (mins: number | null) => void;
 }
 
+/** Formats a duration in minutes into a human-readable string */
 function formatMins(mins: number, mode: string) {
   if (mins < 60) return `${mins} min${mins !== 1 ? "s" : ""}`;
   if (mins % 60 === 0) return `${Math.floor(mins / 60)}h`;
@@ -60,6 +68,10 @@ export default function TravelSection({
     [debounceTimer],
   );
 
+  /**
+   * Debounces location search queries and fetches autocomplete suggestions
+   * from /api/location/search. Clears suggestions for inputs shorter than 3 characters.
+   */
   const handleLocationSearch = (text: string, type: "start" | "dest") => {
     if (type === "start") onStartNameChange(text);
     else onDestNameChange(text);
@@ -83,6 +95,7 @@ export default function TravelSection({
     setDebounceTimer(timer);
   };
 
+  /** Handles selecting an autocomplete suggestion — sets coords, name, and pending save state. */
   const selectLocation = (feature: any, type: "start" | "dest") => {
     if (!feature?.geometry?.coordinates) return;
     const lng = parseFloat(feature.geometry.coordinates[0]);
@@ -102,6 +115,7 @@ export default function TravelSection({
     setSuggestions((prev) => ({ ...prev, [type]: [] }));
   };
 
+  /** Handles selecting a saved location chip — sets coords, name, and pending save state. */
   const selectSavedLocation = (loc: SavedLocation, type: "start" | "dest") => {
     if (type === "start") {
       onStartNameChange(loc.label);
@@ -114,6 +128,7 @@ export default function TravelSection({
     }
   };
 
+  /** Uses the browser Geolocation API to set the start location to the user's current position. */
   const useCurrentLocation = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
     navigator.geolocation.getCurrentPosition((pos) => {
@@ -122,6 +137,7 @@ export default function TravelSection({
     });
   };
 
+  /** Saves a pending location to the user's saved locations list then refreshes the list. */
   const handleSave = async (
     type: "start" | "dest",
     label: string,

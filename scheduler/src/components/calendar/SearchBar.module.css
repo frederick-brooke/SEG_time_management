@@ -1,6 +1,9 @@
-/* src/components/calendar/SearchBar.module.css */
-
-/* ── Search / Undo bar ───────────────────────────────────────────────────── */
+/**
+ * SearchBar.module.css
+ * Styles for the search bar and undo bar rendered inside CalendarBody.
+ * Covers the search input, autocomplete dropdown, and delete-undo notification.
+ */
+ 
 .searchBar {
     height: 3.5rem;
     margin-bottom: 1rem;
