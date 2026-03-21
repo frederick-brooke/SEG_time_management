@@ -71,22 +71,26 @@ export default function SearchPanel({ open, onClose }) {
             </LunarDrawer>
 
             {/* filters */}
-            {isUserFilterOpen && (
-                <GlassCard className="fixed top-16 left-[520px] w-[360px] p-4 z-50">
-                    <UserFilter
-                        filters={draftUserFilters}
-                        setFilters={setDraftUserFilters}
-                        onClose={() => setIsUserFilterOpen(false)}
-                        applyFilters={()=>{
-                            setAppliedUserFilters(prev => ({
-                                ...draftUserFilters,
-                                search: prev.search
-                            }));
-                            setIsUserFilterOpen(false);
-                        }}
-                    />
-                </GlassCard>
-            )}
+            <LunarDrawer
+                open={isUserFilterOpen}
+                onClose={() => setIsUserFilterOpen(false)}
+                side="right"
+                title="User Filters"
+                width="400px"
+            >
+                <UserFilter
+                    filters={draftUserFilters}
+                    setFilters={setDraftUserFilters}
+                    onClose={() => setIsUserFilterOpen(false)}
+                    applyFilters={() => {
+                    setAppliedUserFilters(prev => ({
+                        ...draftUserFilters,
+                        search: prev.search,
+                    }));
+                    setIsUserFilterOpen(false);
+                    }}
+                />
+            </LunarDrawer>
         </>
     );
 }

@@ -49,7 +49,6 @@ export default function AdminListSection({
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setInputValue(value);
-    setFilters((prev) => ({ ...prev, search: value, page: 1 }));
   };
 
   const handleReset = () => {
@@ -103,7 +102,7 @@ export default function AdminListSection({
           <button
             type="button"
             onClick={handleReset}
-            className="p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+            className="lunar-page-subtitle p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
           >
             <FunnelXIcon size={18} />
           </button>
