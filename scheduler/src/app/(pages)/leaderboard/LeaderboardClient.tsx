@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { resolveAvatarSrc } from "@/src/lib/avatar";
 
 interface LeaderboardUser {
   id: string;
@@ -103,6 +104,8 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
         ) : (
           sortedData.map((user, index) => {
             const rank = index + 1;
+            const avatarSrc = resolveAvatarSrc(user.pfp);
+
             return (
               <div
                 key={user.id}
@@ -156,7 +159,6 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
                   <span className="text-sm text-white/70 font-medium">{user.focusTime}</span>
                 </div>
 
-                {/* Completion */}
                 <div className="col-span-2 flex justify-center items-center gap-1.5">
                   <Target size={14} className={
                     user.completionRate >= 80 ? 'text-emerald-400' :
