@@ -8,6 +8,7 @@ import JoinModule from "components/modules/JoinModule";
 import { Plus, LogIn, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 
 //types
+
 interface ModuleItem {
   id: string;
   name: string;
@@ -31,6 +32,7 @@ interface ModulesPageClientProps {
 type SortKey = 'name-asc' | 'name-desc' | 'members-asc' | 'members-desc' | 'newest' | 'oldest';
 
 //constants
+
 const PAGE_SIZE = 10;
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -42,12 +44,14 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'members-asc',  label: 'Fewest members'    },
 ];
 
+//helpers
 
 /**
- * Sorts a list of modules by the given sort key
- * @param {ModuleItem[]} modules - Unsorted module list
- * @param {SortKey} key - Sort criteria
- * @return {ModuleItem[]} - Sorted copy of the module list
+ * Sorts an array of module objects based on the selected sorting key.
+ *
+ * @param {ModuleItem[]} modules - The unsorted array of module items.
+ * @param {SortKey} key - The criteria used to sort the modules.
+ * @return {ModuleItem[]} A new, sorted array of module items.
  */
 function sortModules(modules: ModuleItem[], key: SortKey): ModuleItem[] {
   const copy = [...modules];
@@ -62,31 +66,37 @@ function sortModules(modules: ModuleItem[], key: SortKey): ModuleItem[] {
   }
 }
 
+//main component
 
 /**
- * Client component for the modules list page with sorting, pagination, and create/join modals
- * @param {ModulesPageClientProps} props - Initial modules data from server
- * @return {JSX.Element} - Modules page with controls and modals
+ * Client component for the modules list page.
+ * Handles displaying module cards, sorting, pagination, and triggering the create/join modals.
+ *
+ * @param {ModulesPageClientProps} props - The component props.
+ * @param {ModuleItem[]} props.modules - The initial list of modules fetched from the server.
+ * @return {JSX.Element} The rendered modules page UI.
  */
 export default function ModulesPageClient({ modules: initialModules }: ModulesPageClientProps) {
   const router = useRouter();
+  
+  // State
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('newest');
   const [page, setPage] = useState(1);
   const [showSortMenu, setShowSortMenu] = useState(false);
 
+  // Derived Data
   const sorted = useMemo(() => sortModules(initialModules, sortKey), [initialModules, sortKey]);
-
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
   const pageStart = (page - 1) * PAGE_SIZE;
   const paginated = sorted.slice(pageStart, pageStart + PAGE_SIZE);
-
   const currentSortLabel = SORT_OPTIONS.find((o) => o.value === sortKey)?.label ?? 'Sort';
 
   /**
-   * Changes the sort key and resets to page 1
-   * @param {SortKey} key - New sort criteria
+   * Updates the sort state, resets pagination to the first page, and closes the menu.
+   *
+   * @param {SortKey} key - The newly selected sort criteria.
    * @return {void}
    */
   const handleSort = (key: SortKey) => {

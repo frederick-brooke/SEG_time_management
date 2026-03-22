@@ -1,15 +1,17 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";
-import {getModuleDetails, getModuleEvents, getModuleTasks, getModuleTasksWithProgress,} from "@/app/actions/module";
+import { getModuleDetails, getModuleEvents, getModuleTasks, getModuleTasksWithProgress } from "@/app/actions/module";
 import ModuleDetailClient from "./ModuleDetailClient";
 import { ModuleRole } from "@prisma/client";
 
 /**
- * Server component that fetches module details and role-appropriate task data
- * Owners receive full progress data; members receive only their own tasks
- * @param {Promise<{ moduleId: string }>} params - Route params containing module ID
- * @return {JSX.Element} - Module detail page
+ * Server component that fetches module details and role-appropriate task data.
+ * Owners receive full progress data; members receive only their own tasks.
+ *
+ * @param {object} props - The component props.
+ * @param {Promise<{ moduleId: string }>} props.params - Route params containing module ID.
+ * @return {Promise<JSX.Element>} - Module detail page.
  */
 export default async function ModuleDetailPage({
   params,
