@@ -47,7 +47,6 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
     cancelDelete,
   } = useTasks(userId);
 
-
   const getPriorityStyle = (priority: string) => {
     switch (priority) {
       case "High":

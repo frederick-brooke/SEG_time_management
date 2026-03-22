@@ -1,11 +1,8 @@
 // scheduler/src/app/(pages)/dashboard/page.tsx
 "use client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { redirect } from "next/navigation";
 import { getMyExams } from "@/src/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
 import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
@@ -13,11 +10,12 @@ import { ProfileStats } from "@/src/components/profile/StatModules";
 import { getMyProfile } from "@/src/app/actions/profile";
 import { ComingUpSoon } from "@/src/components/coming-up-soon";
 import WellbeingPage from "../wellbeing/page";
-import Panel from "@/components/panel";
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 import { IconMoonStars } from "@tabler/icons-react";
 import WellbeingPanel from "@/src/components/wellbeing/wellbeing_panel";
+import { RocketProgress } from "@/components/ui/rocket-progress";
+import { useTasks } from "@/src/hooks/useTasks";
 
 export default function Page() {
   const { data: session, status } = useSession();
@@ -29,6 +27,13 @@ export default function Page() {
   const [profile, setProfile] = useState(null);
 
   const[wellbeingVisible, setWellbeingVisible] = useState(true);
+
+  const { tasks } = useTasks(session?.user?.id);
+
+  const totalTasks = tasks?.length || 0;
+  const completedTasks = tasks?.filter(t => t.status === "completed").length;
+
+  const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   useEffect(() => {
     let isMounted = true; // Prevents fetching if the user moves away from screen
@@ -91,13 +96,15 @@ export default function Page() {
         <main className="max-w-7xl mx-auto pt-20 pb-12 lg:px-16 space-y-12 text-white/90">
           {/* Header Section */}
           <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
-            
             {/* Left Side: Greeting & Action Buttons */}
             <div className="flex-1 space-y-4">
-              <div>
-                <h1 className="lunar-header text-4xl">
-                  Welcome, {profile?.fname || session?.user?.name || 'User'}! 
-                </h1>
+              {/* Greeting bit */}
+              <h1 className="lunar-header text-4xl">
+                Welcome, {profile?.fname || session?.user?.name || 'User'}! 
+              </h1>
+
+              <div className="w-full max-w-md mt-2">
+                <RocketProgress progress={progressPercentage} />
               </div>
 
               <div className="flex items-center gap-3">
@@ -121,7 +128,7 @@ export default function Page() {
 
           <hr className="border-white/5" />
 
-          {/* -- Grid Layout for Cards -- */}
+          {/* Grid Layout for Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start pt-12">
             <ComingUpSoon userId={session?.user?.id} exams={exams}/>
 
@@ -142,6 +149,7 @@ export default function Page() {
           <button
             onClick={() => {setWellbeingOpen(true); setWellbeingVisible(false)}}
             className="relative flex h-16 w-16 items-center justify-center rounded-full bg-indigo-950 backdrop-blur-xl border border-white/10 text-red-300 shadow-[0_0_25px_rgba(168,85,247,0.45),0_0_60px_rgba(59,130,246,0.25)] hover:scale-110 hover:text-pink-300 hover:shadow-[0_0_35px_rgba(236,72,153,0.55),0_0_80px_rgba(168,85,247,0.35)] transition-all duration-300 animate-[pulse_4s_ease-in-out_infinite]"
+            aria-label="Open wellbeing panel"
           >
             {/* glow ring */}
             <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-40 transition" />
