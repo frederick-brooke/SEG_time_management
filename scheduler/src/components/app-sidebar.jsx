@@ -22,6 +22,7 @@ import {
   IconBook,
   IconBell,
   IconCalendar,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 
 import { GraduationCap, Map } from "lucide-react";
@@ -97,6 +98,11 @@ const data = {
       title: "Modules",
       url: "/modules",
       icon: IconBook,
+    },
+    {
+      title: "Groups",
+      url: "/groups",
+      icon: IconUsersGroup,
     },
     {
       title: "Admin",
