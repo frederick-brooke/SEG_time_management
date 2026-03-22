@@ -107,8 +107,10 @@ export default function CheckInModal({ onDone }: CheckInModalProps) {
               <span>{Math.round((completedCount / tasks.length) * 100)}%</span>
             </div>
             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 rounded-full transition-all"
-                style={{ width: `${(completedCount / tasks.length) * 100}%` }} />
+            <div
+              className="h-full bg-indigo-500 rounded-full transition-all w-[var(--progress)]"
+              style={{ "--progress": `${(completedCount / tasks.length) * 100}%` } as React.CSSProperties}
+            />
             </div>
           </div>
         </div>
