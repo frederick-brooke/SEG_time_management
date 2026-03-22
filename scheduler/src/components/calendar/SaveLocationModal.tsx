@@ -1,4 +1,10 @@
 "use client";
+
+/**
+ * SaveLocationModal — inline modal for saving a resolved address
+ * as a named saved location with a HOME, WORK, or FAVOURITE type.
+ */
+
 import { useState } from "react";
 
 const TYPE_ICONS: Record<string, string> = {
@@ -21,6 +27,11 @@ export interface SaveLocationModalProps {
   onClose: () => void;
 }
 
+/**
+ * Renders a small popover form below the location input. The label
+ * defaults to the first part of the address. Calls onSave then onClose
+ * on successful submission.
+ */
 export default function SaveLocationModal({
   address,
   lat,
@@ -28,16 +39,20 @@ export default function SaveLocationModal({
   onSave,
   onClose,
 }: SaveLocationModalProps) {
-  const [label, setLabel] = useState(address.split(",")[0] ?? address);
+  const [label, setLabel] = useState(address.split(",")[0] || "");
   const [type, setType] = useState<"HOME" | "WORK" | "FAVOURITE">("FAVOURITE");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!label.trim()) return;
     setSaving(true);
-    await onSave(label.trim(), type);
-    setSaving(false);
-    onClose();
+    try {
+      await onSave(label.trim(), type);
+      onClose();
+    } catch (err) {
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

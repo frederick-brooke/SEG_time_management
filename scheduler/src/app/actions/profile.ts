@@ -80,7 +80,11 @@ export async function getMyProfile() {
   ] = await Promise.all([
     prisma.userProgress.findUnique({
       where: { userId: user.id },
-      select: { points: true, level: true, experience: true },
+      select: {
+        coins: true,
+        level: true,
+        experience: true,
+      },
     }),
     prisma.task.findMany({
       where: { userId: user.id },

@@ -31,16 +31,13 @@ export function MembersPanel({ participants, currentUserId, isAdmin, onAddMember
   const router = useRouter();
 
   return (
-    <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+    <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "rgba(148,163,255,0.35)" }}>Members</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(148,163,255,0.35)]">Members</p>
         {isAdmin && (
           <button
             onClick={onAddMember}
-            className="text-xs font-medium transition-colors"
-            style={{ color: "rgba(148,163,255,0.6)" }}
-            onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
-            onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.6)")}
+            className="text-xs font-medium transition-colors text-[rgba(148,163,255,0.6)] hover:text-[rgba(148,163,255,0.9)]"
           >
             + Add member
           </button>
@@ -62,20 +59,18 @@ export function MembersPanel({ participants, currentUserId, isAdmin, onAddMember
                   <Image src={p.user.pfp} alt={p.user.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
                 ) : (
                   <div
-                    className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center shrink-0"
-                    style={{ background: "rgba(88,101,242,0.2)", color: "rgba(148,163,255,0.8)" }}
+                    className="w-7 h-7 rounded-full text-xs font-semibold flex items-center justify-center shrink-0 bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.8)]"
                   >
                     {p.user.username[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-sm truncate" style={{ color: "rgba(200,210,230,0.8)" }}>
+                <span className="text-sm truncate text-[rgba(200,210,230,0.8)]">
                   {p.user.fname?.trim() || p.user.username}
-                  {isSelf && <span className="ml-1" style={{ color: "rgba(148,163,255,0.35)" }}>(you)</span>}
+                  {isSelf && <span className="ml-1 text-[rgba(148,163,255,0.35)]">(you)</span>}
                 </span>
                 {p.role === "admin" && (
                   <span
-                    className="text-xs px-1.5 py-0.5 rounded-full shrink-0"
-                    style={{ background: "rgba(88,101,242,0.15)", color: "rgba(148,163,255,0.7)" }}
+                    className="text-xs px-1.5 py-0.5 rounded-full shrink-0 bg-[rgba(88,101,242,0.15)] text-[rgba(148,163,255,0.7)]"
                   >
                     Admin
                   </span>
@@ -86,19 +81,13 @@ export function MembersPanel({ participants, currentUserId, isAdmin, onAddMember
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => onPromote(p.userId, p.role)}
-                    className="text-xs font-medium transition-colors"
-                    style={{ color: "rgba(148,163,255,0.5)" }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "rgba(148,163,255,0.9)")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "rgba(148,163,255,0.5)")}
+                    className="text-xs font-medium transition-colors text-[rgba(148,163,255,0.5)] hover:text-[rgba(148,163,255,0.9)]"
                   >
                     {p.role === "admin" ? "Remove admin" : "Make admin"}
                   </button>
                   <button
                     onClick={() => onRemove(p.userId, p.user.username)}
-                    className="text-xs font-medium transition-colors"
-                    style={{ color: "rgba(255,100,100,0.5)" }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,100,100,0.85)")}
-                    onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,100,100,0.5)")}
+                    className="text-xs font-medium transition-colors text-[rgba(255,100,100,0.5)] hover:text-[rgba(255,100,100,0.85)]"
                   >
                     Remove
                   </button>

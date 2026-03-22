@@ -1,7 +1,7 @@
 export default function ReportFilter({ filters, setFilters, onClose, applyFilters, resetFilters}) {
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-blue/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
@@ -10,13 +10,13 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
       >
         {/* HEADER */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="lunar-header text-lg font-semibold text-white">
             Filters
           </h3>
 
           <button
             onClick={resetFilters}
-            className="px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
+            className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
           >
             Reset
           </button>
@@ -24,7 +24,7 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
 
         {/* Sort By */}
         <div className="space-y-3">
-          <label className="text-xs uppercase text-white/40 tracking-wider">
+          <label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">
             Sorting
           </label>
 
@@ -60,7 +60,7 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
 
         {/* Date manipulation */}
         <div className="space-y-3">
-          <p className="text-xs uppercase text-white/40 tracking-wider">
+          <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">
             Dates
           </p>
 
@@ -93,7 +93,7 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
 
         {/* Status Filter */}
         <div className="space-y-3">
-          <p className="text-xs uppercase text-white/40 tracking-wider">
+          <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">
             Status
           </p>
 
@@ -128,17 +128,17 @@ export default function ReportFilter({ filters, setFilters, onClose, applyFilter
         </div>
 
         {/* actions */}
-        <div className="mt-auto space-y-3">
+        <div className="lunar-page-subtitle mt-auto space-y-3">
           <button
             onClick={applyFilters}
-            className="w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition"
+            className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition"
           >
             Apply Filters
           </button>
 
           <button
             onClick={onClose}
-            className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+            className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
           >
             Close
           </button>

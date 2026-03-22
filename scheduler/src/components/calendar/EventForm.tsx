@@ -1,5 +1,12 @@
 "use client";
-// src/components/EventForm.tsx
+
+/**
+ * EventForm — form for creating and editing calendar events.
+ * Handles Google event locking, recurring event edit modes, recurrence
+ * configuration, travel time, and schedule conflict resolution.
+ * All form state is managed by the useEventForm hook.
+ */
+
 import TravelSection from "./TravelSection";
 import { TaskPromptSection } from "./EventFormParts";
 import { useEventForm } from "@/hooks/useEventForm";
@@ -61,6 +68,7 @@ export default function EventForm({
     );
   }
 
+  // Submit button colour varies by lock state, calculating state, and edit mode.
   const submitBtnClass = f.isGoogle
     ? "bg-white/10 text-white/30 cursor-not-allowed"
     : f.isCalculating
@@ -69,6 +77,7 @@ export default function EventForm({
         ? "bg-amber-500 hover:bg-amber-400 text-black"
         : "bg-indigo-600 hover:bg-indigo-500 text-white";
 
+  // Submit label reflects whether we're creating, updating a series, or updating a single day.
   const submitLabel = f.isCalculating
     ? "Calculating Travel..."
     : initialEvent
@@ -136,12 +145,12 @@ export default function EventForm({
               type="button"
               disabled={f.isGoogle}
               onClick={() => f.setCategory(cat.name)}
-              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+              className={`px-3 py-1 rounded-full text-xs font-bold border transition-all test-white ${
                 f.category === cat.name
                   ? "border-white/60 scale-105 opacity-100"
                   : "border-transparent opacity-40 hover:opacity-60"
               }`}
-              style={{ backgroundColor: cat.color, color: "white" }}
+              style={{ backgroundColor: cat.color }}
             >
               {cat.name}
             </button>

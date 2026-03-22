@@ -1,5 +1,11 @@
 "use client";
-// src/components/CalendarView.tsx
+
+/**
+ * CalendarView — top-level calendar component.
+ * Composes the calendar grid, sidebars, modals, and schedule drawer.
+ * All data fetching and interactions are delegated to custom hooks.
+ */
+
 import { useState, useEffect } from "react";
 import { dateFnsLocalizer } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
@@ -69,7 +75,6 @@ export default function CalendarView({
   const [rescheduleQueue, setRescheduleQueue] = useState<any[]>([]);
   const [showReschedule, setShowReschedule] = useState(false);
 
-  // ── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     data.fetchCategories();
     data.fetchExams();
@@ -93,7 +98,10 @@ export default function CalendarView({
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
-  // ── Filtered calendar items ────────────────────────────────────────────────
+  /**
+   * Builds the list of calendar items to display based on active filters.
+   * Events are filtered by category; tasks by completion status and priority.
+   */
   const getFilteredItems = () => {
     const items: any[] = [];
     data.events.forEach((e) => {
@@ -114,7 +122,11 @@ export default function CalendarView({
     return items;
   };
 
-  // ── Check-in → reschedule flow ────────────────────────────────────────────
+  /**
+   * Called when the check-in modal completes.
+   * Refreshes tasks directly if nothing needs rescheduling,
+   * otherwise queues the tasks and shows the reschedule modal.
+   */
   const handleCheckInDone = async (toReschedule: any[]) => {
     setShowCheckIn(false);
     if (toReschedule.length === 0) {
@@ -125,6 +137,11 @@ export default function CalendarView({
     setShowReschedule(true);
   };
 
+  /**
+   * Called when the reschedule modal confirms a set of task IDs.
+   * Patches task durations to their remaining values, then posts a
+   * week-mode schedule request for today through the coming Sunday.
+   */
   const handleRescheduleConfirm = async (ids: string[]) => {
     setShowReschedule(false);
     if (ids.length === 0) {
@@ -171,6 +188,7 @@ export default function CalendarView({
     await data.fetchScheduleLogs();
   };
 
+  /** Returns the start (today at midnight) and end (coming Sunday) of the current week. */
   const weekBounds = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -179,18 +197,20 @@ export default function CalendarView({
     return { weekStart: today, weekEnd: sunday };
   };
 
+  /** Opens the event detail modal with the given event selected and editing disabled. */
   const openModal = (event: any) => {
     setSelectedEvent(event);
     setIsEditing(false);
     setIsModalOpen(true);
   };
+  
+  /** Closes the event detail modal and resets editing and task edit state. */
   const closeModal = () => {
     setIsModalOpen(false);
     setIsEditing(false);
     ix.setIsTaskEditOpen(false);
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex gap-6">
       {showCheckIn && <CheckInModal onDone={handleCheckInDone} />}

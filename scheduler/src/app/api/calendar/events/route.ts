@@ -1,11 +1,16 @@
+/**
+ * Calendar Events API route — handles CRUD for calendar events.
+ * Covers Google Calendar sync, recurring event expansion, and travel time calculation.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ObjectId } from "mongodb";
 import { calculateTravelTime } from "@/src/lib/travel";
-import { expandRecurringEvents } from "@/src/lib/eventHelpers";
-import { handleSingleInstanceUpdate, handleSeriesUpdate } from "@/src/lib/eventMutations";
+import { expandRecurringEvents } from "@/src/lib/calendar/eventHelpers";
+import { handleSingleInstanceUpdate, handleSeriesUpdate } from "@/src/lib/calendar/eventMutations";
 import {
   syncGoogleCalendar,
   insertGoogleEvent,
@@ -14,14 +19,19 @@ import {
   deleteSingleOccurrence,
   upsertGoogleEvent,
   fetchAllGoogleEvents,
-} from "@/src/lib/googleSync";
+} from "@/src/lib/calendar/googleSync";
+import { deleteEventNotifications } from "@/src/app/actions/calendarNotifications";
+
 
 // Global lock to prevent multiple syncs running at once per server instance
 let isSyncing = false;
 let lastSyncTime = 0;
 const SYNC_INTERVAL = 5 * 60 * 1000;
 
-// Extracts and validates DELETE query params; returns params or an error response.
+/**
+* Extracts and validates DELETE query params from the request URL.
+* @returns Parsed `{ id, mode, instanceDate }` or `{ error: NextResponse }` if the ID is invalid.
+*/
 function parseDeleteParams(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
@@ -32,7 +42,10 @@ function parseDeleteParams(req: NextRequest) {
   return { id, mode, instanceDate };
 }
 
-// Builds the Prisma where-filter for GET event queries.
+/**
+ * Builds a Prisma where-filter for GET event queries.
+ * Supports optional full-text search via `q` and category filtering.
+ */
 function buildEventFilters(userId: string, searchParams: URLSearchParams) {
   const filters: any = { userId };
   const query = searchParams.get("q");
@@ -46,9 +59,11 @@ function buildEventFilters(userId: string, searchParams: URLSearchParams) {
   return filters;
 }
 
-// ---------------------------------------------------------------------------
-// GET — fetch events, triggering a background Google sync when due
-// ---------------------------------------------------------------------------
+/**
+ * GET /api/calendar/events
+ * Returns expanded events for the user. Triggers a Google sync when the
+ * interval has elapsed, no local events exist, or `force=true` is passed.
+ */
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user)
@@ -57,6 +72,7 @@ export async function GET(req: NextRequest) {
   const now = Date.now();
   const { searchParams } = new URL(req.url);
   const localCount = await prisma.event.count({ where: { userId: session.user.id } });
+  // Sync if forced, or the cooldown has elapsed, or the user has no local events yet.
   const shouldSync =
     searchParams.get("force") === "true" || now - lastSyncTime > SYNC_INTERVAL || localCount === 0;
 
@@ -75,9 +91,11 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(expandRecurringEvents(events));
 }
 
-// ---------------------------------------------------------------------------
-// POST — create a new event locally and push it to Google Calendar
-// ---------------------------------------------------------------------------
+/**
+ * POST /api/calendar/events
+ * Creates an event locally and pushes it to Google Calendar.
+ * Auto-calculates travel time when coordinates are provided without a duration.
+ */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
@@ -111,9 +129,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// PUT — force a full re-sync of all Google Calendar events into the DB
-// ---------------------------------------------------------------------------
+/**
+ * PUT /api/calendar/events
+ * Forces a full re-sync of Google Calendar events into the local database.
+ * @returns `{ created, updated, skipped, total }` summary.
+ */
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user)
@@ -139,9 +159,11 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// PATCH — update an event, either a single occurrence or the whole series
-// ---------------------------------------------------------------------------
+/**
+ * PATCH /api/calendar/events
+ * Updates an event. When `mode === "single"` and `originalDate` is set,
+ * creates an exception for that occurrence only. Otherwise updates the series.
+ */
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
@@ -172,15 +194,16 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// DELETE — remove one occurrence or the entire event
-// ---------------------------------------------------------------------------
+/**
+ * DELETE /api/calendar/events
+ * Removes an event. When `mode=single` and `date` are provided, removes only
+ * that occurrence. Otherwise deletes the entire event from Google and the DB.
+ */
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-  const params = parseDeleteParams(req);
+    const params = parseDeleteParams(req);
   if ("error" in params) return params.error;
   const { id, mode, instanceDate } = params;
   try {
@@ -196,9 +219,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: true, message: "Occurrence removed" });
     }
 
-    if (event.googleEventId) await deleteGoogleEvent(session.user.id, event.googleEventId);
-    await prisma.event.delete({ where: { id } });
-    return NextResponse.json({ success: true, message: "Event deleted" });
+if (event.googleEventId) await deleteGoogleEvent(session.user.id, event.googleEventId);
+await deleteEventNotifications(session.user.id, event.title);
+await prisma.event.delete({ where: { id } });
+return NextResponse.json({ success: true, message: "Event deleted" });
   } catch (e: any) {
     console.error("Delete handler error:", e);
     return NextResponse.json({ message: e.message }, { status: 500 });

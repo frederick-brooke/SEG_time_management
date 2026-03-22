@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { AddMemberModal } from "./AddMemberModal";
+import { AddMemberModal } from "../AddMemberModal";
 
 // Mock next/image
 jest.mock("next/image", () => ({

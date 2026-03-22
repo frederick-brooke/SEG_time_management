@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MessageInput } from "./MessageInput";
+import { MessageInput } from "../MessageInput";
 
 const defaultProps = {
   value: "",
@@ -112,8 +112,6 @@ describe("MessageInput – auto-grow", () => {
     const { rerender } = setup({ value: "" });
     const textarea = screen.getByPlaceholderText("Message...") as HTMLTextAreaElement;
 
-    // jsdom doesn't compute real scroll dimensions, but we can verify
-    // the effect ran by checking the style was set
     Object.defineProperty(textarea, "scrollHeight", { configurable: true, value: 80 });
     rerender(<MessageInput {...defaultProps} value="line one\nline two\nline three" />);
 
@@ -127,7 +125,6 @@ describe("MessageInput – auto-grow", () => {
     Object.defineProperty(textarea, "scrollHeight", { configurable: true, value: 40 });
     rerender(<MessageInput {...defaultProps} value="updated text" />);
 
-    // Final value is scrollHeight (auto is set transiently then overwritten)
     expect(textarea.style.height).toBe("40px");
   });
 });

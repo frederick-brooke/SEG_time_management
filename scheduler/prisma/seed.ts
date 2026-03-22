@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import bcrypt from 'bcryptjs'
+import { SHOP_CATALOGUE } from "../src/lib/shop-catalogue";
+
 
 const prisma = new PrismaClient()
 const TASK_STATUSES = ['todo', 'in-progress', 'completed']
@@ -14,38 +16,22 @@ function randomFutureDate(maxDays = 20) {
   return future
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SHOP CATALOGUE — seeded so the shop has stock on first run
-// Points/inventory are NOT seeded — users earn and spend through the app
-// ─────────────────────────────────────────────────────────────────────────────
-const SHOP_ITEMS = [
-  { name: "Cosmic Cadet",   description: "Every legend starts somewhere.",                              type: "TITLE" as const,      price: 100,  value: "Cosmic Cadet",   icon: "🚀", rarity: "common"    },
-  { name: "Nebula Scout",   description: "You've explored the edges of the known universe.",            type: "TITLE" as const,      price: 250,  value: "Nebula Scout",   icon: "🌌", rarity: "rare"      },
-  { name: "Star Commander", description: "You command the stars.",                                      type: "TITLE" as const,      price: 500,  value: "Star Commander", icon: "⭐", rarity: "epic"      },
-  { name: "Void Walker",    description: "You move through darkness others fear.",                      type: "TITLE" as const,      price: 750,  value: "Void Walker",    icon: "🌑", rarity: "epic"      },
-  { name: "Galaxy Brain",   description: "Legendary status. Only the most productive minds earn this.", type: "TITLE" as const,      price: 1500, value: "Galaxy Brain",   icon: "🧠", rarity: "legendary" },
-  { name: "Solar Flare",    description: "A blazing gold frame that radiates energy.",                  type: "FRAME" as const,      price: 200,  value: "solar-flare",    icon: "☀️", rarity: "common"    },
-  { name: "Nebula Glow",    description: "A dreamy purple-pink cosmic glow.",                           type: "FRAME" as const,      price: 400,  value: "nebula-glow",    icon: "💜", rarity: "rare"      },
-  { name: "Aurora Ring",    description: "Northern lights dancing around your profile.",                type: "FRAME" as const,      price: 600,  value: "aurora-ring",    icon: "🌈", rarity: "epic"      },
-  { name: "Event Horizon",  description: "The legendary black hole frame.",                             type: "FRAME" as const,      price: 2000, value: "event-horizon",  icon: "🕳️", rarity: "legendary" },
-  { name: "XP Boost",       description: "Double your points for the next 24 hours.",                  type: "FUNCTIONAL" as const, price: 300,  value: "xp-boost-24h",  icon: "⚡", rarity: "rare"      },
-  { name: "Streak Shield",  description: "Miss a day without breaking your streak. One-time use.",     type: "FUNCTIONAL" as const, price: 150,  value: "streak-shield",  icon: "🛡️", rarity: "common"    },
-]
-
 async function main() {
+  await prisma.userInventory.deleteMany()
+  await prisma.shopItem.deleteMany()
+
   console.log('Starting seeding...')
 
   const passwordHash = await bcrypt.hash('Password123', 10)
 
   // ── SHOP ITEMS ─────────────────────────────────────────────────────────────
   console.log('Seeding shop items...')
-  for (const item of SHOP_ITEMS) {
+  for (const item of SHOP_CATALOGUE) {
     await prisma.shopItem.upsert({
       where: { name: item.name },
       create: { ...item, isActive: true },
       update: { price: item.price, description: item.description, isActive: true },
-    })
-    console.log(`  ✓ ${item.name}`)
+    });
   }
 
   // ── USERS ──────────────────────────────────────────────────────────────────
@@ -175,8 +161,10 @@ async function main() {
       })
     }
   }
+}
 
-  console.log('\n✅ Seeding complete!')
+  console.log('\nSeeding start!')
+
 
 main()
   .catch((e) => {

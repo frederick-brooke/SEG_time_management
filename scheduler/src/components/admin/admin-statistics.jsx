@@ -16,7 +16,7 @@ export default function AdminStatistics(){
 
     return(
         <section className="mb-10">
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-white">
+            <h2 className="lunar-header text-2xl md:text-3xl font-semibold mb-6 text-white">
                 Statistics
             </h2>
 
@@ -31,7 +31,7 @@ export default function AdminStatistics(){
                     <GlassCard className="text-center py-8">
 
                     {/* number */}
-                    <p className="text-3xl md:text-4xl font-semibold text-white mb-2">
+                    <p className="lunar-page-subtitle text-3xl md:text-4xl font-semibold text-white mb-2">
                         {stat.value ?? "-"}
                     </p>
 

@@ -1,14 +1,28 @@
-// src/lib/eventHelpers.ts
+/**
+ * Calendar Event Helpers
+ * 
+ * Provides utilities for expanding recurring events into individual occurrences
+ * and converting local recurrence rules to Google Calendar RRULE format.
+ *
+ */
+
 import { addDays, addWeeks, addMonths, endOfDay } from "date-fns";
 
 const DAY_MAP: Record<string, number> = {
   Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
 };
 
-// ---------------------------------------------------------------------------
-// expandRecurringEvents helpers
-// ---------------------------------------------------------------------------
-
+/**
+ * Computes the occurrences of a recurring event within the current iteration
+ * period (day, week, or month) and advances the cursor to the next period.
+ *
+ * @param type - Recurrence type: `"daily"`, `"weekly"`, or `"monthly"`.
+ * @param cursor - The start of the current iteration period.
+ * @param days - For weekly recurrence, the days of the week to include.
+ * @param start - The original event start time, used to set the time-of-day on each occurrence.
+ * @param finalLimit - The date beyond which no occurrences should be generated.
+ * @returns The occurrences within this period and the cursor advanced to the next period.
+ */
 function getOccurrencesThisPeriod(
   type: string,
   cursor: Date,
@@ -40,6 +54,15 @@ function getOccurrencesThisPeriod(
   return { occurrences: [], nextCursor: cursor };
 }
 
+/**
+ * Expands a single event into an array of occurrence objects.
+ * Non-recurring events are returned as-is with an `occurrenceId` attached.
+ * Recurring events are expanded up to their `until` date or 12 months ahead,
+ * with any dates listed in `exceptions` omitted.
+ *
+ * @param e - The raw event object from the database.
+ * @returns An array of expanded occurrence objects, each with a unique `occurrenceId`.
+ */
 function expandSingleEvent(e: any): any[] {
   if (!e.recurrence || e.recurrence.type === "none")
     return [{ ...e, occurrenceId: e.id }];
@@ -56,6 +79,7 @@ function expandSingleEvent(e: any): any[] {
   let cursor = new Date(start);
   let iterations = 0;
 
+  // Cap at 366 to handle daily events over a leap year without risking infinite loop.
   while (cursor <= finalLimit && iterations < 366) {
     iterations++;
     const { occurrences, nextCursor } = getOccurrencesThisPeriod(type, cursor, days, start, finalLimit);
@@ -71,21 +95,29 @@ function expandSingleEvent(e: any): any[] {
   return result;
 }
 
-// ---------------------------------------------------------------------------
-// expandRecurringEvents
-// Expands recurring events into individual occurrences up to 12 months ahead.
-// ---------------------------------------------------------------------------
+/**
+ * Expands all events in the given array into individual occurrences.
+ * Recurring events are flattened into one object per occurrence;
+ * non-recurring events pass through unchanged.
+ *
+ * @param events - The raw event objects to expand.
+ * @returns A flat array of all occurrences across all events.
+ */
 export function expandRecurringEvents(events: any[]): any[] {
   return events.flatMap((e) => expandSingleEvent(e));
 }
 
-// ---------------------------------------------------------------------------
-// buildGoogleRecurrenceRule
-// Converts a local recurrence object into a Google Calendar RRULE string.
-// ---------------------------------------------------------------------------
+/**
+ * Converts a local recurrence rule object into a Google Calendar RRULE string array.
+ * Returns `undefined` if the recurrence is absent, set to `"none"`, or has no `until` date.
+ *
+ * @param recurrence - The recurrence object containing `type`, `until`, and optionally `days`.
+ * @returns A single-element array containing the RRULE string or `undefined` if no rule applies.
+ */
 export function buildGoogleRecurrenceRule(recurrence: any): string[] | undefined {
   if (!recurrence || recurrence.type === "none" || !recurrence.until)
     return undefined;
+  
   const untilDate = new Date(recurrence.until);
   const untilString = untilDate.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const freq = recurrence.type.toUpperCase();
@@ -93,5 +125,6 @@ export function buildGoogleRecurrenceRule(recurrence: any): string[] | undefined
     recurrence.type === "weekly" && recurrence.days
       ? `;BYDAY=${recurrence.days.map((d: string) => d.toUpperCase().slice(0, 2)).join(",")}`
       : "";
-  return [`RRULE:FREQ=${freq}${byDay};UNTIL=${untilString}`];
+  
+      return [`RRULE:FREQ=${freq}${byDay};UNTIL=${untilString}`];
 }

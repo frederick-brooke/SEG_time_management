@@ -29,18 +29,45 @@ interface ProfilePageClientProps {
 
 //section helpers
 
-/**
- * Formats an ISO date string into DD/MM/YYYY.
- * @param {string} dateString - The raw date string.
- * @return {string} The formatted date.
- */
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Formats an ISO date string into DD/MM/YYYY. */
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+  const d = new Date(dateString);
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
+
+/** Resolves a pfp value to a usable src: handles "avatar:<key>" prefixes and raw URLs. */
+function resolveAvatarSrc(pfp: string | null | undefined): string | null {
+  if (!pfp) return null;
+  if (pfp.startsWith("avatar:")) return AVATAR_IMAGES[pfp.slice("avatar:".length)] ?? null;
+  return pfp;
+}
+
+// ─── Small form-status buttons ────────────────────────────────────────────────
+
+/** Submit button that reflects its parent <form>'s pending state. */
+function AcceptButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending}
+      className={`bg-black text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${pending ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"}`}>
+      <Check size={14} />{pending ? "Accepting..." : "Accept"}
+    </button>
+  );
+}
+
+function RejectButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending}
+      className={`bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${pending ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"}`}>
+      <X size={14} />
+    </button>
+  );
+}
+
+// ─── Friend request action ────────────────────────────────────────────────────
 
 /**
  * Handles the logic and UI for sending, canceling, or removing friend requests.
@@ -51,7 +78,6 @@ function formatDate(dateString: string): string {
  */
 function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnProfile: boolean }) {
   const [isPending, startTransition] = useTransition();
-
   if (isOwnProfile) return null;
 
   const handleAction = (actionFn: (id: string) => Promise<any>, confirmMsg?: string) => {
@@ -103,8 +129,18 @@ function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnPro
         <Clock size={18} />
         <span>Wants to be Friends</span>
       </div>
-    );
-  }
+      <button onClick={() => handleAction(cancelFriendRequest)} disabled={isPending}
+        className={`flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-lg border border-gray-300 font-medium transition-colors ${isPending ? "opacity-50" : "hover:bg-gray-200"}`}>
+        <X size={16} /><span className="text-sm">{isPending ? "Canceling..." : "Cancel"}</span>
+      </button>
+    </div>
+  );
+
+  if (profile.friendStatus === "REQUEST_RECEIVED") return (
+    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+      <Clock size={18} /><span className="font-medium">Wants to be Friends</span>
+    </div>
+  );
 
   return (
     <button
@@ -121,31 +157,31 @@ function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnPro
 //section component
 
 /**
- * Main Client Component for the Profile/Dashboard view.
- * Integrates gamification stats, user details, and friend management.
- * @param {ProfilePageClientProps} props - Component props.
- * @return {JSX.Element} The rendered profile page.
+ * Main client component for the Profile / Dashboard view.
+ * Integrates gamification stats (XP, coins, level), user details,
+ * friend management, and pending request handling.
  */
 export default function ProfilePageClient({ profile, isOwnProfile, rank }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [showReport, setShowReport] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isEditing,   setIsEditing]   = useState(false);
+  const [showReport,  setShowReport]  = useState(false);
+  const [isPending,   startTransition] = useTransition();
 
   // Points / Level Math
   const level = profile.progress?.level ?? 1;
   const totalPoints = profile.progress?.points ?? 0;
   const XP_PER_LEVEL = 100;
-  const xpIntoLevel = totalPoints % XP_PER_LEVEL;
-  const xpBarWidth = Math.min((xpIntoLevel / XP_PER_LEVEL) * 100, 100);
-  const xpToNext = XP_PER_LEVEL - xpIntoLevel;
+  const xpIntoLevel  = totalXp % XP_PER_LEVEL;
+  const xpBarWidth   = Math.min((xpIntoLevel / XP_PER_LEVEL) * 100, 100);
+  const xpToNext     = XP_PER_LEVEL - xpIntoLevel;
+
+  const avatarSrc = resolveAvatarSrc(profile.pfp);
 
   const handleRemoveFriendFromList = (friendId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm('Are you sure you want to remove this friend?')) {
+    if (confirm("Are you sure you want to remove this friend?"))
       startTransition(async () => { await removeFriend(friendId); });
-    }
   };
 
   return (
@@ -169,7 +205,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
             </div>
           </div>
 
-          {/* Info & Content */}
+          {/* Name, username, XP bar, actions, bio */}
           <div className="flex-1 w-full flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="flex-1">
@@ -220,11 +256,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
             </div>
 
             {showReport && (
-              <ReportModal
-                reportedUserId={profile.id}
-                reportedUsername={profile.username}
-                onClose={() => setShowReport(false)}
-              />
+              <ReportModal reportedUserId={profile.id} reportedUsername={profile.username} onClose={() => setShowReport(false)} />
             )}
 
             {/* Bio Display */}
@@ -241,7 +273,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
               </p>
             </div>
 
-            {/* Edit Profile Form (Rendered conditionally) */}
+            {/* Edit profile modal — triggered by pencil icon above */}
             {isOwnProfile && isEditing && (
               <EditProfileForm profile={profile} onClose={() => setIsEditing(false)} />
             )}

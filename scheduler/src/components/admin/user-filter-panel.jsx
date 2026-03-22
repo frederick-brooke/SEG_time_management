@@ -1,21 +1,21 @@
 export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters, type}) {
     return (
         <div
-        className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
         onClick={onClose} //click outside closes
         >
             <div
                 className="h-full w-96 p-6 flex flex-col gap-6 bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
                 onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
             >
-                <div className="flex items-center justify-between">
+                <div className="lunar-header flex items-center justify-between">
                     <h3 className="text-lg font-semibold mb-4">
                         Filters
                     </h3>
 
                     {/* reset button to clear all filters*/}
                     <button onClick={resetFilters}
-                        className="px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
+                        className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
                     >
                         Reset
                     </button>
@@ -24,7 +24,7 @@ export default function UserFilter({ filters, setFilters, onClose, applyFilters,
 
                 {/* Sort by username, date of creation or email*/}
                 <div className="space-y-3">
-                    <label className="text-xs uppercase text-white/40 tracking-wider">
+                    <label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">
                         Sorting
                     </label>
 
@@ -64,7 +64,7 @@ export default function UserFilter({ filters, setFilters, onClose, applyFilters,
         
                 {type=="admin" && (
                     <div className="space-y-3">
-                        <label className="block text-sm font-medium mb-1">
+                        <label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">
                             Creation Date
                         </label>
                         <input
@@ -97,7 +97,7 @@ export default function UserFilter({ filters, setFilters, onClose, applyFilters,
 
                 {type === "admin" && (
                     <div className="space-y-3">
-                        <p className="text-xs uppercase text-white/40 tracking-wider">
+                        <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">
                             Roles
                         </p>
 
@@ -131,14 +131,14 @@ export default function UserFilter({ filters, setFilters, onClose, applyFilters,
                 <div className="mt-auto space-y-3">
                     <button
                         onClick={applyFilters}
-                        className="w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition"
+                        className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition"
                     >
                         Apply Filters
                     </button>
 
                     <button
                         onClick={onClose}
-                        className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+                        className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
                     >
                         Close
                     </button>

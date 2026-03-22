@@ -30,7 +30,7 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
       >
         {/* Header */}
         <div className="p-6 border-b border-white/10 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="lunar-header text-lg font-semibold text-white">
             Appeal Details
           </h3>
 
@@ -103,7 +103,7 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
 
           {/* Appeal Description */}
           <div className="space-y-1">
-            <p className="text-xs text-white/40 uppercase tracking-wider">
+            <p className="lunar-page-subtitle text-xs text-white/40 uppercase tracking-wider">
               Appeal Explanation
             </p>
             <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
@@ -114,7 +114,7 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
           {/* Moderator Notes Placeholder (common in appeal systems) */}
           {appeal.moderatorNotes && (
             <div className="space-y-1">
-              <p className="text-xs text-white/40 uppercase tracking-wider">
+              <p className="lunar-page-subtitle text-xs text-white/40 uppercase tracking-wider">
                 Moderator Notes
               </p>
               <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
@@ -150,7 +150,7 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
         <div className="p-6 border-t border-white/10">
           <button
             onClick={onClose}
-            className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+            className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
           >
             Close
           </button>

@@ -1,11 +1,23 @@
-import { prisma } from "@/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/googleCalendar";
-import { buildGoogleRecurrenceRule } from "@/src/lib/eventHelpers";
+/**
+ * Google Calendar Sync
+ *
+ * All reads and writes between the local Prisma database and Google Calendar.
+ * Covers background sync, force re-sync, event creation, deletion, and upsert logic.
+ *
+ * Google failures are logged but never propagated — local DB operations always
+ * complete independently of the Google sync state.
+ */
 
-// ---------------------------------------------------------------------------
-// parseDts
-// Converts a Google Calendar event's start/end into Date objects.
-// ---------------------------------------------------------------------------
+import { prisma } from "@/lib/prisma";
+import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
+import { buildGoogleRecurrenceRule } from "@/src/lib/calendar/eventHelpers";
+
+/**
+ * Parses a Google Calendar event's start/end into Date objects.
+ * Falls back to midnight UTC for all-day events that use `date` instead of `dateTime`.
+ *
+ * @param ge - A raw Google Calendar event object.
+ */
 export function parseDts(ge: any): { startDt: Date; endDt: Date } {
   const startDt = ge.start?.dateTime
     ? new Date(ge.start.dateTime)
@@ -16,10 +28,11 @@ export function parseDts(ge: any): { startDt: Date; endDt: Date } {
   return { startDt, endDt };
 }
 
-// ---------------------------------------------------------------------------
-// upsertGoogleEvent helpers
-// ---------------------------------------------------------------------------
-
+/**
+ * Builds the Prisma `where` filter for an upsert lookup.
+ * When `matchByTitleDate` is true, also matches on title + start + end as a
+ * fallback for events that may have been created locally before syncing.
+ */
 function buildUpsertWhere(ge: any, userId: string, matchByTitleDate: boolean, startDt: Date, endDt: Date) {
   if (matchByTitleDate) {
     return {
@@ -33,6 +46,11 @@ function buildUpsertWhere(ge: any, userId: string, matchByTitleDate: boolean, st
   return { googleEventId: ge.id, userId };
 }
 
+/**
+ * Updates an existing local event from a Google Calendar event.
+ * Skips the update if `matchByTitleDate` is true and the record was synced
+ * within the last 10 seconds, to avoid overwriting in-flight local edits.
+ */
 async function updateGoogleEvent(existing: any, ge: any, startDt: Date, endDt: Date, matchByTitleDate: boolean): Promise<"updated" | "skipped"> {
   if (matchByTitleDate && existing.lastSyncedAt) {
     const diff = Date.now() - new Date(existing.lastSyncedAt).getTime();
@@ -52,6 +70,9 @@ async function updateGoogleEvent(existing: any, ge: any, startDt: Date, endDt: D
   return "updated";
 }
 
+/**
+ * Creates a new local event record from a Google Calendar event.
+ */
 async function createGoogleEvent(ge: any, userId: string, startDt: Date, endDt: Date): Promise<"created"> {
   await prisma.event.create({
     data: {
@@ -69,11 +90,15 @@ async function createGoogleEvent(ge: any, userId: string, startDt: Date, endDt: 
   return "created";
 }
 
-// ---------------------------------------------------------------------------
-// upsertGoogleEvent
-// Upserts a single Google Calendar event into the local Prisma database.
-// Used by both the background sync (GET) and the force re-sync (PUT).
-// ---------------------------------------------------------------------------
+/**
+ * Upserts a single Google Calendar event into the local database.
+ * Skips cancelled events or those without an ID.
+ *
+ * @param ge - The raw Google Calendar event object.
+ * @param userId - The owner of the event.
+ * @param matchByTitleDate - When true, falls back to title+date matching for deduplication.
+ * @returns `"created"`, `"updated"`, or `"skipped"`.
+ */
 export async function upsertGoogleEvent(
   ge: any,
   userId: string,
@@ -89,11 +114,13 @@ export async function upsertGoogleEvent(
   return createGoogleEvent(ge, userId, startDt, endDt);
 }
 
-// ---------------------------------------------------------------------------
-// syncGoogleCalendar
-// Pulls the last 30 days of events from Google and upserts them locally.
-// Called during GET when a sync is due.
-// ---------------------------------------------------------------------------
+/**
+ * Pulls the last 30 days of events from Google Calendar and upserts them locally.
+ * Called during GET when the sync interval has elapsed or no local events exist.
+ *
+ * @param userId - The user to sync.
+ * @param now - Current timestamp in ms, used to compute the `timeMin` window.
+ */
 export async function syncGoogleCalendar(userId: string, now: number): Promise<void> {
   const calendar = await getGoogleCalendarClient(userId);
   if (!calendar) return;
@@ -111,11 +138,13 @@ export async function syncGoogleCalendar(userId: string, now: number): Promise<v
   }
 }
 
-// ---------------------------------------------------------------------------
-// insertGoogleEvent
-// Pushes a new event to Google Calendar and returns the resulting event ID.
-// Returns null silently if the user has no Google Calendar linked.
-// ---------------------------------------------------------------------------
+/**
+ * Inserts a new event into Google Calendar and returns the resulting event ID.
+ * Returns `null` silently if the user has no linked Google account.
+ *
+ * @param userId - The user whose calendar to insert into.
+ * @param body - Event fields including title, start/end, allDay flag, and recurrence.
+ */
 export async function insertGoogleEvent(
   userId: string,
   body: {
@@ -153,10 +182,14 @@ export async function insertGoogleEvent(
   }
 }
 
-// ---------------------------------------------------------------------------
-// createLocalEvent
-// Persists a new event to the local database after Google Calendar insertion.
-// ---------------------------------------------------------------------------
+/**
+ * Persists a new event to the local database after Google Calendar insertion.
+ * Strips sub-second precision from start/end to keep timestamps consistent with sync.
+ *
+ * @param userId - The owner of the event.
+ * @param googleEventId - The ID returned by Google, or `null` if insertion was skipped.
+ * @param body - Full event fields including location, travel, and recurrence data.
+ */
 export async function createLocalEvent(
   userId: string,
   googleEventId: string | null,
@@ -191,12 +224,14 @@ export async function createLocalEvent(
   });
 }
 
-// ---------------------------------------------------------------------------
-// fetchAllGoogleEvents
-// Fetches a full year of events from Google Calendar for force re-sync (PUT).
-// ---------------------------------------------------------------------------
+/**
+ * Fetches up to 2500 events spanning +/- 1 year from Google Calendar.
+ * Used by the force re-sync (PUT) endpoint. Returns `null` if no Google account is linked.
+ *
+ * @param userId - The user whose calendar to fetch.
+ */
 export async function fetchAllGoogleEvents(userId: string) {
-  const { getGoogleCalendarClient } = await import("@/src/lib/googleCalendar");
+  const { getGoogleCalendarClient } = await import("@/src/lib/calendar/googleCalendar");
   const calendar = await getGoogleCalendarClient(userId);
   if (!calendar) return null;
 
@@ -211,11 +246,16 @@ export async function fetchAllGoogleEvents(userId: string) {
   return res.data.items || [];
 }
 
-// ---------------------------------------------------------------------------
-// deleteSingleOccurrence
-// Adds a date exception to a recurring event and removes it from Google.
-// Returns a 400 response string if the date is invalid, null on success.
-// ---------------------------------------------------------------------------
+/**
+ * Adds an occurrence date to a recurring event's `exceptions` list and removes
+ * it from Google Calendar. Returns `{ error }` if the date is invalid, `null` on success.
+ *
+ * @param userId - The event owner.
+ * @param eventId - The local Prisma event ID.
+ * @param googleEventId - The Google event ID, or `null` if not synced.
+ * @param exceptions - The existing exceptions array to check for duplicates.
+ * @param instanceDate - ISO date string of the occurrence to delete.
+ */
 export async function deleteSingleOccurrence(
   userId: string,
   eventId: string,
@@ -234,11 +274,15 @@ export async function deleteSingleOccurrence(
   return null;
 }
 
-// ---------------------------------------------------------------------------
-// deleteGoogleEvent
-// Deletes either a single recurring instance or an entire event from Google.
-// Swallows errors so a Google failure never blocks the local delete.
-// ---------------------------------------------------------------------------
+/**
+ * Deletes an event or a single occurrence from Google Calendar.
+ * When `instanceIso` is provided, constructs the instance ID and deletes only that occurrence.
+ * Errors are swallowed so a Google failure never blocks a local delete.
+ *
+ * @param userId - The event owner.
+ * @param googleEventId - The master Google event ID.
+ * @param instanceIso - Optional ISO timestamp identifying a specific occurrence to delete.
+ */
 export async function deleteGoogleEvent(
   userId: string,
   googleEventId: string,

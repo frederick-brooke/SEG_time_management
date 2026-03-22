@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
-import { MessageBubble } from "../MessageBubble";
+import { MessageBubble, formatDate } from "../MessageBubble";
 
 jest.mock("next/image", () => ({
   __esModule: true,
@@ -353,5 +353,28 @@ describe("MessageBubble – ReportModal", () => {
     fireEvent.click(menuBtn);
     fireEvent.click(screen.getByText("Already reported"));
     expect(screen.queryByText("Report User")).not.toBeInTheDocument();
+  });
+  
+  describe("formatDate", () => {
+    it("returns 'Today' for a timestamp from today", () => {
+      expect(formatDate(new Date().toISOString())).toBe("Today");
+    });
+  
+    it("returns 'Yesterday' for a timestamp from yesterday", () => {
+      const iso = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      expect(formatDate(iso)).toBe("Yesterday");
+    });
+  
+    it("returns a weekday name for a timestamp 3 days ago", () => {
+      const date = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      const expected = date.toLocaleDateString([], { weekday: "long" });
+      expect(formatDate(date.toISOString())).toBe(expected);
+    });
+  
+    it("returns a short date for a timestamp older than 7 days", () => {
+      const date = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+      const expected = date.toLocaleDateString([], { month: "short", day: "numeric" });
+      expect(formatDate(date.toISOString())).toBe(expected);
+    });
   });
 });
