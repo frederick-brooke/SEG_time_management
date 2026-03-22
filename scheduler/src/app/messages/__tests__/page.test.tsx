@@ -16,7 +16,7 @@ describe("MessagesPage", () => {
   it("applies the correct text color style", () => {
     const { container } = render(<MessagesPage />);
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveStyle({ color: "rgba(148,163,255,0.35)" });
+    expect(wrapper).toHaveClass("text-[rgba(148,163,255,0.35)]");
   });
 
   it("is centred using flex layout", () => {
