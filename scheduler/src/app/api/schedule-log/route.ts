@@ -1,13 +1,43 @@
+/**
+ * API routes for managing schedule logs.
+ * GET fetches all logs for the current user, POST creates a log entry directly,
+ * and DELETE restores tasks to their pre-schedule state and removes the log.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET — fetch all schedule logs for the current user
+type ScheduleSnapshot = Record<string, { scheduledDate: string | null; scheduledTime: string | null }>;
+
+/**
+ * Restores each task in the log to its pre-schedule times using the snapshot.
+ * @param taskIds - The IDs of tasks that were scheduled in this log entry.
+ * @param snapshot - Map of taskId to previous scheduledDate and scheduledTime.
+ */
+async function restoreTaskSchedule(taskIds: string[], snapshot: ScheduleSnapshot) {
+  await Promise.all(
+    taskIds.map((taskId) => {
+      const prev = snapshot[taskId];
+      return prisma.task.update({
+        where: { id: taskId },
+        data: {
+          scheduledDate: prev?.scheduledDate ? new Date(prev.scheduledDate) : null,
+          scheduledTime: prev?.scheduledTime ? new Date(prev.scheduledTime) : null,
+        } as Parameters<typeof prisma.task.update>[0]["data"],
+      });
+    }),
+  );
+}
+
+/**
+ * GET /api/schedule-log
+ * Fetches all schedule logs for the current user, ordered most recent first.
+ * Returns an empty array rather than erroring if the schema hasn't been fully migrated.
+ */
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session)
-    return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
   try {
     const logs = await (prisma.scheduleLog as any).findMany({
@@ -16,21 +46,21 @@ export async function GET() {
     });
     return NextResponse.json({ logs });
   } catch (error) {
-    // If schema hasn't been migrated yet (e.g. previousSchedule field missing),
-    // return empty logs rather than crashing the page
+    // If schema hasn't been migrated yet return empty logs rather than crashing the page
     console.error("Schedule log fetch error:", error);
     return NextResponse.json({ logs: [] });
   }
 }
 
-// POST — kept for backward-compat but schedule/route.ts now creates logs itself
+/**
+ * POST /api/schedule-log
+ * Creates a schedule log entry directly.
+ */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session)
-    return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
   const { mode, dateLabel, taskIds, previousSchedule, days } = await req.json();
-
   const log = await (prisma.scheduleLog as any).create({
     data: {
       userId: session.user.id,
@@ -41,50 +71,27 @@ export async function POST(req: NextRequest) {
       days: days || null,
     },
   });
-
   return NextResponse.json({ log });
 }
 
-// DELETE — restore each task to its pre-schedule times, then delete the log
+/**
+ * DELETE /api/schedule-log?id=<logId>
+ * Restores each task to its pre-schedule times using the log's snapshot, then deletes the log.
+ * @param req - Query param `id` is the log entry to undo and delete.
+ * @returns `{ success: true }` on completion, or an error if the log is not found.
+ */
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session)
-    return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+  if (!session) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-  if (!id)
-    return NextResponse.json({ error: "Log ID required" }, { status: 400 });
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Log ID required" }, { status: 400 });
 
-  // Fetch the log (verify ownership too)
-  const log = await (prisma.scheduleLog as any).findFirst({
-    where: { id, userId: session.user.id },
-  });
+  const log = await (prisma.scheduleLog as any).findFirst({ where: { id, userId: session.user.id } });
+  if (!log) return NextResponse.json({ error: "Log not found" }, { status: 404 });
 
-  if (!log)
-    return NextResponse.json({ error: "Log not found" }, { status: 404 });
-
-  // Restore each task's previous scheduledDate / scheduledTime
-  const snapshot = (log.previousSchedule ?? {}) as Record<
-    string,
-    { scheduledDate: string | null; scheduledTime: string | null }
-  >;
-
-  await Promise.all(
-    (log.taskIds as string[]).map((taskId: string) => {
-      const prev = snapshot[taskId];
-      return prisma.task.update({
-        where: { id: taskId },
-        data: {
-          // If snapshot has a previous time, restore it. Otherwise clear it.
-          scheduledDate: prev?.scheduledDate ? new Date(prev.scheduledDate) : null,
-          scheduledTime: prev?.scheduledTime ? new Date(prev.scheduledTime) : null,
-        } as Parameters<typeof prisma.task.update>[0]["data"],
-      });
-    }),
-  );
-
-  // Delete the log
+  const snapshot = (log.previousSchedule ?? {}) as ScheduleSnapshot;
+  await restoreTaskSchedule(log.taskIds as string[], snapshot);
   await (prisma.scheduleLog as any).delete({ where: { id } });
 
   return NextResponse.json({ success: true });
