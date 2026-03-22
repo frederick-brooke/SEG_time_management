@@ -1,8 +1,9 @@
 'use client';
 
 import { Calendar, Pencil, Trash2 } from "lucide-react";
-import { formatEventDate } from "@/lib/format"; // Adjust this path if your format.ts is located elsewhere
+import { formatEventDate } from "@/lib/format";
 
+//section types
 export interface ModuleEvent {
   id: string;
   moduleEventGroupId: string | null;
@@ -13,27 +14,43 @@ export interface ModuleEvent {
   category: string;
 }
 
-interface EventRowProps {
+//section constants
+const CATEGORY_STYLES: Record<string, string> = {
+  Lecture:  'bg-blue-500/10 text-blue-400 border-blue-500/20 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]',
+  Exam:     'bg-red-500/10 text-red-400 border-red-500/20 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]',
+  Deadline: 'bg-amber-500/10 text-amber-400 border-amber-500/20 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]',
+  Seminar:  'bg-purple-500/10 text-purple-400 border-purple-500/20 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]',
+  Meeting:  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]',
+};
+
+const DEFAULT_CATEGORY_STYLE = 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]';
+
+//section subcomponents
+
+/**
+ * Renders a single event row with optional owner edit/delete controls.
+ * @param {{ event: ModuleEvent; isOwner: boolean; onEdit: () => void; onDelete: () => void }} props
+ * @return {JSX.Element} Event row card.
+ */
+function EventRow({ event, isOwner, onEdit, onDelete }: {
   event: ModuleEvent;
   isOwner: boolean;
   onEdit: () => void;
   onDelete: () => void;
-}
+}) {
+  const tagStyle = CATEGORY_STYLES[event.category] || DEFAULT_CATEGORY_STYLE;
 
-/**
- * Renders a single event row with optional owner edit/delete controls
- */
-function EventRow({ event, isOwner, onEdit, onDelete }: EventRowProps) {
   return (
-    <div className="flex items-start justify-between p-4 bg-gradient-to-r from-green-50 to-white border border-green-100 rounded-lg gap-3">
+    <div className="flex items-start justify-between p-4 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all rounded-xl gap-3">
       <div className="flex-1 min-w-0">
-        <h3 className="font-semibold text-gray-900 truncate">{event.title}</h3>
+        <h3 className="font-bold text-white truncate text-sm">{event.title}</h3>
         {event.description && (
-          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{event.description}</p>
+          <p className="text-xs text-white/40 mt-1 line-clamp-2">{event.description}</p>
         )}
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
-          <span className="text-xs text-gray-500">📅 {formatEventDate(event.start)}</span>
-          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+        <div className="flex items-center gap-3 mt-3 flex-wrap">
+          <span className="text-xs text-white/40 font-medium">📅 {formatEventDate(event.start)}</span>
+          {/* Reverted to colorful dynamic tags! */}
+          <span className={`text-[9px] px-2.5 py-0.5 rounded-full border font-black uppercase tracking-wider ${tagStyle}`}>
             {event.category}
           </span>
         </div>
@@ -41,20 +58,14 @@ function EventRow({ event, isOwner, onEdit, onDelete }: EventRowProps) {
 
       {isOwner && (
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={onEdit}
-            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Edit event"
-            data-testid="edit-event-btn"
-          >
+          <button onClick={onEdit}
+            className="p-1.5 text-white/30 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+            title="Edit event" data-testid="edit-event-btn">
             <Pencil size={14} />
           </button>
-          <button
-            onClick={onDelete}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Delete event"
-            data-testid="delete-event-btn"
-          >
+          <button onClick={onDelete}
+            className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+            title="Delete event" data-testid="delete-event-btn">
             <Trash2 size={14} />
           </button>
         </div>
@@ -63,22 +74,27 @@ function EventRow({ event, isOwner, onEdit, onDelete }: EventRowProps) {
   );
 }
 
-interface ModuleEventsProps {
+//section main component
+
+/**
+ * Events section card for the module detail page.
+ * @param {{ events: ModuleEvent[]; isOwner: boolean; onEdit: (event: ModuleEvent) => void; onDelete: (groupId: string) => void }} props
+ * @return {JSX.Element} Events list card.
+ */
+export default function ModuleEvents({ events, isOwner, onEdit, onDelete }: {
   events: ModuleEvent[];
   isOwner: boolean;
   onEdit: (event: ModuleEvent) => void;
   onDelete: (groupId: string) => void;
-}
-
-export default function ModuleEvents({ events, isOwner, onEdit, onDelete }: ModuleEventsProps) {
+}) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-6">
-      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <Calendar size={20} className="text-green-600" /> Upcoming Events ({events.length})
+    <div className="lunar-card p-6 mb-6">
+      <h2 className="lunar-label mb-4 flex items-center gap-2 text-sm text-white">
+        <Calendar size={16} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" /> Upcoming Events ({events.length})
       </h2>
-      
+
       {events.length > 0 ? (
-        <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+        <div className="max-h-80 overflow-y-auto space-y-2 pr-1 lunar-scroll">
           {events.map((event) => (
             <EventRow
               key={event.id}
@@ -90,7 +106,7 @@ export default function ModuleEvents({ events, isOwner, onEdit, onDelete }: Modu
           ))}
         </div>
       ) : (
-        <p className="text-gray-500 text-center py-8">
+        <p className="lunar-value text-center py-8">
           No events scheduled yet.{isOwner && " Create one using the button above!"}
         </p>
       )}

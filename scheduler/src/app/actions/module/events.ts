@@ -4,12 +4,13 @@ import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
-import { requireSession, isModuleOwner, generateGroupId } from "./utils";
+import { requireSession, isModuleOwnerOrAdmin, generateGroupId } from "./utils";
 
-//module events
+//section module events
 
 /**
- * Creates an event on every module member's calendar, grouped by a shared groupId
+ * Creates an event on every module member's calendar, grouped by a shared groupId.
+ * Ensures the creator always gets a copy even if the module is empty.
  * @param {string} moduleId - The module database ID
  * @param {object} eventData - Event fields (title, start, end, category, etc.)
  * @return {Promise<{ success: boolean; message?: string; error?: string }>}
@@ -17,27 +18,32 @@ import { requireSession, isModuleOwner, generateGroupId } from "./utils";
 export async function createModuleEvent(moduleId: string, eventData: any) {
   const session = await requireSession();
 
-  if (!(await isModuleOwner(moduleId, session.user.id))) {
-    return { success: false, error: "Only module owners can create module events" };
+  // Both Owners and Admins can create events
+  if (!(await isModuleOwnerOrAdmin(moduleId, session.user.id))) {
+    return { success: false, error: "Only module owners or admins can create events" };
   }
-  
-  const module = await prisma.module.findUnique({ where: { id: moduleId }, select: { name: true } });
-  if (!module) return { success: false, error: "Module not found" };
-  
+
   const members = await prisma.moduleMember.findMany({
     where: { moduleId },
     select: { userId: true },
   });
 
-  if (members.length === 0) return { success: false, error: "No members in module" };
-
   const moduleEventGroupId = generateGroupId();
 
+  // 1. Get ALL users in the module (Owners, Admins, and Members all need to see events)
+  const memberIdsToAssign = members.map((m) => m.userId);
+
+  // 2. FORCE the creator to get a copy so the event saves to the database
+  // even if there are no students in the module yet.
+  if (!memberIdsToAssign.includes(session.user.id)) {
+    memberIdsToAssign.push(session.user.id);
+  }
+
   await Promise.all(
-    members.map((member) =>
+    memberIdsToAssign.map((userId) =>
       prisma.event.create({
         data: {
-          userId: member.userId,
+          userId,
           moduleId,
           isModuleEvent: true,
           moduleEventGroupId,
@@ -45,22 +51,14 @@ export async function createModuleEvent(moduleId: string, eventData: any) {
           description: eventData.description || null,
           start: new Date(eventData.start),
           end: new Date(eventData.end),
-          allDay: eventData.allDay || false,
           category: eventData.category || "Lecture",
-          startCoords: eventData.startCoords || null,
-          destinationCoords: eventData.destinationCoords || null,
-          travelDuration: eventData.travelDuration || null,
-          startLocationName: eventData.startLocationName || null,
-          destLocationName: eventData.destLocationName || null,
-          transportMode: eventData.transportMode || null,
-          recurrence: eventData.recurrence || null,
         },
       })
     )
   );
 
   revalidatePath(`/modules/${moduleId}`);
-  return { success: true, message: `Event created for ${members.length} members` };
+  return { success: true, message: `Event created successfully` };
 }
 
 /**
@@ -77,8 +75,8 @@ export async function updateModuleEvent(
 ) {
   const session = await requireSession();
 
-  if (!(await isModuleOwner(moduleId, session.user.id))) {
-    return { success: false, error: "Only module owners can edit module events" };
+  if (!(await isModuleOwnerOrAdmin(moduleId, session.user.id))) {
+    return { success: false, error: "Only module owners or admins can edit events" };
   }
 
   await prisma.event.updateMany({
@@ -105,8 +103,8 @@ export async function updateModuleEvent(
 export async function deleteModuleEvent(moduleEventGroupId: string, moduleId: string) {
   const session = await requireSession();
 
-  if (!(await isModuleOwner(moduleId, session.user.id))) {
-    return { success: false, error: "Only module owners can delete module events" };
+  if (!(await isModuleOwnerOrAdmin(moduleId, session.user.id))) {
+    return { success: false, error: "Only module owners or admins can delete events" };
   }
 
   await prisma.event.deleteMany({
@@ -118,14 +116,14 @@ export async function deleteModuleEvent(moduleEventGroupId: string, moduleId: st
 }
 
 /**
- * Gets deduplicated upcoming events for a module, one per group
+ * Gets the current user's module events to display on the module detail page
  * @param {string} moduleId - The module database ID
- * @return {Promise<Array>} - List of upcoming module events
+ * @return {Promise<Array>} - List of the current user's module events
  */
 export async function getModuleEvents(moduleId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return [];
-
+  
   return prisma.event.findMany({
     where: { moduleId, isModuleEvent: true, userId: session.user.id },
     select: {
@@ -138,6 +136,5 @@ export async function getModuleEvents(moduleId: string) {
       category: true,
     },
     orderBy: { start: 'asc' },
-    take: 20,
   });
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createModuleTask, updateModuleTask, deleteModuleTask, deleteModuleEvent } from "@/app/actions/module";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 //components
 import ModuleHeader from "components/modules/ModuleHeader";
@@ -16,7 +17,7 @@ import ModuleSettingsModal from "components/modules/ModuleSettingsModal";
 
 //constants
 const EMPTY_TASK_FORM = {
-  name: "", description: "", dueDate: "", url: "", subtasks: "", 
+  name: "", description: "", dueDate: "", url: "", subtasks: "",
   durationHours: "0", durationMinutes: "0", priority: "Low", examId: "none",
   bufferDays: 0, isRecurring: false, recurrence: null,
 };
@@ -24,49 +25,34 @@ const EMPTY_TASK_FORM = {
 //main component
 
 /**
- * Client-side container component for the Module Detail page.
- * Manages state for modals (events, tasks, settings) and handles all API interactions
- * for updating, deleting, and managing shared module items.
- *
- * @param {object} props - The component props.
- * @param {any} props.module - The detailed module data including members and user role.
- * @param {any[]} props.events - List of upcoming module events.
- * @param {any[]} props.tasks - List of module tasks (for standard members).
- * @param {any[]} props.tasksWithProgress - List of module tasks with aggregated completion statuses (for Owners/Admins).
+ * Client-side container for the Module Detail page.
+ * Manages all modal state and handles create, update, delete operations for tasks and events.
+ * @param {object} props - Module, events, tasks, and task progress data.
  * @return {JSX.Element} The assembled module detail view.
  */
 export default function ModuleDetailClient({ module, events, tasks, tasksWithProgress }: any) {
   const router = useRouter();
-  
   const isOwner = module.userRole === 'OWNER';
   const isOwnerOrAdmin = isOwner || module.userRole === 'ADMIN';
 
-  // Modal States
   const [showEventForm, setShowEventForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  
-  // Form Data States
   const [taskFormData, setTaskFormData] = useState<any>(EMPTY_TASK_FORM);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
 
   /**
-   * Submits the task form state to the server to create or update a module task.
+   * Submits the task form to create or update a module-wide task.
    * @return {Promise<void>}
    */
   const handleSubmitTask = async () => {
-    if (!taskFormData.name.trim()) {
-      alert("Task name is required");
-      return;
-    }
-
+    if (!taskFormData.name.trim()) { alert("Task name is required"); return; }
     const hours = parseInt(taskFormData.durationHours) || 0;
     const mins = parseInt(taskFormData.durationMinutes) || 0;
     const subtasksArray = taskFormData.subtasks
       ? taskFormData.subtasks.split(",").map((s: string) => s.trim()).filter(Boolean)
       : [];
-
     const payload = {
       title: taskFormData.name,
       description: taskFormData.description,
@@ -76,11 +62,9 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
       subtasks: subtasksArray,
       url: taskFormData.url || null,
     };
-
     const result = editingTask
       ? await updateModuleTask(editingTask.moduleTaskGroupId, module.id, payload)
       : await createModuleTask(module.id, payload);
-
     if (result.success) {
       setTaskFormData(EMPTY_TASK_FORM);
       setEditingTask(null);
@@ -92,7 +76,7 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
   };
 
   /**
-   * Pre-populates the task form state and opens the modal for editing an existing task.
+   * Pre-populates the task form and opens the modal for editing an existing task.
    * @param {any} task - The existing task data to load.
    * @return {void}
    */
@@ -116,7 +100,7 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
   };
 
   /**
-   * Prompts for confirmation and deletes all member copies of a shared task.
+   * Confirms and deletes all member copies of a shared task.
    * @param {string} groupId - The shared task group ID to delete.
    * @return {Promise<void>}
    */
@@ -127,7 +111,7 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
   };
 
   /**
-   * Prompts for confirmation and deletes all member copies of a shared event.
+   * Confirms and deletes all member copies of a shared event.
    * @param {string} groupId - The shared event group ID to delete.
    * @return {Promise<void>}
    */
@@ -138,50 +122,55 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
   };
 
   return (
-    <>
-      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
-        <div className="max-w-5xl w-full mx-auto py-8">
-          <Link href="/modules" className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block">
-            ← Back to Modules
-          </Link>
+    <LunarThemeWrapper>
+      <div className="lunar-page">
 
-          <ModuleHeader 
-            module={module} isOwner={isOwner} isOwnerOrAdmin={isOwnerOrAdmin}
-            onOpenTaskModal={() => { setEditingTask(null); setTaskFormData(EMPTY_TASK_FORM); setShowTaskForm(true); }}
-            onOpenEventModal={() => { setEditingEvent(null); setShowEventForm(true); }}
-            onOpenSettings={() => setShowSettings(true)}
-          />
+        <Link href="/modules" className="lunar-label hover:text-white transition-colors mb-2 inline-block">
+          ← Back to Modules
+        </Link>
 
-          <ModuleMembersList members={module.members} isOwner={isOwner} moduleId={module.id} currentUserRole={module.userRole} />
+        <ModuleHeader
+          module={module} isOwner={isOwner} isOwnerOrAdmin={isOwnerOrAdmin}
+          onOpenTaskModal={() => { setEditingTask(null); setTaskFormData(EMPTY_TASK_FORM); setShowTaskForm(true); }}
+          onOpenEventModal={() => { setEditingEvent(null); setShowEventForm(true); }}
+          onOpenSettings={() => setShowSettings(true)}
+        />
 
-          <ModuleEvents 
-            events={events} isOwner={isOwner} 
-            onEdit={(event: any) => { setEditingEvent(event); setShowEventForm(true); }} 
-            onDelete={handleDeleteEvent} 
-          />
+        <ModuleMembersList members={module.members} isOwner={isOwner} moduleId={module.id} currentUserRole={module.userRole} />
 
-          <ModuleTasks 
-            tasks={tasks} tasksWithProgress={tasksWithProgress} isOwnerOrAdmin={isOwnerOrAdmin}
-            onEdit={openEditTask} onDelete={handleDeleteTask} 
-          />
-        </div>
+        <ModuleEvents
+          events={events} isOwner={isOwner}
+          onEdit={(event: any) => { setEditingEvent(event); setShowEventForm(true); }}
+          onDelete={handleDeleteEvent}
+        />
+
+        <ModuleTasks
+          tasks={tasks} tasksWithProgress={tasksWithProgress} isOwnerOrAdmin={isOwnerOrAdmin}
+          onEdit={openEditTask} onDelete={handleDeleteTask}
+        />
+
       </div>
 
       {showEventForm && (
-        <ModuleEventModal moduleId={module.id} editingEvent={editingEvent} onClose={() => { setShowEventForm(false); setEditingEvent(null); }} onSuccess={() => router.refresh()} />
+        <ModuleEventModal moduleId={module.id} editingEvent={editingEvent}
+          onClose={() => { setShowEventForm(false); setEditingEvent(null); }}
+          onSuccess={() => router.refresh()} />
       )}
 
       {showTaskForm && (
-        <TaskFormDialog isOpen={showTaskForm} onOpenChange={(open: boolean) => { setShowTaskForm(open); if (!open) setEditingTask(null); }} editingTaskId={editingTask?.moduleTaskGroupId ?? null} formData={taskFormData} onFormChange={(updates: any) => setTaskFormData((prev: any) => ({ ...prev, ...updates }))} onSubmit={handleSubmitTask} exams={[]} />
+        <TaskFormDialog isOpen={showTaskForm}
+          onOpenChange={(open: boolean) => { setShowTaskForm(open); if (!open) setEditingTask(null); }}
+          editingTaskId={editingTask?.moduleTaskGroupId ?? null}
+          formData={taskFormData}
+          onFormChange={(updates: any) => setTaskFormData((prev: any) => ({ ...prev, ...updates }))}
+          onSubmit={handleSubmitTask} exams={[]} />
       )}
-      
+
       {showSettings && (
-        <ModuleSettingsModal 
-          module={module} 
-          onClose={() => setShowSettings(false)} 
-          onSuccess={() => router.refresh()} 
-        />
+        <ModuleSettingsModal module={module}
+          onClose={() => setShowSettings(false)}
+          onSuccess={() => router.refresh()} />
       )}
-    </>
+    </LunarThemeWrapper>
   );
 }

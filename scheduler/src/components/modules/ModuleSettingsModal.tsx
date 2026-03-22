@@ -4,22 +4,34 @@ import { useState } from "react";
 import { X, Settings } from "lucide-react";
 import { updateModuleSettings } from "@/app/actions/module";
 
+//types
 interface ModuleSettingsModalProps {
   module: any;
   onClose: () => void;
   onSuccess: () => void;
 }
 
+//component
+
+/**
+ * Modal for updating module name, description, and max members — owner only.
+ * @param {ModuleSettingsModalProps} props - Module data and callbacks.
+ * @return {JSX.Element} Module settings modal.
+ */
 export default function ModuleSettingsModal({ module, onClose, onSuccess }: ModuleSettingsModalProps) {
   const [formData, setFormData] = useState({
     name: module.name,
     description: module.description || "",
     maxMembers: module.maxMembers,
   });
-  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Submits updated module settings to the server.
+   * @param {React.FormEvent} e - Form submit event.
+   * @return {Promise<void>}
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -37,61 +49,59 @@ export default function ModuleSettingsModal({ module, onClose, onSuccess }: Modu
       onSuccess();
       onClose();
     } else {
-      setError(result.error || "Failed to update settings");
+      setError('error' in result ? result.error : "Failed to update settings");
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-        
+    <div className="lunar-overlay z-[100]" onClick={onClose}>
+      <div className="lunar-card p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Settings size={20} className="text-gray-500"/> Module Settings
-            </h2>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <h2 className="lunar-header flex items-center gap-2">
+            <Settings size={18} className="text-white/40" /> Module Settings
+          </h2>
+          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Module Name</label>
-            <input 
-              type="text" required value={formData.name} 
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none" 
-            />
+            <label className="lunar-label">Module Name</label>
+            <input type="text" required value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="lunar-input w-full p-3 rounded-xl mt-1" />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-            <textarea 
-              rows={3} value={formData.description} 
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none" 
-            />
+            <label className="lunar-label">Description</label>
+            <textarea rows={3} value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="lunar-input w-full p-3 rounded-xl mt-1 resize-none" />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Max Members</label>
-            <input 
-              type="number" min={module.memberCount} max={100} required value={formData.maxMembers} 
-              onChange={(e) => setFormData({ ...formData, maxMembers: parseInt(e.target.value) || module.memberCount })} 
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none" 
-            />
-            <p className="text-xs text-gray-500 mt-1">
+            <label className="lunar-label">Max Members</label>
+            <input type="number" min={module.memberCount} max={100} required value={formData.maxMembers}
+              onChange={(e) => setFormData({ ...formData, maxMembers: parseInt(e.target.value) || module.memberCount })}
+              className="lunar-input w-full p-3 rounded-xl mt-1" />
+            <p className="text-[10px] text-white/30 mt-1 font-medium">
               Currently using {module.memberCount} of {formData.maxMembers} spots.
             </p>
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>}
+          {error && (
+            <div className="lunar-item-error px-4 py-3 rounded-lg border text-sm">{error}</div>
+          )}
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={isSubmitting} className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50">
+            <button type="button" onClick={onClose} disabled={isSubmitting}
+              className="flex-1 lunar-button-ghost disabled:opacity-50">
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting}
+              className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? "Saving..." : "Save Settings"}
             </button>
           </div>

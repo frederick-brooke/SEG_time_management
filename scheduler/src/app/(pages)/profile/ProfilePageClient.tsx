@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react";
 import { 
   Users, UserPlus, UserCheck, Clock, 
-  ChevronDown, ChevronUp, UserMinus, Flag, Star, Zap, Pencil, X
+  ChevronDown, ChevronUp, UserMinus, Flag, Star, Pencil, X
 } from "lucide-react";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
-// Actions
+//section actions
 import { sendFriendRequest, removeFriend, cancelFriendRequest } from "../../actions/profile";
 
-// Sub-components
+//section components
 import ReportModal from "components/admin/report-modal";
 import EditProfileForm from "components/profile/EditProfileForm";
 import FriendsList from "components/profile/FriendsList";
@@ -17,6 +18,16 @@ import PendingRequests from "components/profile/PendingRequests";
 import StreakCard from "components/profile/StreakCard";
 import TaskStatsCard from "components/profile/TaskStatsCard";
 import PointsCard from "components/profile/PointsCard";
+import FriendStatCard from "components/profile/FriendStatCard";
+
+//section types
+interface ProfilePageClientProps {
+  profile: any;
+  isOwnProfile: boolean;
+  rank?: number;
+}
+
+//section helpers
 
 /**
  * Formats an ISO date string into DD/MM/YYYY.
@@ -33,7 +44,7 @@ function formatDate(dateString: string): string {
 
 /**
  * Handles the logic and UI for sending, canceling, or removing friend requests.
- * @param {Object} props - Component props.
+ * @param {object} props - Component props.
  * @param {any} props.profile - The profile data of the user being viewed.
  * @param {boolean} props.isOwnProfile - True if viewing own profile.
  * @return {JSX.Element | null} The relational action buttons.
@@ -51,14 +62,15 @@ function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnPro
   if (profile.friendStatus === "FRIENDS") {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200">
+        <div className="lunar-item-success flex items-center gap-2 px-4 py-2 rounded-lg border font-medium">
           <UserCheck size={18} />
-          <span className="font-medium">Friends</span>
+          <span>Friends</span>
         </div>
         <button
           onClick={() => handleAction(removeFriend, 'Are you sure you want to remove this friend?')}
           disabled={isPending}
-          className={`flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 font-medium transition-colors ${isPending ? "opacity-50" : "hover:bg-red-100"}`}>
+          className={`lunar-item-error flex items-center gap-2 px-3 py-2 rounded-lg border font-medium transition-colors ${isPending ? "opacity-50" : "hover:bg-red-500/20"}`}
+        >
           <UserMinus size={16} />
           <span className="text-sm">{isPending ? "Removing..." : "Remove"}</span>
         </button>
@@ -69,16 +81,17 @@ function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnPro
   if (profile.friendStatus === "REQUEST_SENT") {
     return (
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg border border-yellow-200">
+        <div className="lunar-item-warning flex items-center gap-2 px-4 py-2 rounded-lg border font-medium">
           <Clock size={18} />
-          <span className="font-medium">Request Pending</span>
+          <span>Request Pending</span>
         </div>
         <button
           onClick={() => handleAction(cancelFriendRequest)}
           disabled={isPending}
-          className={`flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-600 rounded-lg border border-gray-300 font-medium transition-colors ${isPending ? "opacity-50" : "hover:bg-gray-200"}`}>
+          className={`lunar-button-ghost flex items-center gap-2 ${isPending ? "opacity-50" : ""}`}
+        >
           <X size={16} />
-          <span className="text-sm">{isPending ? "Canceling..." : "Cancel"}</span>
+          <span>{isPending ? "Canceling..." : "Cancel"}</span>
         </button>
       </div>
     );
@@ -86,9 +99,9 @@ function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnPro
 
   if (profile.friendStatus === "REQUEST_RECEIVED") {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+      <div className="lunar-item-info flex items-center gap-2 px-4 py-2 rounded-lg border font-medium">
         <Clock size={18} />
-        <span className="font-medium">Wants to be Friends</span>
+        <span>Wants to be Friends</span>
       </div>
     );
   }
@@ -97,18 +110,15 @@ function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnPro
     <button
       onClick={() => handleAction(sendFriendRequest)}
       disabled={isPending}
-      className={`flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium transition-colors ${isPending ? "opacity-50" : "hover:bg-blue-700"}`}>
+      className={`lunar-button-primary flex items-center gap-2 ${isPending ? "opacity-50" : ""}`}
+    >
       <UserPlus size={18} />
       <span>{isPending ? "Sending..." : "Add Friend"}</span>
     </button>
   );
 }
 
-interface ProfilePageClientProps {
-  profile: any;
-  isOwnProfile: boolean;
-  rank?: number;
-}
+//section component
 
 /**
  * Main Client Component for the Profile/Dashboard view.
@@ -122,7 +132,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
   const [showReport, setShowReport] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  // ── POINTS / LEVEL MATH ──
+  // Points / Level Math
   const level = profile.progress?.level ?? 1;
   const totalPoints = profile.progress?.points ?? 0;
   const XP_PER_LEVEL = 100;
@@ -139,23 +149,23 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
-      <div className="max-w-5xl w-full mx-auto py-8">
-
+    <LunarThemeWrapper>
+      <div className="lunar-page">
+        
         {/* ── 1. HEADER & BIO ── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 flex flex-col md:flex-row gap-8 items-start shadow-sm">
+        <div className="lunar-card p-8 flex flex-col md:flex-row gap-8 items-start relative z-10">
           
           {/* Avatar + Level Badge */}
           <div className="relative shrink-0">
-            <div className="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center text-4xl font-bold text-gray-500 overflow-hidden border-4 border-white shadow-md">
+            <div className="w-32 h-32 bg-[#0a0f1d] rounded-full flex items-center justify-center text-4xl font-bold text-white/50 overflow-hidden border-4 border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
               {profile.pfp ? (
                 <img src={profile.pfp} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <span>{profile.fname?.[0] ?? profile.username?.[0] ?? ""}{profile.lname?.[0] ?? ""}</span>
               )}
             </div>
-            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-yellow-400 rounded-xl rotate-12 border-4 border-white flex items-center justify-center shadow-lg">
-              <span className="text-black font-black text-xl -rotate-12">{level}</span>
+            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-blue-500 rounded-xl rotate-12 border-4 border-[#111629] flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+              <span className="text-white font-black text-xl -rotate-12">{level}</span>
             </div>
           </div>
 
@@ -163,15 +173,15 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
           <div className="flex-1 w-full flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="lunar-page-title text-4xl">
                   {profile.fname || profile.username} {profile.lname}
                 </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-gray-500 font-medium">@{profile.username}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="lunar-value text-blue-400">@{profile.username}</p>
                   {isOwnProfile && (
                     <button 
                       onClick={() => setIsEditing(!isEditing)}
-                      className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
+                      className="p-1.5 lunar-button-ghost rounded-full"
                       title="Edit Profile"
                     >
                       <Pencil size={14} />
@@ -180,30 +190,30 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
                 </div>
 
                 {/* XP Progress Bar */}
-                <div className="mt-4 max-w-xs">
-                  <div className="flex justify-between items-end mb-1">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                      <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                <div className="mt-6 max-w-xs">
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="lunar-label flex items-center gap-1">
+                      <Star size={12} className="text-blue-400 fill-blue-400" />
                       Level {level}
                     </span>
-                    <span className="text-xs font-bold text-gray-600">{totalPoints} XP total</span>
+                    <span className="lunar-label text-white/60">{totalPoints} XP total</span>
                   </div>
-                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden border border-gray-200">
-                    <div className="h-full bg-yellow-400 transition-all duration-1000 ease-out" style={{ width: `${xpBarWidth}%` }} />
+                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10">
+                    <div className="h-full bg-blue-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(59,130,246,0.8)]" style={{ width: `${xpBarWidth}%` }} />
                   </div>
-                  <p className="text-[9px] text-gray-400 mt-1 font-medium">{xpToNext} XP until Level {level + 1}</p>
+                  <p className="text-[10px] text-white/40 mt-2 font-medium">{xpToNext} XP until Level {level + 1}</p>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap mt-4 sm:mt-0">
                 <FriendRequestAction profile={profile} isOwnProfile={isOwnProfile} />
                 {!isOwnProfile && (
                   <button
                     onClick={() => setShowReport(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white font-medium rounded-lg border border-red-600 hover:bg-red-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 font-bold tracking-wider text-[10px] uppercase rounded-xl border border-red-500/20 hover:bg-red-500/20 transition-all"
                   >
-                    <Flag size={16} /> Report User
+                    <Flag size={14} /> Report User
                   </button>
                 )}
               </div>
@@ -218,13 +228,13 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
             )}
 
             {/* Bio Display */}
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <div className="bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm mt-4">
+              <h3 className="lunar-label mb-2">
                 {isOwnProfile ? "About Me" : "About"}
               </h3>
-              <p className="text-gray-700 leading-relaxed">
-                {profile.bio || (
-                  <span className="text-gray-400 italic">
+              <p className="text-white/70 leading-relaxed text-sm">
+                {profile.bio ? profile.bio : (
+                  <span className="text-white/30 italic">
                     {isOwnProfile ? "No bio written yet. Click the pencil icon to add one!" : "No bio yet."}
                   </span>
                 )}
@@ -236,52 +246,54 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
               <EditProfileForm profile={profile} onClose={() => setIsEditing(false)} />
             )}
 
-            <div className="text-sm text-gray-400 mt-2">
+            <div className="lunar-value text-xs mt-2">
               Joined {formatDate(profile.createdAt)}
             </div>
           </div>
         </div>
 
-        {/* ── 2. STATS ── */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
           
           <StreakCard streak={profile.stats?.streak ?? 0} rank={rank} />
 
-          {/* Friends Toggle */}
-          <button
-            onClick={() => setShowFriends(!showFriends)}
-            className={`bg-white border rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center transition-colors ${
-              showFriends ? "border-orange-300 bg-orange-50/30" : "border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            <div className="bg-orange-50 p-3 rounded-full mb-3 text-orange-600"><Users size={24} /></div>
-            <span className="text-4xl font-bold text-gray-900">{profile.stats?.friendCount ?? 0}</span>
-            <span className="text-sm text-gray-500 font-medium mt-1 flex items-center gap-1">
-              Friends {showFriends ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </span>
-          </button>
+          <FriendStatCard 
+            friendCount={profile.stats?.friendCount ?? 0} 
+            showFriends={showFriends} 
+            onToggle={() => setShowFriends(!showFriends)} 
+          />
 
           <TaskStatsCard stats={profile.stats} />
+          
         </div>
 
         {/* ── FRIENDS LIST ── */}
-        {showFriends && (
-          <FriendsList 
-            friends={profile.friends} 
-            isOwnProfile={isOwnProfile} 
-            onClose={() => setShowFriends(false)} 
-            onRemoveFriend={handleRemoveFriendFromList}
-            isPending={isPending}
-          />
+        <div className="relative z-10">
+          {showFriends && (
+            <FriendsList 
+              friends={profile.friends} 
+              isOwnProfile={isOwnProfile} 
+              onClose={() => setShowFriends(false)} 
+              onRemoveFriend={handleRemoveFriendFromList}
+              isPending={isPending}
+            />
+          )}
+        </div>
+        {/* ── PENDING REQUESTS ── */}
+        {isOwnProfile && (
+          <div className="relative z-10">
+            <PendingRequests requests={profile.receivedRequests} />
+          </div>
         )}
 
         {/* ── POINTS CARD ── */}
-        <PointsCard totalPoints={totalPoints} level={level} xpToNext={xpToNext} xpBarWidth={xpBarWidth} />
+        <div className="relative z-10">
+          <PointsCard totalPoints={totalPoints} level={level} xpToNext={xpToNext} xpBarWidth={xpBarWidth} />
+        </div>
 
-        {/* ── PENDING REQUESTS ── */}
-        {isOwnProfile && <PendingRequests requests={profile.receivedRequests} />}
+
 
       </div>
-    </div>
+    </LunarThemeWrapper>
   );
 }

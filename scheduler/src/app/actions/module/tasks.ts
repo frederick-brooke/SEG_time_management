@@ -4,13 +4,13 @@ import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
-import { ModuleRole } from "@prisma/client";
 import { requireSession, isModuleOwner, generateGroupId } from "./utils";
 
-//module tasks
+//section module tasks
 
 /**
- * Creates a task on every module member's task list, grouped by a shared groupId
+ * Creates a task on every module member's task list, grouped by a shared groupId.
+ * Always creates a template copy for the creator so the task persists even with 0 members.
  * @param {string} moduleId - The module database ID
  * @param {object} taskData - Task fields (title, dueDate, priority, etc.)
  * @return {Promise<{ success: boolean; message?: string; error?: string }>}
@@ -27,16 +27,24 @@ export async function createModuleTask(moduleId: string, taskData: any) {
     select: { userId: true, role: true },
   });
 
-  if (members.length === 0) return { success: false, error: "No members in module" };
-
   const moduleTaskGroupId = generateGroupId();
-  const assignableMembers = members.filter((m) => m.role === ModuleRole.MEMBER);
+
+  // 1. Get all regular students who need to complete the task
+  const memberIdsToAssign = members
+    .filter((m) => m.role === 'MEMBER')
+    .map((m) => m.userId);
+
+  // 2. FORCE the creator to get a "Template" copy so the task saves to the database
+  // even if there are no students in the module yet.
+  if (!memberIdsToAssign.includes(session.user.id)) {
+    memberIdsToAssign.push(session.user.id);
+  }
 
   await Promise.all(
-    assignableMembers.map((member) =>
+    memberIdsToAssign.map((userId) =>
       prisma.task.create({
         data: {
-          userId: member.userId,
+          userId,
           moduleId,
           isModuleTask: true,
           moduleTaskGroupId,
@@ -55,7 +63,7 @@ export async function createModuleTask(moduleId: string, taskData: any) {
   );
 
   revalidatePath(`/modules/${moduleId}`);
-  return { success: true, message: `Task assigned to ${assignableMembers.length} members` };
+  return { success: true, message: `Task created successfully` };
 }
 
 /**
@@ -140,8 +148,8 @@ export async function getModuleTasks(moduleId: string) {
 }
 
 /**
- * Gets deduplicated tasks with per-member completion progress for the owner view
- * Returns one entry per task group with counts of who completed vs in progress
+ * Gets deduplicated tasks with per-member completion progress for the owner view.
+ * Ignores Owner/Admin copies so they do not skew the student progress statistics.
  * @param {string} moduleId - The module database ID
  * @return {Promise<Array>} - Task groups with progress data
  */
@@ -149,13 +157,23 @@ export async function getModuleTasksWithProgress(moduleId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return [];
 
+  // Fetch all member copies of all tasks in the module
   const allTasks = await prisma.task.findMany({
     where: { moduleId, isModuleTask: true },
     include: {
-      user: { select: { id: true, username: true, fname: true, lname: true } },
+      user: { select: { id: true, username: true, fname: true, lname: true, pfp: true } },
     },
     orderBy: { dueDate: 'asc' },
   });
+
+  // Fetch roles so we can filter out Owners/Admins from the progress tracking
+  const moduleMembers = await prisma.moduleMember.findMany({
+    where: { moduleId },
+    select: { userId: true, role: true }
+  });
+  
+  // Create a quick lookup dictionary for user roles
+  const roleMap = new Map(moduleMembers.map(m => [m.userId, m.role]));
 
   const groupMap = new Map<string, {
     moduleTaskGroupId: string;
@@ -165,8 +183,8 @@ export async function getModuleTasksWithProgress(moduleId: string) {
     priority: string;
     duration: number;
     url: string | null;
-    completedMembers: { id: string; username: string; fname: string | null; lname: string | null }[];
-    inProgressMembers: { id: string; username: string; fname: string | null; lname: string | null }[];
+    completedMembers: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null }[];
+    inProgressMembers: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null }[];
     totalAssigned: number;
   }>();
 
@@ -189,12 +207,17 @@ export async function getModuleTasksWithProgress(moduleId: string) {
     }
 
     const group = groupMap.get(groupId)!;
-    group.totalAssigned++;
+    const userRole = roleMap.get(task.userId);
 
-    if (task.completed) {
-      group.completedMembers.push(task.user);
-    } else {
-      group.inProgressMembers.push(task.user);
+    // CRITICAL FIX: Only count regular MEMBERS in the progress stats.
+    // This prevents the Owner's template copy from showing up in the "In Progress" list.
+    if (userRole === 'MEMBER') {
+      group.totalAssigned++;
+      if (task.completed) {
+        group.completedMembers.push(task.user);
+      } else {
+        group.inProgressMembers.push(task.user);
+      }
     }
   }
 

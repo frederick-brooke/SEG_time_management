@@ -1,6 +1,9 @@
+'use client';
+
 import Link from "next/link";
 import { Users, BookOpen } from "lucide-react";
 
+//section types
 interface ModuleCardProps {
   module: {
     id: string;
@@ -10,68 +13,56 @@ interface ModuleCardProps {
     maxMembers: number;
     userRole: string;
     joinPin?: string;
-    creator: {
-      username: string;
-      fname?: string;
-      lname?: string;
-    };
+    creator: { username: string; fname?: string; lname?: string };
   };
 }
 
+//section component
+
 /**
- * Displays a module card with basic info and member count
- * @param {ModuleCardProps} props - Module data to display
- * @return {JSX.Element} - Module card component
+ * Displays a module card with basic info and member count.
+ * @param {ModuleCardProps} props - Module data to display.
+ * @return {JSX.Element} Module card component.
  */
 export function ModuleCard({ module }: ModuleCardProps) {
   const isOwner = module.userRole === 'OWNER';
-  
+
   return (
-    <div className="flex items-center gap-2 rounded-lg border p-4 bg-card shadow-sm hover:shadow-md transition-shadow">
-      {/* Icon */}
-      <div className="shrink-0 bg-blue-50 p-3 rounded-lg">
-        <BookOpen className="text-blue-600" size={24} />
+    <div className="flex items-center gap-4 lunar-card bg-white/5 p-5 transition-all hover:bg-white/10 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/10">
+
+      <div className="shrink-0 bg-white/5 p-3 rounded-2xl border border-white/10 shadow-inner">
+        <BookOpen className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" size={24} />
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-gray-900 truncate">
+            <h3 className="text-base font-black tracking-tight text-white truncate drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
               {module.name}
             </h3>
             {module.description && (
-              <p className="text-xs text-gray-500 truncate mt-0.5">
-                {module.description}
-              </p>
+              <p className="text-xs text-white/40 truncate mt-0.5">{module.description}</p>
             )}
           </div>
-
-          {/* Role Badge */}
           {isOwner && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 font-semibold shrink-0">
+            <span className="text-[9px] px-2.5 py-1 rounded-lg bg-purple-500/10 text-purple-300 border border-purple-500/20 font-black uppercase tracking-widest shrink-0 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
               OWNER
             </span>
           )}
         </div>
 
-        {/* Footer Info */}
-        <div className="flex items-center gap-3 mt-2">
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <Users size={14} />
-            <span>{module.memberCount}/{module.maxMembers}</span>
+        <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t lunar-divider">
+          <div className="flex items-center gap-1.5 text-xs text-white/40 font-medium">
+            <Users size={14} className="text-white/30" />
+            <span>{module.memberCount} / {module.maxMembers}</span>
           </div>
-
-          <span className="text-[10px] text-gray-400">
-            by @{module.creator.username}
-          </span>
+          <span className="text-[11px] font-semibold text-blue-400">by @{module.creator.username}</span>
         </div>
       </div>
 
-      {/* View Button */}
       <Link
         href={`/modules/${module.id}`}
-        className="shrink-0 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        className="shrink-0 lunar-button-primary !text-white px-5 py-2.5 text-xs font-bold"
       >
         View
       </Link>
