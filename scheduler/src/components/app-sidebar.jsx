@@ -173,6 +173,7 @@ export function AppSidebar({ onSearchClick, ...props }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [toasts, setToasts] = useState([]);
   const prevCountRef = useRef(0);
   const prevIdsRef = useRef(new Set());
@@ -217,6 +218,19 @@ export function AppSidebar({ onSearchClick, ...props }) {
       console.error("Failed to poll notifications:", err);
     }
   }, []);
+
+  const pollUnreadMessages = useCallback(async () => {
+    try {
+      const res = await fetch("/api/conversations");
+      if (!res.ok) return;
+      const convs = await res.json();
+      if (!Array.isArray(convs)) return;
+      setUnreadMessageCount(convs.filter((c) => c.hasUnread).length);
+    } catch (err) {
+      console.error("Failed to poll unread messages:", err);
+    }
+  }, []);
+
 React.useEffect(() => {
   setMounted(true);
 }, []);
@@ -248,6 +262,12 @@ useEffect(() => {
   return () => clearInterval(interval);
 }, [pollNotifications]);
   
+useEffect(() => {
+  const run = async () => { await pollUnreadMessages(); };
+  run();
+  const interval = setInterval(run, 30_000);
+  return () => clearInterval(interval);
+}, [pollUnreadMessages]);
 
   const handleOpenNotifications = () => {
     setNotifOpen(true);
@@ -275,7 +295,7 @@ useEffect(() => {
           </SidebarHeader>
 
           <SidebarContent className="lunar-scroll px-2">
-            <NavMain items={data.navMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} />
+            <NavMain items={data.navMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} unreadMessageCount={unreadMessageCount} />
             <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
           </SidebarContent>
           <SidebarFooter>
