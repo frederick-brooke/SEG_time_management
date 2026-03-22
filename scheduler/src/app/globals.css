@@ -145,13 +145,13 @@
   --color-lunar-purple: #a855f7;
 }
 
-/* ── Glow ring at rocket tip ── */
+/*  Glow ring at rocket tip  */
 @keyframes tip-burst {
   0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.9; }
   100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
 }
  
-/* ── Exhaust trail particle drift ── */
+/*  Exhaust trail particle drift  */
 @keyframes trail-drift-1 {
   0%   { transform: translateX(0) translateY(0) scale(1); opacity: 0.7; }
   100% { transform: translateX(-14px) translateY(3px) scale(0.2); opacity: 0; }
@@ -160,19 +160,15 @@
   0%   { transform: translateX(0) translateY(0) scale(1); opacity: 0.5; }
   100% { transform: translateX(-20px) translateY(-4px) scale(0.1); opacity: 0; }
 }
-@keyframes trail-drift-3 {
-  0%   { transform: translateX(0) translateY(0) scale(0.8); opacity: 0.6; }
-  100% { transform: translateX(-10px) translateY(5px) scale(0.1); opacity: 0; }
-}
  
-/* ── Fill nebula shimmer ── */
+/* Fill nebula shimmer  */
 @keyframes nebula-shift {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
  
-/* ── Mission label flicker ── */
+/*  rocket label flicker  */
 @keyframes label-flicker {
   0%, 96%, 100% { opacity: 1; }
   97% { opacity: 0.4; }
@@ -180,14 +176,14 @@
   99% { opacity: 0.6; }
 }
  
-/* ── Entry animation ── */
+/*  Entry animation  */
 @keyframes rocket-entry {
   0%   { left: 0%; opacity: 0; }
   10%  { opacity: 1; }
   100% { left: var(--target-progress); }
 }
  
-/* ── Utility classes ── */
+/*  Utility classes  */
 .rp-rocket {
   animation: rocket-hover 1.6s ease-in-out infinite;
 }
@@ -203,9 +199,7 @@
 .rp-trail-2 {
   animation: trail-drift-2 0.8s ease-out 0.15s infinite;
 }
-.rp-trail-3 {
-  animation: trail-drift-3 0.7s ease-out 0.3s infinite;
-}
+
 .rp-nebula {
   background-size: 200% 200%;
   animation: nebula-shift 4s ease infinite;
@@ -214,18 +208,8 @@
   animation: scan 3.5s linear infinite;
 }
 .rp-label {
-  animation: label-flicker 8s linear infinite;
+  animation: label-flicker 4s linear infinite;
   font-family: 'Share Tech Mono', monospace;
-}
- 
-/* ── Scrollbar (if needed) ── */
-.rp-scrollbar::-webkit-scrollbar { width: 4px; }
-.rp-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.3);
-  border-radius: 10px;
-}
-.rp-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.6);
 }
  
 /* ── Highlight burst (on change) ── */
