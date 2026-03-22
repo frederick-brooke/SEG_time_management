@@ -1,210 +1,430 @@
-// src/hooks/tests/useTasks.test.tsx
-import { render, act } from "@testing-library/react";
+// src/hooks/__tests__/useTasks.test.ts
+import { renderHook, act, waitFor } from "@testing-library/react";
+
+const createNotificationMock = jest.fn().mockResolvedValue(undefined);
+
+jest.mock("@/app/actions/notifications", () => ({
+  createNotification: (...a: any[]) => createNotificationMock(...a),
+}));
+
+jest.mock("@prisma/client", () => ({
+  NotificationType: { INFO: "INFO", SUCCESS: "SUCCESS" },
+}));
+
 import { useTasks } from "../useTasks";
 
-const mockedFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
-global.fetch = mockedFetch;
+function mockFetch(response: any, ok = true) {
+  return jest.fn().mockResolvedValue({
+    ok,
+    json: jest.fn().mockResolvedValue(response),
+  });
+}
 
-describe("useTasks hook", () => {
-  const userId = "123";
-  const initialTasks = [
-    { id: 1, title: "Task 1", status: "todo", priority: "High", duration: 60 },
-    { id: 2, title: "Task 2", status: "in-progress", priority: "Low", duration: 30 },
-  ];
+const BASE_TASK = {
+  id: "t1",
+  title: "Task One",
+  description: "Desc",
+  dueDate: "2025-07-01T00:00:00.000Z",
+  url: "https://example.com",
+  subtasks: ["sub1", "sub2"],
+  duration: 90,
+  priority: "High",
+  status: "todo",
+  completed: false,
+  examId: "exam1",
+  bufferDays: 2,
+  isRecurring: false,
+  recurrence: null,
+};
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.spyOn(console, "error").mockImplementation(() => {});
+  jest.spyOn(console, "log").mockImplementation(() => {});
+  jest.spyOn(window, "alert").mockImplementation(() => {});
+  global.fetch = mockFetch({ tasks: [BASE_TASK] });
+});
+
+afterEach(() => jest.restoreAllMocks());
+
+describe("useTasks", () => {
+
+  it("initialises with empty tasks and isLoading true", () => {
+    global.fetch = jest.fn().mockReturnValue(new Promise(() => {}));
+    const { result } = renderHook(() => useTasks("u1"));
+    expect(result.current.tasks).toEqual([]);
+    expect(result.current.isLoading).toBe(true);
   });
 
-  function TestComponent({ onResult }: any) {
-    const hook = useTasks(userId);
-    onResult(hook);
-    return null;
-  }
-
-  test("fetchTasks loads tasks on mount", async () => {
-    let hookResult: any;
-
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-
-    // wait for useEffect
-    await act(async () => {});
-
-    expect(mockedFetch).toHaveBeenCalledWith(`/api/tasks?userId=${userId}`);
-    expect(hookResult.tasks).toEqual(initialTasks);
-    expect(hookResult.isLoading).toBe(false);
+  it("fetches tasks on mount when userId is provided", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.tasks).toEqual([BASE_TASK]);
+    expect(fetch).toHaveBeenCalledWith("/api/tasks?userId=u1");
   });
 
-  test("createTask adds a new task", async () => {
-    let hookResult: any;
+  it("does not fetch when userId is absent", async () => {
+    const { result } = renderHook(() => useTasks(null));
+    // fetchTasks returns early without calling setIsLoading(false) when userId
+    // is null, so isLoading stays true — just verify no network call was made
+    await new Promise((r) => setTimeout(r, 50));
+    expect(fetch).not.toHaveBeenCalled();
+    expect(result.current.tasks).toEqual([]);
+  });
 
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
+  it("logs error and finishes loading when fetch throws", async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error("Network error"));
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(console.error).toHaveBeenCalled();
+    expect(result.current.tasks).toEqual([]);
+  });
 
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
+  it("does not update tasks when response has no tasks property", async () => {
+    global.fetch = mockFetch({});
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.tasks).toEqual([]);
+  });
 
-    await act(async () => {});
+  it("re-fetches when fetchTasks is called manually", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ tasks: [{ ...BASE_TASK, id: "t2" }] });
+    await act(async () => { await result.current.fetchTasks(); });
+    expect(result.current.tasks[0].id).toBe("t2");
+  });
 
-    const newTask = { id: 3, title: "New Task", status: "todo", priority: "Medium", duration: 45 };
+  it("createTask prepends the new task to state", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const newTask = { ...BASE_TASK, id: "t99", title: "New Task" };
+    global.fetch = mockFetch({ task: newTask }, true);
+    await act(async () => { await result.current.createTask({ title: "New Task" }); });
+    expect(result.current.tasks[0]).toEqual(newTask);
+  });
 
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ task: newTask }),
-    } as Response);
+  it("createTask throws when response is not ok", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ error: "Bad request" }, false);
+    await expect(result.current.createTask({})).rejects.toThrow("Bad request");
+  });
 
+  it("createTask throws with Unknown error fallback when no error field", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({}, false);
+    await expect(result.current.createTask({})).rejects.toThrow("Unknown error");
+  });
+
+  it("createTask throws when response has no task id", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ task: null }, true);
+    await expect(result.current.createTask({})).rejects.toThrow("Invalid response from server");
+  });
+
+  it("updateTask replaces the correct task in state using response task", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const updated = { ...BASE_TASK, title: "Updated" };
+    global.fetch = mockFetch({ task: updated });
+    await act(async () => { await result.current.updateTask("t1", { title: "Updated" }); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")?.title).toBe("Updated");
+  });
+
+  it("updateTask falls back to merging local state when response has no task", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({});
+    await act(async () => { await result.current.updateTask("t1", { title: "Fallback" }); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")?.title).toBe("Fallback");
+  });
+
+  it("deleteTask removes the task from state", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({});
+    await act(async () => { await result.current.deleteTask("t1"); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")).toBeUndefined();
+  });
+
+  it("toggleTaskStatus transitions todo to in-progress", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: null });
+    await act(async () => { await result.current.toggleTaskStatus("t1"); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")?.status).toBe("in-progress");
+  });
+
+  it("toggleTaskStatus transitions in-progress to todo", async () => {
+    global.fetch = mockFetch({ tasks: [{ ...BASE_TASK, status: "in-progress" }] });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: null });
+    await act(async () => { await result.current.toggleTaskStatus("t1"); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")?.status).toBe("todo");
+  });
+
+  it("toggleTaskStatus transitions completed to in-progress", async () => {
+    global.fetch = mockFetch({ tasks: [{ ...BASE_TASK, status: "completed" }] });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: null });
+    await act(async () => { await result.current.toggleTaskStatus("t1"); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")?.status).toBe("in-progress");
+  });
+
+  it("toggleTaskStatus uses forcedStatus when provided", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: 50 });
+    await act(async () => { await result.current.toggleTaskStatus("t1", "completed"); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")?.completed).toBe(true);
+  });
+
+  it("toggleTaskStatus returns rewards from response", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: 100 });
+    let rewards: any;
+    await act(async () => { rewards = await result.current.toggleTaskStatus("t1"); });
+    expect(rewards).toBe(100);
+  });
+
+  it("toggleTaskStatus returns null when response has no rewards", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({});
+    let rewards: any;
+    await act(async () => { rewards = await result.current.toggleTaskStatus("t1"); });
+    expect(rewards).toBeNull();
+  });
+
+  it("toggleTaskStatus returns null and does nothing when task is not found", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({});
+    let rewards: any;
+    await act(async () => { rewards = await result.current.toggleTaskStatus("nonexistent"); });
+    expect(rewards).toBeNull();
+    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("nonexistent"), expect.anything());
+  });
+
+  it("sortTasks orders tasks by priority High > Medium > Low", async () => {
+    const tasks = [
+      { ...BASE_TASK, id: "a", priority: "Low" },
+      { ...BASE_TASK, id: "b", priority: "High" },
+      { ...BASE_TASK, id: "c", priority: "Medium" },
+    ];
+    global.fetch = mockFetch({ tasks });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.sortTasks(); });
+    expect(result.current.tasks.map((t: any) => t.id)).toEqual(["b", "c", "a"]);
+  });
+
+  it("handleFormChange merges partial updates into formData", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleFormChange({ name: "New Name" }); });
+    expect(result.current.formData.name).toBe("New Name");
+    expect(result.current.formData.priority).toBe("Medium");
+  });
+
+  it("resetForm clears formData and editingTaskId", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleFormChange({ name: "Something" }); });
+    act(() => { result.current.resetForm(); });
+    expect(result.current.formData.name).toBe("");
+    expect(result.current.editingTaskId).toBeNull();
+  });
+
+  it("handleSubmitTask alerts when task name is empty", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => { await result.current.handleSubmitTask({ name: "  " }); });
+    expect(window.alert).toHaveBeenCalledWith("Please enter a task name.");
+  });
+
+  it("handleSubmitTask creates a task and sends SUCCESS notification", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const newTask = { ...BASE_TASK, id: "tnew" };
+    global.fetch = mockFetch({ task: newTask }, true);
     await act(async () => {
-      await hookResult.createTask(newTask);
+      await result.current.handleSubmitTask({
+        name: "My Task", description: "", dueDate: "", url: "",
+        subtasks: "a, b", durationHours: "1", durationMinutes: "30",
+        priority: "Medium", examId: "none", bufferDays: 0,
+        isRecurring: false, recurrence: null,
+      });
     });
-
-    expect(hookResult.tasks[0]).toEqual(newTask);
+    expect(createNotificationMock).toHaveBeenCalledWith(
+      "u1", "Task Created", expect.any(String), "SUCCESS"
+    );
+    expect(result.current.isDialogOpen).toBe(false);
   });
 
-  test("updateTask modifies a task", async () => {
-    let hookResult: any;
-
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-
-    await act(async () => {});
-
-    const updatedTask = { title: "Updated Task" };
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ task: { ...initialTasks[0], ...updatedTask } }),
-    } as Response);
-
+  it("handleSubmitTask updates a task and sends INFO notification", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleEditTask("t1"); });
+    const updated = { ...BASE_TASK, title: "Edited" };
+    global.fetch = mockFetch({ task: updated }, true);
     await act(async () => {
-      await hookResult.updateTask(1, updatedTask);
+      await result.current.handleSubmitTask({ name: "Edited", description: "", dueDate: "",
+        url: "", subtasks: "", durationHours: "0", durationMinutes: "0",
+        priority: "High", examId: "none", bufferDays: 0, isRecurring: false, recurrence: null,
+      });
     });
-
-    expect(hookResult.tasks[0].title).toBe("Updated Task");
+    expect(createNotificationMock).toHaveBeenCalledWith(
+      "u1", "Task Updated", expect.any(String), "INFO"
+    );
   });
 
-  test("deleteTask removes a task", async () => {
-    let hookResult: any;
+  it("handleSubmitTask uses formData when no mergedData is passed", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleFormChange({ name: "From State" }); });
+    const newTask = { ...BASE_TASK, id: "ts" };
+    global.fetch = mockFetch({ task: newTask }, true);
+    await act(async () => { await result.current.handleSubmitTask(null); });
+    expect(createNotificationMock).toHaveBeenCalled();
+  });
 
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-    await act(async () => {});
-
-    mockedFetch.mockResolvedValueOnce({ ok: true } as Response);
-
+  it("handleSubmitTask passes examId as null when value is 'none'", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const newTask = { ...BASE_TASK, id: "tex" };
+    global.fetch = mockFetch({ task: newTask }, true);
     await act(async () => {
-      await hookResult.deleteTask(1);
+      await result.current.handleSubmitTask({
+        name: "Exam Task", description: "", dueDate: "", url: "",
+        subtasks: [], durationHours: "0", durationMinutes: "0",
+        priority: "Low", examId: "none", bufferDays: "2",
+        isRecurring: true, recurrence: "weekly",
+      });
     });
-
-    expect(hookResult.tasks.find((t: any) => t.id === 1)).toBeUndefined();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/tasks",
+      expect.objectContaining({ body: expect.stringContaining('"examId":null') })
+    );
   });
 
-  test("toggleTaskStatus cycles status", async () => {
-    let hookResult: any;
-
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-    await act(async () => {});
-
-    const task = initialTasks[0];
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ task: { ...task, status: "in-progress" } }),
-    } as Response);
-
+  it("handleSubmitTask alerts on save error", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ error: "Server error" }, false);
     await act(async () => {
-      await hookResult.toggleTaskStatus(task.id);
+      await result.current.handleSubmitTask({ name: "Fail Task", description: "", dueDate: "",
+        url: "", subtasks: "", durationHours: "0", durationMinutes: "0",
+        priority: "Low", examId: "none", bufferDays: 0, isRecurring: false, recurrence: null,
+      });
     });
-
-    expect(hookResult.tasks[0].status).toBe("in-progress");
+    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("Failed to save task"));
   });
 
-  test("sortTasks sorts by priority", async () => {
-    let hookResult: any;
-
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-    await act(async () => {});
-
-    act(() => {
-      hookResult.sortTasks();
-    });
-
-    expect(hookResult.tasks[0].priority).toBe("High");
-    expect(hookResult.tasks[1].priority).toBe("Low");
+  it("handleEditTask opens dialog with task data pre-filled", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleEditTask("t1"); });
+    expect(result.current.isDialogOpen).toBe(true);
+    expect(result.current.editingTaskId).toBe("t1");
+    expect(result.current.formData.name).toBe("Task One");
+    expect(result.current.formData.durationHours).toBe("1");
+    expect(result.current.formData.durationMinutes).toBe("30");
+    expect(result.current.formData.subtasks).toBe("sub1, sub2");
   });
 
-  test("handleEditTask populates formData", async () => {
-    let hookResult: any;
-
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-    await act(async () => {});
-
-    act(() => hookResult.handleEditTask(1));
-
-    expect(hookResult.formData.name).toBe("Task 1");
-    expect(hookResult.isDialogOpen).toBe(true);
+  it("handleEditTask handles subtasks as a plain string", async () => {
+    global.fetch = mockFetch({ tasks: [{ ...BASE_TASK, subtasks: "raw string" }] });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleEditTask("t1"); });
+    expect(result.current.formData.subtasks).toBe("raw string");
   });
 
-  test("confirmDeleteTask calls deleteTask", async () => {
-    let hookResult: any;
-
-    mockedFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ tasks: initialTasks }),
-    } as Response);
-
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
-    await act(async () => {});
-
-    act(() => hookResult.handleDeleteTask(1));
-
-    mockedFetch.mockResolvedValueOnce({ ok: true } as Response);
-
-    await act(async () => hookResult.confirmDeleteTask());
-
-    expect(hookResult.tasks.find((t: any) => t.id === 1)).toBeUndefined();
+  it("handleEditTask does nothing when task is not found", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleEditTask("missing"); });
+    expect(result.current.isDialogOpen).toBe(false);
   });
 
-  test("fetchTasks handles fetch error gracefully", async () => {
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    let hookResult: any;
+  it("handleEditTask sets examId to 'none' when task has no examId", async () => {
+    global.fetch = mockFetch({ tasks: [{ ...BASE_TASK, examId: null }] });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleEditTask("t1"); });
+    expect(result.current.formData.examId).toBe("none");
+  });
 
-    mockedFetch.mockRejectedValueOnce(new Error("Network error"));
+  it("handleViewTask sets the viewTask state", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleViewTask(BASE_TASK); });
+    expect(result.current.viewTask).toEqual(BASE_TASK);
+  });
 
-    render(<TestComponent onResult={(r) => (hookResult = r)} />);
+  it("setViewTask clears the view when set to null", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleViewTask(BASE_TASK); });
+    act(() => { result.current.setViewTask(null); });
+    expect(result.current.viewTask).toBeNull();
+  });
 
-    await act(async () => {});
+  it("handleDeleteTask sets taskToDelete", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleDeleteTask("t1"); });
+    expect(result.current.taskToDelete).toBe("t1");
+  });
 
-    expect(errorSpy).toHaveBeenCalled();
-    expect(hookResult.tasks).toEqual([]);
-    expect(hookResult.isLoading).toBe(false);
+  it("confirmDeleteTask deletes the task and clears taskToDelete", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleDeleteTask("t1"); });
+    global.fetch = mockFetch({});
+    await act(async () => { await result.current.confirmDeleteTask(); });
+    expect(result.current.tasks.find((t: any) => t.id === "t1")).toBeUndefined();
+    expect(result.current.taskToDelete).toBeNull();
+  });
 
-    errorSpy.mockRestore();
+  it("confirmDeleteTask does nothing when taskToDelete is null", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({});
+    await act(async () => { await result.current.confirmDeleteTask(); });
+    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("/api/tasks/"), expect.anything());
+  });
+
+  it("confirmDeleteTask alerts on delete failure", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleDeleteTask("t1"); });
+    global.fetch = jest.fn().mockRejectedValue(new Error("Delete failed"));
+    await act(async () => { await result.current.confirmDeleteTask(); });
+    expect(window.alert).toHaveBeenCalledWith("Failed to delete task.");
+  });
+
+  it("cancelDelete clears taskToDelete", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.handleDeleteTask("t1"); });
+    act(() => { result.current.cancelDelete(); });
+    expect(result.current.taskToDelete).toBeNull();
+  });
+
+  it("setIsDialogOpen controls dialog visibility", async () => {
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    act(() => { result.current.setIsDialogOpen(true); });
+    expect(result.current.isDialogOpen).toBe(true);
+    act(() => { result.current.setIsDialogOpen(false); });
+    expect(result.current.isDialogOpen).toBe(false);
   });
 });

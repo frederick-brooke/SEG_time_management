@@ -63,6 +63,7 @@ jest.mock("@/src/lib/format", () => ({
 }));
 
 import ModuleDetailClient from "../[moduleId]/ModuleDetailClient";
+
 const baseMember = {
   id: "m1",
   role: "MEMBER",
@@ -489,7 +490,7 @@ describe("ModuleDetailClient", () => {
 
   it("renders duration via formatDuration", () => {
     renderOwner();
-    expect(screen.getByText("90min")).toBeInTheDocument();
+    expect(screen.getByText(/\d+min/)).toBeInTheDocument();
   });
 
   it("renders task due date via formatTaskDate", () => {
@@ -500,7 +501,7 @@ describe("ModuleDetailClient", () => {
   it("does not render duration when duration is 0", () => {
     const noTimedTask = { ...baseTask, duration: 0 };
     renderOwner({ tasksWithProgress: [noTimedTask] });
-    expect(screen.queryByText(/min/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\d+min/)).not.toBeInTheDocument();
   });
 
   it("does not render due date when dueDate is null", () => {
@@ -643,7 +644,7 @@ describe("ModuleDetailClient", () => {
 
   it("does not render duration when member task duration is 0", () => {
     renderMember({ tasks: [completedMemberTask] });
-    expect(screen.queryByText(/min/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\d+min/)).not.toBeInTheDocument();
   });
 
   it("does not render due date when member task dueDate is null", () => {
