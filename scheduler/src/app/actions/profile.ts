@@ -14,8 +14,6 @@ import {
   computeTaskStats,
 } from "lib/profile-queries";
 
-// ─── Session helper ───────────────────────────────────────────────────────────
-
 /**
  * Retrieves the current session and throws if the user is not authenticated
  * @return {Promise<Session>} - Authenticated session object
@@ -29,7 +27,6 @@ async function requireSession() {
   return session;
 }
 
-// ─── Friend count helper ──────────────────────────────────────────────────────
 
 /**
  * Counts accepted friendships for a user in both directions
@@ -44,8 +41,6 @@ async function countFriends(userId: string): Promise<number> {
     },
   });
 }
-
-// ─── Profile reads ────────────────────────────────────────────────────────────
 
 /**
  * Fetches the current user's full profile including stats, friends, and pending requests
@@ -171,8 +166,6 @@ export async function getProfile(username: string) {
   };
 }
 
-// ─── Profile mutation ─────────────────────────────────────────────────────────
-
 /**
  * Updates the current user's profile fields including optional geocoding of city and country
  * @param {FormData} formData - Form data containing fname, lname, bio, city, and country fields
@@ -239,8 +232,6 @@ export async function updateProfile(formData: FormData) {
 
   revalidatePath("/profile");
 }
-
-// ─── Friend request mutations ─────────────────────────────────────────────────
 
 /**
  * Sends a friend request from the current user to a target user

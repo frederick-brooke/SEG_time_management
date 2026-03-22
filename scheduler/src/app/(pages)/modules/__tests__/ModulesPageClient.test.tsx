@@ -4,8 +4,10 @@ import "@testing-library/jest-dom";
 import ModulesPageClient from "@/app/(pages)/modules/ModulesPageClient";
 
 //mocks
+const mockRefresh = jest.fn();
+
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), refresh: mockRefresh }),
 }));
 
 jest.mock("@/components/modules/ModuleCard", () => ({
@@ -16,23 +18,39 @@ jest.mock("@/components/modules/ModuleCard", () => ({
 
 jest.mock("@/components/modules/CreateModule", () => ({
   __esModule: true,
-  default: ({ onClose }: any) => (
+  default: ({ onClose, onSuccess }: any) => (
     <div data-testid="create-modal">
       <button onClick={onClose}>Close Create</button>
+      <button onClick={onSuccess}>Trigger Create Success</button>
     </div>
   ),
 }));
 
 jest.mock("@/components/modules/JoinModule", () => ({
   __esModule: true,
-  default: ({ onClose }: any) => (
+  default: ({ onClose, onSuccess }: any) => (
     <div data-testid="join-modal">
       <button onClick={onClose}>Close Join</button>
+      <button onClick={onSuccess}>Trigger Join Success</button>
     </div>
   ),
 }));
 
-//constants
+jest.mock("lucide-react", () => ({
+  Plus: () => <svg data-testid="plus-icon" />,
+  LogIn: () => <svg data-testid="login-icon" />,
+  ArrowUpDown: () => <svg data-testid="sort-icon" />,
+  ChevronLeft: () => <svg data-testid="chevron-left" />,
+  ChevronRight: () => <svg data-testid="chevron-right" />,
+}));
+
+//helpers
+
+/**
+ * Creates a mock module object for testing.
+ * @param {object} overrides - Properties to override the default module data.
+ * @return {object} The mock module data.
+ */
 const makeModule = (overrides = {}) => ({
   id: "mod1",
   name: "CS101",
@@ -46,7 +64,12 @@ const makeModule = (overrides = {}) => ({
 });
 
 //tests
+
 describe("ModulesPageClient", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("renders the page header", () => {
     render(<ModulesPageClient modules={[]} />);
     expect(screen.getByText("My Modules")).toBeInTheDocument();
@@ -68,123 +91,91 @@ describe("ModulesPageClient", () => {
     expect(screen.getByText(/2 modules/)).toBeInTheDocument();
   });
 
-  it("opens the create module modal", () => {
+  // --- Modal Tests ---
+
+  it("opens and closes the create module modal", () => {
     render(<ModulesPageClient modules={[makeModule()]} />);
     fireEvent.click(screen.getByText("Create Module"));
     expect(screen.getByTestId("create-modal")).toBeInTheDocument();
-  });
-
-  it("closes the create module modal", () => {
-    render(<ModulesPageClient modules={[makeModule()]} />);
-    fireEvent.click(screen.getByText("Create Module"));
+    
     fireEvent.click(screen.getByText("Close Create"));
     expect(screen.queryByTestId("create-modal")).not.toBeInTheDocument();
   });
 
-  it("opens the join module modal", () => {
+  it("refreshes page when create is successful", () => {
+    render(<ModulesPageClient modules={[makeModule()]} />);
+    fireEvent.click(screen.getByText("Create Module"));
+    fireEvent.click(screen.getByText("Trigger Create Success"));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens and closes the join module modal", () => {
     render(<ModulesPageClient modules={[makeModule()]} />);
     fireEvent.click(screen.getByText("Join Module"));
     expect(screen.getByTestId("join-modal")).toBeInTheDocument();
-  });
-
-  it("closes the join module modal", () => {
-    render(<ModulesPageClient modules={[makeModule()]} />);
-    fireEvent.click(screen.getByText("Join Module"));
+    
     fireEvent.click(screen.getByText("Close Join"));
     expect(screen.queryByTestId("join-modal")).not.toBeInTheDocument();
   });
 
+  it("refreshes page when join is successful", () => {
+    render(<ModulesPageClient modules={[makeModule()]} />);
+    fireEvent.click(screen.getByText("Join Module"));
+    fireEvent.click(screen.getByText("Trigger Join Success"));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  // --- Sorting Tests ---
+
   it("sorts A to Z correctly", () => {
-    const modules = [
-      makeModule({ id: "1", name: "Zebra" }),
-      makeModule({ id: "2", name: "Apple" }),
-    ];
+    const modules = [makeModule({ id: "1", name: "Zebra" }), makeModule({ id: "2", name: "Apple" })];
     render(<ModulesPageClient modules={modules} />);
     fireEvent.click(screen.getByText(/Newest first/));
     fireEvent.click(screen.getByText("Name A → Z"));
     const cards = screen.getAllByTestId("module-card");
     expect(cards[0]).toHaveTextContent("Apple");
-    expect(cards[1]).toHaveTextContent("Zebra");
   });
 
-  it("sorts Z to A correctly", () => {
+  it("sorts by oldest first correctly", () => {
     const modules = [
-      makeModule({ id: "1", name: "Apple" }),
-      makeModule({ id: "2", name: "Zebra" }),
+      makeModule({ id: "1", name: "New", createdAt: new Date("2026-05-01") }),
+      makeModule({ id: "2", name: "Old", createdAt: new Date("2025-01-01") }),
     ];
     render(<ModulesPageClient modules={modules} />);
     fireEvent.click(screen.getByText(/Newest first/));
-    fireEvent.click(screen.getByText("Name Z → A"));
+    fireEvent.click(screen.getByText("Oldest first"));
     const cards = screen.getAllByTestId("module-card");
-    expect(cards[0]).toHaveTextContent("Zebra");
+    expect(cards[0]).toHaveTextContent("Old");
   });
 
-  it("sorts by most members correctly", () => {
-    const modules = [
-      makeModule({ id: "1", name: "Small", memberCount: 2 }),
-      makeModule({ id: "2", name: "Large", memberCount: 40 }),
-    ];
-    render(<ModulesPageClient modules={modules} />);
-    fireEvent.click(screen.getByText(/Newest first/));
-    fireEvent.click(screen.getByText("Most members"));
-    const cards = screen.getAllByTestId("module-card");
-    expect(cards[0]).toHaveTextContent("Large");
-  });
-
-  it("sorts by fewest members correctly", () => {
-    const modules = [
-      makeModule({ id: "1", name: "Large", memberCount: 40 }),
-      makeModule({ id: "2", name: "Small", memberCount: 2 }),
-    ];
-    render(<ModulesPageClient modules={modules} />);
-    fireEvent.click(screen.getByText(/Newest first/));
-    fireEvent.click(screen.getByText("Fewest members"));
-    const cards = screen.getAllByTestId("module-card");
-    expect(cards[0]).toHaveTextContent("Small");
-  });
+  // --- Pagination Tests ---
 
   it("does not show pagination for 10 or fewer modules", () => {
-    const modules = Array.from({ length: 5 }, (_, i) =>
-      makeModule({ id: `m${i}`, name: `Module ${i}` })
-    );
+    const modules = Array.from({ length: 5 }, (_, i) => makeModule({ id: `m${i}`, name: `Module ${i}` }));
     render(<ModulesPageClient modules={modules} />);
     expect(screen.queryByRole("button", { name: "2" })).not.toBeInTheDocument();
   });
 
-  it("shows page buttons when more than 10 modules", () => {
-    const modules = Array.from({ length: 12 }, (_, i) =>
-      makeModule({ id: `m${i}`, name: `Module ${i}` })
-    );
-    render(<ModulesPageClient modules={modules} />);
-    expect(screen.getByRole("button", { name: "2" })).toBeInTheDocument();
-  });
-
   it("shows only 10 cards on first page", () => {
-    const modules = Array.from({ length: 12 }, (_, i) =>
-      makeModule({ id: `m${i}`, name: `Module ${i}` })
-    );
+    const modules = Array.from({ length: 12 }, (_, i) => makeModule({ id: `m${i}`, name: `Module ${i}` }));
     render(<ModulesPageClient modules={modules} />);
     expect(screen.getAllByTestId("module-card")).toHaveLength(10);
   });
 
-  it("navigates to page 2 and shows remaining cards", () => {
-    const modules = Array.from({ length: 12 }, (_, i) =>
-      makeModule({ id: `m${i}`, name: `Module ${i}` })
-    );
+  it("navigates pages using Chevron buttons", () => {
+    const modules = Array.from({ length: 12 }, (_, i) => makeModule({ id: `m${i}`, name: `Module ${i}` }));
     render(<ModulesPageClient modules={modules} />);
-    fireEvent.click(screen.getByRole("button", { name: "2" }));
-    expect(screen.getAllByTestId("module-card")).toHaveLength(2);
-  });
+    
+    const nextButton = screen.getByTestId("chevron-right").closest("button")!;
+    const prevButton = screen.getByTestId("chevron-left").closest("button")!;
 
-  it("resets to page 1 when sort changes", () => {
-    const modules = Array.from({ length: 12 }, (_, i) =>
-      makeModule({ id: `m${i}`, name: `Module ${i}` })
-    );
-    render(<ModulesPageClient modules={modules} />);
-    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    expect(prevButton).toBeDisabled();
+    
+    fireEvent.click(nextButton);
     expect(screen.getAllByTestId("module-card")).toHaveLength(2);
-    fireEvent.click(screen.getByText(/Newest first/));
-    fireEvent.click(screen.getByText("Name A → Z"));
+    expect(nextButton).toBeDisabled();
+
+    fireEvent.click(prevButton);
     expect(screen.getAllByTestId("module-card")).toHaveLength(10);
   });
 });

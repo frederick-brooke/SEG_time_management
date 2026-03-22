@@ -127,7 +127,15 @@ export default function EventForm({
         disabled={f.isGoogle}
         className={inputClass}
       />
-
+      <textarea
+        placeholder="Description (Optional)"
+        value={f.description || ""}
+        onChange={(e) => f.setDescription(e.target.value)}
+        disabled={f.isGoogle}
+        rows={3}
+        className={`${inputClass} resize-none`}
+      />
+      
       <div>
         <label className="text-xs font-bold text-white/30 uppercase">Category</label>
         <div className="flex flex-wrap gap-2 mt-2">

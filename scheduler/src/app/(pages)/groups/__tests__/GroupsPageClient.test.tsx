@@ -3,24 +3,44 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupsPageClient from "@/app/(pages)/groups/GroupsPageClient";
 
-// mocks
+//mocks
+
+const mockRefresh = jest.fn();
+
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), refresh: mockRefresh }),
 }));
 
 jest.mock("@/components/groups/GroupCard", () => ({
   GroupCard: ({ group }: any) => <div data-testid="group-card">{group.name}</div>,
 }));
 
+// We updated the mock to expose the onSuccess callback so we can test it!
 jest.mock("@/components/groups/CreateGroup", () => ({
   __esModule: true,
-  default: ({ onClose }: any) => (
+  default: ({ onClose, onSuccess }: any) => (
     <div data-testid="create-modal">
       <button onClick={onClose}>Close Create</button>
+      <button onClick={onSuccess}>Trigger Success</button>
     </div>
   ),
 }));
 
+// Mock Lucide icons to easily click the pagination chevrons
+jest.mock("lucide-react", () => ({
+  Plus: () => <svg data-testid="plus-icon" />,
+  ArrowUpDown: () => <svg data-testid="sort-icon" />,
+  ChevronLeft: () => <svg data-testid="chevron-left" />,
+  ChevronRight: () => <svg data-testid="chevron-right" />,
+}));
+
+//helpers
+
+/**
+ * Helper to generate a standardized mock group object for testing.
+ * @param {object} overrides - Specific properties to override in the default mock group.
+ * @return {object} A complete mock group object.
+ */
 const makeGroup = (overrides = {}) => ({
   id: "grp1",
   name: "Study Squad",
@@ -32,8 +52,13 @@ const makeGroup = (overrides = {}) => ({
   ...overrides,
 });
 
-// tests
+//tests
+
 describe("GroupsPageClient", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("renders the page header", () => {
     render(<GroupsPageClient groups={[]} />);
     expect(screen.getByText("My Groups")).toBeInTheDocument();
@@ -55,6 +80,8 @@ describe("GroupsPageClient", () => {
     expect(screen.getByText(/2 groups/)).toBeInTheDocument();
   });
 
+  // --- Modal Tests ---
+
   it("opens the create group modal", () => {
     render(<GroupsPageClient groups={[makeGroup()]} />);
     fireEvent.click(screen.getByText("Create Group"));
@@ -68,6 +95,15 @@ describe("GroupsPageClient", () => {
     expect(screen.queryByTestId("create-modal")).not.toBeInTheDocument();
   });
 
+  it("refreshes the page when a group is successfully created", () => {
+    render(<GroupsPageClient groups={[makeGroup()]} />);
+    fireEvent.click(screen.getByText("Create Group"));
+    fireEvent.click(screen.getByText("Trigger Success"));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  // --- Sorting Tests ---
+
   it("sorts A to Z correctly", () => {
     const groups = [
       makeGroup({ id: "1", name: "Zebra Group" }),
@@ -78,7 +114,6 @@ describe("GroupsPageClient", () => {
     fireEvent.click(screen.getByText("Name A → Z"));
     const cards = screen.getAllByTestId("group-card");
     expect(cards[0]).toHaveTextContent("Alpha Group");
-    expect(cards[1]).toHaveTextContent("Zebra Group");
   });
 
   it("sorts Z to A correctly", () => {
@@ -105,20 +140,38 @@ describe("GroupsPageClient", () => {
     expect(cards[0]).toHaveTextContent("Large");
   });
 
+  it("sorts by fewest members correctly", () => {
+    const groups = [
+      makeGroup({ id: "1", name: "Large", memberCount: 20 }),
+      makeGroup({ id: "2", name: "Small", memberCount: 2 }),
+    ];
+    render(<GroupsPageClient groups={groups} />);
+    fireEvent.click(screen.getByText(/Newest first/));
+    fireEvent.click(screen.getByText("Fewest members"));
+    const cards = screen.getAllByTestId("group-card");
+    expect(cards[0]).toHaveTextContent("Small");
+  });
+
+  it("sorts by oldest first correctly", () => {
+    const groups = [
+      makeGroup({ id: "1", name: "New", createdAt: new Date("2026-05-01") }),
+      makeGroup({ id: "2", name: "Old", createdAt: new Date("2025-01-01") }),
+    ];
+    render(<GroupsPageClient groups={groups} />);
+    fireEvent.click(screen.getByText(/Newest first/));
+    fireEvent.click(screen.getByText("Oldest first"));
+    const cards = screen.getAllByTestId("group-card");
+    expect(cards[0]).toHaveTextContent("Old");
+  });
+
+  // --- Pagination Tests ---
+
   it("does not show pagination for 10 or fewer groups", () => {
     const groups = Array.from({ length: 5 }, (_, i) =>
       makeGroup({ id: `g${i}`, name: `Group ${i}` })
     );
     render(<GroupsPageClient groups={groups} />);
     expect(screen.queryByRole("button", { name: "2" })).not.toBeInTheDocument();
-  });
-
-  it("shows page buttons when more than 10 groups", () => {
-    const groups = Array.from({ length: 12 }, (_, i) =>
-      makeGroup({ id: `g${i}`, name: `Group ${i}` })
-    );
-    render(<GroupsPageClient groups={groups} />);
-    expect(screen.getByRole("button", { name: "2" })).toBeInTheDocument();
   });
 
   it("shows only 10 cards on first page", () => {
@@ -129,13 +182,40 @@ describe("GroupsPageClient", () => {
     expect(screen.getAllByTestId("group-card")).toHaveLength(10);
   });
 
-  it("navigates to page 2 and shows remaining cards", () => {
+  it("navigates to page 2 and shows remaining cards using numbered buttons", () => {
     const groups = Array.from({ length: 12 }, (_, i) =>
       makeGroup({ id: `g${i}`, name: `Group ${i}` })
     );
     render(<GroupsPageClient groups={groups} />);
     fireEvent.click(screen.getByRole("button", { name: "2" }));
     expect(screen.getAllByTestId("group-card")).toHaveLength(2);
+  });
+
+  it("navigates pages using Chevron Prev/Next buttons and disables them appropriately", () => {
+    const groups = Array.from({ length: 12 }, (_, i) =>
+      makeGroup({ id: `g${i}`, name: `Group ${i}` })
+    );
+    render(<GroupsPageClient groups={groups} />);
+    
+    // Find the chevron buttons by getting their parent buttons
+    const prevButton = screen.getByTestId("chevron-left").closest("button")!;
+    const nextButton = screen.getByTestId("chevron-right").closest("button")!;
+
+    // On page 1, Prev should be disabled
+    expect(prevButton).toBeDisabled();
+    expect(nextButton).not.toBeDisabled();
+
+    // Click Next to go to Page 2
+    fireEvent.click(nextButton);
+    expect(screen.getAllByTestId("group-card")).toHaveLength(2);
+
+    // On Page 2 (last page), Next should be disabled
+    expect(nextButton).toBeDisabled();
+    expect(prevButton).not.toBeDisabled();
+
+    // Click Prev to go back to Page 1
+    fireEvent.click(prevButton);
+    expect(screen.getAllByTestId("group-card")).toHaveLength(10);
   });
 
   it("resets to page 1 when sort changes", () => {

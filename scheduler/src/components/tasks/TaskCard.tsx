@@ -220,7 +220,8 @@ export function TaskCard({
                 onView={() => onView(task)}
                 onEdit={() => onEdit(task.id)}
                 onDelete={() => onDelete(task.id)}
-                canDelete={!task.isModuleTask}
+                canDelete={!task.isModuleTask && !task.isGroupTask} 
+                canEdit={!task.isModuleTask && !task.isGroupTask}
                 strokeWidth={2.5}
                 className="text-white brightness-200 contrast-150 scale-110"
               />
