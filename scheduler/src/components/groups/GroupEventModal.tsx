@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X, MapPin } from "lucide-react";
 import { createGroupEvent, updateGroupEvent } from "@/app/actions/groups";
 
-//types
+//section types
 interface ExistingEvent {
   groupEventGroupId: string | null;
   title: string;
@@ -12,7 +12,7 @@ interface ExistingEvent {
   start: Date;
   end: Date;
   category: string;
-  destLocationName?: string | null; // <-- Added
+  destLocationName?: string | null;
 }
 
 interface GroupEventModalProps {
@@ -30,10 +30,13 @@ interface EventFormState {
   startTime: string;
   endDate: string;
   endTime: string;
-  destLocationName: string; // <-- Added
+  destLocationName: string;
 }
 
+//section constants
 const CATEGORIES = ["Social", "Study", "Lecture", "Exam", "Personal", "Lab"] as const;
+
+//section helpers
 
 /**
  * Splits a Date into separate YYYY-MM-DD and HH:MM strings for form inputs
@@ -47,6 +50,8 @@ function splitDateTime(date: Date): { date: string; time: string } {
     time: d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false }),
   };
 }
+
+//section component
 
 /**
  * Modal for creating or editing a group-wide event distributed to all members
@@ -120,7 +125,7 @@ export default function GroupEventModal({
       start: start.toISOString(),
       end: end.toISOString(),
       allDay: false,
-      destLocationName: formData.destLocationName || null, // <-- Passed to backend
+      destLocationName: formData.destLocationName || null,
     };
 
     const result = isEditing && editingEvent.groupEventGroupId
@@ -138,20 +143,20 @@ export default function GroupEventModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+    <div className="lunar-overlay z-50">
+      <div className="lunar-card max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto lunar-scroll">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="lunar-header text-xl text-white">
               {isEditing ? "Edit Group Event" : "Create Group Event"}
             </h2>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="lunar-value text-xs mt-1">
               {isEditing ? "Changes apply to all members' calendars" : "Added to all members' calendars"}
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -160,8 +165,8 @@ export default function GroupEventModal({
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Event Title <span className="text-red-500">*</span>
+            <label className="lunar-label flex items-center gap-1">
+              Event Title <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
@@ -169,49 +174,49 @@ export default function GroupEventModal({
               placeholder="e.g. Group Study, Movie Night"
               value={formData.title}
               onChange={(e) => handleChange({ title: e.target.value })}
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none transition-all"
+              className="lunar-input w-full p-3 mt-1"
             />
           </div>
 
           {/* Location / Destination */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1">
-              <MapPin size={16} className="text-gray-400" /> Location / Destination
+            <label className="lunar-label flex items-center gap-1">
+              <MapPin size={12} className="text-white/40" /> Location / Destination
             </label>
             <input 
               type="text" 
               placeholder="e.g. Student Union, Coffee Shop" 
               value={formData.destLocationName} 
               onChange={(e) => handleChange({ destLocationName: e.target.value })} 
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none transition-all" 
+              className="lunar-input w-full p-3 mt-1" 
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+            <label className="lunar-label">Description</label>
             <textarea
               rows={3}
               placeholder="Optional description..."
               value={formData.description}
               onChange={(e) => handleChange({ description: e.target.value })}
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none transition-all resize-none"
+              className="lunar-input w-full p-3 mt-1 resize-none"
             />
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+            <label className="lunar-label mb-2 block">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => handleChange({ category: cat })}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${
                     formData.category === cat
-                      ? "border-purple-600 bg-purple-50 text-purple-700"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                      ? "border-blue-500/50 bg-blue-500/20 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                      : "border-white/10 bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   {cat}
@@ -223,38 +228,38 @@ export default function GroupEventModal({
           {/* Start / End */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Start</label>
+              <label className="lunar-label">Start</label>
               <input type="date" required value={formData.startDate}
                 onChange={(e) => handleChange({ startDate: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg mb-2 focus:ring-2 focus:ring-purple-600 focus:outline-none" />
+                className="lunar-input w-full p-2 mb-2" />
               <input type="time" required value={formData.startTime}
                 onChange={(e) => handleChange({ startTime: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none" />
+                className="lunar-input w-full p-2" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">End</label>
+              <label className="lunar-label">End</label>
               <input type="date" required value={formData.endDate}
                 onChange={(e) => handleChange({ endDate: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg mb-2 focus:ring-2 focus:ring-purple-600 focus:outline-none" />
+                className="lunar-input w-full p-2 mb-2" />
               <input type="time" required value={formData.endTime}
                 onChange={(e) => handleChange({ endTime: e.target.value })}
-                className="w-full border border-gray-200 p-2 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none" />
+                className="lunar-input w-full p-2" />
             </div>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="lunar-item-error px-4 py-3 rounded-xl border text-sm font-medium">
               {error}
             </div>
           )}
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t lunar-divider">
             <button type="button" onClick={onClose} disabled={isSubmitting}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50">
+              className="flex-1 lunar-button-ghost disabled:opacity-50 py-3">
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting}
-              className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              className="flex-1 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:cursor-not-allowed py-3">
               {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Create Event"}
             </button>
           </div>

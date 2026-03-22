@@ -12,6 +12,13 @@ jest.mock("@/app/actions/groups", () => ({
   ]),
 }));
 
+// mock lucide icons to avoid SVG rendering issues
+jest.mock("lucide-react", () => ({
+  X: () => <svg data-testid="x-icon" />,
+  Users: () => <svg data-testid="users-icon" />,
+  Check: () => <svg data-testid="check-icon" />,
+}));
+
 const mockOnClose = jest.fn();
 const mockOnSuccess = jest.fn();
 

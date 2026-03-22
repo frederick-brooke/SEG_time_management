@@ -86,3 +86,5 @@ package-lock.json
 
 cookies.txt
 cleanup.ts
+clean-data.ts
+clean-members.ts

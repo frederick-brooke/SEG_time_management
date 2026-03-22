@@ -4,6 +4,7 @@ import { Users, ListTodo, Calendar, Trash, LogOut, Settings } from "lucide-react
 import { useRouter } from "next/navigation";
 import { leaveGroup, deleteGroup } from "@/app/actions/groups";
 
+//section types
 interface GroupHeaderProps {
   group: any;
   isOwner: boolean;
@@ -11,6 +12,8 @@ interface GroupHeaderProps {
   onOpenEventModal: () => void;
   onOpenSettings: () => void;
 }
+
+//section component
 
 /**
  * Renders the header section for a group, including title, description, and action buttons.
@@ -56,22 +59,22 @@ export default function GroupHeader({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-6 shadow-sm">
+    <div className="lunar-card p-8 mb-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         
         {/* Title & Info */}
         <div className="flex items-start gap-4">
-          <div className="bg-purple-50 p-4 rounded-xl shrink-0">
-            <Users className="text-purple-600" size={32} />
+          <div className="bg-white/5 p-4 rounded-xl shrink-0 border border-white/10 shadow-inner">
+            <Users className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" size={32} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{group.name}</h1>
-            {group.description && <p className="text-gray-600 mt-2">{group.description}</p>}
-            <div className="flex items-center gap-4 mt-3 text-sm text-gray-500 flex-wrap">
-              <span className="flex items-center gap-1">
-                <Users size={16} /> {group.memberCount} member{group.memberCount !== 1 ? "s" : ""}
+            <h1 className="lunar-page-title text-3xl">{group.name}</h1>
+            {group.description && <p className="lunar-value mt-2">{group.description}</p>}
+            <div className="flex items-center gap-4 mt-3 flex-wrap">
+              <span className="flex items-center gap-1 lunar-label !text-white">
+                <Users size={14} className="text-white/50" /> {group.memberCount} member{group.memberCount !== 1 ? "s" : ""}
               </span>
-              <span>Created by @{group.creator.username}</span>
+              <span className="lunar-label !text-white">Created by @{group.creator.username}</span>
             </div>
           </div>
         </div>
@@ -81,40 +84,40 @@ export default function GroupHeader({
           {isOwner && (
             <button
               onClick={onOpenSettings}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg border border-gray-200 font-medium hover:bg-gray-100 transition-colors"
+              className="lunar-button-ghost flex items-center gap-2"
               title="Group Settings"
             >
-              <Settings size={16} /> Settings
+              <Settings size={14} /> Settings
             </button>
           )}
           
           <button
             onClick={onOpenTaskModal}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-lg border border-purple-200 font-medium hover:bg-purple-100 transition-colors"
+            className="lunar-button-primary flex items-center gap-2 !bg-white/10 !border-white/20 hover:!bg-white/20 !text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           >
-            <ListTodo size={16} /> Create Task
+            <ListTodo size={14} /> Create Task
           </button>
           
           <button
             onClick={onOpenEventModal}
-            className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg border border-green-200 font-medium hover:bg-green-100 transition-colors"
+            className="lunar-button-primary flex items-center gap-2 !bg-white/10 !border-white/20 hover:!bg-white/20 !text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           >
-            <Calendar size={16} /> Create Event
+            <Calendar size={14} /> Create Event
           </button>
           
           {isOwner ? (
             <button
               onClick={handleDeleteGroup}
-              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 font-medium hover:bg-red-100 transition-colors"
+              className="flex items-center gap-2 lunar-item-error px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-colors"
             >
-              <Trash size={16} /> Delete Group
+              <Trash size={14} /> Delete Group
             </button>
           ) : (
             <button
               onClick={handleLeave}
-              className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 font-medium hover:bg-red-100 transition-colors"
+              className="flex items-center gap-2 lunar-item-error px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-colors"
             >
-              <LogOut size={16} /> Leave Group
+              <LogOut size={14} /> Leave Group
             </button>
           )}
         </div>

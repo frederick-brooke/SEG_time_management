@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import { X, Settings, UserPlus } from "lucide-react";
 import { updateGroupSettings, getMyFriendsForGroup, addGroupMember } from "@/app/actions/groups";
 
+//section types
 interface GroupSettingsModalProps {
   group: any;
   onClose: () => void;
   onSuccess: () => void;
 }
+
+//section component
 
 /**
  * Modal specifically for the Group Owner to update basic group settings (name/description)
@@ -70,14 +73,14 @@ export default function GroupSettingsModal({ group, onClose, onSuccess }: GroupS
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="lunar-overlay" onClick={onClose}>
+      <div className="lunar-card max-w-md w-full p-6 max-h-[90vh] overflow-y-auto lunar-scroll" onClick={(e) => e.stopPropagation()}>
         
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Settings size={20} className="text-gray-500"/> Group Settings
+          <h2 className="lunar-header flex items-center gap-2">
+            <Settings size={18} className="text-white/40"/> Group Settings
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -85,46 +88,46 @@ export default function GroupSettingsModal({ group, onClose, onSuccess }: GroupS
         {/* Section 1: Details Form */}
         <form onSubmit={handleUpdateDetails} className="space-y-4 mb-8">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Group Name</label>
-            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none" />
+            <label className="lunar-label">Group Name</label>
+            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="lunar-input w-full p-3 mt-1" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-            <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-purple-600 focus:outline-none resize-none" />
+            <label className="lunar-label">Description</label>
+            <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="lunar-input w-full p-3 mt-1 resize-none" />
           </div>
-          <button type="submit" disabled={isSubmitting} className="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors disabled:opacity-50">
+          <button type="submit" disabled={isSubmitting} className="w-full py-3 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50">
             {isSubmitting ? "Saving..." : "Save Details"}
           </button>
         </form>
 
-        <hr className="border-gray-200 mb-6" />
+        <hr className="border-t lunar-divider mb-6" />
 
         {/* Section 2: Add Friends */}
         <div>
-          <h3 className="text-md font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <UserPlus size={18} className="text-gray-500" /> Add Friends to Group
+          <h3 className="lunar-label text-sm text-white mb-4 flex items-center gap-2">
+            <UserPlus size={16} className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> Add Friends to Group
           </h3>
           
-          <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-48 overflow-y-auto pr-1 lunar-scroll">
             {availableFriends.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4 bg-gray-50 rounded-lg border border-gray-100">
+              <p className="text-xs text-white/40 text-center py-4 bg-white/5 rounded-xl border border-white/10 font-medium">
                 All your friends are already in this group!
               </p>
             ) : (
               availableFriends.map((friend) => (
-                <div key={friend.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
+                <div key={friend.id} className="flex items-center justify-between p-2 bg-white/5 hover:bg-white/10 transition-colors rounded-xl border border-white/10">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="w-8 h-8 bg-[#0a0f1d] border border-white/20 text-white/60 rounded-full flex items-center justify-center font-black text-xs shrink-0">
                       {friend.fname?.[0] || friend.username[0]}
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    <p className="text-sm font-bold text-white truncate">
                       {friend.fname || friend.username}
                     </p>
                   </div>
                   <button 
                     onClick={() => handleAddFriend(friend.id)}
                     disabled={addingFriendId === friend.id}
-                    className="shrink-0 text-xs px-3 py-1.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition-colors disabled:opacity-50"
+                    className="shrink-0 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
                   >
                     {addingFriendId === friend.id ? "Adding..." : "Add"}
                   </button>

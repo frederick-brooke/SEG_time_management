@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { GroupCard } from "@/components/groups/GroupCard";
 import CreateGroup from "@/components/groups/CreateGroup";
 import { Plus, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
-//types
+//section types
 interface GroupItem {
   id: string;
   name: string;
@@ -27,7 +28,7 @@ interface GroupsPageClientProps {
 
 type SortKey = "newest" | "oldest" | "name-asc" | "name-desc" | "members-desc" | "members-asc";
 
-//constants
+//section constants
 const PAGE_SIZE = 10;
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -39,7 +40,8 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "members-asc",  label: "Fewest members" },
 ];
 
-//helpers
+//section helpers
+
 /**
  * Sorts a list of groups by the given sort key
  * @param {GroupItem[]} groups - Unsorted group list
@@ -59,7 +61,8 @@ function sortGroups(groups: GroupItem[], key: SortKey): GroupItem[] {
   }
 }
 
-//component
+//section component
+
 /**
  * Client component for the groups list page with sorting, pagination, and create modal
  * @param {GroupsPageClientProps} props - Initial groups data from server
@@ -90,115 +93,115 @@ export default function GroupsPageClient({ groups: initialGroups }: GroupsPageCl
   };
 
   return (
-    <>
-      <div className="flex flex-1 flex-col gap-6 p-6 pt-0">
-        <div className="max-w-5xl w-full mx-auto py-8">
+    <LunarThemeWrapper>
+      <div className="lunar-page">
 
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Groups</h1>
-              <p className="text-gray-500 mt-1">
-                Create groups with your friends to share tasks and events
-              </p>
-            </div>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
-            >
-              <Plus size={18} />
-              <span>Create Group</span>
-            </button>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+          <div>
+            <h1 className="lunar-page-title">My Groups</h1>
+            <p className="lunar-page-subtitle">
+              Create groups with your friends to share tasks and events
+            </p>
           </div>
-
-          {initialGroups.length > 0 ? (
-            <>
-              {/* Controls row */}
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-gray-500">
-                  {sorted.length} group{sorted.length !== 1 ? "s" : ""}
-                </p>
-
-                {/* Sort dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSortMenu((v) => !v)}
-                    className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <ArrowUpDown size={14} />
-                    {currentSortLabel}
-                  </button>
-                  {showSortMenu && (
-                    <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
-                      {SORT_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => handleSort(option.value)}
-                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
-                            sortKey === option.value
-                              ? "bg-purple-50 text-purple-700 font-semibold"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Groups list */}
-              <div className="space-y-3">
-                {paginated.map((group) => (
-                  <GroupCard key={group.id} group={group} />
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6">
-                  <button
-                    onClick={() => setPage((p) => p - 1)}
-                    disabled={page === 1}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors ${
-                        p === page
-                          ? "bg-purple-600 text-white"
-                          : "border border-gray-200 text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page === totalPages}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">
-              <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl">👥</span>
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">No groups yet</h3>
-              <p className="text-gray-500 text-sm">Create a group and add your friends to collaborate</p>
-            </div>
-          )}
-
+          <button
+            onClick={() => setShowCreate(true)}
+            className="lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+          >
+            <Plus size={18} />
+            <span>Create Group</span>
+          </button>
         </div>
+
+        {initialGroups.length > 0 ? (
+          <>
+            {/* Controls row */}
+            <div className="flex items-center justify-between mb-6">
+              <p className="lunar-value font-medium">
+                {sorted.length} group{sorted.length !== 1 ? "s" : ""}
+              </p>
+
+              {/* Sort dropdown */}
+              <div className="relative z-20">
+                <button
+                  onClick={() => setShowSortMenu((v) => !v)}
+                  className="lunar-button-ghost flex items-center gap-2"
+                >
+                  <ArrowUpDown size={14} />
+                  {currentSortLabel}
+                </button>
+                {showSortMenu && (
+                  <div className="absolute right-0 mt-2 w-48 lunar-select-content py-1">
+                    {SORT_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleSort(option.value)}
+                        className={`w-full text-left px-4 py-3 text-sm transition-colors ${
+                          sortKey === option.value
+                            ? "bg-white/10 text-white font-bold"
+                            : "text-white/60 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Groups list */}
+            <div className="space-y-4">
+              {paginated.map((group) => (
+                <GroupCard key={group.id} group={group} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={page === 1}
+                  className="lunar-button-ghost px-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-10 h-10 rounded-xl text-[12px] font-bold transition-all border ${
+                      p === page
+                        ? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                        : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page === totalPages}
+                  className="lunar-button-ghost px-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          
+          /* Empty State */
+          <div className="lunar-card border border-white/10 p-16 flex flex-col items-center justify-center text-center mt-8">
+            <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <span className="text-4xl drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">👥</span>
+            </div>
+            <h3 className="lunar-header text-xl mb-2 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">No groups yet</h3>
+            <p className="lunar-value text-sm">Create a group and add your friends to collaborate</p>
+          </div>
+        )}
+
       </div>
 
       {/* Create modal */}
@@ -208,6 +211,6 @@ export default function GroupsPageClient({ groups: initialGroups }: GroupsPageCl
           onSuccess={() => router.refresh()}
         />
       )}
-    </>
+    </LunarThemeWrapper>
   );
 }
