@@ -157,7 +157,12 @@ function getDayCursor(
   workStart: Date,
   cursors: Map<string, DayCursor>,
 ): { cursor: Date; workedMs: number } {
-  if (!cursors.has(key)) cursors.set(key, { cursor: new Date(workStart), workedMs: 0 });
+  if (!cursors.has(key)) {
+    const now = new Date();
+    const isToday = now.toDateString() === workStart.toDateString();
+    const earliest = isToday && now > workStart ? now : workStart;
+    cursors.set(key, { cursor: new Date(earliest), workedMs: 0 });
+  }
   const state = cursors.get(key)!;
   const behindStart = state.cursor.getTime() < workStart.getTime();
   return {
