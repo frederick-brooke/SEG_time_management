@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 import { getProfile } from "@/src/app/actions/profile";
 import { fetchUsernameByEmail } from "lib/profile-queries";
 import ProfilePageClient from "../ProfilePageClient";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
  * Server component that fetches another user's profile by username
- * @param {Promise<{ username: string }>} params - URL parameters containing username
- * @return {JSX.Element} - Other user's profile page with friend request options
+ * @param {object} props - Component props.
+ * @param {Promise<{ username: string }>} props.params - URL parameters containing username
+ * @return {Promise<JSX.Element>} - Other user's profile page with friend request options
  */
 export default async function UserProfilePage({
   params,
@@ -34,14 +36,16 @@ export default async function UserProfilePage({
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold text-red-600">User not found</h1>
-          <p className="mt-2 text-gray-600">
-            No user exists with username: @{username}
-          </p>
+      <LunarThemeWrapper>
+        <div className="lunar-page flex items-center justify-center min-h-[60vh]">
+          <div className="lunar-card p-8 text-center max-w-md w-full">
+            <h1 className="lunar-header text-red-400 mb-2">User not found</h1>
+            <p className="lunar-value">
+              No user exists with username: <span className="text-white">@{username}</span>
+            </p>
+          </div>
         </div>
-      </div>
+      </LunarThemeWrapper>
     );
   }
 

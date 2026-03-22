@@ -144,7 +144,7 @@ export function TaskFormDialog({
                   <SelectTrigger className="lunar-input">
                     <SelectValue placeholder="Hours"/>
                   </SelectTrigger>
-                  <SelectContent className="lunar-select-content">
+                  <SelectContent className="lunar-select-content z-[9999]">
                     {[...Array(9)].map((_, i) => (
                       <SelectItem key={i} value={i.toString()} className="lunar-select-item">
                         {i}h
@@ -162,7 +162,7 @@ export function TaskFormDialog({
                   <SelectTrigger className="lunar-input">
                     <SelectValue placeholder="Mins"/>
                   </SelectTrigger>
-                  <SelectContent className="lunar-select-content">
+                  <SelectContent className="lunar-select-content z-[9999]">
                     {[
                       "0",
                       "5",
@@ -195,7 +195,7 @@ export function TaskFormDialog({
                 <SelectTrigger id="exam-link" className="lunar-input">
                   <SelectValue placeholder="Select and exam"/>
                 </SelectTrigger>
-                <SelectContent className="lunar-select-content">
+                <SelectContent className="lunar-select-content z-[9999]">
                   <SelectItem value="none" className="lunar-select-item">General Task (No Exam)</SelectItem>
                   {exams.map((exam) => (
                     <SelectItem key={exam.id} value={exam.id} className="lunar-select-item">

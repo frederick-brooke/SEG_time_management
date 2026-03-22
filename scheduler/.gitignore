@@ -85,3 +85,6 @@ package-lock.json
 !.env.example
 
 cookies.txt
+cleanup.ts
+clean-data.ts
+clean-members.ts
