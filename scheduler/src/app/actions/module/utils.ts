@@ -115,3 +115,22 @@ export async function syncTasksToMember(moduleId: string, userId: string): Promi
     )
   );
 }
+/**
+ * Checks if the user has Owner or Admin privileges for a specific module.
+ * @param {string} moduleId - The module database ID
+ * @param {string} userId - The user database ID
+ * @return {Promise<boolean>} True if the user is an OWNER or ADMIN.
+ */
+export async function isModuleOwnerOrAdmin(moduleId: string, userId: string): Promise<boolean> {
+  const membership = await prisma.moduleMember.findUnique({
+    where: {
+      moduleId_userId: {
+        moduleId,
+        userId,
+      },
+    },
+    select: { role: true },
+  });
+
+  return membership?.role === 'OWNER' || membership?.role === 'ADMIN';
+}
