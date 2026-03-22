@@ -48,7 +48,7 @@ const GROUPS = [
 
 const CONVERSATIONS = [
   ...GROUPS,
-  { id: "c-1", name: null, isGroup: false, participants: [] }, // direct — should be filtered out
+  { id: "c-1", name: null, isGroup: false, participants: [] },
 ];
 
 // Helpers

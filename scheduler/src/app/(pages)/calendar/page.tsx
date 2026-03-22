@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import CalendarView from "@/src/components/calendar/CalendarView";
-import GoogleLinkButton from "@/components/googleLinkButton";
-import { StarBackground } from "@/components/ui/StarBackground";
+import GoogleLinkButton from "@/src/components/googleLinkButton";
+import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 import { checkUpcomingEventNotifications } from "@/src/app/actions/calendarNotifications";
 
 /**
@@ -25,17 +25,12 @@ export default async function CalendarPage() {
   if (!session) redirect("/login");
   await checkUpcomingEventNotifications(session.user.id);
   return (
-    <main 
-      className="chat-bg container mx-auto px-6 pt-4 pb-8 relative min-h-screen"
-      style={{ background: "linear-gradient(160deg, #080c14 0%, #0a0f1e 50%, #06080f 100%)" }}
-    >
-      <StarBackground />
-
-      <div className="flex justify-between items-center mb-3">
-        <h1 className="text-2xl font-bold">My Schedule</h1>
-        <GoogleLinkButton isConnected={session.user.googleConnected} />
-      </div>
-      <div className="relative z-10">
+    <LunarThemeWrapper>
+      <main className="container mx-auto px-6 pt-4 pb-8 min-h-screen">
+        <div className="flex justify-between items-center mb-3">
+          <h1 className="text-2xl font-bold">My Schedule</h1>
+          <GoogleLinkButton isConnected={session.user.googleConnected ?? false} />
+        </div>
         {/*
          * CalendarView receives empty arrays as initial props.
          * All data is fetched client-side on mount — see JSDoc above for reasoning.
@@ -46,9 +41,9 @@ export default async function CalendarPage() {
           allTasks={[]}
           unscheduledTasks={[]}
           userId={session.user.id}
-          googleConnected={session.user.googleConnected}
+          googleConnected={session.user.googleConnected ?? false}
         />
-      </div>
-    </main>
+      </main>
+    </LunarThemeWrapper>
   );
 }

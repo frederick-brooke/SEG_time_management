@@ -1,11 +1,5 @@
 /**
  * Tests for POST /api/calendar/travel route.
- *
- * Covers:
- * - Returns duration on valid input
- * - Returns 400 on missing or invalid coordinates
- * - Defaults to "driving" when no mode is provided
- * - Returns 500 when getTravelTime throws
  */
 
 import { POST } from "../route";
@@ -17,7 +11,6 @@ jest.mock("@/lib/map", () => ({
   getTravelTime: jest.fn(),
 }));
 
-// Mock NextResponse to avoid jsdom incompatibility
 jest.mock("next/server", () => ({
   NextResponse: {
     json: jest.fn((body: unknown, init?: { status?: number }) => ({
@@ -51,13 +44,15 @@ describe("POST /api/travel-time", () => {
 
     // Re-apply NextResponse.json mock after clearAllMocks resets it
     const { NextResponse } = require("next/server");
-    NextResponse.json.mockImplementation((body: unknown, init?: { status?: number }) => ({
-      status: init?.status ?? 200,
-      json: async () => body,
-    }));
+    NextResponse.json.mockImplementation(
+      (body: unknown, init?: { status?: number }) => ({
+        status: init?.status ?? 200,
+        json: async () => body,
+      })
+    );
   });
 
-  // ── Success ─────────────────────────────────────────────────────────────────
+  // ── Success ──────────────────────────────────────────────────────────────────
 
   it("should return duration on valid input", async () => {
     mockGetTravelTime.mockResolvedValue(1200);
@@ -92,7 +87,25 @@ describe("POST /api/travel-time", () => {
     );
   });
 
-  it("should pass the provided mode to getTravelTime", async () => {
+  it("should pass driving mode to getTravelTime", async () => {
+    mockGetTravelTime.mockResolvedValue(1200);
+
+    const req = createRequest({
+      start: { lat: 51.5, lng: -0.1 },
+      end: { lat: 51.6, lng: -0.2 },
+      mode: "driving",
+    });
+
+    await POST(req);
+
+    expect(mockGetTravelTime).toHaveBeenCalledWith(
+      { lat: 51.5, lng: -0.1 },
+      { lat: 51.6, lng: -0.2 },
+      "driving"
+    );
+  });
+
+  it("should pass walking mode to getTravelTime", async () => {
     mockGetTravelTime.mockResolvedValue(600);
 
     const req = createRequest({
@@ -110,7 +123,25 @@ describe("POST /api/travel-time", () => {
     );
   });
 
-  // ── Validation ──────────────────────────────────────────────────────────────
+  it("should pass cycling mode to getTravelTime", async () => {
+    mockGetTravelTime.mockResolvedValue(480);
+
+    const req = createRequest({
+      start: { lat: 51.5, lng: -0.1 },
+      end: { lat: 51.6, lng: -0.2 },
+      mode: "cycling",
+    });
+
+    await POST(req);
+
+    expect(mockGetTravelTime).toHaveBeenCalledWith(
+      { lat: 51.5, lng: -0.1 },
+      { lat: 51.6, lng: -0.2 },
+      "cycling"
+    );
+  });
+
+  // ── Validation ───────────────────────────────────────────────────────────────
 
   it("should return 400 when start is missing", async () => {
     const req = createRequest({ end: { lat: 51.6, lng: -0.2 } });
@@ -184,7 +215,27 @@ describe("POST /api/travel-time", () => {
     expect(body.message).toBe("Invalid coordinates");
   });
 
-  // ── Error handling ──────────────────────────────────────────────────────────
+  it("should return 400 when the body is completely empty", async () => {
+    const req = createRequest({});
+
+    const res = await POST(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body.message).toBe("Invalid coordinates");
+  });
+
+  it("should accept coordinates with value 0 (equator/prime meridian)", async () => {
+    mockGetTravelTime.mockResolvedValue(300);
+    const req = createRequest({
+      start: { lat: 0, lng: 0 },
+      end: { lat: 51.6, lng: -0.2 },
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+  });
+
+  // ── Error handling ────────────────────────────────────────────────────────────
 
   it("should return 500 when getTravelTime throws an Error", async () => {
     mockGetTravelTime.mockRejectedValue(new Error("Maps API unavailable"));
@@ -203,16 +254,28 @@ describe("POST /api/travel-time", () => {
 
   it("should return 500 with fallback message when a non-Error is thrown", async () => {
     mockGetTravelTime.mockRejectedValue("unexpected string error");
-  
+
     const req = createRequest({
       start: { lat: 51.5, lng: -0.1 },
       end: { lat: 51.6, lng: -0.2 },
     });
-  
+
     const res = await POST(req);
     const body = await res.json();
-  
+
     expect(res.status).toBe(500);
     expect(body.message).toBe("An unexpected error occurred");
+  });
+
+  it("should return 500 when the request body cannot be parsed", async () => {
+    const req = {
+      json: jest.fn().mockRejectedValue(new Error("Unexpected token")),
+    } as any;
+
+    const res = await POST(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(body.message).toBe("Unexpected token");
   });
 });

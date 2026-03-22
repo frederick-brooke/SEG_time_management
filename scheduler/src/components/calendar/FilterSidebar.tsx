@@ -1,5 +1,9 @@
 "use client";
-// src/components/calendar/FilterSidebar.tsx
+
+/**
+ * FilterSidebar — sticky sidebar for filtering calendar items by task type and category.
+ */
+
 interface Filter {
   key: string;
   label: string;
@@ -21,6 +25,7 @@ interface Props {
   onManageCategories: () => void;
 }
 
+/** Styled checkbox div that shows a ✓ when active. Colour is applied dynamically via the style prop. */
 function FilterCheckbox({
   color,
   active,
@@ -42,7 +47,7 @@ function FilterCheckbox({
       onClick={onToggle}
     >
       {active && (
-        <span style={{ color: "#0a0f1e", fontSize: "10px", fontWeight: 700, lineHeight: 1 }}>
+        <span className="text-[#0a0f1e] text-[10px] font-bold leading-none">
           ✓
         </span>
       )}
@@ -50,6 +55,10 @@ function FilterCheckbox({
   );
 }
 
+/**
+ * Renders filter toggles for task types (Tasks, Priority Tasks, Completed)
+ * and per-category toggles for all user-defined event categories.
+ */
 export default function FilterSidebar({
   activeFilters,
   categories,
@@ -61,21 +70,13 @@ export default function FilterSidebar({
   return (
     <div className="w-56 flex-shrink-0">
       <div
-        className="sticky top-4 flex flex-col gap-4 rounded-2xl p-4"
-        style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          backdropFilter: "blur(12px)",
-        }}
+        className="sticky top-4 flex flex-col gap-4 rounded-2xl p-4 bg-white/[0.03] border border-white/[0.08] backdrop-blur-md"
       >
         {/* Tasks section */}
         <div>
-          <h3
-            className="text-xs font-bold uppercase tracking-widest mb-3"
-            style={{ color: "rgba(148,163,255,0.45)" }}
-          >
-            Tasks
-          </h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest mb-3 text-[rgba(148,163,255,0.45)]">
+          Tasks
+        </h3>
           <div className="flex flex-col gap-3">
             {TASK_FILTERS.map((f) => (
               <label
@@ -103,29 +104,17 @@ export default function FilterSidebar({
         </div>
 
         {/* Divider */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }} />
+        <div className="border-t border-white/[0.07]" />
 
         {/* Categories section */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "rgba(148,163,255,0.45)" }}
-            >
-              Categories
-            </h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[rgba(148,163,255,0.45)]">
+            Categories
+          </h3>
             <button
               onClick={onManageCategories}
-              className="text-xs font-bold transition-colors"
-              style={{ color: "rgba(148,163,255,0.7)" }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.color =
-                  "rgba(148,163,255,1)")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.color =
-                  "rgba(148,163,255,0.7)")
-              }
+              className="text-xs font-bold transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
             >
               + Manage
             </button>

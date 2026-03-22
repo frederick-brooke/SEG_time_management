@@ -145,42 +145,90 @@
   --color-lunar-purple: #a855f7;
 }
 
-@keyframes lunar-highlight-burst {
-  0% {
-    box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.8);
-    border-color: rgba(59, 130, 246, 1);
-  }
-
-  100% {
-    box-shadow: 0 0 0 40px rgba(59, 130, 246, 0);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
+/*  Glow ring at rocket tip  */
+@keyframes tip-burst {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+ 
+/*  Exhaust trail particle drift  */
+@keyframes trail-drift-1 {
+  0%   { transform: translateX(0) translateY(0) scale(1); opacity: 0.7; }
+  100% { transform: translateX(-14px) translateY(3px) scale(0.2); opacity: 0; }
+}
+@keyframes trail-drift-2 {
+  0%   { transform: translateX(0) translateY(0) scale(1); opacity: 0.5; }
+  100% { transform: translateX(-20px) translateY(-4px) scale(0.1); opacity: 0; }
+}
+ 
+/* Fill nebula shimmer  */
+@keyframes nebula-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+ 
+/*  rocket label flicker  */
+@keyframes label-flicker {
+  0%, 96%, 100% { opacity: 1; }
+  97% { opacity: 0.4; }
+  98% { opacity: 1; }
+  99% { opacity: 0.6; }
+}
+ 
+/*  Entry animation  */
+@keyframes rocket-entry {
+  0%   { left: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  100% { left: var(--target-progress); }
+}
+ 
+/*  Utility classes  */
+.rp-rocket {
+  animation: rocket-hover 1.6s ease-in-out infinite;
+}
+.rp-flame {
+  animation: flame-pulse 0.35s ease-in-out infinite;
+}
+.rp-tip-ring {
+  animation: tip-burst 1.2s ease-out infinite;
+}
+.rp-trail-1 {
+  animation: trail-drift-1 0.6s ease-out infinite;
+}
+.rp-trail-2 {
+  animation: trail-drift-2 0.8s ease-out 0.15s infinite;
 }
 
+.rp-nebula {
+  background-size: 200% 200%;
+  animation: nebula-shift 4s ease infinite;
+}
+.rp-scan {
+  animation: scan 3.5s linear infinite;
+}
+.rp-label {
+  animation: label-flicker 4s linear infinite;
+  font-family: 'Share Tech Mono', monospace;
+}
+ 
+/* ── Highlight burst (on change) ── */
+@keyframes lunar-highlight-burst {
+  0%   { box-shadow: 0 0 0 0px rgba(56,189,248,0.8); border-color: rgba(56,189,248,1); }
+  100% { box-shadow: 0 0 0 40px rgba(56,189,248,0); border-color: rgba(255,255,255,0.08); }
+}
 .animate-lunar-burst {
   animation: lunar-highlight-burst 2s ease-out forwards;
   z-index: 50;
   position: relative;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+@keyframes smoke-rise {
+  0%   { transform: translate(0px, 0px) scale(0.6); opacity: 0.9; filter: blur(1px); }
+  60%  { opacity: 0.6; }
+  100% { transform: translate(var(--smoke-tx), var(--smoke-ty)) scale(4.5); opacity: 0; filter: blur(10px); }
 }
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rbga(59, 130, 246, 0.3);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rbga(255, 255, 255, 0.02);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.5);
-}
-
+ 
 @layer components {
   /* Main Lunar Card/Modal Background */
   .lunar-glass {

@@ -26,22 +26,21 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
         <div className="flex-1 min-h-0 flex flex-col">
             {/* single container */}
             <GlassCard className="min-h-0 flex flex-1 flex-col p-4 overflow-hidden bg-gradient-to-b from-[#0a0a1a] via-[#1a1a3f] to-[#05051a] border-blue-300/30">
-
                 {/* heaader */}
                 <div className="flex justify-between items-center mb-3 flex-shrink-0">
-                    <p className="text-sm font-semibold text-white/70">
+                    <p className="lunar-label text-sm font-semibold text-white/70">
                         {filters.search === "" ? "Recent Searches" : "Users"}
                     </p>
 
                     {filters.search === "" && recentUsers.length > 0 && (
                         <button
-                        onClick={() => {
-                            clearRecentUsers();
-                            setRecentUsers([]);
-                        }}
-                        className="text-sm text-red-400 hover:text-red-500 transition"
+                            onClick={() => {
+                                clearRecentUsers();
+                                setRecentUsers([]);
+                            }}
+                            className="lunar-page-subtitle text-sm text-red-400 hover:text-red-500 transition"
                         >
-                        Clear All
+                            Clear All
                         </button>
                     )}
                 </div>
@@ -52,7 +51,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                     {/* recent users */}
                     {filters.search === "" ? (
                         recentUsers.length === 0 ? (
-                            <p className="text-gray-400 text-center mt-10">
+                            <p className="lunar-page-subtitle text-gray-400 text-center mt-10">
                                 No recent searches
                             </p>
                         ) : (
@@ -71,7 +70,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                                             removeRecentUser(user.username);
                                             setRecentUsers(getRecentUsers());
                                         }}
-                                        className="text-gray-400 hover:text-red-500 transition"
+                                        className="lunar-page-subtitle text-gray-400 hover:text-red-500 transition"
                                     >
                                         <IconX size={16} />
                                     </button>
@@ -79,7 +78,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                             ))
                         )
                     ) : users.length === 0 ? (
-                        <p className="text-gray-400 text-center mt-10">
+                        <p className="lunar-page-subtitle text-gray-400 text-center mt-10">
                             No users found
                         </p>
                     ) : (
@@ -103,7 +102,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                         <button
                             disabled={filters.page === 1}
                             onClick={() => setFilters((prev) => ({...prev, page: prev.page - 1,}))}
-                            className="px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
+                            className="lunar-page-subtitle px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
                         >
                             Previous
                         </button>
@@ -115,7 +114,7 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
                         <button
                             disabled={filters.page === totalUserPages}
                             onClick={() =>setFilters((prev) => ({...prev, page: prev.page + 1,}))}
-                            className="px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
+                            className="lunar-page-subtitle px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
                         >
                             Next
                         </button>

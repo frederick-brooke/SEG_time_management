@@ -42,7 +42,7 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
             >
                 {/* Header */}
                 <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white">Report Details</h3>
+                    <h3 className="lunar-header text-lg font-semibold text-white">Report Details</h3>
                     <button onClick={onClose} className="text-white/50 hover:text-white transition">
                         ✕
                     </button>
@@ -93,7 +93,7 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
 
                 {/* Description */}
                 <div className="space-y-1">
-                    <p className="text-xs text-white/40 uppercase tracking-wider">Description</p>
+                    <p className="lunar-page-subtitle text-xs text-white/40 uppercase tracking-wider">Description</p>
                     <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
                     {report.description}
                     </div>
@@ -103,7 +103,7 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
                 {!report.handledBy && (
                     <button
                     onClick={() => setShowReportAction(true)}
-                    className="w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
+                    className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
                     >
                     Take Action
                     </button>
@@ -112,7 +112,7 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
 
             {/* Close */}
             <div className="p-6 border-t border-white/10">
-                <button onClick={onClose} className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+                <button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
                     Close
                 </button>
             </div>
@@ -130,9 +130,9 @@ function ReportActionModal( {report, onClose, banUser} ) {
     return(
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
             <div className="bg-white/5 w-full max-w-md p-6 space-y-4 rounded-xl shadow-2xl backdrop-blur-xl border border-white/10" onClick={(e) => e.stopPropagation()}>
-                <h2 className="text-lg font-semibold text-white">Report Action</h2>
+                <h2 className="lunar-header text-lg font-semibold text-white">Report Action</h2>
 
-                <textarea placeholder="Reasoning (Optional)" className="w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+                <textarea placeholder="Reasoning (Optional)" className="lunar-page-subtitle w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
 
                 <div className="space-y-2">
                     <button onClick={() => banUser(report.reportedUser, "TEMP", 7)} className="w-full py-2 rounded-xl bg-yellow-400 text-gray-900 font-medium hover:scale-[1.02] transition">
@@ -148,7 +148,7 @@ function ReportActionModal( {report, onClose, banUser} ) {
                     </button>
                 </div>
 
-                <button onClick={onClose} className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+                <button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
                     Cancel
                 </button>
             </div>

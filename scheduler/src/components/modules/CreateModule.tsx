@@ -4,15 +4,18 @@ import { useState, useTransition } from "react";
 import { createModule } from "@/src/app/actions/module";
 import { X } from "lucide-react";
 
+//types
 interface CreateModuleProps {
   onClose: () => void;
   onSuccess?: (module: any, joinPin: string) => void;
 }
 
+//component
+
 /**
- * Modal for creating a new module with custom settings
- * @param {CreateModuleProps} props - Modal control props
- * @return {JSX.Element} - Create module modal
+ * Modal for creating a new module with custom settings.
+ * @param {CreateModuleProps} props - Modal control props.
+ * @return {JSX.Element} Create module modal.
  */
 export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) {
   const [isPending, startTransition] = useTransition();
@@ -21,15 +24,14 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
   const [joinPin, setJoinPin] = useState<string | null>(null);
 
   /**
-   * Handles module creation form submission
-   * @param {FormData} formData - Form data with module details
+   * Handles module creation form submission.
+   * @param {FormData} formData - Form data with module details.
+   * @return {void}
    */
   const handleSubmit = async (formData: FormData) => {
     setError(null);
-    
     startTransition(async () => {
       const result = await createModule(formData);
-      
       if (result.success && result.module && result.joinPin) {
         setCreatedModule(result.module);
         setJoinPin(result.joinPin);
@@ -41,138 +43,94 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
   };
 
   /**
-   * Copies join PIN to clipboard
+   * Copies the join PIN to clipboard.
+   * @return {void}
    */
   const copyPin = () => {
-    if (joinPin) {
-      navigator.clipboard.writeText(joinPin);
-    }
+    if (joinPin) navigator.clipboard.writeText(joinPin);
   };
 
-  // Success state - show created module and PIN
+  // Success state
   if (createdModule && joinPin) {
     return (
-      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-          <div className="text-center">
-            <div className="bg-green-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">✅</span>
-            </div>
-            
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Module Created!</h2>
-            <p className="text-gray-600 mb-6">Share the PIN with participants to join</p>
-            
-            <div className="bg-gray-50 rounded-xl p-6 mb-6">
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Join PIN</p>
-              <div className="flex items-center justify-center gap-3">
-                <code className="text-3xl font-mono font-bold text-blue-600 tracking-wider">
-                  {joinPin}
-                </code>
-                <button
-                  onClick={copyPin}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              className="w-full bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 transition-colors"
-            >
-              Done
-            </button>
+      <div className="lunar-overlay">
+        <div className="lunar-card p-8 max-w-md w-full text-center">
+          <div className="bg-emerald-500/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">
+            <span className="text-3xl">✅</span>
           </div>
+          <h2 className="lunar-header mb-2">Module Created!</h2>
+          <p className="lunar-value mb-6">Share the PIN with participants to join</p>
+
+          <div className="bg-white/5 rounded-xl p-6 mb-6 border border-white/10">
+            <p className="lunar-label mb-3">Join PIN</p>
+            <div className="flex items-center justify-center gap-3">
+              <code className="text-3xl font-mono font-black text-blue-400 tracking-wider drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                {joinPin}
+              </code>
+              <button onClick={copyPin} className="lunar-button-primary text-xs">
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <button onClick={onClose} className="lunar-button-ghost w-full">
+            Done
+          </button>
         </div>
       </div>
     );
   }
 
-  // Create form state
+  // Create form
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-        {/* Header */}
+    <div className="lunar-overlay">
+      <div className="lunar-card p-6 max-w-md w-full">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Create New Module</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <h2 className="lunar-header">Create New Module</h2>
+          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
 
-        {/* Form */}
         <form action={handleSubmit} className="space-y-4">
-          {/* Module Name */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Module Name <span className="text-red-500">*</span>
-            </label>
+            <label className="lunar-label">Module Name <span className="text-red-400">*</span></label>
             <input
-              type="text"
-              name="name"
-              required
-              maxLength={100}
+              type="text" name="name" required maxLength={100}
               placeholder="e.g., Computer Science 101"
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-none transition-all"
+              className="lunar-input w-full p-3 rounded-xl mt-1"
             />
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Description
-            </label>
+            <label className="lunar-label">Description</label>
             <textarea
-              name="description"
-              rows={3}
-              maxLength={500}
+              name="description" rows={3} maxLength={500}
               placeholder="Optional description..."
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-none transition-all resize-none"
+              className="lunar-input w-full p-3 rounded-xl mt-1 resize-none"
             />
           </div>
 
-          {/* Max Members */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Max Members
-            </label>
+            <label className="lunar-label">Max Members</label>
             <input
-              type="number"
-              name="maxMembers"
-              min={2}
-              max={100}
-              defaultValue={50}
-              className="w-full border border-gray-200 bg-gray-50 p-3 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent focus:outline-none transition-all"
+              type="number" name="maxMembers" min={2} max={100} defaultValue={50}
+              className="lunar-input w-full p-3 rounded-xl mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">Between 2 and 100 members</p>
+            <p className="text-[10px] text-white/30 mt-1 font-medium">Between 2 and 100 members</p>
           </div>
 
-          {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
+            <div className="lunar-item-error px-4 py-3 rounded-lg border text-sm">{error}</div>
           )}
 
-          {/* Actions */}
           <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isPending}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
+            <button type="button" onClick={onClose} disabled={isPending}
+              className="flex-1 lunar-button-ghost disabled:opacity-50">
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" disabled={isPending}
+              className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isPending ? "Creating..." : "Create"}
             </button>
           </div>

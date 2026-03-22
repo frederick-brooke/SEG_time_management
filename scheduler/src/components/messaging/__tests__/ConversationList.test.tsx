@@ -48,7 +48,6 @@ jest.mock("@/components/messaging/CreateGroupModal", () => ({
 
 const pusherHandlers: Record<string, Function> = {};
 
-// var (not const) so it survives jest.mock hoisting
 var pusherMocks = {
   bind: jest.fn(),
   unbindAll: jest.fn(),

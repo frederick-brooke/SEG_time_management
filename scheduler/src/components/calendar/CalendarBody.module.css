@@ -1,5 +1,9 @@
-/* src/components/calendar/CalendarBody.module.css */
-
+/**
+ * CalendarBody.module.css
+ * Styles for the CalendarBody component — calendar layout, event wrappers,
+ * and dark-mode overrides for react-big-calendar's global classes.
+ */
+ 
 /* ── Wrapper ─────────────────────────────────────────────────────────────── */
 .wrapper {
   flex: 1;

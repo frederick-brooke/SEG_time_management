@@ -5,8 +5,10 @@ import ModulesPageClient from "./ModulesPageClient";
 import { getMyModules } from "@/app/actions/module";
 
 /**
- * Server component that fetches the current user's modules
- * @return {JSX.Element} - Modules list page
+ * Server component that authenticates the user, fetches their active modules, 
+ * and passes the data to the client-side list component.
+ *
+ * @return {Promise<JSX.Element>} The rendered Modules list page.
  */
 export default async function ModulesPage() {
   const session = await getServerSession(authOptions);

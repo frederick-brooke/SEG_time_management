@@ -2,10 +2,12 @@
 
 import { Trophy } from "lucide-react";
 
+//section component
+
 /**
  * Renders the user's task performance statistics and progress bar.
- * @param {Object} props - Component props.
- * @param {any} props.stats - The statistics object containing task data.
+ * @param {object} props - Component props.
+ * @param {any} props.stats - Statistics object containing task data.
  * @return {JSX.Element} The task performance card UI.
  */
 export default function TaskStatsCard({ stats }: { stats: any }) {
@@ -15,39 +17,46 @@ export default function TaskStatsCard({ stats }: { stats: any }) {
   const isPassing = completionRate >= 50;
 
   return (
-    <div className="md:col-span-2 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col">
-      <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <Trophy className="text-yellow-500" size={18} /> Task Performance
+    <div className="md:col-span-2 lunar-card p-6 flex flex-col">
+      <h3 className="lunar-label mb-4 flex items-center gap-2 text-white">
+        <Trophy className="text-white" size={16} /> Task Performance
       </h3>
-      
+
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-xl flex flex-col border border-blue-100">
-          <span className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Completed</span>
+        {/* Completed Tasks Box */}
+        <div className="bg-white/10 p-4 rounded-xl flex flex-col border border-white/20">
+          <span className="lunar-label mb-1 text-white/60">Completed</span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-4xl font-bold text-blue-700">{completedTasks}</span>
-            <span className="text-sm text-blue-500 font-medium">/ {totalTasks} total</span>
+            <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+              {completedTasks}
+            </span>
+            <span className="text-sm text-white/40 font-medium">/ {totalTasks} total</span>
           </div>
         </div>
-        
-        <div className="bg-green-50 p-4 rounded-xl flex flex-col border border-green-100">
-          <span className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Success Rate</span>
+
+        {/* Success Rate Box */}
+        <div className="bg-white/10 p-4 rounded-xl flex flex-col border border-white/20">
+          <span className="lunar-label mb-1 text-white/60">Success Rate</span>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-4xl font-bold text-green-700">{completionRate}</span>
-            <span className="text-xl font-bold text-green-500">%</span>
+            <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+              {completionRate}
+            </span>
+            <span className="text-xl font-black text-white">%</span>
           </div>
         </div>
       </div>
-      
+
+      {/* Progress Bar Section */}
       <div className="mt-auto">
-        <div className="flex justify-between text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
-          <span>Progress</span>
-          <span className={isPassing ? "text-green-600" : "text-gray-500"}>
+        <div className="flex justify-between lunar-label mb-2">
+          <span className="text-white/60">Progress</span>
+          <span className={isPassing ? "text-white" : "text-white/40"}>
             {completionRate}%
           </span>
         </div>
-        <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10">
           <div
-            className="h-full bg-green-500 transition-all duration-1000 ease-out rounded-full"
+            className="h-full bg-white transition-all duration-1000 ease-out rounded-full shadow-[0_0_8px_rgba(255,255,255,0.8)]"
             style={{ width: `${completionRate}%` }}
           />
         </div>

@@ -1,5 +1,10 @@
-/* ─── Event Component ─────────────────────────────────────────── */
-
+/**
+ * Event component styles for the calendar.
+ * These classes style the inner content of calendar events —
+ * layout, typography, and pill container. Dynamic colours are
+ * applied via inline styles in the component.
+ */
+ 
 .eventAllDay {
   overflow: hidden;
   text-overflow: ellipsis;

@@ -5,7 +5,7 @@ export default function Panel({ open, onClose, title, children }){
     return (
         <div className={`fixed inset-0 z-[950] bg-black/50 transition-opacity duration-300 ${
             open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-            onClick={onclose}
+            onClick={onClose}
         >
             <div className={`absolute right-0 top-0 h-full w-[600px] bg-white shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300 ${
                 open ? "translate-x-0" : "translate-x-full"
