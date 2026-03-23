@@ -1,4 +1,4 @@
-import QuoteBlock from "components/wellbeing/quote_block";
+import QuoteBlock from "@/src/components/wellbeing/quote_block";
 import TimerController from "components/wellbeing/timer_controller";
 
 export default function WellbeingPage(){

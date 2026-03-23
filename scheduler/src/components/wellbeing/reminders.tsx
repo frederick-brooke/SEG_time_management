@@ -4,7 +4,19 @@ import { IconLock, IconLockOff, IconDroplet } from "@tabler/icons-react";
 
 import ReminderContainer from "./reminder_display";
 
-export default function Reminders() {
+type RemindersProps = {
+  isRunning: boolean;
+  remainingMs: number;
+  setReminderOffsetMs: React.Dispatch<React.SetStateAction<number | null>>;
+  reminderFired: boolean | null;
+};
+
+export default function Reminders({
+  isRunning,
+  remainingMs,
+  setReminderOffsetMs,
+  reminderFired,
+}: RemindersProps) {
     //duplicate for a water reminder that can later become customised with the text and icons
     //separate timer to the main timer that counts in miliseconds and aligns with the main timer's pause/stop
     return (

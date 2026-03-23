@@ -3,9 +3,9 @@
 import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
 import ReportFilter from "@/components/admin/report-filter-panel";
-import { useUsers } from "@/hooks/useUsers";
-import { useAdminReports } from "@/hooks/useAdminReports";
-import { useAdminAppeals } from "@/hooks/useAdminAppeals";
+import { useUsers } from "@/src/hooks/useUsers";
+import { useAdminReports } from "@/src/hooks/useAdminReports";
+import { useAdminAppeals } from "@/src/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
 import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";

@@ -19,7 +19,7 @@ jest.mock("framer-motion", () => ({
   },
 }));
 
-import { useAdminStats } from "@/hooks/useAdminStats";
+import { useAdminStats } from "@/src/hooks/useAdminStats";
 const mockUseAdminStats = useAdminStats as jest.Mock; 
 
 describe("AdminStatistics", () => {

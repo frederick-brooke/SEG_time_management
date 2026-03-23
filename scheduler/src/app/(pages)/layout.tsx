@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-import { AppSidebar } from "components/app-sidebar";
+import { AppSidebar } from "@/src/components/app-sidebar";
 import SearchPanel from "@/src/components/search-page/search-panel";
 
 import {
@@ -9,7 +9,6 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "components/ui/sidebar";
-import { SidebarOpen } from "lucide-react";
 
 export default function PagesLayout({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -17,14 +16,14 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider
-      open={SidebarOpen}
+      open={sidebarOpen}              // ← lowercase s, the state variable
       onOpenChange={setSidebarOpen}
       className=""
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
         background: "#070b18",
-      }}
+      } as React.CSSProperties}       // ← cast needed for CSS custom properties
     >
       {/* Sidebar disappears when search is open */}
       {!searchOpen && (
@@ -42,17 +41,17 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
         />
       )}
 
-      <SidebarInset 
-        className=""                            
+      <SidebarInset
+        className=""
         style={{
           background: "transparent",
           minHeight: "100vh",
         }}
-        >
+      >
         <div className="p-2">
           <SidebarTrigger
             className="text-white"
-            onClick={() => setSidebarOpen(prev => !prev)}  // ← was missing
+            onClick={() => setSidebarOpen(prev => !prev)}
           />
         </div>
         {children}

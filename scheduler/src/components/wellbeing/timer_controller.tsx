@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Timer from "@/components/wellbeing/timer";
+import Timer from "@/src/components/wellbeing/timer";
 import ReminderModal from "@/components/ui/reminderModal";
 import { useUI } from "@/context/UIContext";
 
@@ -33,7 +33,7 @@ export default function TimerController({ initialReminderAt = null }) {
 
     return (
         <>
-            <Timer  onTick={handleTick}     />
+            <Timer  onTick={handleTick} storageKey={"wellbeing-timer"}     />
 
             <ReminderModal
                 open={showReminderModal}
