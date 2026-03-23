@@ -23,6 +23,9 @@ import {
   IconBell,
   IconCalendar,
   IconUsersGroup,
+  IconShoppingCart,
+  IconDeviceGamepad2
+
 } from "@tabler/icons-react";
 
 import { GraduationCap, Map } from "lucide-react";
@@ -119,6 +122,16 @@ const data = {
       title: "Settings",
       url: "/settings",
       icon: IconSettings, 
+    },
+    {
+      title: "Shop",
+      url: "/shop",
+      icon: IconShoppingCart, 
+    },
+    {
+      title: "Minigames",
+      url: "/games",
+      icon: IconDeviceGamepad2, 
     },
   ],
   navClouds: [
