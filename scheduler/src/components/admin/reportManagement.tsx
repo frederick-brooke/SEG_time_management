@@ -16,18 +16,33 @@ import AdminListSection from "./admin-list-section";
  * @param {Function} props.resetFilters - Function to reset all filters to default.
  * @returns {JSX.Element} The report management component.
  */
+type ReportManagementProps = {
+  reports: any[];
+  totalReports: number;
+  totalReportPages: number;
+  currentReportPage: number;
+  setCurrentReportPage: React.Dispatch<React.SetStateAction<number>>;
+  setIsReportFilterOpen: (open: boolean) => void;
+  selectedReport: any;
+  setSelectedReport: (report: any) => void;
+  fetchReports: () => void;
+  filters: any;
+  setFilters: (filters: any) => void;
+  resetFilters: () => void;
+};
+
 export default function ReportManagement({
   reports,
   totalReports,
   totalReportPages,
+  setIsReportFilterOpen,
   selectedReport,
   setSelectedReport,
   fetchReports,
-  setIsReportFilterOpen,
   filters,
   setFilters,
   resetFilters,
-}) {
+}: ReportManagementProps) {
   return (
     <AdminListSection
       title="Reports Management"

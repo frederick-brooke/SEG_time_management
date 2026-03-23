@@ -20,6 +20,7 @@ jest.mock("framer-motion", () => ({
 }));
 
 import { useAdminStats } from "@/hooks/useAdminStats";
+const mockUseAdminStats = useAdminStats as jest.Mock; 
 
 describe("AdminStatistics", () => {
   beforeEach(() => {
@@ -27,7 +28,7 @@ describe("AdminStatistics", () => {
   });
 
   test("renders statistics values correctly", () => {
-    useAdminStats.mockReturnValue({
+    mockUseAdminStats.mockReturnValue({
       totalUsers: 10,
       totalReports: 5,
       totalAppeals: 2,
@@ -47,7 +48,7 @@ describe("AdminStatistics", () => {
   });
 
   test("shows fallback '-' when values are null/undefined", () => {
-    useAdminStats.mockReturnValue({
+    mockUseAdminStats.mockReturnValue({
       totalUsers: null,
       totalReports: undefined,
       totalAppeals: 0,

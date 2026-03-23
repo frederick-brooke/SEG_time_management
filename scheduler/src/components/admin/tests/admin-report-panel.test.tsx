@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ReportPanel from "../admin-report-panel"; // adjust path if needed
 
-global.fetch = jest.fn();
+global.fetch = jest.fn() as jest.Mock;
 global.alert = jest.fn();
 
 describe("ReportPanel", () => {
@@ -57,7 +57,7 @@ describe("ReportPanel", () => {
   });
 
   test("temporary ban calls API and shows alert", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
 
     render(
       <ReportPanel report={report} onClose={mockOnClose} fetchReports={mockFetchReports} />
@@ -82,7 +82,7 @@ describe("ReportPanel", () => {
   });
 
   test("permanent ban shows correct alert", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
 
     render(
       <ReportPanel report={report} onClose={mockOnClose} fetchReports={mockFetchReports} />
@@ -99,7 +99,7 @@ describe("ReportPanel", () => {
   });
 
   test("unban shows correct alert", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
 
     render(
       <ReportPanel report={report} onClose={mockOnClose} fetchReports={mockFetchReports} />

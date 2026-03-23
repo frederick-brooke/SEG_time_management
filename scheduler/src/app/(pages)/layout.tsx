@@ -2,19 +2,24 @@
 import { useState } from "react";
 
 import { AppSidebar } from "components/app-sidebar";
-import SearchPanel from "@/components/search-page/search-panel";
+import SearchPanel from "@/src/components/search-page/search-panel";
 
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
 } from "components/ui/sidebar";
+import { SidebarOpen } from "lucide-react";
 
-export default function PagesLayout({ children }) {
+export default function PagesLayout({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <SidebarProvider
+      open={SidebarOpen}
+      onOpenChange={setSidebarOpen}
+      className=""
       style={{
         "--sidebar-width": "calc(var(--spacing) * 72)",
         "--header-height": "calc(var(--spacing) * 12)",
@@ -37,12 +42,18 @@ export default function PagesLayout({ children }) {
         />
       )}
 
-      <SidebarInset style={{
-        background: "transparent",
-        minHeight: "100vh",
-      }}>
+      <SidebarInset 
+        className=""                            
+        style={{
+          background: "transparent",
+          minHeight: "100vh",
+        }}
+        >
         <div className="p-2">
-          <SidebarTrigger className="text-white"/>
+          <SidebarTrigger
+            className="text-white"
+            onClick={() => setSidebarOpen(prev => !prev)}  // ← was missing
+          />
         </div>
         {children}
         <div id="modal-root"></div>

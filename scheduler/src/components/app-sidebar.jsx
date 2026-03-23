@@ -42,7 +42,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import SearchPanel from "@/components/search-page/search-panel";
+import SearchPanel from "@/src/components/search-page/search-panel";
 import NotificationModal from "../app/components/NotificationModal";
 
 const data = {

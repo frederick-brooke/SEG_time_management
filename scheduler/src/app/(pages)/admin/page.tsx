@@ -9,7 +9,7 @@ import { useAdminAppeals } from "@/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
 import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
-import AdminStatistics from "@/components/admin/admin-statistics";
+import AdminStatistics from "@/src/components/admin/admin-statistics";
 import AppealFilter from "@/components/admin/appeal-filter-panel";
 
 //UI components
@@ -74,7 +74,7 @@ export default function AdminPage() {
     return <p className="p-6">Loading...</p>;
   }
 
-  const tabs = {
+  const tabs: Record<string, React.ReactNode> = {
     reports: (
       <ReportManagement
           reports={reports}

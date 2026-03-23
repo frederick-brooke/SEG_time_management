@@ -17,10 +17,28 @@ import AdminListSection from "./admin-list-section";
  * @param {Function} props.resetFilters - Function to reset all filters to default.
  * @returns {JSX.Element} The appeals management component.
  */
+interface appealManagementProps {
+  appeals: any[];
+  totalAppeals: number;
+  totalAppealPages: number;
+  currentAppealPage: number;
+  setCurrentAppealPage: React.Dispatch<React.SetStateAction<number>>;
+  selectedAppeal: any;
+  setSelectedAppeal: (appeal: any) => void;
+  fetchAppeals: () => void;
+  setIsAppealFilterOpen: (open: boolean) => void;
+  filters: any;
+  setFilters: (filters: any) => void;
+  resetFilters: () => void;
+}
+
+
 export default function AppealsManagement({
   appeals,
   totalAppeals,
   totalAppealPages,
+  currentAppealPage,
+  setCurrentAppealPage,
   selectedAppeal,
   setSelectedAppeal,
   fetchAppeals,
@@ -28,7 +46,7 @@ export default function AppealsManagement({
   filters,
   setFilters,
   resetFilters,
-}) {
+}: appealManagementProps) {
   return (
     <AdminListSection
       title="Appeals Management"

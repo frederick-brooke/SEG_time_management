@@ -23,16 +23,28 @@ function SheetTrigger(props) {
   return <SheetTriggerPrimitive {...props} />;
 }
 
+type SheetOverlayProps = React.ComponentProps<typeof SheetOverlayPrimitive>;
+
 function SheetOverlay({
   className,
   ...props
-}) {
-  return (<SheetOverlayPrimitive className={cn('fixed inset-0 z-50 bg-black/50', className)} {...props} />);
+}: SheetOverlayProps) {
+  return (
+    <SheetOverlayPrimitive 
+      className={cn('fixed inset-0 z-50 bg-black/50', className)} 
+      {...props} 
+    />
+  );
 }
 
 function SheetClose(props) {
   return <SheetClosePrimitive {...props} />;
 }
+
+type SheetContentProps = React.ComponentProps<typeof SheetContentPrimitive> & {
+  side?: 'left' | 'right' | 'top' | 'bottom';
+  showCloseButton?: boolean;
+};
 
 function SheetContent({
   className,
@@ -40,7 +52,7 @@ function SheetContent({
   side = 'right',
   showCloseButton = true,
   ...props
-}) {
+}: SheetContentProps) {
   return (
     <SheetPortalPrimitive>
       <SheetOverlay />
@@ -68,11 +80,15 @@ function SheetContent({
   );
 }
 
-function SheetHeader({
-  className,
-  ...props
-}) {
-  return (<SheetHeaderPrimitive className={cn('flex flex-col gap-1.5 p-4', className)} {...props} />);
+type SheetHeaderProps = React.ComponentProps<typeof SheetHeaderPrimitive>;
+
+function SheetHeader({ className, ...props }: SheetHeaderProps) {
+  return (
+    <SheetHeaderPrimitive
+      className={cn('flex flex-col gap-1.5 p-4', className)}
+      {...props}
+    />
+  );
 }
 
 function SheetFooter({

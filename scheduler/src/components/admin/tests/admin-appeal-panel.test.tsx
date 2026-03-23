@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AppealPanel from "../admin-appeal-panel"; // adjust path if needed
 
 // Mock fetch globally
-global.fetch = jest.fn();
+global.fetch = jest.fn() as jest.Mock;
 
 describe("AppealPanel", () => {
   const mockOnClose = jest.fn();
@@ -106,7 +106,7 @@ describe("AppealPanel", () => {
   });
 
   test("approve action calls API and triggers callbacks", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
 
     render(
       <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
@@ -128,7 +128,7 @@ describe("AppealPanel", () => {
   });
 
   test("reject action calls API and triggers callbacks", async () => {
-    fetch.mockResolvedValueOnce({ ok: true });
+    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
 
     render(
       <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
@@ -151,7 +151,7 @@ describe("AppealPanel", () => {
 
   test("buttons are disabled while loading", async () => {
     let resolveFetch;
-    fetch.mockImplementation(
+    (fetch as jest.Mock).mockImplementation(
       () =>
         new Promise((resolve) => {
           resolveFetch = resolve;
