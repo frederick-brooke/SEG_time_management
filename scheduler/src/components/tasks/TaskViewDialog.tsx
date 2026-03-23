@@ -11,14 +11,16 @@ interface TaskViewDialogProps {
   task: any | null;
   isOpen: boolean;
   onClose: () => void;
-  getPriorityStyle: (priority: string) => string;
+  onEdit?: (taskId: string) => void;
+  getPriorityStyle?: (priority: string) => string;
   onReward?: (rewards: any) => void;
 }
 
 export function TaskViewDialog({ 
   task, 
   isOpen, 
-  onClose, 
+  onClose,
+  onEdit, 
   getPriorityStyle, 
   onReward 
 }: TaskViewDialogProps) {

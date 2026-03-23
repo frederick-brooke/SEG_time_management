@@ -1,8 +1,15 @@
 import LunarDrawer from "@/components/layout/lunar-drawer";
 import WellbeingPage from "@/src/app/(pages)/wellbeing/page";
 
+interface WellbeingPanelProps {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  children?: React.ReactNode;
+}
+
 //wrapper class for the wellbeing page with drawer components
-export default function WellbeingPanel({ open, onClose }) {
+export default function WellbeingPanel({ open, onClose, title, children }: WellbeingPanelProps) {
   return (
     <LunarDrawer
       open={open}

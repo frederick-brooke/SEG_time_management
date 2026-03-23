@@ -18,7 +18,7 @@ import { RocketProgress } from "@/components/ui/rocket-progress";
 import { useTasks } from "@/src/hooks/useTasks";
 
 export default function Page() {
-  const { data: session, status } = useSession();
+  const { data: session, status }: {data: any; status: string } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState("");
@@ -137,9 +137,7 @@ export default function Page() {
             <UpcomingExams exams={exams} />
           </div>
 
-          <WellbeingPanel open={wellbeingOpen} onClose={() => {setWellbeingOpen(false); setWellbeingVisible(true)}} title="For Your Wellbeing">
-            <WellbeingPage />
-          </WellbeingPanel> 
+          <WellbeingPanel open={wellbeingOpen} onClose={() => {setWellbeingOpen(false); setWellbeingVisible(true)}}/>
         </main>
       </LunarThemeWrapper>
 

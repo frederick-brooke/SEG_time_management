@@ -1,16 +1,24 @@
 "use client";
 import * as React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/src/components/ui/card";
 import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
+import { getPriorityStyle } from "@/src/lib/priority";
+
+interface ComingUpSoonProps {
+  userId?: string;
+  exams?: any[];
+}
+
+interface Task {
+  id: string;
+  title: string;
+  dueDate: string | Date;
+  status: string;
+  [key: string]: any;
+}
 
 /**
  * Dashboard component which filters and displays tasks due within the next 7 days.
@@ -19,7 +27,7 @@ import { useTasks } from "@/src/hooks/useTasks";
  * @param {Array} exams Array of user-created exams to populate the link dropdown.
  * @returns {JSX.Element} The rendered 'Coming Up Soon' section.
  */
-export function ComingUpSoon({ userId, exams = [] }) {
+export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
   const {
     tasks,
     isLoading,
@@ -46,27 +54,27 @@ export function ComingUpSoon({ userId, exams = [] }) {
    * @param {Object} task The task record from the database.
    * @returns {boolean} Whether the task is due in the next 7 days or not.
    */
-  const isComingSoon = (task) => {
+  const isComingSoon = (task: Task): boolean => {
     if (!task.dueDate || task.status === "completed") return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
-    const due = new Date(task.dueDate);
+    const due = new Date(task.dueDate as string);
     return due >= today && due <= sevenDaysFromNow;
   };
 
   const comingSoonTasks = tasks
     .filter(isComingSoon)
-    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    .sort((a, b) => new Date(a.dueDate as string).getTime() - new Date(b.dueDate as string).getTime());
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="py-8 text-center">
+      <div>
+        <p className="py-8 text-center">
           <p className="text-muted-foreground">Loading...</p>
-        </CardContent>
-      </Card>
+        </p>
+      </div>
     );
   }
 
@@ -105,7 +113,6 @@ export function ComingUpSoon({ userId, exams = [] }) {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  exams={exams}
                   onToggle={toggleTaskStatus}
                   onView={handleViewTask}
                   onEdit={handleEditTask}
@@ -119,7 +126,7 @@ export function ComingUpSoon({ userId, exams = [] }) {
 
       {/* Shared dialogs */}
       <DeleteTaskDialog
-        isOpen={taskToDelete !== null}
+        isOpen={!!taskToDelete}
         onConfirm={confirmDeleteTask}
         onCancel={cancelDelete}
       />
@@ -128,6 +135,11 @@ export function ComingUpSoon({ userId, exams = [] }) {
         task={viewTask}
         isOpen={viewTask !== null}
         onClose={() => setViewTask(null)}
+        onEdit={(taskId) => {
+          setViewTask(null);
+          handleEditTask(taskId);
+        }}
+        getPriorityStyle={getPriorityStyle}
       />
     </>
   );

@@ -15,6 +15,7 @@ import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
  */
 export default function ExamDetailPage() {
     const { id } = useParams();
+    const examId = id as string;
     const [exam, setExam] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [topics, setTopics] = useState([{ title: "", duration: 45, url: ""}]);
@@ -36,17 +37,17 @@ export default function ExamDetailPage() {
 
     useEffect(() => {
         async function loadExam() {
-            const data = await getExamById(id);
+            const data = await getExamById(examId);
             setExam(data);
         }
-        if (id) loadExam()
-    }, [id]);
+        if (examId) loadExam()
+    }, [examId]);
 
     /**
      * Database syncing handlers
      */
     const handleUpdateUnavailableDays = async (days) => {
-        const updated = await updateExamUnavailableDays(id, days);
+        const updated = await updateExamUnavailableDays(examId, days);
         setExam(updated);
     };
 
@@ -55,7 +56,7 @@ export default function ExamDetailPage() {
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
-            await generateExamPlan(exam.id, topics);
+            await generateExamPlan(exam.examId, topics);
             window.location.reload();
         } catch (error) {
             console.error("Failed to generate plan:", error);
@@ -86,7 +87,7 @@ export default function ExamDetailPage() {
                                         <input
                                             className="flex-1 p-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
                                             placeholder="Topic Name"
-                                            values={topic.title}
+                                            value={topic.title}
                                             onChange={(e) => updateTopic(index, 'title', e.target.value)}
                                         />
 
@@ -147,9 +148,12 @@ export default function ExamDetailPage() {
                         <div className="p-6 bg-black/40 border border-white rounded-[2rem] flex justify-center background-blur-md [color-scheme:dark]">
                             <Calendar
                                 mode="multiple"
-                                selected={exam.unavailableDays}
-                                onSelect={(days) => handleUpdateUnavailableDays(days)}
+                                selected={exam.unavailableDays as Date[]}
+                                onSelect={(days: Date[] | undefined) => handleUpdateUnavailableDays(days)}
                                 className="rounded-md border-none text-white bg-transparent"
+                                classNames={{}}
+                                formatters={{}}
+                                components={{}}
                             />
                         </div>
                     </div>
@@ -166,7 +170,7 @@ export default function ExamDetailPage() {
                             <ToDoList 
                                 userId={exam.userId} 
                                 exams={[exam]} 
-                                filterExamId={id} 
+                                filterExamId={examId} 
                             />
                         </div>
                     )}
