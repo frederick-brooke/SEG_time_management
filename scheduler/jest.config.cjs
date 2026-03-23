@@ -8,7 +8,8 @@ const customJestConfig = {
   maxWorkers: 1,
   coveragePathIgnorePatterns: [
     "src/components/friend-map/map.tsx",
-  ],
+  ], 
+  
   moduleNameMapper: {
     "^@/src/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
