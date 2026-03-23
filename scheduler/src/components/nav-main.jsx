@@ -21,9 +21,14 @@ export function NavMain({ items, label, onNotifClick, unreadCount = 0, unreadMes
                 asChild={item.title !== "Notifications"}
                 className="lunar-sidebar-item"
                 onClick={(e) => {
-                  if (item.title === "Notifications") {
+                  if (item.action === "notifications") {
                     e.preventDefault();
-                    onNotifClick();
+                    onNotifClick?.();
+                  }
+
+                  if (item.action === "search") {
+                    e.preventDefault();
+                    onSearchClick?.();
                   }
                 }}
               >
