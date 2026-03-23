@@ -7,6 +7,7 @@ interface QuickScheduleModalProps {
   onSaved: () => void;
 }
 
+// Modal for quickly scheduling a task by selecting a date and time.
 export default function QuickScheduleModal({
   task,
   onClose,
