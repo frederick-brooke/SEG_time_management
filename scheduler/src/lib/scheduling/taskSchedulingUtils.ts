@@ -22,6 +22,7 @@ function getNonRecurringDeadline(event: any, offset: number, fromDay: Date): Dat
 /** Returns the next daily or monthly occurrence on or after `fromDay`, shifted by `offset`. */
 function getSimpleRecurrenceDeadline(cursor: Date, offset: number): Date {
   const result = new Date(cursor);
+  result.setHours(0, 0, 0, 0);
   result.setDate(result.getDate() + offset);
   return result;
 }
@@ -46,6 +47,7 @@ function getWeeklyDeadline(
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => a.getTime() - b.getTime());
   const result = new Date(candidates[0]);
+  result.setHours(0, 0, 0, 0);
   result.setDate(result.getDate() + offset);
   return result;
 }
