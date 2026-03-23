@@ -13,7 +13,7 @@ jest.mock("hooks/useSavedLocations", () => ({
 // Stub fetch for the address-search API
 global.fetch = jest.fn();
 
-import { SavedLocationsPanel } from "./SavedLocationsPanel";
+import { SavedLocationsPanel } from "../SavedLocationsPanel";
 import type { SavedLocation } from "hooks/useSavedLocations";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
