@@ -107,7 +107,7 @@ export default function UnscheduledPanel({
             All tasks are scheduled!
           </p>
         ) : (
-          <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
+          <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
             {unscheduledTasks.map((t: any) => {
               const linkedEvent = t.eventId
                 ? events.find((e: any) => e.id === t.eventId)
@@ -120,7 +120,7 @@ export default function UnscheduledPanel({
               return (
                 <div
                   key={t.id}
-                  className="group overflow-hidden cursor-pointer transition-all rounded-xl"
+                  className="group cursor-pointer transition-all rounded-xl"
                   onClick={() => onTaskClick(t)}
                   style={{
                     border: `1px solid ${tagColor ? tagColor + "40" : "rgba(255,255,255,0.07)"}`,
