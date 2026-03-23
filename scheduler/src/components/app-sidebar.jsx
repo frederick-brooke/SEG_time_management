@@ -314,7 +314,7 @@ useEffect(() => {
           </SidebarHeader>
 
           <SidebarContent className="lunar-scroll px-2">
-            <NavMain items={data.navMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} unreadMessageCount={unreadMessageCount} />
+            <NavMain items={data.navMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} unreadMessageCount={unreadMessageCount} onSearchClick={() => setSearchOpen(true)} />
             <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
           </SidebarContent>
           <SidebarFooter>
