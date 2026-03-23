@@ -56,7 +56,7 @@ export default function ExamDetailPage() {
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
-            await generateExamPlan(exam.examId, topics);
+            await generateExamPlan(exam.id, topics);
             window.location.reload();
         } catch (error) {
             console.error("Failed to generate plan:", error);
