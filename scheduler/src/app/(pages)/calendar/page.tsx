@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import CalendarView from "@/src/components/calendar/CalendarView";
 import GoogleLinkButton from "@/src/components/googleLinkButton";
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
-import { checkUpcomingEventNotifications } from "@/src/app/actions/calendarNotifications";
+import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
 
 /**
  * Server-side calendar page component.

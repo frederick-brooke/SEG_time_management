@@ -209,7 +209,7 @@ export async function getModuleTasksWithProgress(moduleId: string) {
     const group = groupMap.get(groupId)!;
     const userRole = roleMap.get(task.userId);
 
-    // CRITICAL FIX: Only count regular MEMBERS in the progress stats.
+    // Only count regular members in the progress stats.
     // This prevents the Owner's template copy from showing up in the "In Progress" list.
     if (userRole === 'MEMBER') {
       group.totalAssigned++;

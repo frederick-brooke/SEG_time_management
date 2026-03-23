@@ -115,6 +115,7 @@ export async function syncTasksToMember(moduleId: string, userId: string): Promi
     )
   );
 }
+
 /**
  * Checks if the user has Owner or Admin privileges for a specific module.
  * @param {string} moduleId - The module database ID

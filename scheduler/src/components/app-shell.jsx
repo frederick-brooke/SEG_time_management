@@ -7,7 +7,7 @@ import {
   SidebarInset,
 } from "@/src/components/animate-ui/components/radix/sidebar";
 import { useEffect } from "react";
-import { checkUpcomingEventNotifications } from "@/src/app/actions/calendarNotifications";
+import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
 
 export function AppShell({ children }) {
   useEffect(() => {

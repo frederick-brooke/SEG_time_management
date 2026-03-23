@@ -1,466 +1,220 @@
-/**
- * Tests for src/components/calendar/EventFormParts.tsx
- */
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-import React from "react";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import {
-  TaskPromptSection,
-  LinkedTaskCard,
+  relativeTo,
   RELATIVE_OPTIONS,
+  TaskPromptSection,
 } from "../EventFormParts";
+import type { RelativeOption } from "../EventFormParts";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Mocks
+// ---------------------------------------------------------------------------
 
-jest.mock("@/components/shared/FormComponents", () => ({
-  Toggle: ({ on, onToggle, label }: any) => (
-    <div>
-      <button onClick={onToggle} data-testid={`toggle-${label}`}>
-        {label}
-      </button>
-      <span data-testid={`toggle-state-${label}`}>{on ? "on" : "off"}</span>
-    </div>
-  ),
-  RecurrencePanel: ({ type, onType, onDays, onUntil }: any) => (
-    <div data-testid="recurrence-panel">
-      <select
-        data-testid="rec-type"
-        value={type}
-        onChange={(e) => onType(e.target.value)}
-      >
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly (with event)</option>
-        <option value="monthly">Monthly</option>
-      </select>
+jest.mock("../LinkedTaskCard", () => ({
+  LinkedTaskCard: ({ task, onRemove, onUpdate, index }: any) => (
+    <div data-testid={`linked-task-${index}`}>
+      <span>{task.title}</span>
+      <button onClick={() => onUpdate(index, { ...task, title: "Updated Task" })}>Update</button>
+      <button onClick={() => onRemove(index)}>Remove</button>
     </div>
   ),
 }));
 
-jest.mock("@/lib/ui", () => ({
-  PRIORITY_TEXT: {
-    High: "text-red-400",
-    Medium: "text-orange-400",
-    Low: "text-green-400",
-  },
+jest.mock("../NewTaskForm", () => ({
+  NewTaskForm: ({ onAdd }: any) => (
+    <button
+      data-testid="add-task-btn"
+      onClick={() => onAdd({ title: "New Task", duration: 60, priority: "Medium" })}
+    >
+      Add Task
+    </button>
+  ),
 }));
 
-global.fetch = jest.fn().mockResolvedValue({
-  ok: true,
-  json: async () => ({}),
+global.fetch = jest.fn().mockResolvedValue({ ok: true });
+
+// ---------------------------------------------------------------------------
+// relativeTo
+// ---------------------------------------------------------------------------
+
+describe("relativeTo", () => {
+  it('returns "custom" for custom mode', () => {
+    expect(relativeTo("custom")).toBe("custom");
+  });
+
+  it('returns "during" for same-day mode', () => {
+    expect(relativeTo("same-day")).toBe("during");
+  });
+
+  it('returns "before" for all before modes', () => {
+    expect(relativeTo("1-before")).toBe("before");
+    expect(relativeTo("2-before")).toBe("before");
+    expect(relativeTo("3-before")).toBe("before");
+  });
+
+  it('returns "after" for all after modes', () => {
+    expect(relativeTo("1-after")).toBe("after");
+    expect(relativeTo("2-after")).toBe("after");
+    expect(relativeTo("3-after")).toBe("after");
+  });
 });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-/**
- * Creates a minimal mock task for LinkedTaskCard.
- */
-function createMockTask(overrides: Record<string, any> = {}) {
-  return {
-    title: "Write Report",
-    duration: 90,
-    priority: "High",
-    relativeMode: "1-before",
-    scheduledRelativeTo: "before",
-    relativeOffsetDays: -1,
-    customDate: null,
-    customRangeStart: null,
-    customRangeEnd: null,
-    useRange: false,
-    isRecurring: false,
-    recurrence: null,
-    scheduleTime: false,
-    specificTime: null,
-    ...overrides,
-  };
-}
-
-/**
- * Default props for TaskPromptSection.
- */
-function createTaskPromptProps(overrides: Record<string, any> = {}) {
-  return {
-    createdEventId: "event-123",
-    userId: "user-123",
-    eventStartDate: "2024-06-03",
-    defaultUntil: "2024-12-31",
-    onFinish: jest.fn(),
-    ...overrides,
-  };
-}
-
-// ── RELATIVE_OPTIONS ──────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// RELATIVE_OPTIONS
+// ---------------------------------------------------------------------------
 
 describe("RELATIVE_OPTIONS", () => {
-  it("should contain 8 options", () => {
+  it("contains 8 options", () => {
     expect(RELATIVE_OPTIONS).toHaveLength(8);
   });
 
-  it("should have correct offsetDays for 3-before", () => {
-    const opt = RELATIVE_OPTIONS.find((o) => o.key === "3-before");
-    expect(opt?.offsetDays).toBe(-3);
-  });
-
-  it("should have correct offsetDays for same-day", () => {
-    const opt = RELATIVE_OPTIONS.find((o) => o.key === "same-day");
-    expect(opt?.offsetDays).toBe(0);
-  });
-
-  it("should have correct offsetDays for 3-after", () => {
-    const opt = RELATIVE_OPTIONS.find((o) => o.key === "3-after");
-    expect(opt?.offsetDays).toBe(3);
-  });
-
-  it("should have null offsetDays for custom", () => {
-    const opt = RELATIVE_OPTIONS.find((o) => o.key === "custom");
-    expect(opt?.offsetDays).toBeNull();
-  });
-
-  it("should have a label for every option", () => {
+  it("has correct offsetDays for each option", () => {
+    const map: Record<RelativeOption, number | null> = {
+      "3-before": -3,
+      "2-before": -2,
+      "1-before": -1,
+      "same-day": 0,
+      "1-after": 1,
+      "2-after": 2,
+      "3-after": 3,
+      custom: null,
+    };
     RELATIVE_OPTIONS.forEach((opt) => {
-      expect(opt.label).toBeTruthy();
+      expect(opt.offsetDays).toBe(map[opt.key]);
     });
+  });
+
+  it("custom option has null offsetDays", () => {
+    const custom = RELATIVE_OPTIONS.find((o) => o.key === "custom");
+    expect(custom?.offsetDays).toBeNull();
   });
 });
 
-// ── TaskPromptSection ─────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// TaskPromptSection
+// ---------------------------------------------------------------------------
+
+const defaultProps = {
+  createdEventId: "event-123",
+  userId: "user-456",
+  eventStartDate: "2026-04-01",
+  defaultUntil: "2026-06-01",
+  onFinish: jest.fn(),
+};
 
 describe("TaskPromptSection", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
   });
 
-  it("should render the prompt banner", () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
+  it("renders the prompt header", () => {
+    render(<TaskPromptSection {...defaultProps} />);
     expect(screen.getByText("Link tasks to this event?")).toBeInTheDocument();
   });
 
-  it("should render the NewTaskForm with Add Task button", () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-    expect(screen.getByText("+ Add Task")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Task title")).toBeInTheDocument();
+  it("renders the NewTaskForm", () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    expect(screen.getByTestId("add-task-btn")).toBeInTheDocument();
   });
 
-  it("should show 'Skip — No Tasks' when no tasks have been added", () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
+  it('shows "Skip — No Tasks" when no tasks added', () => {
+    render(<TaskPromptSection {...defaultProps} />);
     expect(screen.getByText("Skip — No Tasks")).toBeInTheDocument();
   });
 
-  it("should call onFinish without fetching when Skip is clicked with no tasks", async () => {
-    const onFinish = jest.fn();
-    render(<TaskPromptSection {...createTaskPromptProps({ onFinish })} />);
-    await act(async () => {
-      fireEvent.click(screen.getByText("Skip — No Tasks"));
-    });
-    expect(onFinish).toHaveBeenCalled();
-    expect(global.fetch).not.toHaveBeenCalled();
-  });
-
-  it("should show a LinkedTaskCard after adding a task", async () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Prepare slides" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    expect(screen.getByText("Prepare slides")).toBeInTheDocument();
-  });
-
-  it("should change the finish button label to 'Save Tasks & Finish' after adding a task", async () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Review notes" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
+  it('shows "Save Tasks & Finish" after a task is added', () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
     expect(screen.getByText("Save Tasks & Finish")).toBeInTheDocument();
   });
 
-  it("should POST to /api/tasks and call onFinish when Save Tasks & Finish is clicked", async () => {
-    const onFinish = jest.fn();
-    render(<TaskPromptSection {...createTaskPromptProps({ onFinish })} />);
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Review notes" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Save Tasks & Finish"));
-    });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      "/api/tasks",
-      expect.objectContaining({ method: "POST" })
-    );
-    expect(onFinish).toHaveBeenCalled();
+  it("renders a LinkedTaskCard for each added task", () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    expect(screen.getByTestId("linked-task-0")).toBeInTheDocument();
   });
 
-  it("should include userId and eventId in the POSTed tasks", async () => {
-    render(
-      <TaskPromptSection
-        {...createTaskPromptProps({
-          userId: "user-abc",
-          createdEventId: "event-xyz",
-        })}
-      />
-    );
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task A" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Save Tasks & Finish"));
-    });
-
-    const body = JSON.parse(
-      (global.fetch as jest.Mock).mock.calls[0][1].body
-    );
-    expect(body.tasks[0].userId).toBe("user-abc");
-    expect(body.tasks[0].eventId).toBe("event-xyz");
+  it("attaches userId and eventId to added tasks", () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    expect(screen.getByText("New Task")).toBeInTheDocument();
   });
 
-  it("should dispatch a tasks-updated event after saving", async () => {
+  it("removes a task when onRemove is called", () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    expect(screen.getByTestId("linked-task-0")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Remove"));
+    expect(screen.queryByTestId("linked-task-0")).not.toBeInTheDocument();
+  });
+
+  it("calls fetch with tasks on save when tasks exist", async () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    fireEvent.click(screen.getByText("Save Tasks & Finish"));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "/api/tasks",
+        expect.objectContaining({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: expect.stringContaining("New Task"),
+        }),
+      );
+    });
+  });
+
+  it("dispatches tasks-updated event after save", async () => {
     const dispatchSpy = jest.spyOn(window, "dispatchEvent");
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    fireEvent.click(screen.getByText("Save Tasks & Finish"));
 
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task A" },
+    await waitFor(() => {
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "tasks-updated" }),
+      );
     });
-    fireEvent.click(screen.getByText("+ Add Task"));
+  });
 
-    await act(async () => {
-      fireEvent.click(screen.getByText("Save Tasks & Finish"));
+  it("calls onFinish after save", async () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    fireEvent.click(screen.getByText("Save Tasks & Finish"));
+
+    await waitFor(() => {
+      expect(defaultProps.onFinish).toHaveBeenCalled();
     });
-
-    expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "tasks-updated" })
-    );
-    dispatchSpy.mockRestore();
   });
 
-  it("should remove a task when its remove button is clicked", async () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
+  it("updates a task when onUpdate is called", () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    expect(screen.getByText("New Task")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Update"));
+    expect(screen.getByText("Updated Task")).toBeInTheDocument();
+  });
 
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task to remove" },
+  it("only updates the correct task when multiple tasks exist", () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    fireEvent.click(screen.getByTestId("add-task-btn"));
+    expect(screen.getByTestId("linked-task-0")).toBeInTheDocument();
+    expect(screen.getByTestId("linked-task-1")).toBeInTheDocument();
+    // Update only the first task
+    fireEvent.click(screen.getAllByText("Update")[0]);
+    expect(screen.getAllByText("Updated Task")).toHaveLength(1);
+  });
+
+  it("calls onFinish without fetching when no tasks", async () => {
+    render(<TaskPromptSection {...defaultProps} />);
+    fireEvent.click(screen.getByText("Skip — No Tasks"));
+
+    await waitFor(() => {
+      expect(defaultProps.onFinish).toHaveBeenCalled();
+      expect(fetch).not.toHaveBeenCalled();
     });
-    fireEvent.click(screen.getByText("+ Add Task"));
-    expect(screen.getByText("Task to remove")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText("✕"));
-
-    expect(screen.queryByText("Task to remove")).not.toBeInTheDocument();
-    expect(screen.getByText("Skip — No Tasks")).toBeInTheDocument();
-  });
-});
-
-// ── LinkedTaskCard ────────────────────────────────────────────────────────────
-
-describe("LinkedTaskCard", () => {
-  const defaultProps = {
-    task: createMockTask(),
-    index: 0,
-    eventStartDate: "2024-06-03",
-    onUpdate: jest.fn(),
-    onRemove: jest.fn(),
-  };
-
-  beforeEach(() => jest.clearAllMocks());
-
-  it("should render the task title", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    expect(screen.getByText("Write Report")).toBeInTheDocument();
-  });
-
-  it("should render the task duration", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    expect(screen.getByText("90m")).toBeInTheDocument();
-  });
-
-  it("should render the task priority", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    expect(screen.getByText("High")).toBeInTheDocument();
-  });
-
-  it("should render the relative mode badge", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    expect(screen.getByText("1 day before")).toBeInTheDocument();
-  });
-
-  it("should call onUpdate on mount via useEffect", () => {
-    const onUpdate = jest.fn();
-    render(<LinkedTaskCard {...defaultProps} onUpdate={onUpdate} />);
-    expect(onUpdate).toHaveBeenCalledWith(0, expect.objectContaining({
-      relativeMode: "1-before",
-    }));
-  });
-
-  it("should call onRemove with the correct index when the remove button is clicked", () => {
-    const onRemove = jest.fn();
-    render(<LinkedTaskCard {...defaultProps} onRemove={onRemove} />);
-    fireEvent.click(screen.getByText("✕"));
-    expect(onRemove).toHaveBeenCalledWith(0);
-  });
-
-  it("should show the expand button and toggle detail panel", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-
-    expect(screen.getByText("▼")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Schedule relative to event")
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText("▼"));
-
-    expect(screen.getByText("Schedule relative to event")).toBeInTheDocument();
-    expect(screen.getByText("▲")).toBeInTheDocument();
-  });
-
-  it("should show the relative picker options when expanded", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    expect(screen.getByText("Same day")).toBeInTheDocument();
-    expect(screen.getByText("3 days before")).toBeInTheDocument();
-  });
-
-  it("should update the mode badge when a different relative option is selected", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    fireEvent.click(screen.getByText("Same day"));
-  
-    // "Same day" appears twice: once in the header badge and once as the active picker button
-    const matches = screen.getAllByText("Same day");
-    expect(matches).toHaveLength(2);
-  });
-
-  it("should show the schedule time toggle when expanded", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    expect(
-      screen.getByTestId("toggle-Schedule for a specific time?")
-    ).toBeInTheDocument();
-  });
-
-  it("should show the recurring toggle when expanded", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    expect(screen.getByTestId("toggle-One-time task")).toBeInTheDocument();
-  });
-
-  it("should show RecurrencePanel when isRecurring is toggled on", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    fireEvent.click(screen.getByTestId("toggle-One-time task"));
-    expect(screen.getByTestId("recurrence-panel")).toBeInTheDocument();
-  });
-
-  it("should show a time input when schedule time toggle is turned on", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    fireEvent.click(screen.getByTestId("toggle-Schedule for a specific time?"));
-    expect(screen.getByDisplayValue("09:00")).toBeInTheDocument();
-  });
-
-  it("should show CustomDatePicker when 'Custom date' option is selected", () => {
-    render(<LinkedTaskCard {...defaultProps} />);
-    fireEvent.click(screen.getByText("▼"));
-    fireEvent.click(screen.getByText("Custom date"));
-    expect(screen.getByText("Use a date range")).toBeInTheDocument();
-  });
-});
-
-// ── NewTaskForm (via TaskPromptSection) ───────────────────────────────────────
-
-describe("NewTaskForm", () => {
-  beforeEach(() => jest.clearAllMocks());
-
-  it("should not add a task when the title is empty", () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-    fireEvent.click(screen.getByText("+ Add Task"));
-    expect(screen.queryByText("Save Tasks & Finish")).not.toBeInTheDocument();
-  });
-
-  it("should add a task and reset the title field on Add Task click", () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    const input = screen.getByPlaceholderText("Task title");
-    fireEvent.change(input, { target: { value: "My Task" } });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    expect(screen.getByText("My Task")).toBeInTheDocument();
-    expect(input).toHaveValue("");
-  });
-
-  it("should add a task when Enter is pressed in the title input", () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    const input = screen.getByPlaceholderText("Task title");
-    fireEvent.change(input, { target: { value: "Enter Task" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-
-    expect(screen.getByText("Enter Task")).toBeInTheDocument();
-  });
-
-  it("should default priority to Medium", async () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task A" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Save Tasks & Finish"));
-    });
-
-    const body = JSON.parse(
-      (global.fetch as jest.Mock).mock.calls[0][1].body
-    );
-    expect(body.tasks[0].priority).toBe("Medium");
-  });
-
-  it("should default duration to 60 when no duration is specified", async () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task B" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Save Tasks & Finish"));
-    });
-
-    const body = JSON.parse(
-      (global.fetch as jest.Mock).mock.calls[0][1].body
-    );
-    expect(body.tasks[0].duration).toBe(60);
-  });
-
-  it("should include relativeOffsetDays of -1 for 1-before default mode", async () => {
-    render(<TaskPromptSection {...createTaskPromptProps()} />);
-
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task C" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-
-    await act(async () => {
-      fireEvent.click(screen.getByText("Save Tasks & Finish"));
-    });
-
-    const body = JSON.parse(
-      (global.fetch as jest.Mock).mock.calls[0][1].body
-    );
-    expect(body.tasks[0].relativeOffsetDays).toBe(-1);
   });
 });

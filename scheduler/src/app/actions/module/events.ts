@@ -30,10 +30,10 @@ export async function createModuleEvent(moduleId: string, eventData: any) {
 
   const moduleEventGroupId = generateGroupId();
 
-  // 1. Get ALL users in the module (Owners, Admins, and Members all need to see events)
+  // Get ALL users in the module (Owners, Admins, and Members all need to see events)
   const memberIdsToAssign = members.map((m) => m.userId);
 
-  // 2. FORCE the creator to get a copy so the event saves to the database
+  // Force the creator to get a copy so the event saves to the database
   // even if there are no students in the module yet.
   if (!memberIdsToAssign.includes(session.user.id)) {
     memberIdsToAssign.push(session.user.id);

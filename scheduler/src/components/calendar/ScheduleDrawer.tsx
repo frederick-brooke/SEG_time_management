@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/drawer";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import type { ScheduleState } from "@/hooks/useSchedule";
+import FutureTasksPanel from "./FutureTasksPanel";
 
 interface Props {
   state: ScheduleState;
@@ -21,8 +22,7 @@ interface Props {
   onClose: () => void;
 }
 
-// ── Reusable task row ─────────────────────────────────────────────────────────
-
+// Reusable task row
 function TaskRow({
   task,
   selected,
@@ -60,9 +60,7 @@ function TaskRow({
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-white/80 truncate">
-          {task.title}
-        </p>
+        <p className="text-sm font-semibold text-white/80 truncate">{task.title}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className={`text-xs font-bold ${PRIORITY_TEXT[task.priority]}`}>
             {task.priority}
@@ -79,82 +77,7 @@ function TaskRow({
   );
 }
 
-// ── FutureTasksPanel ──────────────────────────────────────────────────────────
-
-function FutureTasksPanel({ state, patch, futureTasks, toggleId }: any) {
-  if (futureTasks.length === 0) return null;
-  return (
-    <div className="border border-purple-500/20 rounded-2xl overflow-hidden">
-      <div
-        className="flex items-center justify-between p-4 bg-purple-500/10 cursor-pointer"
-        onClick={() => patch({ showFutureTasks: !state.showFutureTasks })}
-      >
-        <div>
-          <p className="text-sm font-bold text-purple-300">
-            Tackle future tasks this {state.scheduleMode}?
-          </p>
-          <p className="text-xs text-purple-400/60 mt-0.5">
-            {futureTasks.length} task{futureTasks.length !== 1 ? "s" : ""}{" "}
-            beyond this period
-          </p>
-        </div>
-        <div
-          className={`w-10 h-5 rounded-full relative flex-shrink-0 transition-colors ${state.showFutureTasks ? "bg-purple-500" : "bg-white/10"}`}
-        >
-          <div
-            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${state.showFutureTasks ? "left-5" : "left-0.5"}`}
-          />
-        </div>
-      </div>
-      {state.showFutureTasks && (
-        <div className="p-4 border-t border-purple-500/20">
-          <div className="flex gap-2 mb-3">
-            {(["auto", "manual"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => patch({ futureModeAuto: m === "auto" })}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
-                  (state.futureModeAuto ? m === "auto" : m === "manual")
-                    ? "bg-purple-500 text-white border-purple-500"
-                    : "bg-white/5 text-purple-300 border-purple-500/20 hover:border-purple-400/40"
-                }`}
-              >
-                {m === "auto" ? "✨ Auto-pick" : "✋ I&apos;ll choose"}
-              </button>
-            ))}
-          </div>
-          {state.futureModeAuto ? (
-            <p className="text-xs text-white/30">
-              The algorithm fills spare capacity automatically.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-2 max-h-44 overflow-y-auto">
-              {futureTasks.map((t: any) => (
-                <TaskRow
-                  key={t.id}
-                  task={t}
-                  accent="purple"
-                  selected={state.selectedFutureTaskIds.includes(t.id)}
-                  onToggle={(id) =>
-                    patch({
-                      selectedFutureTaskIds: toggleId(
-                        id,
-                        state.selectedFutureTaskIds,
-                      ),
-                    })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── BreakSettings ─────────────────────────────────────────────────────────────
-
+// BreakSettings
 function BreakSettings({
   state,
   patch,
@@ -172,9 +95,7 @@ function BreakSettings({
           className="flex items-center gap-2 cursor-pointer"
           onClick={() => patch({ skipBreaks: !state.skipBreaks })}
         >
-          <div
-            className={`w-9 h-5 rounded-full relative transition-colors ${state.skipBreaks ? "bg-white" : "bg-white/10"}`}
-          >
+          <div className={`w-9 h-5 rounded-full relative transition-colors ${state.skipBreaks ? "bg-white" : "bg-white/10"}`}>
             <div
               className={`absolute top-0.5 w-4 h-4 rounded-full shadow transition-all ${state.skipBreaks ? "left-4 bg-gray-900" : "left-0.5 bg-white"}`}
             />
@@ -218,8 +139,7 @@ function BreakSettings({
   );
 }
 
-// ── WarningBanners ────────────────────────────────────────────────────────────
-
+// WarningBanners
 function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
   return (
     <>
@@ -257,9 +177,7 @@ function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
             ⚠️ Couldn&apos;t meet deadlines
           </p>
           {state.missedDeadlineTasks.map((w: any) => (
-            <p key={w.taskId} className="text-xs text-red-400/70">
-              • {w.title}
-            </p>
+            <p key={w.taskId} className="text-xs text-red-400/70">• {w.title}</p>
           ))}
           <button
             onClick={onClose}
@@ -273,8 +191,15 @@ function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// Constants
+const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+const toggleId = (id: string, list: string[]) =>
+  list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+
+const d0 = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+// Main component
 export default function ScheduleDrawer({
   state,
   patch,
@@ -284,10 +209,6 @@ export default function ScheduleDrawer({
 }: Props) {
   const ws = new Date(state.scheduleWeekStart + "T12:00:00");
   const we = addDays(ws, 6);
-  const d0 = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const toggleId = (id: string, list: string[]) =>
-    list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
-  const DAY_ABBR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const allDays =
     state.scheduleMode === "day"
@@ -381,9 +302,7 @@ export default function ScheduleDrawer({
               Scheduled this {state.scheduleMode}
             </p>
             {weekTasks.length === 0 ? (
-              <p className="text-sm text-indigo-400/50">
-                No tasks scheduled yet for this period.
-              </p>
+              <p className="text-sm text-indigo-400/50"> No tasks scheduled yet for this period. </p>
             ) : (
               weekTasks.map((t) => (
                 <div key={t.id} className="flex items-center gap-2">
@@ -412,9 +331,7 @@ export default function ScheduleDrawer({
                     accent="indigo"
                     selected={state.selectedTaskIds.includes(t.id)}
                     onToggle={(id) =>
-                      patch({
-                        selectedTaskIds: toggleId(id, state.selectedTaskIds),
-                      })
+                      patch({ selectedTaskIds: toggleId(id, state.selectedTaskIds), })
                     }
                   />
                 ))}
@@ -434,11 +351,7 @@ export default function ScheduleDrawer({
                   return (
                     <button
                       key={d}
-                      onClick={() =>
-                        patch({
-                          unavailableDays: toggleId(d, state.unavailableDays),
-                        })
-                      }
+                      onClick={() => patch({ unavailableDays: toggleId(d, state.unavailableDays), })}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                         isOff
                           ? "bg-red-500/10 border-red-500/30 text-red-400"
@@ -457,7 +370,6 @@ export default function ScheduleDrawer({
             state={state}
             patch={patch}
             futureTasks={futureTasks}
-            toggleId={toggleId}
           />
           <BreakSettings state={state} patch={patch} />
           <WarningBanners
