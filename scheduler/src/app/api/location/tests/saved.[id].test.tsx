@@ -40,7 +40,7 @@ import { prisma } from "@/lib/prisma";
 
 // Creates a params object that matches the route handler's expected type
 function makeParams(id: string) {
-  return { params: { id } };
+  return { params: Promise.resolve({ id }) };
 }
 
 // Creates a mock NextRequest with optional JSON body and HTTP method
