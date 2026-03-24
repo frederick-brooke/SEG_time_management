@@ -32,7 +32,14 @@ export async function authorizeUser(credentials: Record<"identifier" | "password
     user.isBanned = false;
   }
 
-  return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: user.isBanned };
+  return {
+    id: user.id.toString(),
+    email: user.email,
+    username: user.username,
+    role: user.role,
+    isBanned: user.isBanned,
+    isDeleted: user.isDeleted,
+  };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -46,58 +53,7 @@ export const authOptions: NextAuthOptions = {
         identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-
-      async authorize(credentials) {
-        try {
-          if (!credentials?.identifier || !credentials?.password) return null;
-
-          const user = await prisma.user.findFirst({
-            where: {
-              OR: [
-                { email: credentials.identifier },
-                { username: credentials.identifier }
-              ]
-            },
-          });
-
-          if (!user || !user.passwordHash) return null;
-
-          const isValid = await verifyPassword(credentials.password, user.passwordHash);
-          if (!isValid) return null;
-
-          if (user.isBanned) {
-            // permanent ban or temporary ban still active
-            if (!user.banExpires || new Date() < user.banExpires) {
-              return {
-                id: user.id.toString(),
-                email: user.email,
-                username: user.username,
-                role: user.role,
-                isBanned: true,
-                isDeleted: user.isDeleted,
-              };
-            }
-            // ban expired
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { isBanned: false, banExpires: null },
-            });
-            user.isBanned = false;
-          }
-
-          return {
-            id: user.id.toString(),
-            email: user.email,
-            username: user.username,
-            role: user.role,
-            isBanned: user.isBanned,
-            isDeleted: user.isDeleted,
-          };
-        } catch (error) {
-          console.error("AUTHORIZE ERROR:", error);
-          return null;
-        }        
-      },
+      authorize: authorizeUser,
     }),
 
     GoogleProvider({
@@ -147,7 +103,6 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
 
-      // Handle Google Account linking and creation logic
       if (account?.provider === "google") {
         const userId = token.sub ?? user?.id;
 
