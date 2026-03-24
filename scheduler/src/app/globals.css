@@ -366,10 +366,15 @@
   .lunar-item-warning { @apply bg-amber-500/10 border-amber-500/20 text-amber-400;}
   .lunar-item-info { @apply bg-blue-500/10 border-blue-500/20 text-blue-400;}
 
-  /* Custom Scrollbar */
-  .lunar-scroll ::-webkit-scrollbar { width: 6px; }
-  .lunar-scroll ::-webkit-scrollbar-track { @apply bg-transparent }
-  .lunar-scroll ::-webkit-scrollbar-thumb { @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors; }
+  /* Scroll Area */
+  .lunar-scroll-area {
+    @apply overflow-y-auto pr-2;
+    max-height: 250px;
+
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-track { @apply bg-transparent }
+    &::-webkit-scrollbar-thumb { @apply bg-white/10 rounded-full hover:bg-blue-500/40 transition-colors; }
+  }
 
   [data-sidebar="sidebar"] {
     @apply !border-none !border-transparent !shadow-none !outline-none;

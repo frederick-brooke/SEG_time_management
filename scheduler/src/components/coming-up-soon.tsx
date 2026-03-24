@@ -71,9 +71,9 @@ export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
   if (isLoading) {
     return (
       <div>
-        <p className="py-8 text-center">
+        <div className="py-8 text-center">
           <p className="text-muted-foreground">Loading...</p>
-        </p>
+        </div>
       </div>
     );
   }

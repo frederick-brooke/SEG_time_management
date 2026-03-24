@@ -16,6 +16,7 @@ import { IconMoonStars } from "@tabler/icons-react";
 import WellbeingPanel from "@/src/components/wellbeing/wellbeing_panel";
 import { RocketProgress } from "@/components/ui/rocket-progress";
 import { useTasks } from "@/src/hooks/useTasks";
+import { CalendarEvents } from "@/src/components/calendar/CalendarEvents";
 
 export default function Page() {
   const { data: session, status }: {data: any; status: string } = useSession();
@@ -136,13 +137,19 @@ export default function Page() {
             <div className="flex flex-col gap-8">
               <div className="lunar-glass p-6">
                 <ComingUpSoon userId={session?.user?.id} exams={exams}/>
-                </div>
+              </div>
               <div className="lunar-glass p-6">
                 <UpcomingExams exams={exams} />
               </div>
             </div>
             <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent rounded-full opacity-50" />
-            <LeaderboardClient initialData={leaderboard} currentTimeframe="week" />
+              <div className="flex flex-col gap-8">
+                <LeaderboardClient initialData={leaderboard} currentTimeframe="week" />
+                
+                <div className="lunar-glass p-6">
+                  <CalendarEvents />
+                </div>
+              </div>
           </div>
           <WellbeingPanel open={wellbeingOpen} onClose={() => {setWellbeingOpen(false); setWellbeingVisible(true)}}/>
         </main>
