@@ -1,6 +1,17 @@
+jest.mock("next/server", () => ({
+    NextResponse: {
+        json: (body: any, init?: any) => new Response(JSON.stringify(body), {
+            ...init,
+            headers: { "Content-Type": "application/json" },
+        }),
+    },
+}));
+
 import { scheduleTasks } from "@/src/lib/scheduling/scheduler";
 import { GET, POST } from "../route";
 import { prisma } from "@/lib/prisma";
+import { relativeOffsetLabel } from "@/src/lib/ui";
+import { NextRequest } from "next/server";
 
 jest.mock("@/lib/prisma", () => ({
     prisma: {
@@ -167,4 +178,101 @@ describe("Base tasks route /api/tasks", () => {
 
         await GET(new Request("http://localhost/api/tasks"));
     })
+
+    it("GET: returns 400 when userId is missing", async () => {
+        const req = new Request("http://localhost/api/tasks");
+        const res = await GET(req);
+        expect(res.status).toBe(400);
+    })
+
+    it("GET: returns 500 on prisma error", async () => {
+        (prisma.task.findMany as jest.Mock).mockRejectedValue(new Error("DB error"));
+        const req = new Request("http://localhost/api/tasks?userId=u1");
+        const res = await GET(req);
+        expect(res.status).toBe(500);
+    })
+
+    it("POST: covers daily recurrence where cursor is in the past", async () => {
+        const pastDate = new Date();
+        pastDate.setDate(pastDate.getDate() - 3);
+        
+        (prisma.event.findUnique as jest.Mock).mockResolvedValue({
+            id: "e_daily",
+            start: pastDate.toISOString(),
+            recurrence: { type: "daily" }
+        });
+
+        const req = new Request("http://localhost/api/tasks", {
+            method: "POST",
+            body: JSON.stringify({
+                tasks: [{
+                    title: "Daily past",
+                    userId: "u1",
+                    eventId: "e_daily",
+                    relativeOffsetDays: 1,
+                    scheduleTime: false,
+                }]
+            }),
+        });
+        
+        const res = await POST(req);
+        expect(res.status).toBe(200);
+    });
+
+    it("POST: covers monthly recurrence where cursor is in the past", async () => {
+        const pastDate = new Date();
+        pastDate.setMonth(pastDate.getMonth() - 2);
+        
+        (prisma.event.findUnique as jest.Mock).mockResolvedValue({
+            id: "e_monthly_past",
+            start: pastDate.toISOString(),
+            recurrence: { type: "monthly" }
+        });
+
+        const req = new Request("http://localhost/api/tasks", {
+            method: "POST",
+            body: JSON.stringify({
+                tasks: [{
+                    title: "Monthly past",
+                    userId: "u1",
+                    eventId: "e_monthly_past",
+                    relativeOffsetDays: 0,
+                    scheduleTime: true,
+                    specificTime: "09:00"
+                }]
+            }),
+        });
+        
+        const res = await POST(req);
+        expect(res.status).toBe(200);
+    });
+
+    it("POST: single task with examId none clears exam", async () => {
+        (prisma.exam.findUnique as jest.Mock).mockResolvedValue(null);
+        (prisma.exam.create as jest.Mock).mockResolvedValue({ id: "t1", title: "No exam" });
+        
+        const req = new Request("http://localhost/api/tasks", {
+            method: "POST",
+            body: JSON.stringify({ title: "No exam task", userId: "u1", examId: "none"}),
+        });
+
+        const res = await POST(req);
+        expect(res.status).toBe(200);
+    });
+
+    it("POST: returns 500 on error", async () => {
+        (prisma.exam.create as jest.Mock).mockResolvedValue(new Error("DB error"));
+        
+        const req = new Request("http://localhost/api/tasks", {
+            method: "POST",
+            body: JSON.stringify({ title: "Fail", userId: "u1"}),
+        });
+
+        const res = await POST(req);
+        expect(res.status).toBe(500);
+    });
+
+
+
+
 })

@@ -1,3 +1,12 @@
+jest.mock("next/server", () => ({
+  NextResponse: {
+      json: (body: any, init?: any) => new Response(JSON.stringify(body), {
+          ...init,
+          headers: { "Content-Type": "application/json" },
+      }),
+  },
+}));
+
 import { DELETE, PATCH } from "@/app/api/tasks/[id]/route";
 import { prisma } from "@/lib/prisma";
 import { awardTaskPoints, revokeTaskPoints } from "@/lib/points";
