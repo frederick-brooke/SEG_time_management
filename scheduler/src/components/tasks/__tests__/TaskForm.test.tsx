@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { TaskFormDialog } from "../TaskFormDialog";
+import { TaskForm } from "../TaskForm";
 
 /**
  * Mock shadcn/Radix wrappers via RELATIVE PATHS so Jest doesn't need alias config.
@@ -68,8 +68,8 @@ jest.mock("../../ui/label", () => {
 jest.mock("../../ui/button", () => {
   const React = require("react");
   return {
-    Button: ({ children, onClick, type = "button" }) => (
-      <button type={type} onClick={onClick}>
+    Button: ({ children, onClick, buttonType = "button" }) => (
+      <button type={buttonType as "button"} onClick={onClick}>
         {children}
       </button>
     ),
@@ -163,7 +163,7 @@ describe("TaskFormDialog", () => {
       ...overrides,
     };
 
-    render(<TaskFormDialog {...props} />);
+    render(<TaskForm {...props} />);
     return props;
   }
 
