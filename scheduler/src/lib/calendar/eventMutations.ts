@@ -7,7 +7,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
-import { resetEventNotificationGuards } from "@/src/app/actions/calendarNotifications";
+import { resetEventNotificationGuards } from "@/src/app/actions/calendar/calendarNotifications";
 
 /**
  * Patches a single occurrence of a Google Calendar recurring event by constructing

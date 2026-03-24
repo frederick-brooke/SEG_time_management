@@ -1,393 +1,443 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { useCalendarInteractions } from "@/hooks/useCalendarInteractions";
 
-
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
-
-const mockConfirm = jest.fn();
-global.confirm = mockConfirm;
-
-const mockAlert = jest.fn();
-global.alert = mockAlert;
-
-jest.mock("@/lib/ui", () => ({
-  taskToFormData: jest.fn((task: any) => ({
-    name: task.title || "",
-    description: task.description || "",
-    dueDate: null,
-    url: "",
-    subtasks: "",
-    durationHours: "0",
-    durationMinutes: "0",
-    examId: "none",
-    priority: "Medium",
-    bufferDays: 0,
-    isRecurring: false,
-    recurrence: null,
-  })),
-}));
-
-import { useCalendarInteractions } from "../useCalendarInteractions";
-
-
-const okJson = (data: any) =>
-  Promise.resolve({ ok: true, json: async () => data });
-
-const failRes = () =>
-  Promise.resolve({ ok: false, json: async () => ({ message: "Failed" }) });
-
-const makeEvent = (id = "evt-1", overrides: any = {}) => ({
-  id,
-  title: "Test Event",
-  description: "Desc",
-  category: "Work",
-  start: new Date("2025-01-01T10:00:00Z"),
-  end: new Date("2025-01-01T11:00:00Z"),
-  allDay: false,
-  recurrence: { type: "none" },
-  ...overrides,
-});
-
-const makeTask = (id = "task-1", overrides: any = {}) => ({
-  id,
-  title: "Test Task",
-  description: "",
-  priority: "Medium",
-  ...overrides,
-});
+// ── Mocks ──────────────────────────────────────────────────────────────────
 
 const mockRefreshEvents = jest.fn().mockResolvedValue([]);
-const mockRefreshTasks = jest.fn().mockResolvedValue([]);
+const mockRefreshTasks = jest.fn().mockResolvedValue(undefined);
 
+const mockEvent = {
+  id: "aabbccddeeff001122334455",
+  title: "Team Meeting",
+  description: "Weekly sync",
+  start: new Date("2024-06-10T10:00:00Z"),
+  end: new Date("2024-06-10T11:00:00Z"),
+  allDay: false,
+  category: "work",
+  recurrence: { type: "weekly", days: ["Mon"], until: "2024-12-31" },
+};
 
-describe("useCalendarInteractions", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockFetch.mockResolvedValue(okJson([]));
-    mockConfirm.mockReturnValue(true);
+const mockTask = {
+  _id: "112233445566778899aabbcc",
+  title: "Write tests",
+  description: "Cover the hooks",
+  dueDate: "2024-06-15",
+  priority: "High",
+  duration: 90,
+  subtasks: ["unit tests", "integration tests"],
+  bufferDays: 1,
+  examId: "none",
+  isRecurring: false,
+  recurrence: null,
+  url: "https://example.com",
+};
+
+global.fetch = jest.fn();
+global.confirm = jest.fn();
+global.alert = jest.fn();
+
+jest.useFakeTimers();
+
+// ── Helper ─────────────────────────────────────────────────────────────────
+
+function setup(events: any[] = []) {
+  return renderHook(() =>
+    useCalendarInteractions(events, mockRefreshEvents, mockRefreshTasks),
+  );
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+// ── Undo ───────────────────────────────────────────────────────────────────
+
+describe("undo", () => {
+  it("shows undo banner after a successful event delete", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.deleteEvent(mockEvent, "series");
+    });
+
+    expect(result.current.showUndo).toBe(true);
   });
 
-  // Initial state
-  it("initialises showUndo as false", () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
+  it("handleUndo handles an event with no recurrence", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+  
+    const eventWithoutRecurrence = { ...mockEvent, recurrence: undefined };
+    const { result } = setup();
+  
+    await act(async () => {
+      await result.current.deleteEvent(eventWithoutRecurrence, "series");
+    });
+  
+    await act(async () => {
+      await result.current.handleUndo();
+    });
+  
+    const body = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[1][1].body,
     );
+    expect(body.recurrenceType).toBe("none");
+    expect(body.recurrenceDays).toBeUndefined();
+    expect(body.recurrenceUntil).toBeUndefined();
+  });
+
+  it("hides undo banner after 8 seconds", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.deleteEvent(mockEvent, "series");
+    });
+
+    act(() => jest.advanceTimersByTime(8000));
+
     expect(result.current.showUndo).toBe(false);
   });
 
-  it("initialises searchQuery as empty string", () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    expect(result.current.searchQuery).toBe("");
-  });
+  it("dismissUndo hides the banner immediately", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
 
-  it("initialises isTaskEditOpen as false", () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    expect(result.current.isTaskEditOpen).toBe(false);
-  });
+    const { result } = setup();
 
-  // handleUndo
-  it("handleUndo does nothing when lastDeleted is null", async () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () => { await result.current.handleUndo(); });
-    expect(mockFetch).not.toHaveBeenCalled();
-  });
+    await act(async () => {
+      await result.current.deleteEvent(mockEvent, "series");
+    });
 
-  it("dismissUndo sets showUndo to false", async () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () => { result.current.dismissUndo(); });
+    act(() => result.current.dismissUndo());
+
     expect(result.current.showUndo).toBe(false);
   });
 
-  // handleSearch
-  it("handleSearch clears results when query is empty", async () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
+  it("handleUndo re-creates the deleted event and hides the banner", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.deleteEvent(mockEvent, "series");
+    });
+
+    await act(async () => {
+      await result.current.handleUndo();
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/calendar/events",
+      expect.objectContaining({ method: "POST" }),
     );
-    await act(async () => { await result.current.handleSearch(""); });
-    expect(result.current.searchResults).toEqual([]);
-    expect(result.current.showSearchResults).toBe(false);
+    expect(result.current.showUndo).toBe(false);
+    expect(mockRefreshEvents).toHaveBeenCalled();
   });
 
-  it("handleSearch fetches from /api/calendar/events with query", async () => {
-    mockFetch.mockResolvedValueOnce(okJson([]));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () => { await result.current.handleSearch("test"); });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/calendar/events?q=test"
-    );
-  });
+  it("handleUndo does nothing when there is no deleted event", async () => {
+    const { result } = setup();
 
-  it("handleSearch sets showSearchResults to true when query is non-empty", async () => {
-    mockFetch.mockResolvedValueOnce(okJson([]));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
+    await act(async () => {
+      await result.current.handleUndo();
+    });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+// ── Search ─────────────────────────────────────────────────────────────────
+
+describe("search", () => {
+  it("fetches results and shows them for a non-empty query", async () => {
+    const apiResults = [
+      {
+        ...mockEvent,
+        start: mockEvent.start.toISOString(),
+        end: mockEvent.end.toISOString(),
+      },
+    ];
+    (global.fetch as jest.Mock).mockResolvedValue({
+      json: async () => apiResults,
+    });
+
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.handleSearch("Meeting");
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      "/api/calendar/events?q=Meeting",
     );
-    await act(async () => { await result.current.handleSearch("test"); });
+    expect(result.current.searchResults).toHaveLength(1);
+    expect(result.current.searchResults[0].start).toBeInstanceOf(Date);
     expect(result.current.showSearchResults).toBe(true);
   });
 
-  it("handleSearch converts start/end strings to Date objects", async () => {
-    mockFetch.mockResolvedValueOnce(
-      okJson([{ id: "e1", start: "2025-01-01T10:00:00Z", end: "2025-01-01T11:00:00Z" }])
-    );
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () => { await result.current.handleSearch("test"); });
-    expect(result.current.searchResults[0].start).toBeInstanceOf(Date);
-  });
+  it("clears results immediately for an empty query", async () => {
+    const { result } = setup();
 
-  // clearSearch
-  it("clearSearch resets search state", async () => {
-    mockFetch.mockResolvedValueOnce(okJson([]));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () => { await result.current.handleSearch("test"); });
-    act(() => { result.current.clearSearch(); });
-    expect(result.current.searchQuery).toBe("");
-    expect(result.current.searchResults).toEqual([]);
+    await act(async () => {
+      await result.current.handleSearch("");
+    });
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(result.current.searchResults).toHaveLength(0);
     expect(result.current.showSearchResults).toBe(false);
   });
 
-  // deleteEvent
-  it("deleteEvent shows alert and returns false for invalid id", async () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    const res = await act(async () =>
-      result.current.deleteEvent({ id: "invalid-id", start: new Date() }, "single")
-    );
-    expect(mockAlert).toHaveBeenCalled();
-    expect(res).toBe(false);
+  it("clearSearch resets all search state", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ json: async () => [] });
+
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.handleSearch("standup");
+    });
+
+    act(() => result.current.clearSearch());
+
+    expect(result.current.searchQuery).toBe("");
+    expect(result.current.searchResults).toHaveLength(0);
+    expect(result.current.showSearchResults).toBe(false);
   });
 
-  it("deleteEvent returns false when user cancels confirm", async () => {
-    mockConfirm.mockReturnValue(false);
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    const res = await act(async () =>
-      result.current.deleteEvent(makeEvent("a1b2c3d4e5f6a1b2c3d4e5f6"), "single")
-    );
-    expect(res).toBe(false);
-  });
+  it("showSearchResultsFor shows results only when a query is present", async () => {
+    const { result } = setup();
 
-  it("deleteEvent sends DELETE request with correct params", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () =>
-      result.current.deleteEvent(makeEvent("a1b2c3d4e5f6a1b2c3d4e5f6"), "single")
-    );
-    const url = mockFetch.mock.calls[0][0] as string;
-    expect(url).toContain("/api/calendar/events");
-    expect(url).toContain("id=a1b2c3d4e5f6a1b2c3d4e5f6");
-  });
+    // No query yet — should stay hidden
+    act(() => result.current.showSearchResultsFor());
+    expect(result.current.showSearchResults).toBe(false);
 
-  it("deleteEvent returns true on success", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    const res = await act(async () =>
-      result.current.deleteEvent(makeEvent("a1b2c3d4e5f6a1b2c3d4e5f6"), "single")
-    );
-    expect(res).toBe(true);
-  });
+    // After typing a query it should show
+    (global.fetch as jest.Mock).mockResolvedValue({ json: async () => [] });
+    await act(async () => {
+      await result.current.handleSearch("standup");
+    });
 
-  it("deleteEvent calls refreshEvents after successful delete", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () =>
-      result.current.deleteEvent(makeEvent("a1b2c3d4e5f6a1b2c3d4e5f6"), "series")
+    act(() => {
+      result.current.clearSearch(); // hide first
+    });
+    // Simulate re-focus — but query already cleared so it stays hidden
+    act(() => result.current.showSearchResultsFor());
+    expect(result.current.showSearchResults).toBe(false);
+  });
+});
+
+// ── Event delete ───────────────────────────────────────────────────────────
+
+describe("deleteEvent", () => {
+  it("calls the API and refreshes events on success (series)", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+
+    const { result } = setup();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.deleteEvent(mockEvent, "series");
+    });
+
+    expect(success!).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("mode=series"),
+      expect.objectContaining({ method: "DELETE" }),
     );
     expect(mockRefreshEvents).toHaveBeenCalled();
   });
 
-  it("deleteEvent returns false and alerts when DELETE fails", async () => {
-    mockFetch.mockResolvedValueOnce(failRes());
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    const res = await act(async () =>
-      result.current.deleteEvent(makeEvent("a1b2c3d4e5f6a1b2c3d4e5f6"), "single")
-    );
-    expect(res).toBe(false);
-    expect(mockAlert).toHaveBeenCalled();
+  it("passes instance date param when deleting a single occurrence", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+
+    const { result } = setup();
+
+    await act(async () => {
+      await result.current.deleteEvent(mockEvent, "single");
+    });
+
+    const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(calledUrl).toContain("mode=single");
+    expect(calledUrl).toContain("date=");
   });
 
-  // deleteTask
-  it("deleteTask returns false when user cancels confirm", async () => {
-    mockConfirm.mockReturnValue(false);
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    const res = await act(async () =>
-      result.current.deleteTask("task-1")
-    );
-    expect(res).toBe(false);
+  it("returns false and shows an alert when the event id is invalid", async () => {
+    const { result } = setup();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.deleteEvent({ ...mockEvent, id: "bad-id" }, "series");
+    });
+
+    expect(success!).toBe(false);
+    expect(global.alert).toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("deleteTask sends DELETE to correct URL", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    await act(async () => { await result.current.deleteTask("task-1"); });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/tasks/task-1",
-      expect.objectContaining({ method: "DELETE" })
-    );
+  it("returns false without fetching when the user cancels", async () => {
+    (global.confirm as jest.Mock).mockReturnValue(false);
+
+    const { result } = setup();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.deleteEvent(mockEvent, "series");
+    });
+
+    expect(success!).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("deleteTask returns true on success", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    const res = await act(async () => result.current.deleteTask("task-1"));
-    expect(res).toBe(true);
-  });
+  it("alerts and returns false on API error", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: "Server error" }),
+    });
+    (global.confirm as jest.Mock).mockReturnValue(true);
 
-  it("deleteTask calls refreshTasks after deletion", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
+    const { result } = setup();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.deleteEvent(mockEvent, "series");
+    });
+
+    expect(success!).toBe(false);
+    expect(global.alert).toHaveBeenCalledWith("Server error");
+  });
+});
+
+// ── Task delete ────────────────────────────────────────────────────────────
+
+describe("deleteTask", () => {
+  it("calls the API and refreshes tasks on confirmation", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+    (global.confirm as jest.Mock).mockReturnValue(true);
+
+    const { result } = setup();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.deleteTask(mockTask._id);
+    });
+
+    expect(success!).toBe(true);
+    expect(global.fetch).toHaveBeenCalledWith(
+      `/api/tasks/${mockTask._id}`,
+      { method: "DELETE" },
     );
-    await act(async () => { await result.current.deleteTask("task-1"); });
     expect(mockRefreshTasks).toHaveBeenCalled();
   });
 
-  // openTaskEdit
-  it("openTaskEdit sets isTaskEditOpen to true", () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    act(() => { result.current.openTaskEdit(makeTask()); });
+  it("returns false and skips fetch when the user cancels", async () => {
+    (global.confirm as jest.Mock).mockReturnValue(false);
+
+    const { result } = setup();
+
+    let success: boolean;
+    await act(async () => {
+      success = await result.current.deleteTask(mockTask._id);
+    });
+
+    expect(success!).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+// ── Task edit form ─────────────────────────────────────────────────────────
+
+describe("task edit form", () => {
+  it("openTaskEdit populates form data and opens the modal", () => {
+    const { result } = setup();
+
+    act(() => result.current.openTaskEdit(mockTask));
+
     expect(result.current.isTaskEditOpen).toBe(true);
+    expect(result.current.taskFormData.name).toBe(mockTask.title);
   });
 
-  it("openTaskEdit populates taskFormData from the task", () => {
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    act(() => { result.current.openTaskEdit(makeTask("t1", { title: "My Task" })); });
-    expect(result.current.taskFormData.name).toBe("My Task");
-  });
-
-  // submitTaskEdit
-  it("submitTaskEdit sends PATCH to correct URL", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
+  it("submitTaskEdit sends null when url is empty", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+  
+    const { result } = setup();
+  
     await act(async () => {
-      await result.current.submitTaskEdit("task-1", {
-        name: "Updated",
-        description: "",
-        dueDate: null,
+      await result.current.submitTaskEdit(mockTask._id, {
+        ...result.current.taskFormData,
         url: "",
-        subtasks: "",
-        durationHours: "1",
-        durationMinutes: "30",
-        examId: "none",
-        priority: "High",
-        bufferDays: 0,
-        isRecurring: false,
-        recurrence: null,
       });
     });
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/api/tasks/task-1",
-      expect.objectContaining({ method: "PATCH" })
+  
+    const body = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[0][1].body,
     );
+    expect(body.url).toBeNull();
   });
 
-  it("submitTaskEdit closes the task edit form", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
-    act(() => { result.current.openTaskEdit(makeTask()); });
-    await act(async () => {
-      await result.current.submitTaskEdit("task-1", {
-        name: "Updated",
-        description: "",
-        dueDate: null,
-        url: "",
-        subtasks: "",
-        durationHours: "0",
-        durationMinutes: "0",
-        examId: "none",
-        priority: "Medium",
-        bufferDays: 0,
-        isRecurring: false,
-        recurrence: null,
-      });
-    });
+  it("setIsTaskEditOpen can close the modal", () => {
+    const { result } = setup();
+
+    act(() => result.current.openTaskEdit(mockTask));
+    act(() => result.current.setIsTaskEditOpen(false));
+
     expect(result.current.isTaskEditOpen).toBe(false);
   });
 
-  it("submitTaskEdit calls refreshTasks after save", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
+  it("submitTaskEdit PATCHes the task, closes modal, and refreshes tasks", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+
+    const { result } = setup();
+
+    act(() => result.current.openTaskEdit(mockTask));
+
     await act(async () => {
-      await result.current.submitTaskEdit("task-1", {
-        name: "Updated",
-        description: "",
-        dueDate: null,
-        url: "",
-        subtasks: "a, b",
-        durationHours: "0",
+      await result.current.submitTaskEdit(mockTask._id, {
+        ...result.current.taskFormData,
+        name: "Updated task name",
+        durationHours: "1",
         durationMinutes: "30",
-        examId: "none",
-        priority: "Low",
-        bufferDays: 1,
-        isRecurring: false,
-        recurrence: null,
+        subtasks: "write tests, run tests",
       });
     });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      `/api/tasks/${mockTask._id}`,
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    const body = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[0][1].body,
+    );
+    expect(body.title).toBe("Updated task name");
+    expect(body.duration).toBe(90); // 1h 30m
+    expect(body.subtasks).toEqual(["write tests", "run tests"]);
+
+    expect(result.current.isTaskEditOpen).toBe(false);
     expect(mockRefreshTasks).toHaveBeenCalled();
   });
 
-  it("submitTaskEdit computes duration as hours * 60 + minutes", async () => {
-    mockFetch.mockResolvedValueOnce(okJson({}));
-    const { result } = renderHook(() =>
-      useCalendarInteractions([], mockRefreshEvents, mockRefreshTasks)
-    );
+  it("submitTaskEdit handles subtasks already provided as an array", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+
+    const { result } = setup();
+
     await act(async () => {
-      await result.current.submitTaskEdit("task-1", {
-        name: "Updated",
-        description: "",
-        dueDate: null,
-        url: "",
-        subtasks: "",
-        durationHours: "1",
-        durationMinutes: "30",
-        examId: "none",
-        priority: "Medium",
-        bufferDays: 0,
-        isRecurring: false,
-        recurrence: null,
+      await result.current.submitTaskEdit(mockTask._id, {
+        ...result.current.taskFormData,
+        subtasks: ["a", "b"] as any,
       });
     });
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(body.duration).toBe(90);
+
+    const body = JSON.parse(
+      (global.fetch as jest.Mock).mock.calls[0][1].body,
+    );
+    expect(body.subtasks).toEqual(["a", "b"]);
   });
 });

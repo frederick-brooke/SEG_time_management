@@ -184,7 +184,7 @@ export default function RescheduleModal({
             onClick={onDismiss}
             className="w-full text-sm text-gray-400 hover:text-gray-600 py-2"
           >
-            Skip — I'll handle these manually
+            Skip — I will handle these manually
           </button>
         </div>
       </div>

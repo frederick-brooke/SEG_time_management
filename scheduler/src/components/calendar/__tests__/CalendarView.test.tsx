@@ -30,7 +30,7 @@ jest.mock("date-fns", () => ({
 
 // ── Child component mocks ─────────────────────────────────────────────────────
 
-jest.mock("../../CheckInModal", () => ({
+jest.mock("../CheckInModal", () => ({
   __esModule: true,
   default: ({ onDone }: { onDone: (tasks: any[]) => void }) => (
     <div data-testid="check-in-modal">
@@ -42,7 +42,7 @@ jest.mock("../../CheckInModal", () => ({
   ),
 }));
 
-jest.mock("../../RescheduleModal", () => ({
+jest.mock("../RescheduleModal", () => ({
   __esModule: true,
   default: ({ onConfirm, onDismiss }: any) => (
     <div data-testid="reschedule-modal">

@@ -20,7 +20,7 @@ import {
   upsertGoogleEvent,
   fetchAllGoogleEvents,
 } from "@/src/lib/calendar/googleSync";
-import { deleteEventNotifications } from "@/src/app/actions/calendarNotifications";
+import { deleteEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
 
 
 // Global lock to prevent multiple syncs running at once per server instance

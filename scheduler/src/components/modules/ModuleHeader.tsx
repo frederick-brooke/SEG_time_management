@@ -77,11 +77,9 @@ export default function ModuleHeader({
               <p className="lunar-value mt-2">{module.description}</p>
             )}
             <div className="flex items-center gap-4 mt-3 flex-wrap">
-              {/* Made text pure white */}
               <span className="flex items-center gap-1 lunar-label !text-white">
                 <Users size={14} className="text-white/50" /> {module.memberCount}/{module.maxMembers} members
               </span>
-              {/* Made text pure white */}
               <span className="lunar-label !text-white">by @{module.creator.username}</span>
             </div>
           </div>
@@ -97,7 +95,7 @@ export default function ModuleHeader({
             </button>
           )}
 
-          {/* Owner OR Admin Actions (White Glowing Buttons) */}
+          {/* Owner or Admin Actions */}
           {isOwnerOrAdmin && (
             <>
               <button 

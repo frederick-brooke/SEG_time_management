@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "lib/prisma";
-import { createNotification } from "./notifications";
+import { createNotification } from "../notifications";
 import { NotificationType } from "@prisma/client";
 
 const LOOK_AHEAD_MS = 60 * 60 * 1000; // 1 hour

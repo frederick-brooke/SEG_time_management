@@ -174,7 +174,7 @@ export function TaskForm({
           <select
             value={formData.durationHours ?? "0"}
             onChange={(e) => onChange({ durationHours: e.target.value })}
-            className={`flex-1 $"lunar-input"`}
+            className={"flex-1 lunar-input"}
           >
             {Array.from({ length: 9 }, (_, i) => (
               <option key={i} value={i}>

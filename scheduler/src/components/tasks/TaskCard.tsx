@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/src/lib/priority";
 import { LunarCard } from "../ui/lunar-card";
 
-
 export function TaskCard({
   task,
   onToggle,

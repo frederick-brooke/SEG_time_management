@@ -9,7 +9,7 @@ import {
 } from "components/ui/sidebar"
 import Link from "next/link"
 
-export function NavMain({ items, label, onNotifClick, unreadCount = 0, unreadMessageCount = 0 }) {
+export function NavMain({ items, label, onNotifClick, unreadCount = 0, unreadMessageCount = 0, onSearchClick }) {
   return (
     <SidebarGroup>
       {label && <SidebarGroupLabel className="lunar-label !text-blue-400/80 mb-4 px-2 uppercase text-[10px]">{label}</SidebarGroupLabel>}

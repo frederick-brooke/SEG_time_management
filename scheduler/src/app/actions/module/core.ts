@@ -177,7 +177,6 @@ export async function leaveModule(moduleId: string) {
     where: { moduleId_userId: { moduleId, userId: session.user.id } },
   });
 
-  // PREVENT CRASHES: Clean up their module tasks and events!
   await prisma.event.deleteMany({
     where: { moduleId, userId: session.user.id, isModuleEvent: true }
   });

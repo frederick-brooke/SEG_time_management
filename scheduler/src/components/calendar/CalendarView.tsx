@@ -12,8 +12,8 @@ import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
 import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
-import CheckInModal from "../CheckInModal";
-import RescheduleModal from "../RescheduleModal";
+import CheckInModal from "./CheckInModal";
+import RescheduleModal from "./RescheduleModal";
 import EventDetailModal from "./EventDetailModal";
 import QuickScheduleModal from "./QuickScheduleModal";
 import CategoryManagerModal from "./CategoryManagerModal";

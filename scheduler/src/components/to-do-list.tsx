@@ -21,7 +21,7 @@ interface ToDoListProps {
   userId: string;
   exams?: any[];
   filterExamId?: string | null;
-  highligthId?: string | null;
+  highlightId?: string | null;
 }
 
 export function ToDoList({ userId, exams = [], filterExamId = null, highlightId = null }) {
