@@ -12,7 +12,6 @@ import { useRouter, useParams } from "next/navigation";
 import { useSidebar } from "components/ui/sidebar";
 import UserSearch from "components/messaging/UserSearch";
 import ConversationList from "components/messaging/ConversationList";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
