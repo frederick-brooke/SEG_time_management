@@ -29,9 +29,9 @@ import {
 } from "@tabler/icons-react";
 
 import { GraduationCap, Map } from "lucide-react";
-import { NavMain } from "@/src/components/nav-main";
-import { NavSecondary } from "@/src/components/nav-secondary";
-import { NavUser } from "@/src/components/nav-user";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -40,9 +40,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/src/components/ui/sidebar";
+} from "@/components/ui/sidebar";
 
-import SearchPanel from "@/src/components/search-page/search-panel";
+import SearchPanel from "@/components/search-page/search-panel";
 import NotificationModal from "@/app/components/NotificationModal";
 
 const data = {
