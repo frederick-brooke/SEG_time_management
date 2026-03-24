@@ -9,9 +9,9 @@ import { useUI } from "@/context/UIContext";  //shared global states for control
 import { ProfileStats } from "@/src/components/profile/StatModules";
 import { getMyProfile } from "@/src/app/actions/profile";
 import { ComingUpSoon } from "@/src/components/coming-up-soon";
-import WellbeingPage from "../wellbeing/page";
 import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
-
+import LeaderboardClient from "../leaderboard/LeaderboardClient";
+import { getFriendsLeaderboard } from "../../actions/leaderboard";
 import { IconMoonStars } from "@tabler/icons-react";
 import WellbeingPanel from "@/src/components/wellbeing/wellbeing_panel";
 import { RocketProgress } from "@/components/ui/rocket-progress";
@@ -25,6 +25,7 @@ export default function Page() {
   const {wellbeingOpen, setWellbeingOpen} = useUI();
   const [exams, setExams] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
 
   const[wellbeingVisible, setWellbeingVisible] = useState(true);
 
@@ -39,13 +40,15 @@ export default function Page() {
     let isMounted = true; // Prevents fetching if the user moves away from screen
     async function loadData() {
       if (status === "authenticated" && !profile) {
-        const [examData, profileData] = await Promise.all([
+        const [examData, profileData, leaderboardData] = await Promise.all([
           getMyExams(),
-          getMyProfile()
+          getMyProfile(),
+          getFriendsLeaderboard('week')
         ]);
         if (isMounted) {
           setExams(examData);
           setProfile(profileData);
+          setLeaderboard(leaderboardData || []);
         }
       }
     }
@@ -129,14 +132,14 @@ export default function Page() {
           <hr className="border-white/5" />
 
           {/* Grid Layout for Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start pt-12">
-            <ComingUpSoon userId={session?.user?.id} exams={exams}/>
-
-            <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.2)] rounded-full opacity-50" />
-
-            <UpcomingExams exams={exams} />
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start pt-12">
+            <div className="flex flex-col gap-8">
+              <ComingUpSoon userId={session?.user?.id} exams={exams}/>
+              <UpcomingExams exams={exams} />
+            </div>
+            <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent rounded-full opacity-50" />
+            <LeaderboardClient initialData={leaderboard} currentTimeframe="week" />
           </div>
-
           <WellbeingPanel open={wellbeingOpen} onClose={() => {setWellbeingOpen(false); setWellbeingVisible(true)}}/>
         </main>
       </LunarThemeWrapper>
