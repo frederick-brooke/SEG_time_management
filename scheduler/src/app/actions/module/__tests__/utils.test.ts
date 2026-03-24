@@ -1,4 +1,4 @@
-import { prisma } from "lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
 import { ModuleRole } from "@prisma/client";

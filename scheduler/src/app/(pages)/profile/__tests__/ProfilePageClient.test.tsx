@@ -1,108 +1,206 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ProfilePageClient from '../ProfilePageClient';
 import '@testing-library/jest-dom';
 
-// 1. Mock Sub-components to isolate the test (V.2.2 Low Coupling)
-jest.mock('components/profile/EditProfileForm', () => () => <div data-testid="edit-form">EditForm Mock</div>);
-jest.mock('components/profile/FriendsList', () => () => <div data-testid="friends-list">FriendsList Mock</div>);
-jest.mock('components/profile/PendingRequests', () => () => <div data-testid="pending-requests">PendingRequests Mock</div>);
-jest.mock('components/profile/StreakCard', () => () => <div data-testid="streak-card">StreakCard Mock</div>);
-jest.mock('components/profile/TaskStatsCard', () => () => <div data-testid="task-stats-card">TaskStatsCard Mock</div>);
-jest.mock('components/admin/report-modal', () => () => <div data-testid="report-modal">Report Modal Mock</div>);
+//mocks
+jest.mock('@/components/layout/LunarThemeWrapper', () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <div data-testid="lunar-wrapper">{children}</div>,
+}));
+jest.mock('@/components/profile/EditProfileForm', () => ({
+  __esModule: true,
+  default: () => <div data-testid="edit-form">EditForm Mock</div>,
+}));
+jest.mock('@/components/profile/FriendsList', () => ({
+  __esModule: true,
+  default: () => <div data-testid="friends-list">FriendsList Mock</div>,
+}));
+jest.mock('@/components/profile/PendingRequests', () => ({
+  __esModule: true,
+  default: () => <div data-testid="pending-requests">PendingRequests Mock</div>,
+}));
+jest.mock('@/components/profile/StreakCard', () => ({
+  __esModule: true,
+  default: () => <div data-testid="streak-card">StreakCard Mock</div>,
+}));
+jest.mock('@/components/profile/TaskStatsCard', () => ({
+  __esModule: true,
+  default: () => <div data-testid="task-stats-card">TaskStatsCard Mock</div>,
+}));
+jest.mock('@/components/profile/PointsCard', () => ({
+  __esModule: true,
+  default: () => <div data-testid="points-card">PointsCard Mock</div>,
+}));
+jest.mock('@/components/profile/FriendStatCard', () => ({
+  __esModule: true,
+  default: ({ onToggle }: any) => (
+    <button data-testid="friend-stat-card" onClick={onToggle}>FriendStat Mock</button>
+  ),
+}));
 
-// 2. Mock Server Actions & Dependencies
-jest.mock('../../actions/profile', () => ({
+jest.mock('@/components/admin/report-modal', () => ({
+  __esModule: true,
+  default: () => <div data-testid="report-modal">Report Modal Mock</div>,
+}));
+
+// Mock Server Actions
+jest.mock('@/app/actions/profile', () => ({
   sendFriendRequest: jest.fn(),
   removeFriend: jest.fn(),
   cancelFriendRequest: jest.fn(),
 }));
 
-jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);
-
 jest.mock('lucide-react', () => ({
-  ...jest.requireActual('lucide-react'), // Keep actual icons for simple ones
-  Pencil: () => <svg data-testid="pencil-icon" />,
-  Flag: () => <svg data-testid="flag-icon" />,
+  Users: () => <svg data-testid="icon-users" />,
+  UserPlus: () => <svg data-testid="icon-userplus" />,
+  UserCheck: () => <svg data-testid="icon-usercheck" />,
+  Clock: () => <svg data-testid="icon-clock" />,
+  UserMinus: () => <svg data-testid="icon-userminus" />,
+  Flag: () => <svg data-testid="icon-flag" />,
+  Star: () => <svg data-testid="icon-star" />,
+  Pencil: () => <svg data-testid="icon-pencil" />,
+  X: () => <svg data-testid="icon-x" />,
 }));
 
-// 3. Shared Mock Data (V.3.6 Minimal Repetition)
+//shared mock data
 const mockProfile = {
-  id: "123",
-  username: "testuser",
-  fname: "Test",
-  lname: "User",
-  bio: "This is a test bio.",
-  createdAt: "2024-01-01T00:00:00.000Z",
-  progress: { level: 2, points: 150 },
-  stats: { streak: 5, friendCount: 2, completedTasks: 10, totalTasks: 10, completionRate: 100 },
-  friends: [{ id: "f1", username: "friend1" }],
-  receivedRequests: [{ id: "req1", sender: { username: "sender1" } }],
+  id: "u123",
+  username: "lunar_dev",
+  fname: "Lunar",
+  lname: "Developer",
+  bio: "Building the future of productivity.",
+  createdAt: "2026-01-01T00:00:00.000Z",
+  pfp: null,
+  progress: { level: 5, points: 550 },
+  stats: { 
+    streak: 12, 
+    friendCount: 8, 
+    completedTasks: 45, 
+    totalTasks: 50, 
+    completionRate: 90 
+  },
+  friends: [],
+  receivedRequests: [],
   friendStatus: "NONE"
 };
 
+//tests
 describe('ProfilePageClient Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Silences window.confirm if it's called during tests
+    window.confirm = jest.fn(() => true);
   });
 
-  it('renders core profile data and base sub-components', () => {
-    render(<ProfilePageClient profile={mockProfile} isOwnProfile={false} />);
-    
-    expect(screen.getByText('Test User')).toBeInTheDocument();
-    expect(screen.getByText('@testuser')).toBeInTheDocument();
-    
-    // Verifies the child components were called
-    expect(screen.getByTestId('streak-card')).toBeInTheDocument();
-    expect(screen.getByTestId('task-stats-card')).toBeInTheDocument();
-  });
-
-  it('renders own-profile specifics (Edit toggle, Pending Requests)', () => {
+  /**
+   * Verifies that basic profile information like name, username, and level
+   * are displayed correctly on initial load.
+   */
+  it('renders primary profile information and level badge', () => {
     render(<ProfilePageClient profile={mockProfile} isOwnProfile={true} />);
     
-    // Should show pencil icon, should NOT show report flag
-    expect(screen.getByTestId('pencil-icon')).toBeInTheDocument();
-    expect(screen.queryByTestId('flag-icon')).not.toBeInTheDocument();
-    
-    // Should show pending requests for own profile
-    expect(screen.getByTestId('pending-requests')).toBeInTheDocument();
+    expect(screen.getByText(/Lunar Developer/i)).toBeInTheDocument();
+    expect(screen.getByText(/@lunar_dev/i)).toBeInTheDocument();
+    // Checks level badge
+    expect(screen.getByText("5")).toBeInTheDocument();
+    // Checks bio
+    expect(screen.getByText(/Building the future/i)).toBeInTheDocument();
   });
 
-  it('renders other-profile specifics (Report button, NO pending requests)', () => {
-    render(<ProfilePageClient profile={mockProfile} isOwnProfile={false} />);
+  /**
+   * Ensures that the "Edit" pencil icon and "Pending Requests" are only visible
+   * when the user is viewing their own profile.
+   */
+  it('displays ownership controls only on own profile', () => {
+    const { rerender } = render(<ProfilePageClient profile={mockProfile} isOwnProfile={true} />);
     
-    // Should show report flag, should NOT show pencil icon
-    expect(screen.getByTestId('flag-icon')).toBeInTheDocument();
-    expect(screen.queryByTestId('pencil-icon')).not.toBeInTheDocument();
+    expect(screen.getByTestId('icon-pencil')).toBeInTheDocument();
+    expect(screen.getByTestId('pending-requests')).toBeInTheDocument();
+
+    // Rerender as if viewing someone else
+    rerender(<ProfilePageClient profile={mockProfile} isOwnProfile={false} />);
     
-    // Pending requests are hidden on someone else's profile
+    expect(screen.queryByTestId('icon-pencil')).not.toBeInTheDocument();
     expect(screen.queryByTestId('pending-requests')).not.toBeInTheDocument();
   });
 
+  /**
+   * Tests the toggle functionality for the Edit Profile form.
+   */
   it('toggles the EditProfileForm when the pencil icon is clicked', () => {
     render(<ProfilePageClient profile={mockProfile} isOwnProfile={true} />);
     
-    // Initially not in the document
     expect(screen.queryByTestId('edit-form')).not.toBeInTheDocument();
     
-    // Click the pencil
-    const editButton = screen.getByTestId('pencil-icon').closest('button');
-    fireEvent.click(editButton!);
+    const editBtn = screen.getByTestId('icon-pencil').closest('button')!;
+    fireEvent.click(editBtn);
     
-    // Now it should be rendered
     expect(screen.getByTestId('edit-form')).toBeInTheDocument();
   });
 
-  it('toggles the FriendsList sub-component when the friends card is clicked', () => {
+  /**
+   * Verifies that clicking the Friends Stat card expands the detailed FriendsList.
+   */
+  it('expands the FriendsList when the friend stat card is toggled', () => {
     render(<ProfilePageClient profile={mockProfile} isOwnProfile={true} />);
     
-    // Initially hidden
     expect(screen.queryByTestId('friends-list')).not.toBeInTheDocument();
     
-    // Find the button wrapping the text "Friends"
-    const friendsToggle = screen.getByText(/Friends/i).closest('button');
-    fireEvent.click(friendsToggle!);
+    fireEvent.click(screen.getByTestId('friend-stat-card'));
     
-    // The mocked FriendsList should now be on screen
     expect(screen.getByTestId('friends-list')).toBeInTheDocument();
+  });
+
+  /**
+   * Tests the conditional rendering of the Report button (should only be 
+   * visible on other users' profiles).
+   */
+  it('shows the Report Modal when the report button is clicked', () => {
+    render(<ProfilePageClient profile={mockProfile} isOwnProfile={false} />);
+    
+    fireEvent.click(screen.getByText(/Report User/i));
+    
+    expect(screen.getByTestId('report-modal')).toBeInTheDocument();
+  });
+
+  /**
+   * Comprehensive check of the FriendRequestAction sub-logic:
+   * Verifies the button text/state for every possible 'friendStatus'.
+   */
+  describe('FriendRequestAction logic', () => {
+    
+    it('shows "Add Friend" when status is NONE', () => {
+      render(<ProfilePageClient profile={{...mockProfile, friendStatus: 'NONE'}} isOwnProfile={false} />);
+      expect(screen.getByText(/Add Friend/i)).toBeInTheDocument();
+    });
+
+    it('shows "Friends" badge and "Remove" button when status is FRIENDS', () => {
+      render(<ProfilePageClient profile={{...mockProfile, friendStatus: 'FRIENDS'}} isOwnProfile={false} />);
+      expect(screen.getByText("Friends")).toBeInTheDocument();
+      expect(screen.getByText("Remove")).toBeInTheDocument();
+    });
+
+    it('shows "Request Pending" when status is REQUEST_SENT', () => {
+      render(<ProfilePageClient profile={{...mockProfile, friendStatus: 'REQUEST_SENT'}} isOwnProfile={false} />);
+      expect(screen.getByText(/Request Pending/i)).toBeInTheDocument();
+      expect(screen.getByText(/Cancel/i)).toBeInTheDocument();
+    });
+
+    it('shows "Wants to be Friends" when status is REQUEST_RECEIVED', () => {
+      render(<ProfilePageClient profile={{...mockProfile, friendStatus: 'REQUEST_RECEIVED'}} isOwnProfile={false} />);
+      expect(screen.getByText(/Wants to be Friends/i)).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Verifies the XP bar progress calculation logic correctly updates the style.
+   */
+  it('calculates and displays the correct XP progress width', () => {
+    // 550 total points / 100 XP per level = 50 XP into level 5 (50% bar)
+    render(<ProfilePageClient profile={mockProfile} isOwnProfile={true} />);
+    
+    const xpBar = screen.getByText(/550 XP total/i).closest('div')?.nextElementSibling?.firstChild;
+    expect(xpBar).toHaveStyle('width: 50%');
+    expect(screen.getByText(/50 XP until Level 6/i)).toBeInTheDocument();
   });
 });
