@@ -1,25 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import BannedPage from "@/components/admin/ban-message-page";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const { status } = useSession();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-
   const [showBannedInfo, setShowBannedInfo] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
       const authError = searchParams.get("error");
-
       if (authError) {
         router.replace(`/dashboard?error=${authError}`);
       } else {
@@ -37,47 +35,41 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);     
+    setError(null);
 
-    const result = await signIn("credentials", {    // stores whether login succeeded or failed
-      redirect: false,    // dont automatically redirect, let us handle it
-      email,              // the values from the form
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
       password,
     });
-
-    if (result?.error) {      // if result exists, check its error property
-      setError("Invalid email or password");
-    } else {                  // if login succeeded
-      const sessionRes = await fetch("/api/auth/session");    // fetches the raw, current session from the API
-      const session = await sessionRes.json();    // converts the response to JSON. Now session contains the user's data like their ID, email
-
-      router.push("/dashboard");
-
-      if (!session?.user?.id) {
-        setError("Failed to get user session");
-        return;
-      }
-
-      const prefsRes = await fetch(
-        `/api/preferences/check?userId=${session.user.id}`,     // calls our preferences API to check if this user has filled out the quiz
-      );
-      const prefsData = await prefsRes.json();    // converts the response to JSON
-
-      if (prefsData.hasPreferences) {
-        router.push("/dashboard");
-      } else {
-        router.push("/quiz");
-      }
-    }
 
     if (result?.error) {
       if (result.error === "Banned") {
         setError("Your account has been banned.");
-        //display the banned page
         setShowBannedInfo(true);
       } else {
         setError("Invalid email or password");
       }
+      return;
+    }
+
+    const sessionRes = await fetch("/api/auth/session");
+    const session = await sessionRes.json();
+
+    if (!session?.user?.id) {
+      setError("Failed to get user session");
+      return;
+    }
+
+    const prefsRes = await fetch(
+      `/api/preferences/check?userId=${session.user.id}`
+    );
+    const prefsData = await prefsRes.json();
+
+    if (prefsData.hasPreferences) {
+      router.push("/dashboard");
+    } else {
+      router.push("/quiz");
     }
   };
 
@@ -145,7 +137,21 @@ export default function LoginPage() {
         </div>
       </form>
 
-      {showBannedInfo && <BannedPage/>}
+      {showBannedInfo && <BannedPage />}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <p>Loading...</p>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

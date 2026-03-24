@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { validatePassword } from "lib/password";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -80,7 +80,9 @@ export default function ResetPasswordPage() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="w-full max-w-md rounded bg-white p-8 shadow">
           <h1 className="mb-6 text-2xl font-bold text-center">Reset Password</h1>
-          <p className="text-red-600">No reset token provided. Please use the link sent to your email.</p>
+          <p className="text-red-600">
+            No reset token provided. Please use the link sent to your email.
+          </p>
           <div className="mt-6 text-center">
             <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
               Request a new reset link
@@ -148,5 +150,13 @@ export default function ResetPasswordPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
