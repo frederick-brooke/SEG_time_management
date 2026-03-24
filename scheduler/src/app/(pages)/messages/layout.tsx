@@ -24,7 +24,7 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
 
   // Show sidebar on desktop always; on mobile show sidebar only when no conversation is open
   useEffect(() => {
-    const check = () => {
+    const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
       if (!mobile) {
@@ -33,14 +33,14 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
         setSidebarOpen(!conversationId);
       }
     };
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [conversationId]);
 
   return (
     <div
-      className="flex h-screen overflow-hidden bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]"
+      className="flex h-[100dvh] overflow-hidden bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]"
     >
       {/* Sidebar — fixed full screen on mobile, static 380px on desktop */}
       <aside
