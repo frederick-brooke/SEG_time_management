@@ -21,11 +21,12 @@ function Avatar({
       {...props} />
   );
 }
+type AvatarImageProps = React.ComponentProps<typeof AvatarPrimitive.Image>
 
 function AvatarImage({
   className,
   ...props
-}) {
+}: AvatarImageProps) {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
@@ -34,10 +35,12 @@ function AvatarImage({
   );
 }
 
+type AvatarFallbackProps = React.ComponentProps<typeof AvatarPrimitive.Fallback>
+
 function AvatarFallback({
   className,
   ...props
-}) {
+}: AvatarFallbackProps) {
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"

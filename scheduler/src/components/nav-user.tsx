@@ -12,7 +12,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "components/ui/avatar"
+} from "@/src/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "components/ui/sidebar"
+} from "@/src/components/ui/sidebar"
 
 export function NavUser({
   user

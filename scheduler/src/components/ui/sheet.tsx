@@ -33,7 +33,7 @@ function SheetPortal({
 function SheetOverlay({
   className,
   ...props
-}) {
+}: React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>) {
   return (
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"

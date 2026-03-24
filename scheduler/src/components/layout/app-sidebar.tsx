@@ -2,9 +2,9 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { checkUpcomingDeadlines } from "../app/actions/examActions";
-import { getNotifications } from "../app/actions/notifications";
-import { ToastContainer } from "./ToastContainer"; // adjust path if needed
+import { checkUpcomingDeadlines } from "@/app/actions/examActions";
+import { getNotifications } from "@/app/actions/notifications";
+import { ToastContainer } from "@/components/ToastContainer"; // adjust path if needed
 import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
 
 import {
@@ -40,10 +40,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "@/src/components/ui/sidebar";
 
 import SearchPanel from "@/src/components/search-page/search-panel";
-import NotificationModal from "../app/components/NotificationModal";
+import NotificationModal from "@/app/components/NotificationModal";
 
 const data = {
   user: {
