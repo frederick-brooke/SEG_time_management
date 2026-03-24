@@ -125,7 +125,7 @@ function ConversationMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        className="p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 
+        className="p-1 rounded-lg transition-colors
         text-[rgba(148,163,255,0.4)] hover:text-[rgba(148,163,255,0.8)]"
         title="More options"
       >
