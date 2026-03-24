@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { payGameEntry } from "@/src/app/actions/games";
-import { DIFFICULTY_CONFIG, Difficulty } from "@/src/lib/games-config";
+import { payGameEntry } from "@/app/actions/games";
+import { DIFFICULTY_CONFIG, Difficulty } from "@/lib/games-config";
 import { GoldCoin } from "components/ui/gold-coin";
 
 

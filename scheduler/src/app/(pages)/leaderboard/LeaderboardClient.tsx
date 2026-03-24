@@ -5,6 +5,7 @@ import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Timeframe, SortKey } from "@/src/types/leaderboard";
+import { resolveAvatarSrc } from "@/lib/avatar";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 

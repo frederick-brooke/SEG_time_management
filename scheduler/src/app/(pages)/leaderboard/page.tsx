@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getFriendsLeaderboard } from "@/src/app/actions/leaderboard";
+import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
 import { Trophy } from "lucide-react";
 import LeaderboardClient from "./LeaderboardClient";
 import { Timeframe } from "@/src/types/leaderboard";

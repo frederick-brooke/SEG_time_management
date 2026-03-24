@@ -7,7 +7,7 @@
  */
 
 import dynamic from "next/dynamic";
-import { Friend } from "@/src/lib/map";
+import { Friend } from "@/lib/map";
 
 interface FriendMapProps {
   friends: Friend[];
@@ -18,7 +18,7 @@ interface FriendMapProps {
  */
 const FriendMap = dynamic<FriendMapProps>(
   () =>
-    import("@/src/components/map/CombinedMap").then((m) => ({
+    import("@/components/map/CombinedMap").then((m) => ({
       default: ({ friends }: FriendMapProps) => (
         <m.CombinedMap 
           friends={friends}        

@@ -3,19 +3,19 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getMyExams } from "@/src/app/actions/examActions";
+import { getMyExams } from "@/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
 import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
-import { ProfileStats } from "@/src/components/profile/StatModules";
-import { getMyProfile } from "@/src/app/actions/profile";
-import { ComingUpSoon } from "@/src/components/coming-up-soon";
+import { ProfileStats } from "@/components/profile/StatModules";
+import { getMyProfile } from "@/app/actions/profile";
+import { ComingUpSoon } from "@/components/coming-up-soon";
 import WellbeingPage from "../wellbeing/page";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 import { IconMoonStars } from "@tabler/icons-react";
-import WellbeingPanel from "@/src/components/wellbeing/wellbeing_panel";
+import WellbeingPanel from "@/components/wellbeing/wellbeing_panel";
 import { RocketProgress } from "@/components/ui/rocket-progress";
-import { useTasks } from "@/src/hooks/useTasks";
+import { useTasks } from "@/hooks/useTasks";
 
 export default function Page() {
   const { data: session, status }: {data: any; status: string } = useSession();

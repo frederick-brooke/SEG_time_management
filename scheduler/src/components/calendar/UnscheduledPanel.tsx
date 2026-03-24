@@ -1,6 +1,6 @@
 "use client";
 import { format } from "date-fns";
-import { getNextOccurrenceDeadline } from "@/src/lib/scheduling/taskSchedulingUtils";
+import { getNextOccurrenceDeadline } from "@/lib/scheduling/taskSchedulingUtils";
 
 // ---------------------------------------------------------------------------
 // DeadlineBadge

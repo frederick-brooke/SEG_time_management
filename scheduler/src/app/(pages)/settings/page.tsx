@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { SettingsClient } from "./SettingsClient";
 import { Settings } from "lucide-react";
 import { PageHeader } from "@/src/components/ui/page-header";

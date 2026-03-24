@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/src/lib/auth";
-import { prisma } from "@/src/lib/prisma";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 // UI components
-import MapView from "@/src/components/MapView";
+import MapView from "@/components/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
 
 // Server Component

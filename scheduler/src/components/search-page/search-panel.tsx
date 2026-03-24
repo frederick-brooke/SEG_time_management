@@ -5,7 +5,7 @@ import SearchControls from "@/components/search-page/search-controls";
 import SearchUsers from "@/components/search-page/searchUsers";
 import UserFilter from "@/components/admin/user-filter-panel";
 
-import { useUsers } from "@/src/hooks/useUsers";
+import { useUsers } from "@/hooks/useUsers";
 
 //UI components
 import GlassCard from "@/components/ui/glassCard";

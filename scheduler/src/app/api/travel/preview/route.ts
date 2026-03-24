@@ -13,7 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { calculateTravelTime } from "@/src/lib/travel";
+import { calculateTravelTime } from "@/lib/travel";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

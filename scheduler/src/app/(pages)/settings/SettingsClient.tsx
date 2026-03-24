@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from "react";
-import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/src/app/actions/settings";
+import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/app/actions/settings";
 import { signIn, signOut } from "next-auth/react";
 import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle } from "lucide-react";
 import { TabKey } from "@/src/types/settings";

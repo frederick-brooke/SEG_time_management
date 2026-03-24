@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import BannedPage from "@/src/components/admin/ban-message-page";
+import BannedPage from "@/components/admin/ban-message-page";
 
 export default function LoginPage() {
   const router = useRouter();

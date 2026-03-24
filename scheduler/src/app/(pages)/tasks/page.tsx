@@ -1,11 +1,11 @@
 "use client";
-import { ToDoList } from "@/src/components/to-do-list";
+import { ToDoList } from "@/components/to-do-list";
 import { useSession } from "next-auth/react";
-import { getMyExams } from "@/src/app/actions/examActions";
+import { getMyExams } from "@/app/actions/examActions";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { StarField } from "@/components/landing/HeroSection";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 export default function TasksPage() {
   const { data: session, status } = useSession();

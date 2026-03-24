@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { MapPin } from "lucide-react";
 import { TaskForm, type TaskFormData } from "@/components/tasks/TaskForm";
-import EventForm from "@/src/components/calendar/EventForm";
+import EventForm from "@/components/calendar/EventForm";
 
 // Colour maps for the category/priority indicator stripe at the top of the modal.
 const CATEGORY_COLORS: Record<string, string> = {
