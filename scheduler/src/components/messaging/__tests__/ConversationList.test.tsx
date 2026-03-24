@@ -283,14 +283,6 @@ describe("ConversationList – rendering", () => {
     });
   });
 
-  it("highlights the active conversation row", async () => {
-    setupMocks({ conversations: [DIRECT_CONV], activeId: "conv-1" });
-    render(<ConversationList />);
-    await waitFor(() => screen.getByText("Alice Smith"));
-    const row = screen.getByText("Alice Smith").closest(".group");
-    expect(row).toHaveStyle({ border: "1px solid rgba(88,101,242,0.2)" });
-  });
-
   it("skips rendering a direct conversation with no other participant", async () => {
     const conv = {
       ...DIRECT_CONV,

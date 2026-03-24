@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -27,8 +27,8 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
   );
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
-export default function LoginPage() {
+// ── Client Component (uses useSearchParams) ─────────────────────────────────────
+function LoginForm() {
   const router = useRouter();
   const { status } = useSession();
   const searchParams = useSearchParams();
@@ -98,7 +98,6 @@ export default function LoginPage() {
     }
   };
 
-  // Loading state styled to match the dark theme
   if (status === "loading" || status === "authenticated") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0f]">
@@ -109,7 +108,6 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0a0a0f] px-4 relative overflow-hidden">
-      {/* Ambient Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10">
@@ -118,16 +116,16 @@ export default function LoginPage() {
           className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"
         >
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+            <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <LogIn size={28} className="text-blue-400" />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
             <p className="text-white/50 text-sm">Enter your credentials to access your orbit.</p>
           </div>
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 text-red-300 text-sm rounded-xl border border-red-500/20 flex items-center gap-3">
-              <AlertCircle size={18} className="shrink-0" />
+              <AlertCircle size={18} />
               <p>{error}</p>
             </div>
           )}
@@ -135,7 +133,6 @@ export default function LoginPage() {
           <div className="space-y-5 mb-8">
             <FormInput
               label="Email or Username"
-              type="text"
               name="identifier"
               value={identifier}
               onChange={(e: any) => setIdentifier(e.target.value)}
@@ -156,32 +153,27 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 text-white py-3.5 rounded-xl"
           >
             {isPending ? "Authenticating..." : "Initiate Launch"}
           </button>
 
-          <div className="mt-8 pt-6 border-t border-white/10 text-center text-sm">
-            <div className="mb-3">
-              <Link href="/forgot-password" className="font-medium text-white/50 hover:text-blue-400 transition-colors">
-                Forgot your password?
-              </Link>
-            </div>
-            <div className="text-white/40">
-              Don't have an account?{" "}
-              <Link href="/register" className="font-bold text-blue-400 hover:text-blue-300 transition-colors tracking-wide">
-                SIGN UP
-              </Link>
-            </div>
+          <div className="mt-6 text-center text-sm">
+            <Link href="/forgot-password">Forgot your password?</Link>
           </div>
         </form>
 
-        {showBannedInfo && (
-          <div className="mt-8">
-            <BannedPage />
-          </div>
-        )}
+        {showBannedInfo && <BannedPage />}
       </div>
     </div>
+  );
+}
+
+// ── Page Wrapper with Suspense ─────────────────────────────────────────────────
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

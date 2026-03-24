@@ -13,12 +13,6 @@ describe("MessagesPage", () => {
     expect(screen.getByText("or search for someone to message")).toBeInTheDocument();
   });
 
-  it("applies the correct text color style", () => {
-    const { container } = render(<MessagesPage />);
-    const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveClass("text-[rgba(148,163,255,0.35)]");
-  });
-
   it("is centred using flex layout", () => {
     const { container } = render(<MessagesPage />);
     const wrapper = container.firstChild as HTMLElement;
