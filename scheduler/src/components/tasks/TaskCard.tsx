@@ -7,6 +7,33 @@ import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/src/lib/priority";
 import { LunarCard } from "../ui/lunar-card";
 
+function SubtaskList({ subtasks, checkedList, onSubtaskChange }: {
+  subtasks: any[];
+  checkedList: boolean[];
+  onSubtaskChange: (e: React.ChangeEvent<HTMLInputElement>, i: number) => void;
+}) {
+  return (
+    <div className="mt-2 pt-2 border-t border-dashed border-muted space-y-1">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase">Subtasks</p>
+        <div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
+          {subtasks.map((sub, i) => (
+            <div key={i} className="flex items-center gap-1.5 group">
+              <input 
+                type="checkbox" 
+                checked={checkedList[i] || false}
+                className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 
+                onChange={(e) => onSubtaskChange(e, i)}
+              />
+              <span className="text-[10px] text-muted-foreground truncate group-hover:text-foreground">
+                {typeof sub === 'string' ? sub.trim() : (sub.title || "New Subtask")}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
 export function TaskCard({
   task,
   onToggle,
@@ -60,6 +87,19 @@ export function TaskCard({
       };
     }
   }, [className, task.id]);
+
+  const handleSubtaskChange = (e: React.ChangeEvent<HTMLInputElement>, i: number) => {
+    e.stopPropagation();
+    const newList = [...checkedList];
+    newList[i] = e.target.checked;
+    setCheckedList(newList);
+    const checkedCount = newList.filter(Boolean).length;
+    if (checkedCount === newList.length && task.status !== "completed") {
+      onToggle(task.id, "completed");
+    } else if (checkedCount < newList.length && task.status === "completed") {
+      onToggle(task.id, "in-progress");
+    }
+  }
 
   return (
     <div 
@@ -132,45 +172,12 @@ export function TaskCard({
 
             {/* Subtask Checklist */}
             {!isDashboard && subtasksList.length > 0 && (
-              <div className="mt-2 pt-2 border-t border-dashed border-muted space-y-1">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Subtasks</p>
-                <div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
-                  {(Array.isArray(task.subtasks) 
-                  ? task.subtasks 
-                  : String(task.subtasks).split(',').filter(s => s.trim() !== "")
-                  ).map((sub, i) => (
-                    <div key={i} className="flex items-center gap-1.5 group">
-                      <input 
-                        type="checkbox" 
-                        checked={checkedList[i] || false}
-                        className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 
-                        onChange={(e) => {
-                          e.stopPropagation()
-
-                          const isCheckedNow = e.target.checked;
-                          const newList = [...checkedList];
-                          newList[i] = isCheckedNow;
-                          setCheckedList(newList);
-
-                          const total = newList.length;
-                          const currentCheckedCount = newList.filter(Boolean).length;
-
-                          if (total > 0 && currentCheckedCount === total && task.status !== "completed") {
-                            onToggle(task.id, "completed");
-                          }
-                          else if (currentCheckedCount < total && task.status === "completed") {
-                            onToggle(task.id, "in-progress");
-                          }
-                        }}
-                      />
-                      <span className="text-[10px] text-muted-foreground truncate group-hover:text-foreground">
-                        {typeof sub === 'string' ? sub.trim() : (sub.title || "New Subtask")}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )} 
+              <SubtaskList
+                subtasks={subtasksList}
+                checkedList={checkedList}
+                onSubtaskChange={handleSubtaskChange}
+              />
+            )}
           </div>
           
           {!isDashboard && (
