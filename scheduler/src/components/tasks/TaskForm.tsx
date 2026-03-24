@@ -246,7 +246,7 @@ export function TaskForm({
               href={formData.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50"
+              className="lunar-input px-3 py-2"
             >
               🔗
             </a>
@@ -288,13 +288,13 @@ export function TaskForm({
             role="switch"
             aria-checked={isRecurring}
             onClick={() => setIsRecurring((p) => !p)}
-            className={`w-10 h-5 rounded-full transition-all relative ${isRecurring ? "bg-indigo-600" : "bg-gray-200"}`}
+            className={`w-10 h-5 rounded-full transition-all relative ${isRecurring ? "bg-indigo-600" : "bg-white/10"}`}
           >
             <span
               className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${isRecurring ? "left-5" : "left-0.5"}`}
             />
           </button>
-          <span className="text-sm font-medium text-gray-600">
+          <span className="text-sm font-medium text-white/50">
             {isRecurring ? "This task repeats" : "Does not repeat"}
           </span>
         </div>
