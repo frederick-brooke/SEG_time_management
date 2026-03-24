@@ -1,25 +1,30 @@
 import { DELETE, PATCH } from "@/app/api/tasks/[id]/route";
-import prisma from "@/src/lib/prisma";
-import { awardTaskPoints, revokeTaskPoints } from "@/src/lib/points";
+import { prisma } from "@/lib/prisma";
+import { awardTaskPoints, revokeTaskPoints } from "@/lib/points";
 
-jest.mock("@/src/lib/prisma", () => ({
-  task: {
-    delete: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-  },
-}));
-
-jest.mock("@/src/lib/points", () => ({
+jest.mock("@/lib/points", () => ({
   awardTaskPoints: jest.fn(),
   revokeTaskPoints: jest.fn(),
+}));
+
+jest.mock("@/lib/prisma", () => ({
+  prisma: {
+    task: {
+      delete: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    exam: {
+      findUnique: jest.fn(),
+    },
+  }
 }));
 
 // Typed mocks so TypeScript allows mockResolvedValue
 const mockDelete = prisma.task.delete as jest.Mock;
 const mockFindUnique = prisma.task.findUnique as jest.Mock;
+const mockExamFindUnique = prisma.exam.findUnique as jest.Mock;
 const mockUpdate = prisma.task.update as jest.Mock;
-
 const mockAwardPoints = awardTaskPoints as jest.Mock;
 const mockRevokePoints = revokeTaskPoints as jest.Mock;
 
@@ -176,5 +181,104 @@ describe("Task API Route", () => {
 
     expect(res.status).toBe(500);
   });
+
+  test("PATCH with examId links to exam", async () => {
+    mockFindUnique
+      .mockResolvedValueOnce({ id: "task1", completed: false })
+      .mockResolvedValueOnce({ id: "exam1", title: "Maths Exam" });
+    
+    mockUpdate.mockResolvedValueOnce({
+      id: "task1", userId: "user1", completed: false, priority: "Low"
+    });
+
+    const req = {
+      json: async () => ({ examId: "exam1" }),
+    } as unknown as Request;
+
+    const res = await PATCH(req, { params });
+    expect(res.status).not.toBe(500);
+  });
+
+  test("PATCH with examId none clears exam", async () => {
+    mockFindUnique.mockResolvedValue({ id: "task1", completed: false });
+    mockUpdate.mockResolvedValue({
+      id: "task1", userId: "user1", completed: false, priority: "Low"
+    });
+
+    const req = {
+      json: async () => ({ examId: "none" }),
+    } as unknown as Request;
+
+    const res = await PATCH(req, { params });
+    expect(res.status).not.toBe(500);
+  });
+
+  test("PATCH with null dueDate clears date", async () => {
+    mockFindUnique.mockResolvedValue({ id: "task1", completed: false });
+    mockUpdate.mockResolvedValue({
+      id: "task1", userId: "user1", completed: false, priority: "Low"
+    });
+
+    const req = {
+      json: async () => ({ dueDate: null }),
+    } as unknown as Request;
+
+    const res = await PATCH(req, { params });
+    expect(res.status).not.toBe(500);
+  });
+
+  test("PATCH with valid dueDate sets date", async () => {
+    mockFindUnique.mockResolvedValue({ id: "task1", completed: false });
+    mockUpdate.mockResolvedValue({
+      id: "task1", userId: "user1", completed: false, priority: "Low"
+    });
+
+    const req = {
+      json: async () => ({ dueDate: "2026-07-01" }),
+    } as unknown as Request;
+
+    const res = await PATCH(req, { params });
+    expect(res.status).not.toBe(500);
+  });
+
+  test("PATCH with scheduledDate null clears it", async () => {
+    mockFindUnique.mockResolvedValue({ id: "task1", completed: false });
+    mockUpdate.mockResolvedValue({
+      id: "task1", userId: "user1", completed: false, priority: "Low"
+    });
+
+    const req = {
+      json: async () => ({ scheduledDate: null }),
+    } as unknown as Request;
+
+    const res = await PATCH(req, { params });
+    expect(res.status).not.toBe(500);
+  });
+
+  test("PATCH updates all optional fields", async () => {
+    mockFindUnique.mockResolvedValue({ id: "task1", completed: false });
+    mockUpdate.mockResolvedValue({ id: "task1", completed: false, priority: "Medium", userId: "u1" });
+
+    const fullBody = {
+      title: "New title",
+      description: "New desc",
+      dueDate: "2026-01-01",
+      priority: "High",
+      duration: "60",
+      subtasks: "Sub1, Sub2",
+      bufferDays: 2, 
+      url: "https://test.com",
+      isRecurring: true,
+      recurrence: { type: "weekly" },
+      missedAt: "2026-01-01",
+      carriedFrom: "old-id",
+      progress: 50,
+      eventId: "event-123"
+    };
+
+    const req = { json: async () => fullBody } as Request;
+    const res = await PATCH(req, { params: Promise.resolve({ id: "task1" })});
+    expect(res.status).toBe(200);
+  })
 });
 
