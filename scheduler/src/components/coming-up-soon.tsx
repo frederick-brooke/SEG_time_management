@@ -104,7 +104,7 @@ export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
         </div>
         
         {/* Task list in a scrollable container */}
-        <div className="overflow-y-auto pt-0 pb-6 px-2 custom-scrollbar transition-all" style={{ maxHeight: "350px" }}>
+        <div className="lunar-scroll-area pt-0 pb-6 px-2 transition-all" style={{ maxHeight: "350px" }}>
           {comingSoonTasks.length === 0 ? (
             <p className="text-sm text-white/30 text-center py-8 italic font-medium">No tasks due soon</p>
           ) : (
