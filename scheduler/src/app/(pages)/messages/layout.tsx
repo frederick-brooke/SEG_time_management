@@ -9,82 +9,66 @@
  */
 
 import { useRouter, useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-
+import { useSidebar } from "components/ui/sidebar";
 import UserSearch from "components/messaging/UserSearch";
 import ConversationList from "components/messaging/ConversationList";
+import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
   const conversationId = params?.conversationId as string | undefined;
+  const { isMobile } = useSidebar();
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Show sidebar on desktop always; on mobile show sidebar only when no conversation is open
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (!mobile) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(!conversationId);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [conversationId]);
+  const SidebarContent = (
+    <>
+      <div className="p-4 shrink-0 border-b border-white/[0.06]">
+        <h2 className="lunar-header text-2xl mb-1">Messages</h2>
+        <p className="lunar-label-subtitle mb-3">Your conversations</p>
+        <UserSearch />
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <ConversationList />
+      </div>
+    </>
+  );
 
   return (
-    <div
-      className="flex h-[100dvh] overflow-hidden bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]"
-    >
-      {/* Sidebar — fixed full screen on mobile, static 380px on desktop */}
-      <aside
-        className={`flex flex-col shrink-0 transition-all duration-300 overflow-hidden min-w-0 ${
-          isMobile ? "fixed top-0 left-0 h-screen z-50" : ""
-        } ${
-          sidebarOpen && !isMobile ? "border-r border-white/[0.06]" : ""
-        }`}
-        style={{ width: sidebarOpen ? (isMobile ? "100vw" : "380px") : "0px" }}
-      >
-        <div className={`flex flex-col h-full ${isMobile ? "w-screen" : "w-[380px]"}`}>
-          <div className="p-4 shrink-0 border-b border-white/[0.06]">
-            <h2 className="text-lg font-bold mb-3 text-[rgba(220,225,255,0.9)]">Messages</h2>
-            <UserSearch />
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            <ConversationList />
-          </div>
-        </div>
-      </aside>
+      <div className="flex h-full overflow-hidden text-white/90">
 
-      {/* Main content — hidden on mobile when sidebar is open */}
-      {(!isMobile || !sidebarOpen) && (
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
-          {isMobile && conversationId && (
-            <div
-              className="shrink-0 px-3 py-2 border-b border-white/[0.06]"
-            >
-              <button
-                onClick={() => {
-                  setSidebarOpen(true);
-                  router.push("/messages");
-                }}
-                className="flex items-center gap-1.5 text-sm transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
-              >
-                ← Back
-              </button>
-            </div>
-          )}
-          <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-            {children}
+        {/* Desktop: static 380px sidebar always visible */}
+        {!isMobile && (
+          <aside className="flex flex-col w-[380px] shrink-0 border-r border-white/[0.06] overflow-hidden">
+            {SidebarContent}
+          </aside>
+        )}
+
+        {/* Mobile: conversation list shown when no chat is open */}
+        {isMobile && !conversationId && (
+          <div className="flex flex-col flex-1 overflow-hidden">
+            {SidebarContent}
           </div>
-        </main>
-      )}
-    </div>
+        )}
+
+        {/* Conversation view: full width on mobile, flex-1 on desktop */}
+        {(!isMobile || conversationId) && (
+          <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+            {isMobile && conversationId && (
+              <div className="shrink-0 px-3 py-2 border-b border-white/[0.06]">
+                <button
+                  onClick={() => router.push("/messages")}
+                  className="flex items-center gap-1.5 text-sm transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
+                >
+                  ← Back
+                </button>
+              </div>
+            )}
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+              {children}
+            </div>
+          </main>
+        )}
+
+      </div>
   );
 }
