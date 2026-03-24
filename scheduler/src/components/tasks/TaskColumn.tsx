@@ -12,7 +12,7 @@ export function TaskColumn({
 }) {
   return (
     <div
-      className={`flex-1 min-w-[300px] rounded-lg border p-4 flex flex-col h-[calc(100vh-280px)] ${
+      className={`flex-1 min-w-[240px] rounded-lg border p-4 flex flex-col h-[calc(100vh-280px)] ${
         status === "overdue" ? 
           "bg-red-500/5 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.05)]" 
           : "bg-white/[0.03] border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.02)]"

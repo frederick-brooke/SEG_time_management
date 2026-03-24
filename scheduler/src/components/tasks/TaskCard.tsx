@@ -74,7 +74,7 @@ export function TaskCard({
       <LunarCard 
         id={`task-${task.id}`}
         variant="blue"
-        className={`p-6 mb-4 rounded-[3em] transition-all duration-300 relative z-10 ${
+        className={`p-4 mb-2 rounded-[3em] transition-all duration-300 relative z-10 ${
           isDashboard
             ? "cursor-pointer hover:scale-[1.02] active:scale-95 hover:ring-2 hover:ring-blue-400/30"
             : ""
@@ -86,12 +86,12 @@ export function TaskCard({
           <div className="flex-1 min-w-0">
             <div className="flex flex-col gap-1 mt-1">
               <span
-                className={`text-lg font-black tracking-tight text-white leading-tight truncate ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}
+                className={`text-sm font-black tracking-tight text-white leading-tight truncate ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}
               >
                 {task.title}
               </span>
             </div>
-            <div className="flex items-center gap-2 flex-wrap mt-1">
+            <div className="flex items-center gap-2 flex-wrap mt-1 text-[10px]">
               <span
                 className={`text-[12px] px-2 gap-2 py-0.5 rounded font-black uppercase tracking-tighter ${getPriorityStyle(task.priority)}`}
               >
@@ -111,7 +111,7 @@ export function TaskCard({
               )}
             </div>
 
-            <div className="flex flex-col gap-1 mt-2">
+            <div className="flex flex-row gap-3 mt-2 flex-wrap">
               {task.duration > 0 && (
                 <span className="flex items-center gap-3 text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] opacity-90">
                   {task.duration < 60
