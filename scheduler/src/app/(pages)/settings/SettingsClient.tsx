@@ -164,7 +164,6 @@ export function SettingsClient({ user }: SettingsClientProps) {
             {activeTab === 'security' && (
               <div className="animate-in fade-in duration-300">
                 <h2 className="lunar-header mb-2">Security</h2>
-                <p className="lunar-value mb-8">Secure your orbital access.</p>
                 <form onSubmit={handleAction(changePassword, "Password updated.")} className="space-y-6 max-w-md mb-12">
                   <FormInput label="Current Password" type="password" name="currentPassword" required />
                   <FormInput label="New Password" type="password" name="newPassword" required minLength={6} />
@@ -172,10 +171,15 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   <button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Encrypting..." : "Update Password"}</button>
                 </form>
                 <div className="pt-8 border-t border-white/10">
-                  <h3 className="text-lg font-bold text-white mb-2">Self-Destruct</h3>
-                  <p className="lunar-value mb-5">Permanently obliterate your account and all planetary data.</p>
-                  <button onClick={() => setShowDeleteModal(true)} className="lunar-item-error px-5 py-2.5 rounded-xl text-sm font-bold tracking-wide uppercase transition-colors">
-                    Delete Account...
+                  <h3 className="text-lg font-semibold text-white mb-2">Delete Account</h3>
+                  <p className="text-sm text-white/50 mb-5">
+                    Permanently remove your account and all associated data. This action cannot be undone.
+                  </p>
+                  <button 
+                    onClick={() => setShowDeleteModal(true)} 
+                    className="px-5 py-2.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors"
+                  >
+                    Delete Account
                   </button>
                 </div>
               </div>
