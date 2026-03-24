@@ -50,7 +50,8 @@ export default function TaskStatsCard({ stats }: { stats: any }) {
       <div className="mt-auto">
         <div className="flex justify-between lunar-label mb-2">
           <span className="text-white/60">Progress</span>
-          <span className={isPassing ? "text-white" : "text-white/40"}>
+          {/* FIXED: Changed text-white to text-emerald-400 when passing */}
+          <span className={isPassing ? "text-emerald-400" : "text-white/40"}>
             {completionRate}%
           </span>
         </div>

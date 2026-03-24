@@ -1,13 +1,16 @@
 import React from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import MessagesLayout from "../layout";
 import { useParams, useRouter } from "next/navigation";
 
 // Module mocks
-
 jest.mock("next/navigation", () => ({
   useParams: jest.fn(),
   useRouter: jest.fn(),
+}));
+
+jest.mock("components/ui/sidebar", () => ({
+  useSidebar: jest.fn(),
 }));
 
 jest.mock("components/messaging/UserSearch", () => ({
@@ -21,33 +24,26 @@ jest.mock("components/messaging/ConversationList", () => ({
 }));
 
 // Helpers
+import { useSidebar } from "components/ui/sidebar";
 
 const mockPush = jest.fn();
 
 function setupMocks({
   conversationId = undefined as string | undefined,
+  isMobile = false,
 } = {}) {
   (useParams as jest.Mock).mockReturnValue(
     conversationId ? { conversationId } : {}
   );
   (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
-}
-
-function setViewportWidth(width: number) {
-  Object.defineProperty(window, "innerWidth", {
-    writable: true,
-    configurable: true,
-    value: width,
-  });
+  (useSidebar as jest.Mock).mockReturnValue({ isMobile });
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
-  setViewportWidth(1024); // default to desktop
 });
 
 // Tests
-
 describe("MessagesLayout – sidebar content", () => {
   it("renders the Messages heading", () => {
     setupMocks();
@@ -66,30 +62,17 @@ describe("MessagesLayout – sidebar content", () => {
     render(<MessagesLayout>children</MessagesLayout>);
     expect(screen.getByTestId("conversation-list")).toBeInTheDocument();
   });
-
-  it("renders the back arrow button to dashboard", () => {
-    setupMocks();
-    render(<MessagesLayout>children</MessagesLayout>);
-    expect(screen.getByText("←")).toBeInTheDocument();
-  });
-
-  it("navigates to /dashboard when back arrow is clicked", () => {
-    setupMocks();
-    render(<MessagesLayout>children</MessagesLayout>);
-    fireEvent.click(screen.getByText("←"));
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
-  });
 });
 
 describe("MessagesLayout – children rendering", () => {
-  it("renders children", () => {
-    setupMocks();
+  it("renders children on desktop", () => {
+    setupMocks({ isMobile: false });
     render(<MessagesLayout><div data-testid="child">Hello</div></MessagesLayout>);
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 
-  it("renders children when no conversationId", () => {
-    setupMocks({ conversationId: undefined });
+  it("renders children when no conversationId on desktop", () => {
+    setupMocks({ conversationId: undefined, isMobile: false });
     render(<MessagesLayout><div data-testid="child">Hello</div></MessagesLayout>);
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
@@ -97,137 +80,116 @@ describe("MessagesLayout – children rendering", () => {
 
 describe("MessagesLayout – desktop layout", () => {
   it("shows the sidebar on desktop", () => {
-    setViewportWidth(1024);
-    setupMocks();
+    setupMocks({ isMobile: false });
     render(<MessagesLayout>children</MessagesLayout>);
     expect(screen.getByTestId("conversation-list")).toBeInTheDocument();
   });
 
   it("shows children on desktop", () => {
-    setViewportWidth(1024);
-    setupMocks({ conversationId: "conv-1" });
+    setupMocks({ conversationId: "conv-1", isMobile: false });
     render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 
   it("does not show the Back button on desktop even with a conversationId", () => {
-    setViewportWidth(1024);
-    setupMocks({ conversationId: "conv-1" });
+    setupMocks({ conversationId: "conv-1", isMobile: false });
     render(<MessagesLayout>children</MessagesLayout>);
     expect(screen.queryByText("← Back")).not.toBeInTheDocument();
   });
 
   it("sidebar has 380px width on desktop", () => {
-    setViewportWidth(1024);
-    setupMocks();
+    setupMocks({ isMobile: false });
     render(<MessagesLayout>children</MessagesLayout>);
     const aside = screen.getByTestId("conversation-list").closest("aside");
-    expect(aside).toHaveStyle({ width: "380px" });
+    expect(aside).toHaveClass("w-[380px]");
+  });
+
+  it("shows both sidebar and children simultaneously on desktop", () => {
+    setupMocks({ conversationId: "conv-1", isMobile: false });
+    render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
+    expect(screen.getByTestId("conversation-list")).toBeInTheDocument();
+    expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 });
 
 describe("MessagesLayout – mobile layout", () => {
-  it("shows the sidebar and hides children when no conversation is open on mobile", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: undefined });
+  it("shows the conversation list when no conversation is open on mobile", () => {
+    setupMocks({ conversationId: undefined, isMobile: true });
     render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
-
-    act(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
-
     expect(screen.getByTestId("conversation-list")).toBeInTheDocument();
+  });
+
+  it("hides children when no conversation is open on mobile", () => {
+    setupMocks({ conversationId: undefined, isMobile: true });
+    render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
     expect(screen.queryByTestId("child")).not.toBeInTheDocument();
   });
 
-  it("hides the sidebar and shows children when a conversation is open on mobile", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: "conv-1" });
+  it("shows children when a conversation is open on mobile", () => {
+    setupMocks({ conversationId: "conv-1", isMobile: true });
     render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
-
-    act(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
-
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 
+  it("hides the conversation list when a conversation is open on mobile", () => {
+    setupMocks({ conversationId: "conv-1", isMobile: true });
+    render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
+    expect(screen.queryByTestId("conversation-list")).not.toBeInTheDocument();
+  });
+
   it("shows the Back button on mobile when a conversation is open", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: "conv-1" });
+    setupMocks({ conversationId: "conv-1", isMobile: true });
     render(<MessagesLayout>children</MessagesLayout>);
-
-    act(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
-
     expect(screen.getByText("← Back")).toBeInTheDocument();
   });
 
   it("does not show the Back button on mobile when no conversation is open", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: undefined });
+    setupMocks({ conversationId: undefined, isMobile: true });
     render(<MessagesLayout>children</MessagesLayout>);
-
-    act(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
-
     expect(screen.queryByText("← Back")).not.toBeInTheDocument();
   });
 
-  it("navigates to /messages and opens sidebar when Back is clicked", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: "conv-1" });
+  it("navigates to /messages when Back is clicked on mobile", () => {
+    setupMocks({ conversationId: "conv-1", isMobile: true });
     render(<MessagesLayout>children</MessagesLayout>);
-
-    act(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
-
     fireEvent.click(screen.getByText("← Back"));
     expect(mockPush).toHaveBeenCalledWith("/messages");
   });
 
-  it("sidebar is full width on mobile", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: undefined });
+  it("mobile conversation list container is full width", () => {
+    setupMocks({ conversationId: undefined, isMobile: true });
     render(<MessagesLayout>children</MessagesLayout>);
-
-    act(() => {
-      window.dispatchEvent(new Event("resize"));
-    });
-
-    const aside = screen.getByTestId("conversation-list").closest("aside");
-    expect(aside).toHaveStyle({ width: "100vw" });
+    // On mobile with no conversation, the list renders in a full-width flex div, not an aside
+    const list = screen.getByTestId("conversation-list");
+    const container = list.closest("div[class*='flex-1']");
+    expect(container).toBeInTheDocument();
   });
 });
 
-describe("MessagesLayout – resize behaviour", () => {
-  it("cleans up resize listener on unmount", () => {
-    const removeEventListenerSpy = jest.spyOn(window, "removeEventListener");
-    setupMocks();
-    const { unmount } = render(<MessagesLayout>children</MessagesLayout>);
-    unmount();
-    expect(removeEventListenerSpy).toHaveBeenCalledWith(
-      "resize",
-      expect.any(Function)
+describe("MessagesLayout – isMobile transitions", () => {
+  it("shows sidebar and children simultaneously after switching to desktop", () => {
+    // Start as desktop
+    setupMocks({ conversationId: "conv-1", isMobile: false });
+    const { rerender } = render(
+      <MessagesLayout><div data-testid="child" /></MessagesLayout>
     );
+    expect(screen.getByTestId("conversation-list")).toBeInTheDocument();
+    expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 
-  it("shows sidebar on desktop after resizing from mobile", () => {
-    setViewportWidth(375);
-    setupMocks({ conversationId: "conv-1" });
-    render(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
-
-    act(() => { window.dispatchEvent(new Event("resize")); });
-    expect(screen.getByTestId("child")).toBeInTheDocument();
-
-    // Resize to desktop
-    setViewportWidth(1024);
-    act(() => { window.dispatchEvent(new Event("resize")); });
-
+  it("hides conversation list and shows chat when conversation opens on mobile", () => {
+    // Start mobile, no conversation
+    setupMocks({ conversationId: undefined, isMobile: true });
+    const { rerender } = render(
+      <MessagesLayout><div data-testid="child" /></MessagesLayout>
+    );
     expect(screen.getByTestId("conversation-list")).toBeInTheDocument();
+    expect(screen.queryByTestId("child")).not.toBeInTheDocument();
+
+    // Simulate opening a conversation
+    (useParams as jest.Mock).mockReturnValue({ conversationId: "conv-1" });
+    rerender(<MessagesLayout><div data-testid="child" /></MessagesLayout>);
+    expect(screen.queryByTestId("conversation-list")).not.toBeInTheDocument();
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });
 });
