@@ -24,6 +24,17 @@ interface TaskFormProps {
   showTrigger?: boolean;
 }
 
+/**
+ * Component for creating or editing a task.
+ * @param {boolean} isOpen Whether the dialog is open or not.
+ * @param {Function} onOpenChange Callback to open or close the dialog.
+ * @param {string | null} editingTaskId The ID of the task being edited, or null for new tasks.
+ * @param {any} formData The current form field values.
+ * @param {Function} onFormChange Callback to update a form field.
+ * @param {Function} onSubmit Callback triggered on form submission.
+ * @param {Array} exams List of exams to populate the exam dropdown.
+ * @param {boolean} showTrigger Whether to show the trigger button or not. 
+ */
 export function TaskForm({
   isOpen,
   onOpenChange,
