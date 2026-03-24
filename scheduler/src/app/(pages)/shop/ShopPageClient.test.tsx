@@ -30,6 +30,7 @@ jest.mock("@/src/lib/shop-catalogue", () => ({
 }));
 
 const mockData: ShopData = {
+const mockData: ShopData = {
   points: 1000,
   equippedAvatar: null,
   xpBoostExpires: null,

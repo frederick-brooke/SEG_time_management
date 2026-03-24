@@ -11,14 +11,16 @@ interface TaskViewDialogProps {
   task: any | null;
   isOpen: boolean;
   onClose: () => void;
-  getPriorityStyle: (priority: string) => string;
+  onEdit?: (taskId: string) => void;
+  getPriorityStyle?: (priority: string) => string;
   onReward?: (rewards: any) => void;
 }
 
 export function TaskViewDialog({ 
   task, 
   isOpen, 
-  onClose, 
+  onClose,
+  onEdit, 
   getPriorityStyle, 
   onReward 
 }: TaskViewDialogProps) {
@@ -90,7 +92,7 @@ export function TaskViewDialog({
           <div>
             <Label className="lunar-label">Priority</Label>
             <p className="lunar-value mt-1">
-              <span className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle(task.priority)}`}>
+              <span className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle?.(task.priority) ?? ""}`}>
                 {task.priority || "None"}
               </span>
             </p>

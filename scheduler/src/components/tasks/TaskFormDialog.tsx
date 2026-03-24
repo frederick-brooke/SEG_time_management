@@ -190,9 +190,8 @@ export function TaskFormDialog({
               <Select
                 value={formData.examId || "none"}
                 onValueChange={(value) => onFormChange({ examId: value })}
-                className="lunar-select-trigger"
               >
-                <SelectTrigger id="exam-link" className="lunar-input">
+                <SelectTrigger id="exam-link" className="lunar-select-trigger">
                   <SelectValue placeholder="Select and exam"/>
                 </SelectTrigger>
                 <SelectContent className="lunar-select-content z-[9999]">

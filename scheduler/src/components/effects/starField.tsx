@@ -3,6 +3,10 @@
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+type StarFieldProps = {
+  density?: number;
+};
+
 function Star({ s, mouse }) {
   const starX = (s.x / 100) * window.innerWidth;
   const starY = (s.y / 100) * window.innerHeight;
@@ -41,7 +45,7 @@ function Star({ s, mouse }) {
   );
 }
 
-export default function StarField() {
+export default function StarField({ density = 50 }: StarFieldProps) {
   const [mounted, setMounted] = useState(false);
   const [mouse, setMouse] = useState({ x: -9999, y: -9999 });
 

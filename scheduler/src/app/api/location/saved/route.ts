@@ -1,60 +1,97 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-//fetch all saved locations for the current user
-export async function GET() {
+
+// Helpers 
+// Centralised auth check to avoid duplication across handlers
+async function requireUserId(): Promise<string | null> {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const locations = await prisma.savedLocation.findMany({
-    where: { userId: session.user.id },
-    orderBy: [
-      { type: "asc" },
-      { createdAt: "asc" },
-    ],
-  });
-
-  return NextResponse.json(locations);
+  return session?.user?.id ?? null;
 }
 
-//save a new location
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
-  const body = await req.json();
-  const { label, address, lat, lng, type } = body;
+// GET: fetch all saved locations for current user 
 
-  if (!label || !address || lat == null || lng == null) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
+export async function GET() {
+  try {
+    const userId = await requireUserId();
 
-  const validTypes = ["HOME", "WORK", "FAVOURITE"];
-  const locationType = validTypes.includes(type) ? type : "FAVOURITE";
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  // Enforce one HOME and one WORK per user — replace if already exists
-  if (locationType === "HOME" || locationType === "WORK") {
-    await prisma.savedLocation.deleteMany({
-      where: { userId: session.user.id, type: locationType },
+    // Fetch only the user's locations, ordered for predictable UI display
+    const locations = await prisma.savedLocation.findMany({
+      where: { userId },
+      orderBy: [
+        { type: "asc" },       // group by type (HOME, WORK, etc.)
+        { createdAt: "asc" },  // then sort chronologically
+      ],
     });
+
+    return NextResponse.json(locations);
+
+  } catch (error) {
+    // Catch unexpected failures to avoid leaking internal errors
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
+}
 
-  const saved = await prisma.savedLocation.create({
-    data: {
-      userId: session.user.id,
-      label,
-      address,
-      lat,
-      lng,
-      type: locationType,
-    },
-  });
 
-  return NextResponse.json(saved, { status: 201 });
+// POST: create a new saved location 
+
+export async function POST(req: NextRequest) {
+  try {
+    const userId = await requireUserId();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const { label, address, lat, lng, type } = await req.json();
+
+    // Validate required fields 
+    if (!label?.trim() || !address?.trim() || lat == null || lng == null) {
+      return NextResponse.json(
+        { error: "Missing required fields" }, 
+        { status: 400 }
+      );
+    }
+
+    // Restrict type to known values 
+    const validTypes = ["HOME", "WORK", "FAVOURITE"] as const;
+    const locationType = validTypes.includes(type) ? type : "FAVOURITE";
+
+    // A user can only have one HOME and one WORK location
+    if (locationType === "HOME" || locationType === "WORK") {
+      await prisma.savedLocation.deleteMany({
+        where: { userId, type: locationType },
+      });
+    }
+
+    // Create new saved location
+    const saved = await prisma.savedLocation.create({
+      data: {
+        userId,
+        label: label.trim(),     
+        address: address.trim(),
+        lat,
+        lng,
+        type: locationType,
+      },
+    });
+
+    return NextResponse.json(saved, { status: 201 });
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
