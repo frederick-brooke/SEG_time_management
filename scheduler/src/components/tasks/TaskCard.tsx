@@ -24,16 +24,69 @@ function SubtaskList({ subtasks, checkedList, onSubtaskChange }: {
                 className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 
                 onChange={(e) => onSubtaskChange(e, i)}
               />
-              <span className="text-[10px] text-muted-foreground truncate group-hover:text-foreground">
+              <span className="text-[10px] text-white/50 truncate group-hover:text-white/80">
                 {typeof sub === 'string' ? sub.trim() : (sub.title || "New Subtask")}
               </span>
             </div>
           ))}
         </div>
-      </div>
-    );
-  }
+    </div>
+  );
+}
 
+function TaskCardFooter({ task, onToggle, onView, onEdit, onDelete, isDashboard, router }) {
+  return (
+    <div className="flex justify-between items-center pt-3 border-t border-white/10 w-full mt-2">
+      <div className="flex items-center gap-2">
+        {/* Checkbox */}
+        <Checkbox
+          id={`task-${task.id}`}
+          checked={task.status === "completed"}
+          onCheckedChange={() => {
+            const next = task.status === "completed" ? "todo" : "completed";
+            onToggle(task.id, next)
+          }}
+          className="h-5 w-5 border-white/100 data-[state=checked]:bg-blue-500"
+        />
+
+        {/* Arrows */}
+        {(task.status === "todo" || task.status === "in-progress") && (
+          <Button
+            variant="ghost" 
+            size="icon"
+            className="h-8 w-8 cursor-pointer shrink-0 hover:bg-muted"
+            onClick={(e) => {
+              if (isDashboard) {
+                router.push(`/tasks?highlight=${task.id}`)
+              }
+              e.stopPropagation();
+              let nextStatus = task.status;
+              if (task.status === "todo") nextStatus = "in-progress";
+              else if (task.status === "in-progress") nextStatus = "todo";
+              onToggle(task.id, nextStatus);
+            }}
+          >
+            {task.status === "todo" && (
+              <ArrowRight className="h-6 w-6 text-white/100 hover:text-white" />
+            )}
+            {task.status === "in-progress" && (
+              <ArrowLeft className="h-6 w-6 text-white/100 hover:text-white " />
+            )}
+          </Button>
+        )}
+        </div>
+        <TaskActions
+          onView={() => onView(task)}
+          onEdit={() => onEdit(task.id)}
+          onDelete={() => onDelete(task.id)}
+          canDelete={!task.isModuleTask && !task.isGroupTask} 
+          canEdit={!task.isModuleTask && !task.isGroupTask}
+          strokeWidth={2.5}
+          className="text-white brightness-200 contrast-150 scale-110"
+        />
+    </div>
+  );
+}
 export function TaskCard({
   task,
   onToggle,
@@ -181,56 +234,15 @@ export function TaskCard({
           </div>
           
           {!isDashboard && (
-            <div className="flex justify-between items-center pt-3 border-t border-white/10 w-full mt-2">
-              <div className="flex items-center gap-2">
-                {/* Checkbox */}
-                <Checkbox
-                  id={`task-${task.id}`}
-                  checked={task.status === "completed"}
-                  onCheckedChange={() => {
-                    const next = task.status === "completed" ? "todo" : "completed";
-                    onToggle(task.id, next)
-                  }}
-                  className="h-5 w-5 border-white/100 data-[state=checked]:bg-blue-500"
-                />
-
-                {/* Arrows */}
-                {(task.status === "todo" || task.status === "in-progress") && (
-                  <Button
-                    variant="ghost" 
-                    size="icon"
-                    className="h-8 w-8 cursor-pointer shrink-0 hover:bg-muted"
-                    onClick={(e) => {
-                      if (isDashboard) {
-                        router.push(`/tasks?highlight=${task.id}`)
-                      }
-                      e.stopPropagation();
-                      let nextStatus = task.status;
-                      if (task.status === "todo") nextStatus = "in-progress";
-                      else if (task.status === "in-progress") nextStatus = "todo";
-                      onToggle(task.id, nextStatus);
-                    }}
-                  >
-                    {task.status === "todo" && (
-                      <ArrowRight className="h-6 w-6 text-white/100 hover:text-white" />
-                    )}
-                    {task.status === "in-progress" && (
-                      <ArrowLeft className="h-6 w-6 text-white/100 hover:text-white " />
-                    )}
-                  </Button>
-                )}
-
-              </div>
-              <TaskActions
-                onView={() => onView(task)}
-                onEdit={() => onEdit(task.id)}
-                onDelete={() => onDelete(task.id)}
-                canDelete={!task.isModuleTask && !task.isGroupTask} 
-                canEdit={!task.isModuleTask && !task.isGroupTask}
-                strokeWidth={2.5}
-                className="text-white brightness-200 contrast-150 scale-110"
-              />
-            </div>
+            <TaskCardFooter
+              task = {task}
+              onToggle={onToggle}
+              onView={onView}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              isDashboard={isDashboard}
+              router={router}
+            />
           )}
         </div>
       </LunarCard>
