@@ -147,7 +147,7 @@ function ReportModal({
           <svg
             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
             width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(148,163,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            stroke="rgba(148a,163,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           >
             <polyline points="6 9 12 15 18 9"/>
           </svg>

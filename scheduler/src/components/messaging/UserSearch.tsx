@@ -10,6 +10,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 type Friend = {
   id: string;
@@ -95,8 +97,8 @@ export default function UserSearch() {
                   onClick={() => startChat(friend.id)}
                   className="w-full flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.04]"
                 >
-                  {friend.pfp ? (
-                    <Image src={friend.pfp} alt={friend.username} width={32} height={32} className="rounded-full" />
+                  {resolveAvatarSrc(friend.pfp) ? (
+                    <Image src={resolveAvatarSrc(friend.pfp)!} alt={friend.username} width={32} height={32} className="rounded-full" />
                   ) : (
                     <div
                       className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.8)]"
