@@ -24,8 +24,8 @@ export default async function SettingsPage() {
   if (!user) redirect("/login");
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="max-w-4xl w-full mx-auto px-6 py-12 space-y-8">
+    <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <div className="max-w-5xl w-full mx-auto px-4 md:px-6 py-8 md:py-12 space-y-8">
 
         <PageHeader 
           icon={<Settings size={26} className="text-white/80" />} 
