@@ -2,7 +2,12 @@
 
 import { useEffect, useState, useRef } from "react";
 
-export function useTimer( {storageKey, onTick} = {}) {
+type UseTimerProps = {
+  storageKey?: string;
+  onTick?: (ms: number) => void;
+};
+
+export function useTimer( {storageKey, onTick}: UseTimerProps = {}) {
     const saveTimerState = (state) => {
         //Saves the paused time within web browser for local persistance when refresh
         localStorage.setItem(storageKey, JSON.stringify(state));

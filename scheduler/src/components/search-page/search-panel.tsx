@@ -66,6 +66,9 @@ export default function SearchPanel({ open, onClose }) {
                         setIsUserFilterOpen={setIsUserFilterOpen}
                         filters={appliedUserFilters}
                         setFilters={setAppliedUserFilters}
+                        selectedUser={null}                    
+                        setSelectedUser={() => {}}
+                        resetFilters={resetUserFilters}
                     />
                 </div>
             </LunarDrawer>
@@ -78,17 +81,22 @@ export default function SearchPanel({ open, onClose }) {
                 title="User Filters"
                 width="400px"
             >
-                <UserFilter
+				<UserFilter
                     filters={draftUserFilters}
                     setFilters={setDraftUserFilters}
                     onClose={() => setIsUserFilterOpen(false)}
                     applyFilters={() => {
-                    setAppliedUserFilters(prev => ({
-                        ...draftUserFilters,
-                        search: prev.search,
-                    }));
-                    setIsUserFilterOpen(false);
+						setAppliedUserFilters(prev => ({
+							...draftUserFilters,
+							search: prev.search,
+						}));
+						setIsUserFilterOpen(false);
                     }}
+					resetFilters={() => {
+						setDraftUserFilters(defaultUserFilters);      
+						setAppliedUserFilters(defaultUserFilters);
+					}}
+					type="admin" 
                 />
             </LunarDrawer>
         </>

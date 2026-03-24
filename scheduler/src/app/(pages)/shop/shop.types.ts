@@ -4,7 +4,7 @@ export interface ShopItem {
   id: string;
   name: string;
   description: string;
-  type: "AVATAR" | "FUNCTIONAL";
+  type: "AVATAR" | "FUNCTIONAL" | "TITLE" ;
   price: number;
   value: string;
   icon: string;

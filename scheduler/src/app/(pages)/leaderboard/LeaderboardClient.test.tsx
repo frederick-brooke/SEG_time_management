@@ -6,7 +6,7 @@ jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{childr
 
 describe('LeaderboardClient Component', () => {
   it('renders the empty state correctly', () => {
-    render(<LeaderboardClient initialData={[]} />);
+    render(<LeaderboardClient initialData={[]} currentTimeframe="all" />);
     expect(screen.getByText(/No friends to compete with yet/i)).toBeInTheDocument();
   });
 
@@ -19,7 +19,7 @@ describe('LeaderboardClient Component', () => {
       { id: '5', username: 'eve', name: 'Eve', pfp: null, streak: 0, completionRate: 60, focusTime: '1h', focusTimeRaw: 60, isCurrentUser: false },
     ];
 
-    render(<LeaderboardClient initialData={mockData} />);
+    render(<LeaderboardClient initialData={mockData} currentTimeframe="all"/>);
     
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByAltText('alice')).toBeInTheDocument(); 

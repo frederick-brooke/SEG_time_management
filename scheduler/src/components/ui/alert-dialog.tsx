@@ -4,7 +4,13 @@ import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "lib/utils";
-import { Button } from "components/ui/button";
+import { Button, type buttonVariants } from "components/ui/button";
+import { type VariantProps } from "class-variance-authority";
+
+// Derive the exact variant/size types directly from the Button's CVA config
+type ButtonVariantProps = VariantProps<typeof buttonVariants>;
+type ButtonVariant = ButtonVariantProps["variant"];
+type ButtonSize = ButtonVariantProps["size"];
 
 /* ROOT */
 
@@ -179,8 +185,8 @@ function AlertDialogAction({
   size = "default",
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action> & {
-  variant?: string;
-  size?: string;
+  variant?: ButtonVariant;  // ← now uses exact CVA union type
+  size?: ButtonSize;        // ← now uses exact CVA union type
 }) {
   return (
     <Button variant={variant} size={size} asChild className={className}>
@@ -200,8 +206,8 @@ function AlertDialogCancel({
   size = "default",
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel> & {
-  variant?: string;
-  size?: string;
+  variant?: ButtonVariant;  // ← now uses exact CVA union type
+  size?: ButtonSize;        // ← now uses exact CVA union type
 }) {
   return (
     <Button variant={variant} size={size} asChild className={className}>

@@ -37,7 +37,7 @@ export function CitySearch({ value, onChange, placeholder = "Search for a city..
   const [searchTerm, setSearchTerm] = useState("");
   const [cities, setCities] = useState<CityOption[]>([]);
   const [loading, setLoading] = useState(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<NodeJS.Timeout| null>(null);
 
   useEffect(() => {
     if (searchTerm.length < 2) {
@@ -125,19 +125,21 @@ export function CitySearch({ value, onChange, placeholder = "Search for a city..
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
-        <Command>
+        <Command className="">
           <CommandInput
             placeholder="Type a city name..."
             value={searchTerm}
             onValueChange={setSearchTerm}
+			className=""
           />
-          <CommandList>
+          <CommandList className="">
             <CommandEmpty>
               {loading ? "Searching..." : "No cities found."}
             </CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="">
               {cities.map((city) => (
                 <CommandItem
+					className=""
                   key={`${city.lat}-${city.lon}`}
                   value={city.display_name}
                   onSelect={() => handleSelect(city)}

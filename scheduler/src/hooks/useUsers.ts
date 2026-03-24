@@ -2,8 +2,10 @@
 //reusable component for user searching
 import { useEffect, useState } from "react";
 
+type Filters = Record<string, string | number | string[] | null | undefined>;
+
 //fetches and manages user statistics from the admin API route
-export function useUsers(filters, endpoint) {
+export function useUsers(filters: Filters, endpoint: string) {
     const [users, setUsers] = useState([]);     //list of all the user objects from server
     const [totalUserPages, setTotalUserPages] = useState(1);   
     const [totalUsers, setTotalUsers] = useState(0);    //total number of users for pagination
@@ -20,12 +22,12 @@ export function useUsers(filters, endpoint) {
             const query = new URLSearchParams();
 
             Object.entries(filters).forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    value.forEach(v => query.append(key, v));
-                } else if (value !== "" && value != null) {
-                    query.append(key, value);
-                }
-            });
+				if (Array.isArray(value)) {
+					value.forEach(v => query.append(key, String(v)));
+				} else if (value !== "" && value != null) {
+					query.append(key, String(value));
+				}
+			});
             //filter objects parsed by user is converted into query string
             const res = await fetch(`${endpoint}?${query.toString()}`);
 

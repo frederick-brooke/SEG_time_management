@@ -10,7 +10,7 @@ global.fetch = jest.fn(() =>
     ok: true,
     json: () => Promise.resolve({}),
   })
-);
+) as jest.Mock;
 
 // mock Reminders
 jest.mock("../reminders", () => ({
@@ -47,16 +47,16 @@ describe("Timer Component", () => {
   });
 
   test("renders initial input state", () => {
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     expect(screen.getByDisplayValue("00:00:00")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /start/i })).toBeInTheDocument();
   });
 
   test("updates input value", () => {
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
-    const input = screen.getByDisplayValue("00:00:00");
+    const input = screen.getByDisplayValue("00:00:00") as HTMLInputElement;
 
     fireEvent.change(input, {
       target: { value: "00:00:10" },
@@ -66,7 +66,7 @@ describe("Timer Component", () => {
   });
 
   test("clicking preset updates time", () => {
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     fireEvent.click(screen.getByText(/25 min/i));
 
@@ -74,7 +74,7 @@ describe("Timer Component", () => {
   });
 
   test("submits time and calls startTimer + API", async () => {
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     fireEvent.change(screen.getByDisplayValue("00:00:00"), {
       target: { value: "00:00:10" },
@@ -93,7 +93,7 @@ describe("Timer Component", () => {
     mockTimerState.hasStarted = true;
     mockTimerState.isRunning = true;
 
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     expect(screen.getByText(/remaining time/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /pause/i })).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe("Timer Component", () => {
     mockTimerState.hasStarted = true;
     mockTimerState.isRunning = true;
 
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     fireEvent.click(screen.getByRole("button", { name: /pause/i }));
 
@@ -114,7 +114,7 @@ describe("Timer Component", () => {
     mockTimerState.hasStarted = true;
     mockTimerState.isRunning = false;
 
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     fireEvent.click(screen.getByRole("button", { name: /resume/i }));
 
@@ -124,7 +124,7 @@ describe("Timer Component", () => {
   test("end session button works", () => {
     mockTimerState.hasStarted = true;
 
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     fireEvent.click(screen.getByRole("button", { name: /end/i }));
 
@@ -135,7 +135,7 @@ describe("Timer Component", () => {
     mockTimerState.hasStarted = true;
     mockTimerState.isRunning = false;
 
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     expect(screen.getByText(/session paused/i)).toBeInTheDocument();
   });
@@ -143,7 +143,7 @@ describe("Timer Component", () => {
   test("calls onTick via useTimer", () => {
     const mockOnTick = jest.fn();
 
-    render(<Timer onTick={mockOnTick} />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     // simulate hook calling onTick
     mockOnTick(5000);
@@ -154,7 +154,7 @@ describe("Timer Component", () => {
   test("reminder effect fires when threshold reached", () => {
     mockTimerState.remainingMs = 1000;
 
-    render(<Timer />);
+    render(<Timer storageKey="test" onTick={() => {}} />);
 
     // no crash = effect executed
     expect(true).toBe(true);

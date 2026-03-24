@@ -21,7 +21,7 @@ describe("ReminderPicker", () => {
   test("updates input value when user types", () => {
     render(<ReminderPicker onConfirm={jest.fn()} initialDuration={null} />);
     
-    const input = screen.getByDisplayValue("00:05:00");
+    const input = screen.getByDisplayValue("00:05:00") as HTMLInputElement;
 
     fireEvent.change(input, { target: { value: "00:10:00" } });
     expect(input.value).toBe("00:10:00");

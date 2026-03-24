@@ -1,6 +1,6 @@
 "use client";
 
-import { AppSidebar } from "@/src/components/app-sidebar";
+import { AppSidebar } from "@/src/components/layout/app-sidebar";
 import { SiteHeader } from "@/src/components/site-header";
 import {SidebarProvider,SidebarInset} from "@/src/components/animate-ui/components/radix/sidebar";
 import { useEffect, useState } from "react";
