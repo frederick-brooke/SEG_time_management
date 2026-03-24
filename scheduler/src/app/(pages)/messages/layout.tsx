@@ -65,6 +65,21 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
       {/* Main content — hidden on mobile when sidebar is open */}
       {(!isMobile || !sidebarOpen) && (
         <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+          {isMobile && conversationId && (
+            <div
+              className="shrink-0 px-3 py-2 border-b border-white/[0.06]"
+            >
+              <button
+                onClick={() => {
+                  setSidebarOpen(true);
+                  router.push("/messages");
+                }}
+                className="flex items-center gap-1.5 text-sm transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
+              >
+                ← Back
+              </button>
+            </div>
+          )}
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">
             {children}
           </div>
