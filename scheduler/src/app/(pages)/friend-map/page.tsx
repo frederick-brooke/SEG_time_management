@@ -32,26 +32,36 @@ export default async function FriendMapPage() {
     include: {
       sender: {
         select: {
-          id: true, 
-          username: true, 
-          fname: true, 
+          id: true,
+          username: true,
+          fname: true,
           lname: true,
-          city: true, 
-          country: true, 
-          location: true, 
+          city: true,
+          country: true,
+          location: true,
           pfp: true,
+          progress: {
+            select: {
+              equippedAvatar: true,
+            },
+          },
         },
       },
       receiver: {
         select: {
-          id: true, 
-          username: true, 
-          fname: true, 
+          id: true,
+          username: true,
+          fname: true,
           lname: true,
-          city: true, 
-          country: true, 
-          location: true, 
+          city: true,
+          country: true,
+          location: true,
           pfp: true,
+          progress: {
+            select: {
+              equippedAvatar: true,
+            },
+          },
         },
       },
     },
@@ -74,6 +84,7 @@ export default async function FriendMapPage() {
       country: friend.country,
       location: friend.location as { lat: number; lng: number } | null,
       pfp: friend.pfp,
+      equippedAvatar: friend.progress?.equippedAvatar || undefined,
     };
   });
 
