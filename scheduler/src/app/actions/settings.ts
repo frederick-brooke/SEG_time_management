@@ -1,10 +1,10 @@
 'use server'
 
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { hashPassword, verifyPassword } from "@/src/lib/password"; // Adjust import if needed
+import { hashPassword, verifyPassword } from "@/lib/password"; // Adjust import if needed
 
 export async function updateAccountDetails(formData: FormData) {
   const session = await getServerSession(authOptions);

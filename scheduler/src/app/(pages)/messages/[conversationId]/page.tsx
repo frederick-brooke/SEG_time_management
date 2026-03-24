@@ -17,7 +17,7 @@ import { MembersPanel } from "@/components/messaging/MembersPanel";
 import { AddMemberModal } from "@/components/messaging/AddMemberModal";
 import { MessageBubble } from "@/components/messaging/MessageBubble";
 import { MessageInput } from "@/components/messaging/MessageInput";
-import { StarBackground } from "@/src/components/ui/StarBackground";
+import { StarBackground } from "@/components/ui/StarBackground";
 
 type Message = {
   id: string;

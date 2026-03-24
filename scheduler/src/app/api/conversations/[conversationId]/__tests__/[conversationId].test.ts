@@ -40,7 +40,7 @@ jest.mock("pusher", () =>
 );
 
 import { getServerSession } from "next-auth";
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 const makeParams = (conversationId: string) => Promise.resolve({ conversationId });
 const makeRequest = (method: string, body?: object) =>

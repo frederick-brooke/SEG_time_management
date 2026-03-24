@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { resolveAvatarSrc } from "@/src/lib/avatar";
+import { resolveAvatarSrc } from "@/lib/avatar";
 
 
 interface LeaderboardUser {

@@ -131,7 +131,7 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
     const address = s.properties.display;
     setSelected({ lat, lng, address });
     setQuery(s.properties.name);
-    setLabel(s.properties.name.split(",")[0]);
+    setLabel("");
     setSuggestions([]);
   };
 
@@ -186,7 +186,7 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
         <>
           <input
             type="text"
-            placeholder="Label (e.g. Home, Gym…)"
+            placeholder="Give this location a name…"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             className="w-full border p-2 rounded-lg text-sm text-black bg-white"
