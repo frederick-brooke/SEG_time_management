@@ -16,7 +16,7 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": ["src/*"],
       "components/*": ["src/components/*"],
       "ui/*": ["src/components/ui/*"],
       "hooks/*": ["src/hooks/*"],
@@ -29,6 +29,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
     "src/**/*",
     "src/types/**/*.d.ts"
   ],

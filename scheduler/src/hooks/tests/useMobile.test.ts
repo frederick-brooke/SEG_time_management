@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/src/hooks/use-mobile";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 

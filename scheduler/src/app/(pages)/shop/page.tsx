@@ -11,5 +11,12 @@ export default async function ShopPage() {
   const data = await getShopData();
   if (!data) redirect("/login");
 
-  return <ShopPageClient initialData={data} />;
+  const formattedData = {
+	...data,
+	items: data.items.map(item => ({
+		...item,
+		type: item.type as "AVATAR" | "FUNCTIONAL" | "TITLE",
+	})),
+  };
+  return <ShopPageClient initialData={formattedData} />;
 }

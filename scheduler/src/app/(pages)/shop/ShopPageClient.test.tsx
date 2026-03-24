@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ShopPageClient from "./ShopPageClient";
 import { purchaseItem, equipItem, unequipItem } from "@/src/app/actions/shop";
+import type { ShopData } from "./shop.types";
 
 // Mock server actions
 jest.mock("@/src/app/actions/shop", () => ({
@@ -28,7 +29,7 @@ jest.mock("@/src/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {},
 }));
 
-const mockData = {
+const mockData: ShopData = {
   points: 1000,
   equippedAvatar: null,
   xpBoostExpires: null,
