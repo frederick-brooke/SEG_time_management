@@ -4,7 +4,7 @@ import { Dialog as SheetPrimitive } from 'radix-ui';
 import { AnimatePresence, motion } from 'motion/react';
 
 import { getStrictContext } from 'lib/get-strict-context';
-import { useControlledState } from '@/src/hooks/use-controlled-state';
+import { useControlledState } from '@/hooks/use-controlled-state';
 
 const [SheetProvider, useSheet] =
   getStrictContext('SheetContext');

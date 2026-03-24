@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
 import { Trophy } from "lucide-react";
 import LeaderboardClient from "./LeaderboardClient";
-import { Timeframe } from "@/src/types/leaderboard";
-import { PageHeader } from "@/src/components/ui/page-header";
+import { Timeframe } from "@/types/leaderboard";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function LeaderboardPage(props: {
   searchParams: Promise<{ timeframe?: string }>;
