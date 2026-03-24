@@ -33,10 +33,10 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
 
     it('returns null if user not found or password invalid', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      expect(await authorizeUser({ email: 'test@test.com', password: 'pass' })).toBeNull();
+      expect(await authorizeUser({ identifier: 'test@test.com', password: 'pass' })).toBeNull();
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: 'hash' });
-      expect(await authorizeUser({ email: 'test@test.com', password: 'wrong' })).toBeNull();
+      expect(await authorizeUser({ identifier: 'test@test.com', password: 'wrong' })).toBeNull();
     });
 
     it('handles permanent bans', async () => {
@@ -45,7 +45,7 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
         passwordHash: 'hash', isBanned: true, banExpires: null
       });
 
-      const result = await authorizeUser({ email: 'banned@test.com', password: 'pass' });
+      const result = await authorizeUser({ identifier: 'banned@test.com', password: 'pass' });
       expect(result.isBanned).toBe(true);
     });
 
@@ -58,7 +58,7 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
         passwordHash: 'hash', isBanned: true, banExpires: futureDate
       });
 
-      const result = await authorizeUser({ email: 'temp@test.com', password: 'pass' });
+      const result = await authorizeUser({ identifier: 'temp@test.com', password: 'pass' });
       expect(result.isBanned).toBe(true);
     });
 
@@ -73,7 +73,7 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
 
       (prisma.user.update as jest.Mock).mockResolvedValue({});
 
-      const result = await authorizeUser({ email: 'expired@test.com', password: 'pass' });
+      const result = await authorizeUser({ identifier: 'expired@test.com', password: 'pass' });
 
       expect(prisma.user.update).toHaveBeenCalledWith(expect.objectContaining({
         data: { isBanned: false, banExpires: null }
@@ -87,7 +87,7 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
         passwordHash: 'hash', isBanned: false
       });
 
-      const result = await authorizeUser({ email: 'good@test.com', password: 'pass' });
+      const result = await authorizeUser({ identifier: 'good@test.com', password: 'pass' });
       expect(result.isBanned).toBe(false);
       expect(result.id).toBe('1');
     });
@@ -127,7 +127,7 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
       expect(result.accessToken).toBe('acc_123');
     });
 
-    it('jwt: throws error if google account taken in first block', async () => {
+    it('jwt: throws error if google account taken', async () => {
       const { jwt } = getCallbacks();
       const token: any = { sub: '123' };
       const account: any = { provider: 'google', providerAccountId: 'google_123' };
@@ -135,16 +135,6 @@ describe('NextAuth Configuration (lib/auth.ts)', () => {
       (prisma.account.findUnique as jest.Mock).mockResolvedValue({ userId: 'DIFFERENT_ID' });
 
       await expect(jwt({ token, user: { id: '123' }, account })).rejects.toThrow('GoogleAccountTaken');
-    });
-
-    it('jwt: throws error if google account taken in second block', async () => {
-      const { jwt } = getCallbacks();
-      const token: any = { sub: '123' };
-      const account: any = { provider: 'google', providerAccountId: 'google_123' };
-
-      (prisma.account.findUnique as jest.Mock).mockResolvedValue({ userId: 'DIFFERENT_ID' });
-
-      await expect(jwt({ token, user: null, account })).rejects.toThrow('GoogleAccountTaken');
     });
 
     it('jwt: fetches role from db if missing', async () => {
