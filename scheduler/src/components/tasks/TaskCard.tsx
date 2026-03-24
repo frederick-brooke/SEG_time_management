@@ -66,7 +66,6 @@ export function TaskCard({
       className="block w-full"
       onClick={(e) => {
         if (isDashboard) {
-          console.log("Navigating to task:", task.id);
           router.push(`/tasks?highlight=${task.id}`);
         }
       }}
