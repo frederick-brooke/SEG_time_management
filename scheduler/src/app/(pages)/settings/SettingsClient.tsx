@@ -5,7 +5,7 @@ import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferenc
 import { signIn, signOut } from "next-auth/react";
 import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
-import { TabKey } from "../../../types/settings";
+import { TabKey } from "@/types/settings";
 
 interface SettingsClientProps {
   user: { username: string; email: string; hasPassword?: boolean; hasGoogleConnected: boolean; preferences: any; }
