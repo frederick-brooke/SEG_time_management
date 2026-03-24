@@ -38,7 +38,10 @@ describe("CreateModule", () => {
     const { createModule } = require("@/app/actions/module");
     createModule.mockResolvedValue({ success: false, error: "Module name is required" });
     render(<CreateModule onClose={mockOnClose} />);
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.change(screen.getByPlaceholderText(/Computer Science 101/i), {
+      target: { value: "CS101" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
     await waitFor(() => {
       expect(screen.getByText("Module name is required")).toBeInTheDocument();
     });
@@ -75,7 +78,10 @@ describe("CreateModule", () => {
     });
     Object.assign(navigator, { clipboard: { writeText: jest.fn() } });
     render(<CreateModule onClose={mockOnClose} />);
-    fireEvent.click(screen.getByText("Create"));
+    fireEvent.change(screen.getByPlaceholderText(/Computer Science 101/i), {
+      target: { value: "CS101" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
     await waitFor(() => screen.getByText("XYZ789"));
     fireEvent.click(screen.getByText("Copy"));
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("XYZ789");
@@ -89,9 +95,12 @@ describe("CreateModule", () => {
       joinPin: "ABC123",
     });
     render(<CreateModule onClose={mockOnClose} />);
-    fireEvent.click(screen.getByText("Create"));
-    await waitFor(() => screen.getByText("Done"));
-    fireEvent.click(screen.getByText("Done"));
+    fireEvent.change(screen.getByPlaceholderText(/Computer Science 101/i), {
+      target: { value: "CS101" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    await waitFor(() => screen.getByRole("button", { name: "Done" }));
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
     expect(mockOnClose).toHaveBeenCalled();
   });
 });
