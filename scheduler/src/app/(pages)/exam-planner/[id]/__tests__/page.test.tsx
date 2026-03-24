@@ -1,10 +1,10 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import ExamIdPage from "@/src/app/(pages)/exam-planner/[id]/page";
 import { useSession } from "next-auth/react";
-import { useParams, useRouter } from "next/navigation";
-import { getMyExams } from "@/src/app/actions/examActions";
+import { getExamById } from "@/src/app/actions/examActions";
 
 const pushMock = jest.fn();
+
 jest.mock("next/navigation", () => ({
     useRouter: () => ({ push: pushMock }),
     useParams: () => ({ id: "exam-123" }),
@@ -15,7 +15,9 @@ jest.mock("next-auth/react", () => ({
 }));
 
 jest.mock("@/src/app/actions/examActions", () => ({
-    getMyExams: jest.fn(),
+    getExamById: jest.fn(),
+    generateExamPlan: jest.fn(),
+    updateExamUnavailableDays: jest.fn(),
 }));
 
 jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
@@ -23,12 +25,19 @@ jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
     default: ({ children }: any) => <div>{children}</div>,
 }));
 
+jest.mock("@/src/components/to-do-list", () => ({
+    __esModule: true,
+    ToDoList: ({ children }: any) => <div data-testid="todo-list">mocked</div>,
+}));
+
 describe("Exam detail page [id]", () => {
     const mockExam = {
         id: "exam-123",
         title: "Mathematics",
-        examDate: "2026-06-15:T00:00:00.000Z",
-        tasks: [{ id: "t1", status: "todo", title: "Calculus" }],
+        examDate: "2026-06-15T00:00:00.000Z",
+        maxTimePerDay: 60,
+        unavailableDays: [],
+        userId: "u1",
     };
 
     beforeEach(() => {
@@ -40,17 +49,83 @@ describe("Exam detail page [id]", () => {
     });
 
     it("fetches and displays the specific exam details", async () => {
-        (getMyExams as jest.Mock).mockResolvedValue([mockExam]);
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
 
         render(<ExamIdPage />)
 
-        expect(await screen.findByText("Mathematics")).toBeInTheDocument();
-        expect(screen.getByText("Calculus")).toBeInTheDocument();
+        expect(await screen.findByText(/Mathematics Hub/i)).toBeInTheDocument();
     });
 
     it("shows loading state", () => {
         (useSession as jest.Mock).mockReturnValue({ status: "loading" });
         render(<ExamIdPage />)
-        expect(screen.getByText(/Loading session/i)).toBeInTheDocument();
+        expect(screen.getByText(/Loading exam hub/i)).toBeInTheDocument();
     });
+
+    it("adds a new topic when Add is clicked", async () => {
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        render(<ExamIdPage />);
+        await screen.findByText(/Mathematics Hub/i);
+        const addButton = screen.getByText("+ Add Topic");
+        fireEvent.click(addButton);
+        const inputs = screen.getAllByPlaceholderText("Topic Name");
+        expect(inputs).toHaveLength(2);
+    });
+
+    it("removes a topic when remove is clicked", async () => {
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        render(<ExamIdPage />);
+        await screen.findByText(/Mathematics Hub/i);
+        fireEvent.click(screen.getByText("+ Add Topic"));
+        expect(screen.getAllByPlaceholderText("Topic Name")).toHaveLength(2);
+        fireEvent.click(screen.getAllByText("x")[0]);
+        expect(screen.getAllByPlaceholderText("Topic Name")).toHaveLength(1);
+    });
+
+    it("updates a topic field when user types", async () => {
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        render(<ExamIdPage />);
+        await screen.findByText(/Mathematics Hub/i);
+        const input = screen.getByPlaceholderText("Topic Name");
+        fireEvent.change(input, { target: { value: "Algebra"}});
+        expect(input).toHaveValue("Algebra");
+    });
+
+    it("calls generateExamPlan when Generate Study Plan is clicked", async () => {
+        const { generateExamPlan } = require("@/src/app/actions/examActions");
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        generateExamPlan.mockResolvedValue({});
+        
+        delete (window as any).location;
+        (window as any).location = { reload: jest.fn() };
+
+        render(<ExamIdPage />);
+        await screen.findByText(/Mathematics Hub/i);
+
+        fireEvent.change(screen.getByPlaceholderText("Topic Name"), {
+            target: { value: "Calculus" },
+        });
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Generate Study Plan"));
+        })
+
+        expect(generateExamPlan).toHaveBeenCalledWith("exam-123", expect.any(Array));
+    });
+
+    it("calls updateExamUnavailableDays when a calendar day is selected", async () => {
+        const { updateExamUnavailableDays } = require("@/src/app/actions/examActions");
+        updateExamUnavailableDays.mockResolvedValue({ data: mockExam });
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+
+        render(<ExamIdPage/>);
+        await screen.findByText(/Mathematics Hub/i);
+
+        const dayButtons = screen.getAllByRole("button", { name: /[0-9]+/});
+        await act(async () => {
+            fireEvent.click(dayButtons[0]);
+        });
+
+        expect(updateExamUnavailableDays).toHaveBeenCalledWith("exam-123", expect.any(Array));
+    });  
 });
