@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Medal, Flame, Clock, Target, Calendar, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Timeframe, SortKey, LeaderboardUser } from "@/src/types/leaderboard";
+import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
