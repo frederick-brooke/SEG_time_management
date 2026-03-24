@@ -278,9 +278,36 @@
     @apply text-2xl font-black uppercase tracking-tighter text-white;
   }
 
-  /* Toggle Item */
+  /* Base Toggle Item */
   .lunar-toggle-item {
-    @apply flex-1 h-full rounded-lg text-white/40 border border-transparent transition-all font-bold data-[state=on]:border-white/50;
+    @apply flex-1 h-full rounded-lg text-white/40 border border-transparent transition-all font-bold outline-none cursor-pointer flex items-center justify-center
+    hover:bg-white/10! hover:text-white!;
+  }
+
+  /* Status-Specific Toggles */
+  .lunar-toggle-low {
+    @apply data-[state=on]:bg-emerald-500/20! data-[state=on]:text-emerald-400!
+    data-[state=on]:border-emerald-500/50! hover:data-[state=on]:bg-emerald-500/30!;
+  }
+
+  .lunar-toggle-medium {
+    @apply data-[state=on]:bg-amber-500/20! data-[state=on]:text-amber-400!
+    data-[state=on]:border-amber-500/50 hover:data-[state=on]:bg-amber-500/30!;
+  }
+
+  .lunar-toggle-high {
+    @apply data-[state=on]:bg-red-500/20! data-[state=on]:text-red-400!
+    data-[state=on]:border-red-500/50 hover:data-[state=on]:bg-red-500/30!;
+  }
+
+  /* Form Header Subtitle */
+  .lunar-form-subtitle {
+    @apply text-white/30 text-[10px] font-black uppercase tracking-[0.3em] mt-2 block;
+  }
+
+  /* Close Icon Button */
+  .lunar-close-button {
+    @apply absolute top-5 right-6 text-white/40 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5;
   }
 
   /* Primary Button */
@@ -323,7 +350,7 @@
     text-white/90;
   }
 
-  /* Page Titl e*/
+  /* Page Title*/
   .lunar-page-title {
     @apply text-5xl font-black tracking-tight uppercase text-white;
   }

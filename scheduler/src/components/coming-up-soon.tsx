@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { TaskCard } from "./tasks/TaskCard";
-import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskForm } from "./tasks/TaskForm";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
@@ -87,7 +87,7 @@ export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
           </h2>
 
           <div className="flex items-center">
-            <TaskFormDialog
+            <TaskForm
               isOpen={isDialogOpen}
               onOpenChange={(open) => {
                 setIsDialogOpen(open);

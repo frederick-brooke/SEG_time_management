@@ -12,7 +12,7 @@ import {
 } from "components/ui/card";
 import { Button } from "components/ui/button";
 import { TaskColumn } from "./tasks/TaskColumn";
-import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskForm } from "./tasks/TaskForm";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/src/hooks/useTasks";
@@ -114,7 +114,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
           >
             Sort
           </Button>
-          <TaskFormDialog
+          <TaskForm
             isOpen={isDialogOpen}
             onOpenChange={(open) => {
               setIsDialogOpen(open);
