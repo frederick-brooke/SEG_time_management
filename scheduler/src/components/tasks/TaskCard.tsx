@@ -7,6 +7,12 @@ import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/src/lib/priority";
 import { LunarCard } from "../ui/lunar-card";
 
+/**
+ * Renders the checklist of subtasks for a task card.
+ * @param {Array} subtasks List of subtasks to display.
+ * @param {boolean[]} checkedList Tracked check state for each subtask.
+ * @param {Function} onSubtaskChange Callback triggered when a subtask checkbox changes.
+ */
 function SubtaskList({ subtasks, checkedList, onSubtaskChange }: {
   subtasks: any[];
   checkedList: boolean[];
@@ -34,6 +40,16 @@ function SubtaskList({ subtasks, checkedList, onSubtaskChange }: {
   );
 }
 
+/**
+ * Footer row for a task card containg status controls and action buttons.
+ * @param {Object} task The task record being displayed.
+ * @param {Function} onToggle Callback to toggle task status.
+ * @param {Function} onView Callback to open the task view dialog.
+ * @param {Function} onEdit Callback to open the task edit dialog.
+ * @param {Function} onDelete Callback to trigger task deletion.
+ * @param {boolean} isDashboard Whether the card is in dashboard mode.
+ * @param {Object} router Next.js router instance for navigation
+ */
 function TaskCardFooter({ task, onToggle, onView, onEdit, onDelete, isDashboard, router }) {
   return (
     <div className="flex justify-between items-center pt-3 border-t border-white/10 w-full mt-2">
@@ -87,6 +103,7 @@ function TaskCardFooter({ task, onToggle, onView, onEdit, onDelete, isDashboard,
     </div>
   );
 }
+
 export function TaskCard({
   task,
   onToggle,
