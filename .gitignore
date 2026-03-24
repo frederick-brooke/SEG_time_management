@@ -364,3 +364,5 @@ cookies.txt
 # - .env.example (example env file - safe to commit)
 
 !scheduler/src/lib/
+
+cleanup.ts
