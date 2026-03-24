@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { hashPassword, verifyPassword } from "@/src/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 
 export async function updateAccountDetails(formData: FormData) {
   const session = await getServerSession(authOptions);
