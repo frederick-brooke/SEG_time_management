@@ -226,7 +226,7 @@ export function TaskForm({
             onChange={(e) =>
               onChange({ bufferDays: parseInt(e.target.value) || 0 })
             }
-            className="w-24 border border-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-24 lunar-input"
           />
           <span className="text-sm text-gray-400">days before due date</span>
         </div>
