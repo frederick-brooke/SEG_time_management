@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { resolveAvatarSrc } from "@/src/lib/avatar";
 import Image from "next/image";
 
 type Friend = {
@@ -67,9 +68,9 @@ export function AddMemberModal({ conversationId, existingMemberIds, onClose, onA
               disabled={loading}
               className="w-full flex items-center gap-3 px-3 py-2 transition-colors rounded-lg disabled:opacity-50 hover:bg-white/[0.04]"
             >
-              {f.pfp ? (
+              {resolveAvatarSrc(f.pfp) ? (
                 <Image
-                  src={f.pfp}
+                  src={resolveAvatarSrc(f.pfp)!}
                   alt={f.username}
                   width={28}
                   height={28}
