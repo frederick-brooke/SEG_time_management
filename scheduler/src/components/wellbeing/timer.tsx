@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useTimer } from "@/src/hooks/useTimer";
+import { useTimer } from "@/hooks/useTimer";
 
 import Reminders from "./reminders";
 import GlassCard from "../ui/glassCard";

@@ -1,11 +1,11 @@
 "use client";
 
-import { AppSidebar } from "@/src/components/layout/app-sidebar";
-import { SiteHeader } from "@/src/components/site-header";
-import {SidebarProvider,SidebarInset} from "@/src/components/animate-ui/components/radix/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import {SidebarProvider,SidebarInset} from "@/components/animate-ui/components/radix/sidebar";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";                          
-import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
+import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
