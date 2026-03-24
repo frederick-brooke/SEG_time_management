@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { checkUpcomingDeadlines } from "../app/actions/examActions";
+import { checkUpcomingDeadlines } from "../app/actions/examNotifications";
 import { getNotifications } from "../app/actions/notifications";
 import { ToastContainer } from "./ToastContainer"; // adjust path if needed
 import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
