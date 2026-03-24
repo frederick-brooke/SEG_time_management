@@ -186,10 +186,15 @@ export async function generateExamPlan(examId: string, topics: { title:string, d
         for (const topic of topics) {
             if (dateIndex >= availableDates.length) break;
 
-            if (examPlannerLogic.calculateDaysRequired([{duration: dailyTimeSpent}, topic ], exam.maxTimePerDay) > 1 && dailyTimeSpent > 0) {
-                dateIndex++;
-                dailyTimeSpent = 0;
-            }
+            const { nextIndex, resetTime } = getTargetDateIndex(
+                dateIndex,
+                dailyTimeSpent,
+                topic.duration,
+                exam.maxTimePerDay
+            );
+
+            dateIndex = nextIndex;
+            if (resetTime) dailyTimeSpent = 0;
 
             if (dateIndex < availableDates.length) {
                 await saveTopicAsTask(examId, exam.userId, topic, availableDates[dateIndex]);
@@ -258,3 +263,19 @@ export async function updateExamUnavailableDays(examId: string, days: Date[] | u
         return { success: false, error: "Failed to update unavailable days" };
     }
 }
+
+/**
+ * Helper to determine if we need to move to the next study day.
+ */
+function getTargetDateIndex(
+    currentDateIndex: number,
+    currentDailyTime: number,
+    topicDuration: number,
+    maxTimePerDay: number,
+): { nextIndex: number; resetTime: boolean } {
+    if (currentDailyTime + topicDuration > maxTimePerDay && currentDailyTime > 0) {
+        return { nextIndex: currentDateIndex + 1, resetTime: true };
+    }
+    return { nextIndex: currentDateIndex, resetTime: false };
+}
+
