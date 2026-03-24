@@ -1,6 +1,6 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import  TaskViewDialog  from "../TaskViewDialog";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { TaskViewDialog } from "../TaskViewDialog";
 
 /**
  * Mock Dialog/Label/Button via RELATIVE PATHS so alias config isn't required.
@@ -74,13 +74,22 @@ jest.mock("../../ui/label", () => {
 jest.mock("../../ui/button", () => {
   const React = require("react");
   return {
-    Button: ({ children, onClick }) => (
-      <button type="button" onClick={onClick}>
+    Button: ({ children, onClick, disabled }) => (
+      <button type="button" onClick={onClick} disabled={disabled}>
         {children}
+        {disabled && "Loading..."}
       </button>
     ),
   };
 });
+
+const mockRefresh = jest.fn();
+  jest.mock('next/navigation', () => ({
+    useRouter: () => ({ refresh: mockRefresh }),
+  }));
+
+global.fetch = jest.fn();
+
 
 describe("TaskViewDialog", () => {
   const getPriorityStyle = jest.fn(() => "bg-red-100 text-red-700");
@@ -207,4 +216,184 @@ describe("TaskViewDialog", () => {
 
     expect(screen.getByText("No subtasks")).toBeInTheDocument();
   });
+
+  it("calls the API and triggers onReward when 'Complete' is clicked", async () => {
+    const mockOnReward = jest.fn();
+    const mockOnClose = jest.fn();
+    const task = { id: "task-123", title: "Test task", priority: "High" };
+
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ rewards: { xp: 50, coins: 20 }}),
+  });
+
+  render(
+    <TaskViewDialog
+      task={task}
+      isOpen={true}
+      onClose={mockOnClose}
+      onReward={mockOnReward}
+      getPriorityStyle={jest.fn()}
+    />
+  );
+  
+  const completeBtn = screen.getByText(/complete/i);
+  fireEvent.click(completeBtn);
+
+  await waitFor(() => {
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/tasks/task-123"),
+      expect.objectContaining({ method: "PATCH" })
+    );
+    expect(mockOnReward).toHaveBeenCalledWith({ xp: 50, coins: 20 });
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+});
+
+  it("calls onEdit and closes the dialog when Edit is clicked", () => {
+    const mockOnEdit = jest.fn();
+    const mockOnClose = jest.fn();
+    const task = { id: "task-123", title: "Test Task" };
+
+    render(
+      <TaskViewDialog
+        task={task}
+        isOpen={true}
+        onClose={mockOnClose}
+        onEdit={mockOnEdit}
+        getPriorityStyle={jest.fn()}
+      />
+    );
+
+    const editBtn = screen.getByText(/edit/i);
+    fireEvent.click(editBtn);
+
+    expect(mockOnEdit).toHaveBeenCalledWith("task-123");
+    expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it("successfully completes a task and triggers rewards", async () => {
+    const mockOnReward = jest.fn();
+    const mockOnClose = jest.fn();
+
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        rewards: { xp: 20, coins: 10}
+      }),
+    });
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-1", title: "Complete" }}
+        isOpen={true}
+        onClose={mockOnClose}
+        onReward={mockOnReward}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/complete/i));
+
+    await waitFor(() => {
+      expect(mockOnReward).toHaveBeenCalledWith({ xp: 20, coins: 10 });
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
+
+  it("handles API errors in handleCompleteTask", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = jest.fn().mockResolvedValueOnce({ ok: false });
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-1", title: "Fail" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/complete/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("hits catch block on hard network failure", async () => {
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network failure"));
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-err", title: "Fail" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/complete/i));
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith("Failed to update task:", expect.any(Error));      
+    });
+    spy.mockRestore();
+  });
+
+  it("does not crash if rewards exist but onReward prop is missing", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ rewards: { xp: 10 }}),
+    });
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-no-cb", title: "No callback" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/complete/i));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+  });
+
+  it("sets and clears loading state during API call", async () => {
+    let resolveFetch;
+    const pendingPromise = new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
+
+    (global.fetch as jest.Mock).mockReturnValueOnce(pendingPromise);
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-load", title: "Load task" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    const completeBtn = screen.getByText(/complete/i)
+    fireEvent.click(completeBtn);
+
+    expect(completeBtn).toBeDisabled();
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+
+    resolveFetch({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+
+    await waitFor(() => {
+      expect(completeBtn).not.toBeDisabled();
+    });
+  });
+
 });
