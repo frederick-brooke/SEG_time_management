@@ -125,8 +125,8 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
                 <div className="col-span-4">
                   <Link href={`/profile/${user.username}`} className="flex items-center gap-3 group">
                     <div className="w-9 h-9 rounded-full bg-white/10 overflow-hidden shrink-0 border border-white/10 group-hover:border-blue-400/40 transition-colors">
-                      {user.pfp ? (
-                        <img src={user.pfp} alt={user.username} className="w-full h-full object-cover" />
+                      {avatarSrc ? (
+                        <img src={avatarSrc} alt={user.username} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-white/60 font-semibold text-xs">
                           {user.name?.[0] || user.username[0]}
