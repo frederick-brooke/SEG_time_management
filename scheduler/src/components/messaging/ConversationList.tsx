@@ -13,6 +13,8 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import PusherClient from "pusher-js";
 import { CreateGroupModal } from "@/components/messaging/CreateGroupModal";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
@@ -286,7 +288,8 @@ export default function ConversationList() {
             ? (convo.name?.[0] ?? "G").toUpperCase()
             : (other!.username[0] ?? "?").toUpperCase();
 
-          const avatarSrc = !isGroup ? other!.pfp : null;
+          const avatarSrc = !isGroup ? resolveAvatarSrc(other!.pfp) : null;
+
           const isActive = activeId === convo.id;
 
           return (

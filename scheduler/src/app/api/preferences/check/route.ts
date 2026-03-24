@@ -1,12 +1,24 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+interface PreferencesBody {
+  userId: string;
+  workStartTime?: string;
+  workEndTime?: string;
+  daysOff?: string[];
+  sessionLength?: number;
+  breakLength?: number;
+  breaksPerDay?: number;
+  taskOrder?: string;
+  maxTasksPerDay?: number;
+  defaultTaskDuration?: number;
+  reminderDays?: number;
+}
 
-export async function GET(request) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    // ADD THIS CHECK:
     if (!userId) {
       return NextResponse.json(
         { error: "User ID required" },
@@ -28,11 +40,9 @@ export async function GET(request) {
   }
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    // Get the data from the request body
-    const body = await request.json();
-
+    const body: PreferencesBody = await request.json();
     const { userId, ...preferencesData } = body;
     
     if (!userId) {
@@ -42,9 +52,9 @@ export async function POST(request) {
       );
     }
 
-    const preferences = await prisma.userPreferences.create({
-      data: {
-        userId: userId,
+    const preferences = await prisma.userPreferences.upsert({
+      where: { userId: userId },
+      update: {
         workStartTime: preferencesData.workStartTime,
         workEndTime: preferencesData.workEndTime,
         daysOff: preferencesData.daysOff,
@@ -55,6 +65,19 @@ export async function POST(request) {
         maxTasksPerDay: preferencesData.maxTasksPerDay,
         defaultTaskDuration: preferencesData.defaultTaskDuration,
         reminderDays: preferencesData.reminderDays,
+      },
+      create: {
+        userId: userId,
+        workStartTime: preferencesData.workStartTime || "09:00",
+        workEndTime: preferencesData.workEndTime || "17:00",
+        daysOff: preferencesData.daysOff || [],
+        sessionLength: preferencesData.sessionLength || 60,
+        breakLength: preferencesData.breakLength || 15,
+        breaksPerDay: preferencesData.breaksPerDay || 3,
+        taskOrder: preferencesData.taskOrder || "priority",
+        maxTasksPerDay: preferencesData.maxTasksPerDay || 10,
+        defaultTaskDuration: preferencesData.defaultTaskDuration || 30,
+        reminderDays: preferencesData.reminderDays || 1,
       },
     });
 

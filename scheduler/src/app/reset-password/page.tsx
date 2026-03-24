@@ -1,10 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
-import { validatePassword } from "lib/password";
+import { validatePassword } from "@/lib/password";
+import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
 
+// ── DRY UI Sub-Components ──────────────────────────────────────────────────────
+function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        className="w-full bg-white/5 border border-white/10 text-white placeholder-white/25 p-3.5 rounded-xl"
+      />
+    </div>
+  );
+}
+
+// ── Client Component ───────────────────────────────────────────────────────────
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,7 +40,7 @@ function ResetPasswordContent() {
   useEffect(() => {
     if (!token) {
       setStatus("error");
-      setMessage("No reset token provided. Please use the link from your email.");
+      setMessage("No reset token provided.");
     }
   }, [token]);
 
@@ -26,17 +48,7 @@ function ResetPasswordContent() {
     event.preventDefault();
     setMessage(null);
 
-    if (!token) {
-      setStatus("error");
-      setMessage("Missing token.");
-      return;
-    }
-
-    if (!password) {
-      setStatus("error");
-      setMessage("Please provide a new password.");
-      return;
-    }
+    if (!token) return;
 
     if (password !== confirmPassword) {
       setStatus("error");
@@ -68,91 +80,55 @@ function ResetPasswordContent() {
       }
 
       setStatus("success");
-      setMessage("Your password has been reset. You can now sign in.");
-    } catch (err) {
+      setMessage("Password reset successful.");
+    } catch {
       setStatus("error");
-      setMessage("Unable to reset password. Please try again later.");
+      setMessage("Something went wrong.");
     }
   };
 
   if (!token) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-        <div className="w-full max-w-md rounded bg-white p-8 shadow">
-          <h1 className="mb-6 text-2xl font-bold text-center">Reset Password</h1>
-          <p className="text-red-600">
-            No reset token provided. Please use the link sent to your email.
-          </p>
-          <div className="mt-6 text-center">
-            <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-              Request a new reset link
-            </Link>
-          </div>
-        </div>
+      <div className="p-8 text-center text-red-400">
+        Invalid or missing token.
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded bg-white p-8 shadow"
-      >
-        <h1 className="mb-6 text-2xl font-bold text-center">Set a new password</h1>
+    <div className="flex min-h-screen items-center justify-center bg-[#0a0a0f]">
+      <form onSubmit={handleSubmit} className="p-8 rounded-xl bg-white/5 w-full max-w-md">
+        <h1 className="text-white text-2xl mb-4">Reset Password</h1>
 
-        {message && (
-          <p
-            className={`mb-4 text-sm ${
-              status === "error" ? "text-red-500" : "text-green-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
+        {message && <p className="mb-4 text-sm">{message}</p>}
 
-        <label className="mb-2 block font-medium">New password</label>
-        <input
+        <FormInput
+          label="New Password"
           type="password"
+          name="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mb-2 w-full rounded border px-3 py-2"
+          onChange={(e: any) => setPassword(e.target.value)}
           required
         />
-        <ul className="mb-4 text-xs text-gray-500 list-disc list-inside">
-          <li>Minimum 6 characters</li>
-          <li>At least one uppercase letter</li>
-          <li>At least one lowercase letter</li>
-          <li>At least one number or symbol</li>
-        </ul>
 
-        <label className="mb-2 block font-medium">Confirm password</label>
-        <input
+        <FormInput
+          label="Confirm Password"
           type="password"
+          name="confirmPassword"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="mb-6 w-full rounded border px-3 py-2"
+          onChange={(e: any) => setConfirmPassword(e.target.value)}
           required
         />
 
-        <button
-          type="submit"
-          className="w-full rounded bg-blue-600 px-4 py-2 text-white"
-          disabled={status === "sending"}
-        >
-          {status === "sending" ? "Saving…" : "Save new password"}
+        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">
+          {status === "sending" ? "Saving..." : "Save Password"}
         </button>
-
-        <div className="mt-4 text-center text-sm text-gray-600">
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            Back to sign in
-          </Link>
-        </div>
       </form>
     </div>
   );
 }
 
+// ── Wrapper with Suspense ──────────────────────────────────────────────────────
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
