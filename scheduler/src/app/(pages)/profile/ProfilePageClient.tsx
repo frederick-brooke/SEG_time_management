@@ -19,8 +19,7 @@ import StreakCard      from "@/components/profile/StreakCard";
 import TaskStatsCard   from "@/components/profile/TaskStatsCard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { GoldCoin }   from "@/components/ui/gold-coin";
-import { AVATAR_IMAGES } from "@/lib/shop-catalogue";
-
+import { resolveAvatarSrc } from "@/src/lib/avatar";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Formats an ISO date string into DD/MM/YYYY. */
@@ -29,12 +28,7 @@ function formatDate(dateString: string): string {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
-/** Resolves a pfp value to a usable src: handles "avatar:<key>" prefixes and raw URLs. */
-function resolveAvatarSrc(pfp: string | null | undefined): string | null {
-  if (!pfp) return null;
-  if (pfp.startsWith("avatar:")) return AVATAR_IMAGES[pfp.slice("avatar:".length)] ?? null;
-  return pfp;
-}
+
 
 // ─── Small form-status buttons ────────────────────────────────────────────────
 
