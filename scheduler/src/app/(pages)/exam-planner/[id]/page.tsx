@@ -145,7 +145,7 @@ export default function ExamDetailPage() {
      */
     const handleUpdateUnavailableDays = async (days) => {
         const updated = await updateExamUnavailableDays(examId, days);
-        setExam(updated);
+        if (updated?.data) setExam(updated.data);
     };
 
     if (!exam) return <p className="p-10 text-white/50 animate-pulse uppercase font-black tracking-widest text-xs">Loading exam hub</p>;
@@ -189,10 +189,15 @@ export default function ExamDetailPage() {
                         <div className="p-6 bg-black/40 border border-white rounded-[2rem] flex justify-center background-blur-md [color-scheme:dark]">
                             <Calendar
                                 mode="multiple"
-                                selected={exam.unavailableDays as Date[]}
+                                selected={exam.unavailableDays?.map((d: string) => new Date(d)) ?? []}
                                 onSelect={(days: Date[] | undefined) => handleUpdateUnavailableDays(days)}
                                 className="rounded-md border-none text-white bg-transparent"
-                                classNames={{}}
+                                classNames={{
+                                    day: "!text-white hover:!bg-white/10 !rounded-lg",
+                                    today: "!bg-blue-500 !text-white !rounded-lg font-black",
+                                    outside: "!text-white/20",
+                                    selected: "!bg-blue-500 !text-white !rounded-lg font-black",
+                                }}
                                 formatters={{}}
                                 components={{}}
                             />

@@ -123,6 +123,14 @@
   }
 }
 
+.rdp-day_button[data-selected-single="true"] {
+  background-color: #8b5cf6 !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
+
 /* frosted glass */
 .glass {
   background: rgba(255, 255, 255, 0.06);
