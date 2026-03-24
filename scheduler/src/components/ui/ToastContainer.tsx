@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { CheckCircle, AlertCircle, Info, X } from "lucide-react";
 
 interface Toast {
@@ -22,7 +22,7 @@ const typeStyles: Record<string, string> = {
 };
 
 const typeIcons: Record<string, React.ReactElement> = {
-  SUCCESS: <CheckCircle className="w-4x h-4 text-green-400" />,
+  SUCCESS: <CheckCircle className="w-4 h-4 text-green-400" />,
   ERROR: <AlertCircle className="w-4 h-4 text-red-400" />,
   WARNING: <AlertCircle className="w-4 h-4 text-yellow-400" />,
   INFO: <Info className="w-4 h-4 text-blue-400" />,
@@ -30,7 +30,6 @@ const typeIcons: Record<string, React.ReactElement> = {
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   useEffect(() => {
-    // Auto-dismiss after 5 seconds
     const timer = setTimeout(() => onDismiss(toast.id), 5000);
     return () => clearTimeout(timer);
   }, [toast.id, onDismiss]);

@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 
-// ── jest.mock calls must NOT reference outer const variables ─────────────────
+// jest.mock calls must NOT reference outer const variables 
 // jest.mock is hoisted above const declarations, causing a temporal dead zone
 // error if outer consts are referenced inside the factory. All fns are inlined.
 
@@ -33,7 +33,7 @@ jest.mock("@/lib/map", () => ({
 import { EventLayer } from "../EventLayer";
 import type { MapEvent } from "@/lib/map";
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
+// Fixtures 
 
 const mockRemoveLayer = jest.fn();
 const mockFitBounds = jest.fn();
@@ -61,7 +61,7 @@ const makeEvent = (id: string, opts: Record<string, unknown> = {}) =>
     ...opts,
   } as MapEvent);
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests
 
 describe("EventLayer", () => {
   beforeEach(() => {

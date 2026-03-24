@@ -4,8 +4,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { checkUpcomingDeadlines } from "../app/actions/examActions";
 import { getNotifications } from "../app/actions/notifications";
-import { ToastContainer } from "./ToastContainer"; // adjust path if needed
-import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
+import { ToastContainer } from "./ui/ToastContainer"; // adjust path if needed
+import { checkUpcomingEventNotifications } from "@/src/app/actions/calendarNotifications";
 
 import {
   IconCamera,

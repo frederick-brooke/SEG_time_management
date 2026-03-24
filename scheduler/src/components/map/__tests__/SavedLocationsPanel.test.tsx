@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// Mocks 
 
 const mockUseSavedLocations = jest.fn();
 const mockSaveLocation = jest.fn();
@@ -16,7 +16,7 @@ global.fetch = jest.fn();
 import { SavedLocationsPanel } from "../SavedLocationsPanel";
 import type { SavedLocation } from "hooks/useSavedLocations";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Helpers 
 
 const makeLoc = (
   id: string,
@@ -57,7 +57,7 @@ function setupMocks({
   return { deleteLocation, renameLocation, refresh };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests
 
 describe("SavedLocationsPanel", () => {
   beforeEach(() => {
@@ -67,7 +67,7 @@ describe("SavedLocationsPanel", () => {
     });
   });
 
-  // ── Header ─────────────────────────────────────────────────────────────────
+  //  Header 
 
   it("renders the panel header with title", () => {
     setupMocks();
@@ -87,7 +87,6 @@ describe("SavedLocationsPanel", () => {
     expect(screen.getByText("0")).toBeInTheDocument();
   });
 
-  // ── Collapse / expand ──────────────────────────────────────────────────────
 
   it("is expanded by default", () => {
     setupMocks();
@@ -124,7 +123,7 @@ describe("SavedLocationsPanel", () => {
     expect(screen.getByText("▼")).toBeInTheDocument();
   });
 
-  // ── Loading state ──────────────────────────────────────────────────────────
+  // Loading state 
 
   it("shows loading text when loading is true", () => {
     setupMocks({ loading: true });
@@ -132,7 +131,7 @@ describe("SavedLocationsPanel", () => {
     expect(screen.getByText(/Loading/i)).toBeInTheDocument();
   });
 
-  // ── Empty state ────────────────────────────────────────────────────────────
+  // Empty state
 
   it("shows empty-state message when no locations and not loading", () => {
     setupMocks({ locations: [], loading: false });
@@ -142,7 +141,7 @@ describe("SavedLocationsPanel", () => {
     ).toBeInTheDocument();
   });
 
-  // ── LocationCards rendered in correct order ────────────────────────────────
+  // LocationCards rendered in correct order 
 
   it("renders HOME card when home is present", () => {
     const home = makeLoc("h", "HOME", "My House");
@@ -175,7 +174,7 @@ describe("SavedLocationsPanel", () => {
     expect(screen.getByText("Address h")).toBeInTheDocument();
   });
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // Delete
 
   it("calls deleteLocation when the delete button is clicked", async () => {
     const home = makeLoc("h", "HOME", "Home");
@@ -194,7 +193,7 @@ describe("SavedLocationsPanel", () => {
     await waitFor(() => expect(onLocationsChange).toHaveBeenCalledTimes(1));
   });
 
-  // ── Rename (editing) ───────────────────────────────────────────────────────
+  // Rename (editing)
 
   it("shows rename input when the edit button is clicked", () => {
     const home = makeLoc("h", "HOME", "Home");
@@ -251,7 +250,7 @@ describe("SavedLocationsPanel", () => {
     );
   });
 
-  // ── AddLocationForm ────────────────────────────────────────────────────────
+  // AddLocationForm 
 
   it("renders the address search input", () => {
     setupMocks();

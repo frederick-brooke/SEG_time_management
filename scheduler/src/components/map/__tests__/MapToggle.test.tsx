@@ -6,7 +6,7 @@ jest.mock("@/src/lib/map", () => ({}));
 
 import { MapToggle } from "../MapToggle";
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests 
 
 describe("MapToggle", () => {
   const onChange = jest.fn();

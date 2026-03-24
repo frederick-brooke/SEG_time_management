@@ -1,14 +1,14 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// Mocks 
 
 jest.mock("next/dynamic", () => ({
   __esModule: true,
   default: (fn: () => Promise<{ [key: string]: React.ComponentType<any> }>, opts?: any) => {
     // Return a simple stub that just renders a div with a data-testid
     const Stub = (props: any) => {
-      // derive a readable name from opts or fn.toString
+      // derive a readable name
       const name = opts?.loading ? "UnifiedMapLayer" : "DynamicComponent";
       return <div data-testid={`dynamic-${name}`} />;
     };
@@ -78,7 +78,7 @@ jest.mock("hooks/useSavedLocations", () => ({
 import { CombinedMap } from "../CombinedMap";
 import type { MapEvent } from "@/lib/map";
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
+// Fixtures 
 
 const DEFAULT_CENTER: [number, number] = [51.5, -0.1];
 
@@ -118,7 +118,7 @@ function setupMocks({
   mockFormatDate.mockImplementation((d) => d);
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests 
 
 describe("CombinedMap", () => {
   beforeEach(() => {

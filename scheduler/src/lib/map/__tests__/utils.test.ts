@@ -1,4 +1,4 @@
-import { calcCenter, formatDate, createPinSvg, injectLeafletCSS } from "../../map/utils";
+import { calcCenter, formatDate, createPinSvg, injectLeafletCSS } from "../utils";
 
 // calcCenter
 

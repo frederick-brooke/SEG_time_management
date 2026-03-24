@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// Mocks 
 
 const mockPanTo = jest.fn();
 const mockUseMap = jest.fn();
@@ -40,15 +40,15 @@ jest.mock("@/lib/map/constants", () => ({
   MAP_HEIGHT: "500px",
 }));
 
-// ── Import after mocks ────────────────────────────────────────────────────────
+// Import after mocks 
 
 import { BaseMap, LocationController } from "../BaseMap";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Helpers
 
 const CENTER: [number, number] = [51.505, -0.09];
 
-// ── LocationController ────────────────────────────────────────────────────────
+// LocationController 
 
 describe("LocationController", () => {
   beforeEach(() => {
@@ -97,7 +97,7 @@ describe("LocationController", () => {
   });
 });
 
-// ── BaseMap ───────────────────────────────────────────────────────────────────
+// BaseMap
 
 describe("BaseMap", () => {
   beforeEach(() => {

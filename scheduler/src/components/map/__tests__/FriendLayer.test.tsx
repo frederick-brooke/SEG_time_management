@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// Mocks 
 
 jest.mock("leaflet", () => ({
   Icon: jest.fn().mockImplementation((opts) => ({ ...opts, _isIcon: true })),
@@ -31,8 +31,7 @@ jest.mock("@/src/lib/map", () => ({
 
 import { FriendLayer } from "../FriendLayer";
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
-
+//  Fixtures 
 const USER_LOCATION: [number, number] = [51.505, -0.09];
 
 const makeFriend = (
@@ -56,7 +55,7 @@ const makeFriend = (
   ...opts,
 });
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests 
 
 describe("FriendLayer", () => {
   // User marker
