@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPlus, AlertCircle } from "lucide-react";
-import { validatePassword } from "@/src/lib/password"; // Fixed alias
+import { validatePassword } from "@/lib/password";
 
 // ── DRY UI Sub-Components ──────────────────────────────────────────────────────
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
