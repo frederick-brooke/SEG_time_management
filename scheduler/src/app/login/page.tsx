@@ -139,7 +139,7 @@ export default function LoginPage() {
               name="identifier"
               value={identifier}
               onChange={(e: any) => setIdentifier(e.target.value)}
-              placeholder="e.g. spaceman or astroguy@mail.com"
+              placeholder="e.g. jsmith or john@example.com"
               required
             />
             <FormInput
