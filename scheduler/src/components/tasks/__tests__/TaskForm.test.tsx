@@ -234,10 +234,37 @@ describe("TaskFormDialog", () => {
     expect(props.onFormChange).toHaveBeenCalledWith({ priority: "High" });
   });
 
-  it("calls onSubmit on button click", () => {
-    const props = setup({ editingTaskId: null });
+  it("calls onSubmit when name is provided", () => {
+    const props = setup({ 
+      editingTaskId: null,
+      formData: { ...baseFormData, name: "My Task"}
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Create Task" }));
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it("does not call onSubmit when name is empty", () => {
+    const props = setup({ 
+      editingTaskId: null,
+      formData: { ...baseFormData, name: ""}
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Create Task" }));
+    expect(props.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("renders exams in dropdown when provided", () => {
+    setup({ 
+      exams: [{ id: "exam1", title: "Maths Exam" }]
+    });
+
+    expect(screen.getByText("Maths Exam")).toBeInTheDocument();
+  });
+
+  it("hides trigger button when showTrigger is false", () => {
+    setup({ showTrigger: false });
+    expect(screen.queryByText("+ NEW TASK")).not.toBeInTheDocument();
+  });
+
 });
