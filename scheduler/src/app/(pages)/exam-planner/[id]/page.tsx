@@ -85,7 +85,7 @@ export default function ExamDetailPage() {
                                 <div key={index} className="flex flex-col gap-2 p-3 border rounded-xl bg-[#111629]/60 relative">
                                     <div className="flex gap-2">
                                         <input
-                                            className="flex-1 p-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="flex-1 lunar-input"
                                             placeholder="Topic Name"
                                             value={topic.title}
                                             onChange={(e) => updateTopic(index, 'title', e.target.value)}
@@ -94,7 +94,7 @@ export default function ExamDetailPage() {
                                         <div className="flex items-center gap-1 bg-[#111629]/60 border rounded-lg px-2">
                                             <input
                                                 type="number"
-                                                className="w-10 text-sm outline-none"
+                                                className="w-10 lunar-input"
                                                 min="1"
                                                 onKeyDown={(e) => {
                                                     if (e.key === '-' || e.key === 'e') {
@@ -109,7 +109,7 @@ export default function ExamDetailPage() {
                                     </div>
                         
                                     <input
-                                        className="w-full p-2 text-[11px] border rounded-lg outline-none bg-[#111629]/60"
+                                        className="w-full lunar-input"
                                         placeholder="Resource URL(Optional"
                                         value={topic.url}
                                         onChange={(e) => updateTopic(index, 'url', e.target.value)}
