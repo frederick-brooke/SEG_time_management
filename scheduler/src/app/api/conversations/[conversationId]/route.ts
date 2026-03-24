@@ -27,7 +27,7 @@ const pusher = new Pusher({
  * @param event - The Pusher event name
  * @param data - The data payload
  */
-async function triggerPusher(channel: string, event: string, data: any) {
+async function triggerPusher(channel: string, event: string, data: Record<string, unknown>) {
   try {
     await pusher.trigger(channel, event, data);
   } catch (err) {
@@ -101,6 +101,11 @@ async function createMessage(
 
 /**
  * Main handler for creating a message in a conversation.
+ * 
+ * Pusher behaviour:
+ * - The 'new message' event is triggers fire-and-forget to avoid blocking the request
+ * - The 'conversation updated' notifications are awaited because they must reliably reach all
+ *   participants for sidebar synchronization.
  */
 export async function POST(
   req: NextRequest,

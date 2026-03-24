@@ -1,10 +1,12 @@
 "use client";
 
 /**
- * @file MessageInput.tsx
- * @description Auto-growing textarea input for composing and sending messages.
- * Expands vertically with content up to a max height, then scrolls.
- * The Send button is disabled while a message is in-flight or the input is empty.
+ * @file UserSearch.tsx
+ * @description Search component that allows users to find friends and group conversations.
+ * 
+ * Provides real-time filtering of friends and groups based on user input (minimum 2 characters),
+ * and allows starting a new direct chat or navigating to an existing group conversation.
+ * 
  */
 
 import { useState, useEffect } from "react";
