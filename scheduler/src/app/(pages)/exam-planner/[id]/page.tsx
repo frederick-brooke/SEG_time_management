@@ -78,7 +78,7 @@ export default function ExamDetailPage() {
                 {/* Exam Plan Generator */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-[#111629]/60 p-6 border rounded-2xl shadow-sm flex flex-col">
-                        <h2 className="text-xl font-bold mb-2">1. Build Syllabus</h2>
+                        <h2 className="lunar-header mb-2">1. Build Syllabus</h2>
                         <p className="text-sm text-muted-foreground mb-4">Specify time and materials for each topic.</p>
                         <div className="space-y-4 mb-4 max-h-[400px] overflow-y-auto pr-2">
                             {topics.map((topic, index) => (
@@ -143,7 +143,7 @@ export default function ExamDetailPage() {
                     </div>
 
                     <div className="bg-[#111629]/60 p-6 border rounded-2xl shadow-sm">
-                        <h2 className="text-xl font-bold mb-2">2. Busy Days</h2>
+                        <h2 className="lunar-header mb-2">2. Busy Days</h2>
                         <p className="text-sm text-muted-foreground mb-4">These dates will be skipped in the revision plan</p>
                         <div className="p-6 bg-black/40 border border-white rounded-[2rem] flex justify-center background-blur-md [color-scheme:dark]">
                             <Calendar
