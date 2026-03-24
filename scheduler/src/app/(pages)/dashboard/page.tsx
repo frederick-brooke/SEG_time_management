@@ -134,8 +134,12 @@ export default function Page() {
           {/* Grid Layout for Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start pt-12">
             <div className="flex flex-col gap-8">
-              <ComingUpSoon userId={session?.user?.id} exams={exams}/>
-              <UpcomingExams exams={exams} />
+              <div className="lunar-glass p-6">
+                <ComingUpSoon userId={session?.user?.id} exams={exams}/>
+                </div>
+              <div className="lunar-glass p-6">
+                <UpcomingExams exams={exams} />
+              </div>
             </div>
             <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent rounded-full opacity-50" />
             <LeaderboardClient initialData={leaderboard} currentTimeframe="week" />
