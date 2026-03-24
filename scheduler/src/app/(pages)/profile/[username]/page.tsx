@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";
-import { getProfile } from "@/src/app/actions/profile";
+import { getProfile } from "@/app/actions/profile";
 import { fetchUsernameByEmail } from "lib/profile-queries";
 import ProfilePageClient from "../ProfilePageClient";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";

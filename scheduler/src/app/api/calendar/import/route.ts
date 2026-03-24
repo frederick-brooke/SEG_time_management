@@ -5,9 +5,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/src/lib/auth";
-import { prisma } from "@/src/lib/prisma";
-import { parseICal, parseRRule, ParsedVEvent } from "@/src/lib/calendar/ical-parser";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { parseICal, parseRRule, ParsedVEvent } from "@/lib/calendar/ical-parser";
 
 
 /** Encodes a feed URL and event UID into the internal ical: googleEventId format. */

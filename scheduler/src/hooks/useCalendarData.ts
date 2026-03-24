@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from "react";
 import { addMinutes, subMinutes } from "date-fns";
-import { shouldShowAsUnscheduled } from "@/src/lib/scheduling/taskSchedulingUtils";
+import { shouldShowAsUnscheduled } from "@/lib/scheduling/taskSchedulingUtils";
 
 import { addDays, addWeeks, addMonths } from "date-fns";
 

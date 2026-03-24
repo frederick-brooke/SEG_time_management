@@ -1,10 +1,10 @@
 'use server'
 
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { SHOP_CATALOGUE } from "@/src/lib/shop-catalogue";
+import { SHOP_CATALOGUE } from "@/lib/shop-catalogue";
 
 export async function getShopData() {
   const session = await getServerSession(authOptions);

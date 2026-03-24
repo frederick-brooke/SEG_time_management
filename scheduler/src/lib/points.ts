@@ -1,4 +1,4 @@
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 // XP & coin rewards per priority
 const PRIORITY_REWARDS: Record<string, { xp: number; coins: number }> = {

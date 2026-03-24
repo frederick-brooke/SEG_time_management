@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Button } from "components/ui/button";
 import { Checkbox } from "components/ui/checkbox";
-import { TaskActions } from "@/src/components/task-actions";
+import { TaskActions } from "@/components/task-actions";
 import { ArrowRight, ArrowLeft, GripVertical } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getPriorityStyle } from "@/src/lib/priority";
+import { getPriorityStyle } from "@/lib/priority";
 import { LunarCard } from "../ui/lunar-card";
 
 export function TaskCard({

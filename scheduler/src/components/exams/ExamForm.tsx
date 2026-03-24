@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
-import { createNotification } from "@/src/app/actions/notifications";
+import { createExam, updateExamSettings } from "@/app/actions/examActions";
+import { createNotification } from "@/app/actions/notifications";
 import { NotificationType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 

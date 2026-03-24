@@ -5,8 +5,8 @@
 import { NextRequest } from "next/server";
 import { GET, POST, DELETE } from "../route";
 import { getServerSession } from "next-auth/next";
-import { prisma } from "@/src/lib/prisma";
-import { parseICal, parseRRule } from "@/src/lib/calendar/ical-parser";
+import { prisma } from "@/lib/prisma";
+import { parseICal, parseRRule } from "@/lib/calendar/ical-parser";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 

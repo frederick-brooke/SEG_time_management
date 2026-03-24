@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ToDoList } from "@/src/components/to-do-list";
-import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/src/app/actions/examActions";
-import { Button } from "@/src/components/ui/button";
-import { Calendar } from "@/src/components/ui/calendar";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
+import { ToDoList } from "@/components/to-do-list";
+import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/app/actions/examActions";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
  * Exam Hub interface for a specific exam.
