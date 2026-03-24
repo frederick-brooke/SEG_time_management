@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { ModuleCard } from "@/src/components/modules/ModuleCard";
+import { ModuleCard } from "@/components/modules/ModuleCard";
 
 //mocks
 jest.mock("next/link", () => ({ children, href }: any) => <a href={href}>{children}</a>);

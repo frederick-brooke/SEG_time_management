@@ -1,6 +1,6 @@
 import { DELETE, PATCH } from "@/app/api/tasks/[id]/route";
-import prisma from "@/src/lib/prisma";
-import { awardTaskPoints, revokeTaskPoints } from "@/src/lib/points";
+import prisma from "@/lib/prisma";
+import { awardTaskPoints, revokeTaskPoints } from "@/lib/points";
 
 jest.mock("@/src/lib/prisma", () => ({
   task: {

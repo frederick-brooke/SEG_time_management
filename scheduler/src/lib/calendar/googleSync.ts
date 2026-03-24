@@ -231,7 +231,7 @@ export async function createLocalEvent(
  * @param userId - The user whose calendar to fetch.
  */
 export async function fetchAllGoogleEvents(userId: string) {
-  const { getGoogleCalendarClient } = await import("@/src/lib/calendar/googleCalendar");
+  const { getGoogleCalendarClient } = await import("@/lib/calendar/googleCalendar");
   const calendar = await getGoogleCalendarClient(userId);
   if (!calendar) return null;
 
