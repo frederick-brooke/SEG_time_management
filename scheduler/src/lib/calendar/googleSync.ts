@@ -9,8 +9,8 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
-import { buildGoogleRecurrenceRule } from "@/src/lib/calendar/eventHelpers";
+import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
+import { buildGoogleRecurrenceRule } from "@/lib/calendar/eventHelpers";
 
 /**
  * Parses a Google Calendar event's start/end into Date objects.

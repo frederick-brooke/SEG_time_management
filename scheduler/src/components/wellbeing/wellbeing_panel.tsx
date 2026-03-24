@@ -1,5 +1,5 @@
 import LunarDrawer from "@/components/layout/lunar-drawer";
-import WellbeingPage from "@/src/app/(pages)/wellbeing/page";
+import WellbeingPage from "@/app/(pages)/wellbeing/page";
 
 interface WellbeingPanelProps {
   open: boolean;

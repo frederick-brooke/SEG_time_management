@@ -4,14 +4,14 @@
  * All logic has moved to src/components/map/ and src/lib/map/.
  */
 import dynamic from "next/dynamic";
-import { MapEvent } from "@/src/lib/map";
+import { MapEvent } from "@/lib/map";
 
 interface MapViewProps {
   events: MapEvent[];
 }
 
 const MapView = dynamic<MapViewProps>(
-  () => import("@/src/components/map/CombinedMap").then((m) => ({
+  () => import("@/components/map/CombinedMap").then((m) => ({
     default: ({ events }: MapViewProps) => (
       <m.CombinedMap friends={[]} events={events} defaultMode="events" />
     ),

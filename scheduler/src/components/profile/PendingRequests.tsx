@@ -2,7 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { Check, X } from "lucide-react";
-import { acceptFriendRequest, rejectFriendRequest } from "@/src/app/actions/profile";
+import { acceptFriendRequest, rejectFriendRequest } from "@/app/actions/profile";
 
 /**
  * Accept button with automatic pending state.

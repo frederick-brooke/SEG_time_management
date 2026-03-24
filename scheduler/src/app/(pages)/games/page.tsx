@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getGameBalance } from "@/src/app/actions/games";
+import { getGameBalance } from "@/app/actions/games";
 import GamesPageClient from "./GamesPageClient";
 
 export default async function GamesPage() {

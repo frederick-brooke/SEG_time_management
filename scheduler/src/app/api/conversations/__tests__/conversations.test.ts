@@ -27,7 +27,7 @@ jest.mock("@/src/lib/prisma", () => ({
 }));
 
 import { getServerSession } from "next-auth";
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 const makeRequest = (body: object) =>
   new Request("http://localhost/api/conversations", {

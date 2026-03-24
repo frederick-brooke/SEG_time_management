@@ -13,8 +13,8 @@ import {
     deleteGoogleEvent,
   } from "../googleSync";
   import { prisma } from "@/lib/prisma";
-  import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
-  import { buildGoogleRecurrenceRule } from "@/src/lib/calendar/eventHelpers";
+  import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
+  import { buildGoogleRecurrenceRule } from "@/lib/calendar/eventHelpers";
   
   // ── Mocks ────────────────────────────────────────────────────────────────────
   

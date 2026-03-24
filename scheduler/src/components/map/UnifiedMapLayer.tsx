@@ -268,7 +268,7 @@ export function UnifiedMapLayer({ events, savedLocations }: UnifiedMapLayerProps
                 [event.startCoords.lat, event.startCoords.lng],
                 [event.destinationCoords.lat, event.destinationCoords.lng],
               ],
-              { color, weight: 2, opacity: 0.5, dashArray: "6, 6" }
+              { color, weight: 5, opacity: 0.8, dashArray: "8, 6" }
             ).addTo(map);
             layersRef.current.push(line);
           }
