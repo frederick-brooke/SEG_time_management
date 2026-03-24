@@ -121,7 +121,7 @@ export default function Page() {
 
             {/* Right Side: The Three Stats */}
             <div className="flex flex-col gap-3 shrink-0">
-              <p className="lunar-label-subtitle">Your Progress</p>
+              <p className="lunar-page-subtitle">Your Progress</p>
               {profile && <ProfileStats profile={profile} />}
             </div>
           </div>
