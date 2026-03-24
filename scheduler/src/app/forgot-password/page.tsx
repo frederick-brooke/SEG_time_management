@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link";
+import { Mail, AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [message, setMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setStatus("sending");
-    setMessage(null);
 
     try {
       const res = await fetch("/api/auth/forgot-password", {
@@ -20,68 +20,80 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      if (!res.ok) {
-        const body = await res.json();
-        setMessage(body?.error ?? "Something went wrong.");
+      if (res.ok) {
+        setStatus("success");
+        setMessage("Recovery link transmitted. Check your inbox.");
+      } else {
+        const data = await res.json();
         setStatus("error");
-        return;
+        setMessage(data.error || "Failed to send recovery email.");
       }
-
-      setStatus("sent");
-      setMessage(
-        "If an account exists for this email, you will receive a password reset link shortly."
-      );
     } catch (err) {
       setStatus("error");
-      setMessage("Unable to send reset link. Please try again later.");
+      setMessage("System error. Please try again later.");
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded bg-white p-8 shadow"
-      >
-        <h1 className="mb-6 text-2xl font-bold text-center">Reset Password</h1>
+    <div className="flex min-h-screen items-center justify-center bg-[#0a0a0f] px-4 relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
 
-        {message && (
-          <p
-            className={`mb-4 text-sm ${
-              status === "error" ? "text-red-500" : "text-green-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
+      <div className="w-full max-w-md relative z-10">
+        <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+          
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Mail size={28} className="text-blue-400" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Recover Access</h1>
+            <p className="text-white/50 text-sm">Enter your email to receive a secure reset link.</p>
+          </div>
 
-        <label className="mb-2 block font-medium">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mb-6 w-full rounded border px-3 py-2"
-          required
-        />
+          {message && (
+            <div className={`mb-6 p-4 rounded-xl border flex items-center gap-3 text-sm ${
+              status === "error" ? "bg-red-500/10 text-red-300 border-red-500/20" : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+            }`}>
+              {status === "error" ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+              <p>{message}</p>
+            </div>
+          )}
 
-        <button
-          type="submit"
-          className="w-full rounded bg-blue-600 px-4 py-2 text-white"
-          disabled={status === "sending"}
-        >
-          {status === "sending" ? "Sending…" : "Send reset link"}
-        </button>
+          {status !== "success" ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@universe.com"
+                  className="w-full bg-white/5 border border-white/10 text-white p-3.5 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                />
+              </div>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
-          Remembered your password?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Sign in
-          </Link>
+              <button
+                type="submit"
+                disabled={status === "sending"}
+                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-all disabled:opacity-50"
+              >
+                {status === "sending" ? "Sending..." : "Send Reset Link"}
+              </button>
+            </form>
+          ) : (
+            <Link href="/login" className="w-full inline-block bg-white/5 hover:bg-white/10 text-white text-center font-semibold py-3.5 rounded-xl transition-all">
+              Return to Login
+            </Link>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+            <Link href="/login" className="text-sm font-medium text-white/40 hover:text-white flex items-center justify-center gap-2 transition-colors">
+              <ChevronLeft size={16} /> Back to Sign In
+            </Link>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import { ShoppingBag, User, Zap } from "lucide-react";
+import { ShopItemType } from "@prisma/client";
+
 
 export interface ShopItem {
   id: string;
   name: string;
   description: string;
-  type: "AVATAR" | "FUNCTIONAL";
+  type: ShopItemType;
   price: number;
   value: string;
   icon: string;

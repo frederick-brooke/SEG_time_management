@@ -1,66 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { hashPassword, validatePassword } from "lib/password";
-import { prisma } from "lib/prisma";
-
+import { hashPassword, validatePassword } from "@/lib/password"; // Fixed alias
+import { prisma } from "@/lib/prisma";
 /**
- * helper function to validate username, only allow letters, numbers, underscores and hyphens
- * 3-20 chars
- * @param username the user made to validate
- * @returns boolean value
+ * Validates username: letters, numbers, underscores and hyphens (3-20 chars)
  */
 function isValidUsername(username: string): boolean {
   const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
   return usernameRegex.test(username);
 }
-/**
- * Handles user registration
- * @param req - the request object containing username, email, password
- * @returns JSON response with user data or error
- */
+
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
     const {
       username,
       email,
       password,
       fname = "",
       lname = "",
-    } = await req.json();
+    } = body;
 
+    // 1. Basic Field Validation
     if (!email || !password || !username) {
       return NextResponse.json(
         { error: "Username, email, and password are required" },
         { status: 400 },
       );
     }
-    //validate username format
+
+    // 2. Format Validations
     if (!isValidUsername(username)) {
       return NextResponse.json(
-        {
-          error:
-            "Username must be 3-20 characters and contain only letters, numbers, underscores, or hyphens",
-        },
+        { error: "Username must be 3-20 characters (letters, numbers, _ or - only)" },
         { status: 400 },
-      );
-    }
-
-    // Check if username already exists
-    const existingUsername = await prisma.user.findUnique({
-      where: { username },
-    });
-    if (existingUsername) {
-      return NextResponse.json(
-        { error: "Username already taken" },
-        { status: 409 },
-      );
-    }
-
-    //check if email already exists
-    const existingEmail = await prisma.user.findUnique({ where: { email } });
-    if (existingEmail) {
-      return NextResponse.json(
-        { error: "Email already exists" },
-        { status: 409 },
       );
     }
 
@@ -69,31 +41,59 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
+    // 3. Duplicate Checks (Band V: Check both at once for better performance)
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: username },
+          { email: email.toLowerCase() }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      const isDuplicateEmail = existingUser.email.toLowerCase() === email.toLowerCase();
+      return NextResponse.json(
+        { error: isDuplicateEmail ? "Email already exists" : "Username already taken" },
+        { status: 409 }
+      );
+    }
+
     const passwordHash = await hashPassword(password);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        username,
-        fname,
-        lname,
-      },
+    // 4. Atomic Transaction (Band V: Ensures user and categories are created together)
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: email.toLowerCase(),
+          passwordHash,
+          username,
+          fname,
+          lname,
+          // Initialize progress record automatically
+          progress: { create: { points: 0, level: 1 } }
+        },
+      });
+
+      await tx.category.createMany({
+        data: [
+          { userId: user.id, name: "Lecture", color: "#6366f1" },
+          { userId: user.id, name: "Individual Study", color: "#10b981" },
+          { userId: user.id, name: "Exam", color: "#ef4444" },
+          { userId: user.id, name: "Personal", color: "#f59e0b" },
+          { userId: user.id, name: "Lab", color: "#8b5cf6" },
+        ],
+      });
+
+      return user;
     });
 
-    await prisma.category.createMany({
-      data: [
-        { userId: user.id, name: "Lecture", color: "#6366f1" },
-        { userId: user.id, name: "Individual Study", color: "#10b981" },
-        { userId: user.id, name: "Exam", color: "#ef4444" },
-        { userId: user.id, name: "Personal", color: "#f59e0b" },
-        { userId: user.id, name: "Lab", color: "#8b5cf6" },
-      ],
-    });
+    // Remove passwordHash from response for security
+    const { passwordHash: _, ...userWithoutPassword } = result;
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: userWithoutPassword }, { status: 201 });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Failed to register" }, { status: 500 });
+    console.error("REGISTRATION_ERROR:", err);
+    return NextResponse.json({ error: "Failed to register account" }, { status: 500 });
   }
 }

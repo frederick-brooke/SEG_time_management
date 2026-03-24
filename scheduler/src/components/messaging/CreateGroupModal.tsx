@@ -10,6 +10,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 type User = { id: string; username: string; fname?: string | null; pfp?: string | null };
 
@@ -91,8 +93,8 @@ export function CreateGroupModal({
               className="flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-white/[0.04]"
             >
               <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="accent-indigo-500" />
-              {u.pfp ? (
-                <Image src={u.pfp} alt={u.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+              {resolveAvatarSrc (u.pfp) ? (
+                <Image src={resolveAvatarSrc(u.pfp)!} alt={u.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
               ) : (
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.8)]"

@@ -15,7 +15,7 @@ import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
-import { useTasks } from "@/src/hooks/useTasks";
+import { useTasks } from "@/hooks/useTasks";
 
 interface ToDoListProps {
   userId: string;

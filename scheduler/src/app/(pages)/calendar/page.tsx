@@ -1,10 +1,10 @@
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import CalendarView from "@/src/components/calendar/CalendarView";
-import GoogleLinkButton from "@/src/components/googleLinkButton";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
-import { checkUpcomingEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
+import CalendarView from "@/components/calendar/CalendarView";
+import GoogleLinkButton from "@/components/googleLinkButton";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";
 
 /**
  * Server-side calendar page component.

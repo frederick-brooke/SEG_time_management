@@ -5,7 +5,7 @@
 import ShopPage from "./page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { getShopData } from "@/src/app/actions/shop";
+import { getShopData } from "@/app/actions/shop";
 
 // Mock dependencies
 jest.mock("next-auth", () => ({

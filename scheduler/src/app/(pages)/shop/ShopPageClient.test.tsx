@@ -1,9 +1,10 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ShopPageClient from "./ShopPageClient";
-import { purchaseItem, equipItem, unequipItem } from "@/src/app/actions/shop";
+import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
+import { ShopData } from "./shop.types";
 
 // Mock server actions
-jest.mock("@/src/app/actions/shop", () => ({
+jest.mock("@/app/actions/shop", () => ({
   purchaseItem: jest.fn(),
   equipItem: jest.fn(),
   unequipItem: jest.fn(),
@@ -28,7 +29,7 @@ jest.mock("@/src/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {},
 }));
 
-const mockData = {
+const mockData: ShopData = {
   points: 1000,
   equippedAvatar: null,
   xpBoostExpires: null,
@@ -117,7 +118,7 @@ describe("ShopPageClient", () => {
     });
 
     expect(
-        await screen.findByText(/equipped as your avatar/i)
+        await screen.findByText(/equipped!/i)
       ).toBeInTheDocument();
 });
 

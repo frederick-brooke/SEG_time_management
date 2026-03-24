@@ -15,8 +15,10 @@
  */
 
 import { useState, useCallback } from "react";
-import { addMinutes, subMinutes, addDays, addWeeks, addMonths } from "date-fns";
-import { shouldShowAsUnscheduled } from "@/src/lib/scheduling/taskSchedulingUtils";
+import { addMinutes, subMinutes } from "date-fns";
+import { shouldShowAsUnscheduled } from "@/lib/scheduling/taskSchedulingUtils";
+
+import { addDays, addWeeks, addMonths } from "date-fns";
 
 const DAY_MAP: Record<string, number> = {
   Sun: 0,

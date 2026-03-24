@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } } // ✅ FIXED (not Promise)
+  { params }: { params: Promise<{ id: string }> } 
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,7 +14,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params
     const { type, durationDays, reportId } = await req.json();
 
     if (!id) {

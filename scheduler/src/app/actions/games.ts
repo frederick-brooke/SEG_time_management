@@ -1,9 +1,9 @@
 'use server'
 
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
-import { DIFFICULTY_CONFIG, Difficulty } from "@/src/lib/games-config";
+import { authOptions } from "@/lib/auth";
+import { DIFFICULTY_CONFIG, Difficulty } from "@/lib/games-config";
 
 export async function payGameEntry(difficulty: Difficulty) {
   const session = await getServerSession(authOptions);

@@ -9,8 +9,8 @@
  */
 
 import { prisma } from "@/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
-import { buildGoogleRecurrenceRule } from "@/src/lib/calendar/eventHelpers";
+import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
+import { buildGoogleRecurrenceRule } from "@/lib/calendar/eventHelpers";
 
 /**
  * Parses a Google Calendar event's start/end into Date objects.
@@ -231,7 +231,7 @@ export async function createLocalEvent(
  * @param userId - The user whose calendar to fetch.
  */
 export async function fetchAllGoogleEvents(userId: string) {
-  const { getGoogleCalendarClient } = await import("@/src/lib/calendar/googleCalendar");
+  const { getGoogleCalendarClient } = await import("@/lib/calendar/googleCalendar");
   const calendar = await getGoogleCalendarClient(userId);
   if (!calendar) return null;
 

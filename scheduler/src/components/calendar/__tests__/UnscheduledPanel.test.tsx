@@ -18,7 +18,7 @@ jest.mock("@/src/lib/scheduling/taskSchedulingUtils", () => ({
   getNextOccurrenceDeadline: jest.fn(),
 }));
 
-import { getNextOccurrenceDeadline } from "@/src/lib/scheduling/taskSchedulingUtils";
+import { getNextOccurrenceDeadline } from "@/lib/scheduling/taskSchedulingUtils";
 const mockGetNextOccurrenceDeadline = getNextOccurrenceDeadline as jest.Mock;
 
 // ---------------------------------------------------------------------------

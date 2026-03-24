@@ -23,7 +23,7 @@ jest.mock("@/lib/prisma", () => ({
 }));
 
 describe("PATCH /api/admin/users/[id]/ban", () => {
-  const mockParams = { params: { id: "user123" } };
+  const mockParams = { params: Promise.resolve({ id: "user123" }) };
 
   beforeEach(() => {
     jest.clearAllMocks();

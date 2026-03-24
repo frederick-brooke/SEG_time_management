@@ -1,10 +1,10 @@
 'use server'
 
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { hashPassword, verifyPassword } from "@/src/lib/password"; // Adjust import if needed
+import { hashPassword, verifyPassword } from "@/lib/password";
 
 export async function updateAccountDetails(formData: FormData) {
   const session = await getServerSession(authOptions);
@@ -15,15 +15,11 @@ export async function updateAccountDetails(formData: FormData) {
 
   if (!username || !email) throw new Error("Username and email are required");
 
-  // Check for existing username/email collisions
   const existingUser = await prisma.user.findFirst({
     where: {
-      OR: [
-        { username: username },
-        { email: email }
-      ],
-      NOT: { id: session.user.id }
-    }
+      OR: [{ username }, { email }],
+      NOT: { id: session.user.id },
+    },
   });
 
   if (existingUser) {
@@ -33,7 +29,7 @@ export async function updateAccountDetails(formData: FormData) {
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { username, email }
+    data: { username, email },
   });
 
   revalidatePath("/settings");
@@ -48,27 +44,23 @@ export async function changePassword(formData: FormData) {
   const newPassword = formData.get("newPassword") as string;
   const confirmPassword = formData.get("confirmPassword") as string;
 
-  if (newPassword !== confirmPassword) {
-    throw new Error("New passwords do not match");
-  }
+  if (newPassword !== confirmPassword) throw new Error("New passwords do not match");
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { passwordHash: true }
+    select: { passwordHash: true },
   });
 
-  // If user has a password, verify the current one
   if (user?.passwordHash) {
     if (!currentPassword) throw new Error("Current password is required");
     const isValid = await verifyPassword(currentPassword, user.passwordHash);
     if (!isValid) throw new Error("Incorrect current password");
   }
 
-  // Hash and save new password
   const newHash = await hashPassword(newPassword);
   await prisma.user.update({
     where: { id: session.user.id },
-    data: { passwordHash: newHash }
+    data: { passwordHash: newHash },
   });
 
   revalidatePath("/settings");
@@ -79,10 +71,9 @@ export async function disconnectGoogle() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Ensure they have a password before disconnecting Google, so they aren't locked out!
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { passwordHash: true }
+    select: { passwordHash: true },
   });
 
   if (!user?.passwordHash) {
@@ -90,10 +81,7 @@ export async function disconnectGoogle() {
   }
 
   await prisma.account.deleteMany({
-    where: {
-      userId: session.user.id,
-      provider: "google"
-    }
+    where: { userId: session.user.id, provider: "google" },
   });
 
   revalidatePath("/settings");
@@ -104,32 +92,34 @@ export async function updatePreferences(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  // Extract and format data from the form
-  const workStartTime = formData.get("workStartTime") as string || "09:00";
-  const workEndTime = formData.get("workEndTime") as string || "17:00";
+  const workStartTime = (formData.get("workStartTime") as string) || "09:00";
+  const workEndTime = (formData.get("workEndTime") as string) || "17:00";
   const sessionLength = parseInt(formData.get("sessionLength") as string) || 60;
   const breakLength = parseInt(formData.get("breakLength") as string) || 15;
   const breaksPerDay = parseInt(formData.get("breaksPerDay") as string) || 3;
   const maxTasksPerDay = parseInt(formData.get("maxTasksPerDay") as string) || 10;
   const defaultTaskDuration = parseInt(formData.get("defaultTaskDuration") as string) || 30;
   const reminderDays = parseInt(formData.get("reminderDays") as string) || 1;
-  const taskOrder = formData.get("taskOrder") as string || "priority";
-  
-  // Get all checked days off
+  const taskOrder = (formData.get("taskOrder") as string) || "priority";
   const daysOff = formData.getAll("daysOff") as string[];
 
-  // Use upsert: Update if they exist, create if they don't!
+  const preferencesData = {
+    workStartTime,
+    workEndTime,
+    sessionLength,
+    breakLength,
+    breaksPerDay,
+    maxTasksPerDay,
+    defaultTaskDuration,
+    reminderDays,
+    taskOrder,
+    daysOff,
+  };
+
   await prisma.userPreferences.upsert({
     where: { userId: session.user.id },
-    update: {
-      workStartTime, workEndTime, sessionLength, breakLength, breaksPerDay,
-      maxTasksPerDay, defaultTaskDuration, reminderDays, taskOrder, daysOff
-    },
-    create: {
-      userId: session.user.id,
-      workStartTime, workEndTime, sessionLength, breakLength, breaksPerDay,
-      maxTasksPerDay, defaultTaskDuration, reminderDays, taskOrder, daysOff
-    }
+    update: preferencesData,
+    create: { userId: session.user.id, ...preferencesData },
   });
 
   revalidatePath("/settings");
@@ -142,24 +132,54 @@ export async function deleteAccount(formData: FormData) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { passwordHash: true }
+    select: { passwordHash: true },
   });
 
-  if (!user || !user.passwordHash) throw new Error("User not found or invalid account state.");
+  if (!user?.passwordHash) throw new Error("User not found or invalid account state.");
 
-  // 1. Always demand and verify the password
   const password = formData.get("password") as string;
   if (!password) throw new Error("Password is required to delete your account.");
-  
+
   const isValid = await verifyPassword(password, user.passwordHash);
   if (!isValid) throw new Error("Incorrect password.");
 
-  // 2. Delete the user
-  await prisma.userPreferences.deleteMany({ where: { userId: session.user.id } });
-  
-  await prisma.user.delete({
-    where: { id: session.user.id }
+  const userId = session.user.id;
+
+  // Step 1: fetch progress ID before deleting anything
+  const progress = await prisma.userProgress.findUnique({
+    where: { userId },
+    select: { id: true },
   });
+
+  // Step 2: delete PointTransactions first (child of UserProgress)
+  if (progress) {
+    await prisma.pointTransaction.deleteMany({
+      where: { progressId: progress.id },
+    });
+  }
+
+  // Step 3: delete all other relations before deleting the user
+  await prisma.friendRequest.deleteMany({
+    where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+  });
+  await prisma.notification.deleteMany({ where: { userId } });
+  await prisma.userPreferences.deleteMany({ where: { userId } });
+  await prisma.userInventory.deleteMany({ where: { userId } });
+  await prisma.userProgress.deleteMany({ where: { userId } });
+  await prisma.task.deleteMany({ where: { userId } });
+  await prisma.exam.deleteMany({ where: { userId } });
+  await prisma.event.deleteMany({ where: { userId } });
+  await prisma.category.deleteMany({ where: { userId } });
+  await prisma.checkIn.deleteMany({ where: { userId } });
+  await prisma.scheduleLog.deleteMany({ where: { userId } });
+  await prisma.savedLocation.deleteMany({ where: { userId } });
+  await prisma.conversationParticipant.deleteMany({ where: { userId } });
+  await prisma.moduleMember.deleteMany({ where: { userId } });
+  await prisma.groupMember.deleteMany({ where: { userId } });
+  await prisma.account.deleteMany({ where: { userId } });
+
+  // Step 4: delete the user last
+  await prisma.user.delete({ where: { id: userId } });
 
   return { success: true };
 }

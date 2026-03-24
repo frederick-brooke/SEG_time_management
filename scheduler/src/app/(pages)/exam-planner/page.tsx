@@ -4,10 +4,10 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { getMyExams, deleteExam } from "@/src/app/actions/examActions";
-import ExamFormDialog from "@/src/components/exams/exam-form-dialog";
+import { getMyExams, deleteExam } from "@/app/actions/examActions";
+import ExamFormDialog from "@/components/exams/exam-form-dialog";
 import Link from "next/link";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
  * The dashboard for exam planning.
