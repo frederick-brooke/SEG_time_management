@@ -17,7 +17,7 @@ jest.mock("next/dynamic", () => ({
 }));
 
 // Stable mocks for dynamic imports resolved by component
-jest.mock("./BaseMap", () => ({
+jest.mock("../BaseMap", () => ({
   BaseMap: ({ children, center, zoom }: any) => (
     <div data-testid="base-map" data-center={JSON.stringify(center)} data-zoom={zoom}>
       {children}
@@ -25,7 +25,7 @@ jest.mock("./BaseMap", () => ({
   ),
 }));
 
-jest.mock("./FriendLayer", () => ({
+jest.mock("../FriendLayer", () => ({
   FriendLayer: ({ friends, userLocation }: any) => (
     <div
       data-testid="friend-layer"
@@ -35,7 +35,7 @@ jest.mock("./FriendLayer", () => ({
   ),
 }));
 
-jest.mock("./UnifiedMapLayer", () => ({
+jest.mock("../UnifiedMapLayer", () => ({
   UnifiedMapLayer: ({ events, savedLocations }: any) => (
     <div
       data-testid="unified-map-layer"
@@ -45,7 +45,7 @@ jest.mock("./UnifiedMapLayer", () => ({
   ),
 }));
 
-jest.mock("./MapToggle", () => ({
+jest.mock("../MapToggle", () => ({
   MapToggle: ({ mode, onChange, friendCount, eventCount }: any) => (
     <div data-testid="map-toggle">
       <button onClick={() => onChange("events")}>events-btn</button>
