@@ -33,7 +33,7 @@ describe("ReminderPicker", () => {
     render(<ReminderPicker onConfirm={mockConfirm} initialDuration={null} />);
     
     const input = screen.getByDisplayValue("00:05:00");
-    const button = screen.getByText("Change Time");
+    const button = screen.getByText("Set Time");
 
     fireEvent.change(input, { target: { value: "01:00:30" } });
     fireEvent.click(button);
@@ -47,7 +47,7 @@ describe("ReminderPicker", () => {
     render(<ReminderPicker onConfirm={mockConfirm} initialDuration={null} />);
     
     const input = screen.getByDisplayValue("00:05:00");
-    const button = screen.getByText("Change Time");
+    const button = screen.getByText("Set Time");
 
     fireEvent.change(input, { target: { value: "00:15" } });
     fireEvent.click(button);

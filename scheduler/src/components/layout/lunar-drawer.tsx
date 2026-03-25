@@ -23,7 +23,7 @@ export default function LunarDrawer({
       {/* drawer */}
       <div
         className={`fixed top-0 ${isLeft ? "left-0 border-r" : "right-0 border-l"} h-screen flex flex-col
-        bg-gradient-to-b from-gray-900 via-indigo-900 to-blue-900
+        bg-gradient-to-b from-[#020408] via-indigo-950 to-[#1a0b2e]
         shadow-2xl z-9999 transform transition-transform duration-300 ease-out
         ${
           open

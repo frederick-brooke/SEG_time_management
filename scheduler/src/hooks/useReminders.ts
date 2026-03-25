@@ -1,18 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 
+/**
+ * Custom hook for managing individual reminder timers.
+ * Handles:
+ * - Creating and running a countdown timer
+ * - Persisting reminder state in localStorage
+ * - Restoring reminder state on reload
+ * - Triggering a callback when reminder fires
+ *
+ * @param {Object} params
+ * @param {string} params.id - Unique identifier for the reminder
+ * @param {Function} [params.onFire] - Callback when reminder completes
+ *
+ * @returns {Object} Reminder state and control functions
+ */
 export function useReminders( {id, onFire} ) {
-    const storage_key = `reminder:${id}`;
-
-    // reminder config
-    const [durationMs, setDurationMs] = useState(null);
+    const storage_key = `reminder:${id}`; 	// reminder config
+    const [durationMs, setDurationMs] = useState(null); 	// separate reminder timer
     const [enabled, setEnabled] = useState(false);
-
-    // separate reminder timer
     const reminderTimeoutRef = useRef(null);    //after how much time the modal fires off
-
     const [remainingMs, setRemainingMs] = useState(null);
     const reminderIntervalRef = useRef(null);   //diff between end and new time each second
-
     // clear timer safely
     const clearReminderTimer = () => {
         if (reminderTimeoutRef.current) {
@@ -25,7 +33,6 @@ export function useReminders( {id, onFire} ) {
             reminderIntervalRef.current = null;
         }
     };
-
     // start reminder timer
     const startReminderTimer = (durationMs) => {
         clearReminderTimer();
@@ -43,7 +50,6 @@ export function useReminders( {id, onFire} ) {
             onFire?.();
         }, durationMs);
     };
-
     //restore on mount
     useEffect(() => {
         const raw = localStorage.getItem(storage_key);
