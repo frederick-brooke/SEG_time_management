@@ -7,8 +7,6 @@ import { MapEvent } from "@/lib/map";
 // Props for MapView wrapper
 interface MapViewProps {
   events: MapEvent[];
-  // userLocation is still here in the interface if other parts of your app 
-  // need it, but we won't pass it to the child component below.
   userLocation?: { lat: number; lng: number } | null;
   defaultMode?: "events" | "friends";
 }

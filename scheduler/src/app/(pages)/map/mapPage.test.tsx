@@ -20,7 +20,7 @@ jest.mock("@/lib/prisma", () => ({
 }));
 
 // Renders a minimal stand-in so tests aren't coupled to map implementation details
-jest.mock("@/components/MapView", () => ({
+jest.mock("@/components/map/MapView", () => ({
   __esModule: true,
   default: ({ events }: { events: any[] }) => (
     <div data-testid="map-view" data-count={events.length} />
