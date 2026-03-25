@@ -17,7 +17,7 @@ jest.mock("date-fns", () => ({
   },
 }));
 
-jest.mock("@/lib/taskSchedulingUtils", () => ({
+jest.mock("@/lib/scheduling/taskSchedulingUtils", () => ({
   shouldShowAsUnscheduled: jest.fn(() => true),
 }));
 
