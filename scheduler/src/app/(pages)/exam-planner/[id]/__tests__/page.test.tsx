@@ -128,4 +128,29 @@ describe("Exam detail page [id]", () => {
 
         expect(updateExamUnavailableDays).toHaveBeenCalledWith("exam-123", expect.any(Array));
     });  
+
+    it("prevents invalid characters in duration input", async () => {
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        render(<ExamIdPage/>);
+        await screen.findByText(/Mathematics Hub/i);
+        const durationInput = screen.getByDisplayValue("45");
+        const dashEvent = { key: "-", preventDefault: jest.fn() };
+        fireEvent.keyDown(durationInput, dashEvent);
+        expect(dashEvent.preventDefault).toHaveBeenCalled();
+        const eEvent = { key: "e", preventDefault: jest.fn() };
+        fireEvent.keyDown(durationInput, eEvent);
+        expect(eEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it("updates topic duration and URL fields", async () => {
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        render(<ExamIdPage/>);
+        await screen.findByText(/Mathematics Hub/i);
+        const durationInput = screen.getByDisplayValue("45");
+        const urlInput = screen.getByPlaceholderText(/Resource URL/i);
+        fireEvent.change(durationInput, { target: { value: "60" }});
+        fireEvent.change(urlInput, { target: { value: "https://test.com" }});
+        expect(durationInput).toHaveValue(60);
+        expect(urlInput).toHaveValue("https://test.com");
+    });
 });
