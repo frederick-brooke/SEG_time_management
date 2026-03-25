@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-// ── Mocks ──────────────────────────────────────────────────────────────────────
+// Mocks 
 
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
@@ -41,15 +41,16 @@ jest.mock('@/components/ui/page-header', () => ({
   ),
 }));
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// Helpers 
 
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { getFriendsLeaderboard } from '@/app/actions/leaderboard';
 import LeaderboardPage from './page';
 
+
 const mockGetServerSession = getServerSession as jest.Mock;
-const mockRedirect = redirect as jest.Mock;
+const mockRedirect = redirect as unknown as jest.Mock;
 const mockGetFriendsLeaderboard = getFriendsLeaderboard as jest.Mock;
 
 const mockSession = { user: { email: 'test@test.com' } };
@@ -59,7 +60,7 @@ const mockLeaderboard = [
   { id: '2', username: 'bob', name: 'Bob', streak: 8, focusTimeRaw: 240, focusTime: '4h', completionRate: 80, isCurrentUser: false, pfp: null },
 ];
 
-// ── Tests ──────────────────────────────────────────────────────────────────────
+// Tests 
 
 describe('LeaderboardPage', () => {
   beforeEach(() => {
