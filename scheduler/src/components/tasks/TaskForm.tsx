@@ -12,29 +12,32 @@ import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { LunarCard } from "../ui/lunar-card";
 import { X } from "lucide-react";
 
+// 1. Define and export the missing TaskFormData interface
+export interface TaskFormData {
+  name?: string;
+  description?: string;
+  dueDate?: string;
+  url?: string;
+  subtasks?: string;
+  durationHours?: string;
+  durationMinutes?: string;
+  examId?: string;
+  priority?: string;
+  [key: string]: any;
+}
 
+// 2. Apply it to your Props
 interface TaskFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   editingTaskId: string | null;
-  formData: any;
-  onFormChange: (patch: any) => void;
-  onSubmit: (date: any) => void;
+  formData: TaskFormData; 
+  onFormChange: (patch: Partial<TaskFormData>) => void;
+  onSubmit: (data: any) => void;
   exams?: { id: string; title: string }[];
   showTrigger?: boolean;
 }
 
-/**
- * Component for creating or editing a task.
- * @param {boolean} isOpen Whether the dialog is open or not.
- * @param {Function} onOpenChange Callback to open or close the dialog.
- * @param {string | null} editingTaskId The ID of the task being edited, or null for new tasks.
- * @param {any} formData The current form field values.
- * @param {Function} onFormChange Callback to update a form field.
- * @param {Function} onSubmit Callback triggered on form submission.
- * @param {Array} exams List of exams to populate the exam dropdown.
- * @param {boolean} showTrigger Whether to show the trigger button or not. 
- */
 export function TaskForm({
   isOpen,
   onOpenChange,
@@ -120,7 +123,6 @@ export function TaskForm({
                 value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0]: ""}
                 className="lunar-input"
                 onChange={(e) => onFormChange({ dueDate: e.target.value })}
-
               />
             </div>
 

@@ -2,7 +2,9 @@
 
 import { useTransition } from "react";
 import { Check, X } from "lucide-react";
-import { acceptFriendRequest, rejectFriendRequest } from "@/app/actions/profile";
+import { acceptFriendRequest, declineFriendRequest } from "@/app/actions/profile/friends";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 /**
  * Renders the list of incoming friend requests.
@@ -23,7 +25,7 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
 
   const handleReject = (requestId: string) => {
     startTransition(async () => {
-      await rejectFriendRequest(requestId);
+      await declineFriendRequest(requestId);
     });
   };
 
@@ -37,7 +39,9 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
       </h2>
 
       <div className="space-y-3">
-        {requests.map((req: any) => (
+        {requests.map((req: any) => {
+          const avatarSrc = resolveAvatarSrc(req.sender.pfp);
+          return (
           <div
             key={req.id}
             className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10"
@@ -46,7 +50,7 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
               <div className="w-10 h-10 bg-white/10 rounded-full overflow-hidden border border-white/10">
                 {req.sender.pfp ? (
                   <img
-                    src={req.sender.pfp}
+                    src={avatarSrc}
                     alt={req.sender.username}
                     className="w-full h-full object-cover"
                   />
@@ -66,7 +70,7 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
 
             <div className="flex gap-2">
               <button
-                onClick={() => handleAccept(req.id)}
+                onClick={() => handleAccept(req.sender.id)}
                 disabled={isPending}
                 className={`lunar-item-success flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-colors ${
                   isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-emerald-500/20"
@@ -76,7 +80,7 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
               </button>
 
               <button
-                onClick={() => handleReject(req.id)}
+                onClick={() => handleReject(req.sender.id)}
                 disabled={isPending}
                 className={`lunar-item-error flex items-center justify-center px-3 py-2 rounded-lg border transition-colors ${
                   isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-red-500/20"
@@ -86,7 +90,8 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
               </button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

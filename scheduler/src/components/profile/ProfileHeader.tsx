@@ -3,7 +3,7 @@
 import { Pencil, Star, Flag, UserPlus, UserCheck, Clock, UserMinus, X } from "lucide-react";
 import { useState, useTransition } from "react";
 import UserAvatar from "@/components/profile/UserAvatar";
-import { sendFriendRequest, removeFriend, cancelFriendRequest } from "@/app/actions/profile";
+import { sendFriendRequest, removeFriend, cancelSentRequest } from "@/app/actions/profile/friends";
 import ReportModal from "@/components/admin/report-modal";
 
 /**
@@ -61,7 +61,7 @@ export default function ProfileHeader({ profile, isOwnProfile, onEditToggle, lev
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-yellow-500/20 text-yellow-400 rounded border border-yellow-500/30 text-xs font-semibold">
             <Clock size={14} /><span>Pending</span>
           </div>
-          <button onClick={() => handleAction(cancelFriendRequest)} disabled={isPending} className={`flex items-center gap-1 px-2.5 py-1.5 bg-white/10 text-white/70 rounded border border-white/20 text-xs font-semibold ${isPending ? "opacity-50" : "hover:bg-white/20"}`}>
+          <button onClick={() => handleAction(cancelSentRequest)} disabled={isPending} className={`flex items-center gap-1 px-2.5 py-1.5 bg-white/10 text-white/70 rounded border border-white/20 text-xs font-semibold ${isPending ? "opacity-50" : "hover:bg-white/20"}`}>
             <X size={12} /><span>Cancel</span>
           </button>
         </div>
