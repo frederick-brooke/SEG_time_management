@@ -7,7 +7,17 @@ import { LunarCard } from "@/components/ui/lunar-card";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { useSession } from "next-auth/react";
 
-
+/**
+ * BannedPage
+ * 
+ * Main page displayed when a user is banned.
+ * Handles:
+ * - Fetching ban information from backend
+ * - Verifying session state (auto-redirect if unbanned)
+ * - Toggling between ban info view and appeal form
+ * 
+ * @returns {JSX.Element} Banned page UI
+ */
 export default function BannedPage() {
 	const [banInfo, setBanInfo]       = useState(null);
 	const [showAppeal, setShowAppeal] = useState(false);
@@ -77,8 +87,18 @@ export default function BannedPage() {
   );
 }
 
-/*  Ban Info View  */
-
+/**
+ * BanInfo
+ * 
+ * Displays details about the user's ban including:
+ * - Reason
+ * - Expiration (or permanent status)
+ * - Actions (appeal / sign out)
+ * 
+ * @param {Object} props
+ * @param {Object} props.banInfo - Ban data from backend
+ * @param {Function} props.onAppeal - Opens appeal form
+ */
 function BanInfo({ banInfo, onAppeal }) {
   const isPermanent = !banInfo.expires;
 
@@ -154,8 +174,19 @@ function BanInfo({ banInfo, onAppeal }) {
   );
 }
 
-/*  Appeal Form View */
-
+/**
+ * AppealForm
+ * 
+ * Form allowing users to submit an appeal for their ban.
+ * Handles:
+ * - Input state
+ * - API submission
+ * - Loading state
+ * 
+ * @param {Object} props
+ * @param {string} props.reportId - Related report ID
+ * @param {Function} props.onClose - Closes the form
+ */
 function AppealForm({ reportId, onClose }) {
   const [description, setDescription] = useState("");
   const [loading, setLoading]         = useState(false);
