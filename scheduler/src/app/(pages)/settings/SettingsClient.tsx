@@ -11,7 +11,7 @@ interface SettingsClientProps {
   user: { username: string; email: string; hasPassword?: boolean; hasGoogleConnected: boolean; preferences: any; }
 }
 
-// ── DRY UI Sub-Components ──────────────────────────────────────────────────────
+// DRY UI Sub-Components 
 function FormInput({ label, type = "text", name, defaultValue, required, pattern, minLength, options }: any) {
   const inputCls = "w-full bg-[#0a0f1d] border border-white/10 text-white placeholder-white/25 p-3 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-colors appearance-none";
   return (
@@ -34,7 +34,7 @@ function StatusMessage({ error, success }: { error: string | null, success: stri
   return null;
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+// Main Component 
 export function SettingsClient({ user }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('account');
   const [isPending, startTransition] = useTransition();

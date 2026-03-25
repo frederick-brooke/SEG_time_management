@@ -30,9 +30,15 @@ async function find1to1Conversation(userId: string, friendId: string) {
     where: { participants: { some: { userId } } },
     include: { participants: { include: { user: { select: { id: true } } } } },
   });
-  return candidates.find((c) => {
-    const ids = c.participants.map((p) => p.userId);
-    return ids.length === 2 && ids.includes(userId) && ids.includes(friendId);
+  return candidates.find((conversation) => {
+    const participantIds = conversation.participants.map(
+      (participant) => participant.userId
+    );
+    return (
+      participantIds.length === 2 &&
+      participantIds.includes(userId) &&
+      participantIds.includes(friendId)
+    );
   });
 }
 
@@ -47,8 +53,8 @@ async function findDuplicateGroupConversation(memberIds: string[]) {
     include: { participants: { include: { user: { select: { id: true } } } } },
   });
 
-  return existingGroups.find((g) => {
-    const existingIds = g.participants.map((p) => p.userId).sort();
+  return existingGroups.find((group) => {
+    const existingIds = group.participants.map((participant) => participant.userId).sort();
     const newIds = allIds.sort();
     return existingIds.length === newIds.length && existingIds.every((id, i) => id === newIds[i]);
   });
@@ -112,17 +118,17 @@ export async function GET() {
   });
 
   const filtered = convs
-    .filter((c) => {
-      const p = c.participants.find((p) => p.userId === session.user.id);
-      return !p?.deletedAt || (c.lastMessageAt && new Date(c.lastMessageAt) > new Date(p.deletedAt));
-    })
-    .map((c) => {
-      const p = c.participants.find((p) => p.userId === session.user.id);
-      const lastMsg = c.messages[0];
-      const lastMessageSentByMe = lastMsg?.senderId === session.user.id;
-      const hasUnread = !!lastMsg && !lastMessageSentByMe && (!p?.lastReadAt || new Date(lastMsg.createdAt) > new Date(p.lastReadAt));
-      return { ...c, lastMessageSentByMe, hasUnread, messages: undefined };
-    });
+  .filter((conversation) => {
+    const participant = conversation.participants.find((participant) => participant.userId === session.user.id);
+    return !participant?.deletedAt || (conversation.lastMessageAt && new Date(conversation.lastMessageAt) > new Date(participant.deletedAt));
+  })
+  .map((conversation) => {
+    const participant = conversation.participants.find((participant) => participant.userId === session.user.id);
+    const lastMessage = conversation.messages[0];
+    const lastMessageSentByMe = lastMessage?.senderId === session.user.id;
+    const hasUnread = !!lastMessage && !lastMessageSentByMe && (!participant?.lastReadAt || new Date(lastMessage.createdAt) > new Date(participant.lastReadAt));
+    return { ...conversation, lastMessageSentByMe, hasUnread, messages: undefined };
+  });
 
   return NextResponse.json(filtered);
 }
