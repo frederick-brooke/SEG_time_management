@@ -290,7 +290,7 @@ describe("SavedLocationsPanel", () => {
 
     fireEvent.mouseDown(screen.getByText("London, UK"));
     expect(
-      screen.getByPlaceholderText("Label (e.g. Home, Gym…)")
+      screen.getByPlaceholderText("Give this location a name…")
     ).toBeInTheDocument();
   });
 

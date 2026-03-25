@@ -40,7 +40,7 @@ import * as leaflet from "leaflet";
 const mockIconConstructor = leaflet.Icon as unknown as jest.Mock;
 
 //  Fixtures
-const USER_LOCATION: [number, number] = [51.505, -0.09];
+const USER_LOCATION = { lat: 51.505, lng: -0.09 };
 
 const makeFriend = (
   id: string,
@@ -64,15 +64,13 @@ const makeFriend = (
   ...opts,
 });
 
-// Tests 
-
 describe("FriendLayer", () => {
   // User marker
   it("renders a marker for userLocation when provided", () => {
     render(<FriendLayer friends={[]} userLocation={USER_LOCATION} />);
     const markers = screen.getAllByTestId("marker");
     expect(markers).toHaveLength(1);
-    expect(JSON.parse(markers[0].getAttribute("data-position")!)).toEqual(USER_LOCATION);
+    expect(JSON.parse(markers[0].getAttribute("data-position")!)).toEqual([USER_LOCATION.lat, USER_LOCATION.lng]);
   });
 
   it("shows 'You are here!' popup for the user marker", () => {

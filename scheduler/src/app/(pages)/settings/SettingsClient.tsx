@@ -2,13 +2,25 @@
 
 import { useState, useTransition } from "react";
 import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/app/actions/settings";
+import { updateLocationHidden } from "@/app/actions/update-user-location";
 import { signIn, signOut } from "next-auth/react";
-import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle } from "lucide-react";
+import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle, MapPin } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import SetLocationModal from "@/components/map/SetLocationModal";
 import { TabKey } from "@/types/settings";
 
 interface SettingsClientProps {
-  user: { username: string; email: string; hasPassword?: boolean; hasGoogleConnected: boolean; preferences: any; }
+  user: {
+    username: string;
+    email: string;
+    hasPassword?: boolean;
+    hasGoogleConnected: boolean;
+    preferences: any;
+    location: { lat: number; lng: number } | null;
+    city: string | null;
+    country: string | null;
+    locationHidden: boolean;
+  }
 }
 
 // DRY UI Sub-Components 
@@ -34,16 +46,19 @@ function StatusMessage({ error, success }: { error: string | null, success: stri
   return null;
 }
 
-// Main Component 
+// Main Component
 export function SettingsClient({ user }: SettingsClientProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('account');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteStage, setDeleteStage] = useState<'initial' | 'password'>('initial');
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationHidden, setLocationHidden] = useState(user.locationHidden);
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const currentDaysOff = user.preferences?.daysOff || [];
@@ -77,6 +92,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
   const tabs = [
     { key: 'account', label: 'Account', icon: User },
     { key: 'preferences', label: 'Preferences', icon: Sliders },
+    { key: 'privacy', label: 'Privacy', icon: MapPin },
     { key: 'security', label: 'Security', icon: Key },
     { key: 'integrations', label: 'Integrations', icon: Globe },
   ] as const;
@@ -160,6 +176,72 @@ export function SettingsClient({ user }: SettingsClientProps) {
               </div>
             )}
 
+            {/* PRIVACY TAB */}
+            {activeTab === 'privacy' && (
+              <div className="animate-in fade-in duration-300">
+                <h2 className="lunar-header mb-2">Location & Privacy</h2>
+                <p className="lunar-value mb-8">Control your location visibility to friends.</p>
+
+                {/* Current Location Display */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
+                  <h3 className="font-semibold text-white mb-3">Your Location</h3>
+                  {user.location ? (
+                    <p className="text-sm text-white/70 mb-4">
+                      📍 {user.city && user.country ? `${user.city}, ${user.country}` : `${user.location.lat.toFixed(4)}, ${user.location.lng.toFixed(4)}`}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-white/70 mb-4">No location set</p>
+                  )}
+                  <button
+                    onClick={() => setIsLocationModalOpen(true)}
+                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    📍 Edit Location
+                  </button>
+                </div>
+
+                {/* Location Visibility Toggle */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-white mb-1">Hide Location from Friends</h3>
+                      <p className="text-sm text-white/50">Friends won't see your location on the friend map</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLocationHidden(!locationHidden);
+                        startTransition(async () => {
+                          try {
+                            const result = await updateLocationHidden(!locationHidden);
+                            if (!result.success) {
+                              setError(result.error || "Failed to update location visibility");
+                              setLocationHidden(locationHidden); // revert
+                            } else {
+                              setSuccess("Location visibility updated.");
+                            }
+                          } catch (err: any) {
+                            setError(err.message);
+                            setLocationHidden(locationHidden); // revert
+                          }
+                        });
+                      }}
+                      disabled={isPending}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        locationHidden ? "bg-indigo-600" : "bg-white/10"
+                      } disabled:opacity-50`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          locationHidden ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* SECURITY TAB */}
             {activeTab === 'security' && (
               <div className="animate-in fade-in duration-300">
@@ -233,6 +315,14 @@ export function SettingsClient({ user }: SettingsClientProps) {
             </div>
           </div>
         )}
+
+        {/* ── LOCATION MODAL ── */}
+        <SetLocationModal
+          isOpen={isLocationModalOpen}
+          onClose={() => setIsLocationModalOpen(false)}
+          initialLocation={user.location}
+          initialHidden={user.locationHidden}
+        />
       </div>
     </LunarThemeWrapper>
   );

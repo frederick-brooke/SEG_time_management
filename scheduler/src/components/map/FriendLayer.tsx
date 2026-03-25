@@ -7,7 +7,7 @@ import { AVATAR_IMAGES } from "@/lib/shop-catalogue";
 
 interface FriendLayerProps {
   friends: Friend[];
-  userLocation: [number, number] | null;
+  userLocation: { lat: number; lng: number } | null;
 }
 
 // Icon for the current user
@@ -56,7 +56,7 @@ export function FriendLayer({ friends, userLocation }: FriendLayerProps) {
     <>
       {/* Render current user marker if location is available */}
       {userLocation && (
-        <Marker position={userLocation} icon={userIcon}>
+        <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
           <Popup>
             <div className="text-center">
               <strong>You are here!</strong>
