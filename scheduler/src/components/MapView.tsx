@@ -1,26 +1,31 @@
+// src/components/map/MapView.tsx
 "use client";
 
 import dynamic from "next/dynamic";
 import { MapEvent } from "@/lib/map";
 
+// Props for MapView wrapper
 interface MapViewProps {
   events: MapEvent[];
   // userLocation is still here in the interface if other parts of your app 
   // need it, but we won't pass it to the child component below.
   userLocation?: { lat: number; lng: number } | null;
+  defaultMode?: "events" | "friends";
 }
 
-const MapView = dynamic<MapViewProps>(
-  () => import("@/components/map/CombinedMap").then((m) => ({
-    // Removed 'userLocation' from the destructured props and the component call
-    default: ({ events }: MapViewProps) => (
-      <m.CombinedMap 
-        friends={[]} 
-        events={events} 
-        defaultMode="events" 
-      />
-    ),
-  })),
+// Dynamic import of CombinedMap
+const MapView = dynamic(
+  () =>
+    import("@/components/map/CombinedMap").then((mod) => {
+      const CombinedMap = mod.CombinedMap;
+
+      // Wrap CombinedMap to inject friends=[]
+      return {
+        default: (props: Omit<React.ComponentProps<typeof CombinedMap>, "friends">) => (
+          <CombinedMap friends={[]} {...props} />
+        ),
+      };
+    }),
   {
     ssr: false,
     loading: () => (
