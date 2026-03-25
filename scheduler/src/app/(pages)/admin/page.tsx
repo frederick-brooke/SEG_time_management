@@ -3,13 +3,13 @@
 import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
 import ReportFilter from "@/components/admin/report-filter-panel";
-import { useUsers } from "@/src/hooks/useUsers";
-import { useAdminReports } from "@/src/hooks/useAdminReports";
-import { useAdminAppeals } from "@/src/hooks/useAdminAppeals";
+import { useUsers } from "@/hooks/useUsers";
+import { useAdminReports } from "@/hooks/useAdminReports";
+import { useAdminAppeals } from "@/hooks/useAdminAppeals";
 import UserManagement from "@/components/admin/userManagement";
 import ReportManagement from "@/components/admin/reportManagement";
 import AppealsManagement from "@/components/admin/appealManagement";
-import AdminStatistics from "@/src/components/admin/admin-statistics";
+import AdminStatistics from "@/components/admin/admin-statistics";
 import AppealFilter from "@/components/admin/appeal-filter-panel";
 
 //UI components
@@ -17,7 +17,7 @@ import StarField from "@/components/effects/starField";
 import GlowBackground from "@/components/ui/glowBackground";
 import GlassCard from "@/components/ui/glassCard";
 import { motion } from "framer-motion";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
  * Main admin dashboard component managing users, reports, and appeals with filtering and pagination.

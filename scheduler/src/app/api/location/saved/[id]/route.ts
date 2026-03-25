@@ -24,7 +24,7 @@ async function getOwnedLocation(id: string, userId: string) {
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } 
 ) {
   try {
     const userId = await requireUserId();
@@ -34,7 +34,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Ensure the location exists and belongs to the user
     const location = await getOwnedLocation(id, userId);
@@ -60,7 +60,7 @@ export async function DELETE(
 // PATCH: rename a saved location 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const userId = await requireUserId();
@@ -69,7 +69,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Ensure ownership before updating
     const location = await getOwnedLocation(id, userId);

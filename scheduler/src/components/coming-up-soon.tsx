@@ -4,8 +4,8 @@ import { TaskCard } from "./tasks/TaskCard";
 import { TaskFormDialog } from "./tasks/TaskFormDialog";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
-import { useTasks } from "@/src/hooks/useTasks";
-import { getPriorityStyle } from "@/src/lib/priority";
+import { useTasks } from "@/hooks/useTasks";
+import { getPriorityStyle } from "@/lib/priority";
 
 interface ComingUpSoonProps {
   userId?: string;

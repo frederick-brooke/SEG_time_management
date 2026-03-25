@@ -13,8 +13,8 @@ import {
   type DayButtonProps,
 } from "react-day-picker"
 
-import { cn } from "@/src/lib/utils"
-import { Button, buttonVariants } from "@/src/components/ui/button"
+import { cn } from "@/lib/utils"
+import { Button, buttonVariants } from "@/components/ui/button"
 import type { VariantProps } from "class-variance-authority"
 
 type CalendarProps = React.ComponentProps<typeof DayPicker> & {

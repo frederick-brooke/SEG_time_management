@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
 
-import { AppSidebar } from "@/src/components/layout/app-sidebar";
-import SearchPanel from "@/src/components/search-page/search-panel";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import SearchPanel from "@/components/search-page/search-panel";
 
 import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
-} from "@/src/components/ui/sidebar";
+} from "@/components/ui/sidebar";
 
 export default function PagesLayout({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);

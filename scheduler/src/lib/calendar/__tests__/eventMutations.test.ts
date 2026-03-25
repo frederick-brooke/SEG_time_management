@@ -4,7 +4,7 @@
 
 import { handleSingleInstanceUpdate, handleSeriesUpdate } from "../eventMutations";
 import { prisma } from "@/lib/prisma";
-import { getGoogleCalendarClient } from "@/src/lib/calendar/googleCalendar";
+import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 

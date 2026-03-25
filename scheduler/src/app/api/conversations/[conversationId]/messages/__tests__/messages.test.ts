@@ -27,7 +27,7 @@ jest.mock("@/src/lib/prisma", () => ({
 }));
 
 import { getServerSession } from "next-auth";
-import { prisma } from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 const makeParams = (conversationId: string) => Promise.resolve({ conversationId });
 const makeRequest = (url = "http://localhost/api/conversations/conv-1/messages") =>

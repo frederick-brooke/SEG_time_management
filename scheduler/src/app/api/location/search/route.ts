@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 // GET: geocode search endpoint using OpenRouteService
 export async function GET(req: Request) {
   try {
@@ -5,7 +7,7 @@ export async function GET(req: Request) {
     const query = searchParams.get("q");
 
     // Return early for empty queries to avoid unnecessary API calls
-    if (!query?.trim()) return Response.json([]);
+    if (!query?.trim()) return NextResponse.json([]);
 
     // Shared parameters for both UK and global searches
     const baseParams = {
@@ -23,11 +25,11 @@ export async function GET(req: Request) {
     // Remove duplicates (same display label) to avoid repeated suggestions
     const dedupedGlobal = removeDuplicates(ukResults, globalResults);
 
-    return Response.json([...ukResults, ...dedupedGlobal]);
+    return NextResponse.json([...ukResults, ...dedupedGlobal]);
 
   } catch (error) {
     console.error("Geocode server error:", error);
-    return Response.json([]);
+    return NextResponse.json([]);
   }
 }
 

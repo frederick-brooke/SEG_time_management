@@ -1,4 +1,4 @@
-import { useAdminStats } from "@/src/hooks/useAdminStats";
+import { useAdminStats } from "@/hooks/useAdminStats";
 //UI components
 import GlassCard from "@/components/ui/glassCard";
 import { motion } from "framer-motion";

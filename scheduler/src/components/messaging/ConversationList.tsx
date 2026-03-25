@@ -13,6 +13,8 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import PusherClient from "pusher-js";
 import { CreateGroupModal } from "@/components/messaging/CreateGroupModal";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
@@ -125,7 +127,8 @@ function ConversationMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-        className="p-1 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 text-[rgba(148,163,255,0.4)] hover:text-[rgba(148,163,255,0.8)]"
+        className="p-1 rounded-lg transition-colors
+        text-[rgba(148,163,255,0.4)] hover:text-[rgba(148,163,255,0.8)]"
         title="More options"
       >
         {/* Three-dot icon */}
@@ -137,14 +140,17 @@ function ConversationMenu({
       </button>
       {open && (
         <div
-          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px] bg-[rgba(15,20,40,0.95)] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px] bg-[rgba(15,20,40,0.95)] 
+          border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
         >
           <button
             onClick={handleDelete}
             disabled={loading}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors disabled:opacity-50 text-[rgba(255,100,100,0.8)] hover:bg-[rgba(255,80,80,0.08)]"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors disabled:opacity-50 
+            text-[rgba(255,100,100,0.8)] hover:bg-[rgba(255,80,80,0.08)]"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6l-1 14H6L5 6" />
               <path d="M10 11v6M14 11v6" />
@@ -174,14 +180,22 @@ export default function ConversationList() {
 
   /** Fetches the full conversation list from the API and updates state. */
   const fetchConversations = useCallback(() => {
-    fetch("/api/conversations").then((r) => r.json()).then(setConversations);
+    fetch("/api/conversations")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) { setConversations(data); } 
+        else {
+          console.warn("Expected array for conversations, got:", data);
+          setConversations([]);
+        }
+      })
+      .catch((err) => {console.error("Failed to fetch conversations:", err);});
   }, []);
 
   useEffect(() => {
     fetchConversations();
     fetch("/api/user/search?q=").then((r) => r.json()).then(setFriends);
     
-    // Refetch conversations when the window regains focus to catch updates from other tabs
     window.addEventListener("focus", fetchConversations);
     return () => window.removeEventListener("focus", fetchConversations);
   }, [session, fetchConversations]);
@@ -219,8 +233,7 @@ export default function ConversationList() {
               lastMessage: data.lastMessage ?? c.lastMessage,
               lastMessageAt: data.lastMessageAt ?? c.lastMessageAt,
               lastMessageSentByMe: data.senderId === session.user.id,
-              // Only mark unread if the message was sent by someone else
-              // and this conversation isn't currently open
+              // Only mark unread if the message was sent by someone else and this conversation isn't currently open
               hasUnread: data.senderId !== session.user.id && activeId !== data.id,
             };
           });
@@ -243,7 +256,7 @@ export default function ConversationList() {
   }, [session?.user?.id, fetchConversations, activeId, router]);
 
   const getOtherUser = (convo: Conversation) =>
-    convo.participants.find((p) => p.user.id !== session?.user?.id)?.user;
+    convo.participants.find((participant) => participant.user.id !== session?.user?.id)?.user;
 
   /**
    * Removes a deleted conversation from the list.
@@ -265,7 +278,8 @@ export default function ConversationList() {
         <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(148,163,255,0.35)]">Messages</p>
         <button
           onClick={() => setShowModal(true)}
-          className="text-xs font-medium flex items-center gap-1 transition-colors text-[rgba(148,163,255,0.6)] hover:text-[rgba(148,163,255,0.9)]"
+          className="text-xs font-medium flex items-center gap-1 transition-colors 
+          text-[rgba(148,163,255,0.6)] hover:text-[rgba(148,163,255,0.9)]"
           title="New group chat"
         >
           <span className="text-base leading-none">+</span> Group
@@ -286,7 +300,8 @@ export default function ConversationList() {
             ? (convo.name?.[0] ?? "G").toUpperCase()
             : (other!.username[0] ?? "?").toUpperCase();
 
-          const avatarSrc = !isGroup ? other!.pfp : null;
+          const avatarSrc = !isGroup ? resolveAvatarSrc(other!.pfp) : null;
+
           const isActive = activeId === convo.id;
 
           return (
@@ -300,9 +315,7 @@ export default function ConversationList() {
             >
               <button
                 onClick={() => {
-                  setConversations((prev) =>
-                    prev.map((c) => c.id === convo.id ? { ...c, hasUnread: false } : c)
-                  );
+                  setConversations((prev) => prev.map((c) => c.id === convo.id ? { ...c, hasUnread: false } : c));
                   router.push(`/messages/${convo.id}`);
                 }}
                 className="flex items-center gap-3 flex-1 min-w-0 text-left"
@@ -324,9 +337,7 @@ export default function ConversationList() {
                 {/* Name + preview + dot */}
                 <div className="flex-1 min-w-0 relative">
                   <div className="flex items-center gap-1.5 pr-5">
-                    <p
-                      className={`text-base truncate text-[rgba(220,225,255,0.85)] ${convo.hasUnread ? "font-semibold" : "font-medium"}`}
-                    >
+                    <p className={`text-base truncate text-[rgba(220,225,255,0.85)] ${convo.hasUnread ? "font-semibold" : "font-medium"}`}>
                       {displayName}
                     </p>
                     {isGroup && (
@@ -360,7 +371,6 @@ export default function ConversationList() {
                       </>
                     )}
                   </div>
-
                   {convo.hasUnread && (
                     <div
                       className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[rgba(99,149,255,0.95)]"
@@ -368,7 +378,6 @@ export default function ConversationList() {
                   )}
                 </div>
               </button>
-
               <ConversationMenu conversationId={convo.id} onDeleted={handleDeleted} />
             </div>
           );

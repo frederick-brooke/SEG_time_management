@@ -6,8 +6,8 @@ import { NextRequest } from "next/server";
 import { GET, POST, PUT, PATCH, DELETE } from "../route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
-import { calculateTravelTime } from "@/src/lib/travel";
-import { expandRecurringEvents } from "@/src/lib/calendar/eventHelpers";
+import { calculateTravelTime } from "@/lib/travel";
+import { expandRecurringEvents } from "@/lib/calendar/eventHelpers";
 import {
   syncGoogleCalendar,
   insertGoogleEvent,
@@ -16,11 +16,11 @@ import {
   deleteSingleOccurrence,
   upsertGoogleEvent,
   fetchAllGoogleEvents,
-} from "@/src/lib/calendar/googleSync";
+} from "@/lib/calendar/googleSync";
 import {
   handleSingleInstanceUpdate,
   handleSeriesUpdate,
-} from "@/src/lib/calendar/eventMutations";
+} from "@/lib/calendar/eventMutations";
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 

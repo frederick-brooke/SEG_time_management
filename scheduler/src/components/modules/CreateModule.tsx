@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from "react";
-import { createModule } from "@/src/app/actions/module";
+import { createModule } from "@/app/actions/module";
 import { X } from "lucide-react";
 
 //types

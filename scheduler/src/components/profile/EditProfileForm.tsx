@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react";
 import { useFormStatus } from "react-dom";
-import { updateProfile } from "@/src/app/actions/profile";
+import { updateProfile } from "@/app/actions/profile";
 
 // types
 interface EditProfileFormProps {

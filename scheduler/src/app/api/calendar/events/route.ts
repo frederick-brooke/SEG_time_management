@@ -8,9 +8,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ObjectId } from "mongodb";
-import { calculateTravelTime } from "@/src/lib/travel";
-import { expandRecurringEvents } from "@/src/lib/calendar/eventHelpers";
-import { handleSingleInstanceUpdate, handleSeriesUpdate } from "@/src/lib/calendar/eventMutations";
+import { calculateTravelTime } from "@/lib/travel";
+import { expandRecurringEvents } from "@/lib/calendar/eventHelpers";
+import { handleSingleInstanceUpdate, handleSeriesUpdate } from "@/lib/calendar/eventMutations";
 import {
   syncGoogleCalendar,
   insertGoogleEvent,
@@ -19,8 +19,8 @@ import {
   deleteSingleOccurrence,
   upsertGoogleEvent,
   fetchAllGoogleEvents,
-} from "@/src/lib/calendar/googleSync";
-import { deleteEventNotifications } from "@/src/app/actions/calendar/calendarNotifications";
+} from "@/lib/calendar/googleSync";
+import { deleteEventNotifications } from "@/app/actions/calendar/calendarNotifications";
 
 
 // Global lock to prevent multiple syncs running at once per server instance

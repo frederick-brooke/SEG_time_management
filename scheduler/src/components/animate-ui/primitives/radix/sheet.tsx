@@ -2,9 +2,9 @@
 import * as React from 'react';
 import { Dialog as SheetPrimitive } from 'radix-ui';
 import { AnimatePresence, motion } from 'motion/react';
-
+import type { Transition, Easing } from 'motion/react';
 import { getStrictContext } from 'lib/get-strict-context';
-import { useControlledState } from '@/src/hooks/use-controlled-state';
+import { useControlledState } from '@/hooks/use-controlled-state';
 
 const [SheetProvider, useSheet] =
   getStrictContext('SheetContext');
@@ -44,8 +44,11 @@ function SheetPortal(props) {
 }
 
 function SheetOverlay({
-  transition = { duration: 0.2, ease: 'easeInOut' },
+  transition = { duration: 0.2, ease: 'easeInOut' as Easing },
   ...props
+}: {
+  transition?: Transition;
+  [key: string]: any;
 }) {
   return (
     <SheetPrimitive.Overlay asChild forceMount>
@@ -63,10 +66,16 @@ function SheetOverlay({
 
 function SheetContent({
   side = 'right',
-  transition = { type: 'spring', stiffness: 150, damping: 22 },
+  transition = { type: 'spring' as const, stiffness: 150, damping: 22 },
   style,
   children,
-  ...props
+  ...props  // <-- named rest parameter
+}: {
+  side?: 'left' | 'right' | 'top' | 'bottom';
+  transition?: Transition;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+  [key: string]: any;
 }) {
   const axis = side === 'left' || side === 'right' ? 'x' : 'y';
 

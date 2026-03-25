@@ -8,9 +8,9 @@
  * @throws {Error} "Not authenticated" if no valid session exists.
  */
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/src/lib/auth";
-import { prisma } from "@/src/lib/prisma";
-import { FriendMap } from "@/src/components/friend-map/map";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { FriendMap } from "@/components/friend-map/map";
 
 export default async function FriendMapPage() {
   // Verify the user is logged in — throws if no session exists

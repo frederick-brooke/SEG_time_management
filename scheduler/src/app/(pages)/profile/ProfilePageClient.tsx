@@ -114,5 +114,7 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
 
       </div>
     </LunarThemeWrapper>
+        
   );
 }
+

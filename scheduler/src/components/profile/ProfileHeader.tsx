@@ -2,9 +2,9 @@
 
 import { Pencil, Star, Flag, UserPlus, UserCheck, Clock, UserMinus, X } from "lucide-react";
 import { useState, useTransition } from "react";
-import UserAvatar from "@/src/components/profile/UserAvatar";
-import { sendFriendRequest, removeFriend, cancelFriendRequest } from "@/src/app/actions/profile";
-import ReportModal from "@/src/components/admin/report-modal";
+import UserAvatar from "@/components/profile/UserAvatar";
+import { sendFriendRequest, removeFriend, cancelFriendRequest } from "@/app/actions/profile";
+import ReportModal from "@/components/admin/report-modal";
 
 /**
  * Props for the ProfileHeader component.
