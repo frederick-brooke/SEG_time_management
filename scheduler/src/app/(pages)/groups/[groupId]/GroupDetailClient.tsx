@@ -16,7 +16,7 @@ import GroupHeader from "components/groups/GroupHeader";
 import GroupMembersList from "components/groups/GroupMembersList";
 import GroupEvents from "components/groups/GroupEvents";
 import GroupTasks from "components/groups/GroupTasks";
-import { TaskForm } from "@/src/components/tasks/TaskForm";
+import { TaskForm } from "@/components/tasks/TaskForm";
 import GroupEventModal from "components/groups/GroupEventModal";
 import GroupSettingsModal from "components/groups/GroupSettingsModal";
 

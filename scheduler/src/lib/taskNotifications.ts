@@ -1,4 +1,4 @@
-import { createNotification } from "@/src/app/actions/notifications";
+import { createNotification } from "@/app/actions/notifications";
 import { NotificationType } from "@prisma/client";
 
 /**

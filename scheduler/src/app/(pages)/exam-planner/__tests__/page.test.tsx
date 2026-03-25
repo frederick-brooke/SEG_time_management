@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import ExamPlannerPage from "../page";
 import { useSession } from "next-auth/react";
-import { getMyExams, deleteExam } from "@/src/app/actions/examActions";
+import { getMyExams, deleteExam } from "@/app/actions/examActions";
 
 const pushMock = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -12,12 +12,12 @@ jest.mock("next-auth/react", () => ({
     useSession: jest.fn(),
 }));
 
-jest.mock("@/src/app/actions/examActions", () => ({
+jest.mock("@/app/actions/examActions", () => ({
     getMyExams: jest.fn(),
     deleteExam: jest.fn(),
 }));
 
-jest.mock("@/src/components/exams/exam-form-dialog", () => ({
+jest.mock("@/components/exams/exam-form-dialog", () => ({
     __esModule: true,
     default: () => <div data-testid="exam-dialog">ExamFormDialog</div>,
 }));
@@ -94,7 +94,7 @@ describe("Exam planner page coverage", () => {
                 Add Exam
             </button>
         ));
-        jest.doMock("@/src/components/exams/exam-form-dialog", () => ({
+        jest.doMock("@/components/exams/exam-form-dialog", () => ({
             __esModule: true,
             default: mockExamFormDialog,
         }));

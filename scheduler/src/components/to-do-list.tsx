@@ -15,7 +15,7 @@ import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskForm } from "./tasks/TaskForm";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
-import { useTasks } from "@/src/hooks/useTasks";
+import { useTasks } from "@/hooks/useTasks";
 import { useTaskFilters } from "../hooks/useTaskFilters";
 import { getPriorityStyle } from "../lib/priority";
 

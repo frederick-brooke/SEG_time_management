@@ -6,12 +6,12 @@ jest.mock("next-auth/react", () => ({
     useSession: () => ({ data: { user: { id: "user1" }}}),
 }));
 
-jest.mock("@/src/app/actions/examActions", () => ({
+jest.mock("@/app/actions/examActions", () => ({
     createExam: jest.fn(),
     updateExamSettings: jest.fn(),
 }));
 
-jest.mock("@/src/app/actions/notifications", () => ({
+jest.mock("@/app/actions/notifications", () => ({
     createNotification: jest.fn(),
 }));
 
@@ -19,7 +19,7 @@ jest.mock("@prisma/client", () => ({
     NotificationType: { INFO: "INFO", SUCCESS: "SUCCESS" },
 }));
 
-import { createExam, updateExamSettings } from "@/src/app/actions/examActions";
+import { createExam, updateExamSettings } from "@/app/actions/examActions";
 const mockCreateExam = createExam as jest.Mock;
 const mockUpdateExam = updateExamSettings as jest.Mock;
 

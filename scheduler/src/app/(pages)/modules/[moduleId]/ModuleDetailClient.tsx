@@ -11,7 +11,7 @@ import ModuleHeader from "components/modules/ModuleHeader";
 import ModuleMembersList from "components/modules/ModuleMembersList";
 import ModuleEvents from "components/modules/ModuleEvents";
 import ModuleTasks from "components/modules/ModuleTasks";
-import { TaskForm } from "@/src/components/tasks/TaskForm";
+import { TaskForm } from "@/components/tasks/TaskForm";
 import ModuleEventModal from "components/modules/ModuleEventModal";
 import ModuleSettingsModal from "components/modules/ModuleSettingsModal";
 

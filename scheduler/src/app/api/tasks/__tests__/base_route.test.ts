@@ -7,10 +7,10 @@ jest.mock("next/server", () => ({
     },
 }));
 
-import { scheduleTasks } from "@/src/lib/scheduling/scheduler";
+import { scheduleTasks } from "@/lib/scheduling/scheduler";
 import { GET, POST } from "../route";
 import { prisma } from "@/lib/prisma";
-import { relativeOffsetLabel } from "@/src/lib/ui";
+import { relativeOffsetLabel } from "@/lib/ui";
 import { NextRequest } from "next/server";
 
 jest.mock("@/lib/prisma", () => ({

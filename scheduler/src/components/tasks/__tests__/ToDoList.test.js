@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ToDoList } from "../../to-do-list";
 
 const mockUseTasks = jest.fn();
-jest.mock("@/src/hooks/useTasks", () => ({
+jest.mock("@/hooks/useTasks", () => ({
   useTasks: (...args) => mockUseTasks(...args),
 }));
 

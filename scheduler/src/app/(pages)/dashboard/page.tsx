@@ -6,17 +6,17 @@ import { useState, useEffect, Suspense } from "react";
 import { getMyExams } from "@/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
 import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
-import { ProfileStats } from "@/src/components/profile/StatModules";
-import { getMyProfile } from "@/src/app/actions/profile";
-import { ComingUpSoon } from "@/src/components/coming-up-soon";
-import LunarThemeWrapper from "@/src/components/layout/LunarThemeWrapper";
+import { ProfileStats } from "@/components/profile/StatModules";
+import { getMyProfile } from "@/app/actions/profile";
+import { ComingUpSoon } from "@/components/coming-up-soon";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import LeaderboardClient from "../leaderboard/LeaderboardClient";
 import { getFriendsLeaderboard } from "../../actions/leaderboard";
 import { IconMoonStars } from "@tabler/icons-react";
 import WellbeingPanel from "@/components/wellbeing/wellbeing_panel";
 import { RocketProgress } from "@/components/ui/rocket-progress";
-import { useTasks } from "@/src/hooks/useTasks";
-import { CalendarEvents } from "@/src/components/calendar/CalendarEvents";
+import { useTasks } from "@/hooks/useTasks";
+import { CalendarEvents } from "@/components/calendar/CalendarEvents";
 
 function DashboardContent() {
   const { data: session, status }: { data: any; status: string } = useSession();

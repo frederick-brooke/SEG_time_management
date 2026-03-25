@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import ExamIdPage from "@/src/app/(pages)/exam-planner/[id]/page";
+import ExamIdPage from "@/app/(pages)/exam-planner/[id]/page";
 import { useSession } from "next-auth/react";
-import { getExamById } from "@/src/app/actions/examActions";
+import { getExamById } from "@/app/actions/examActions";
 
 const pushMock = jest.fn();
 
@@ -14,18 +14,18 @@ jest.mock("next-auth/react", () => ({
     useSession: jest.fn(),
 }));
 
-jest.mock("@/src/app/actions/examActions", () => ({
+jest.mock("@/app/actions/examActions", () => ({
     getExamById: jest.fn(),
     generateExamPlan: jest.fn(),
     updateExamUnavailableDays: jest.fn(),
 }));
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
     __esModule: true,
     default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/src/components/to-do-list", () => ({
+jest.mock("@/components/to-do-list", () => ({
     __esModule: true,
     ToDoList: ({ children }: any) => <div data-testid="todo-list">mocked</div>,
 }));
@@ -92,7 +92,7 @@ describe("Exam detail page [id]", () => {
     });
 
     it("calls generateExamPlan when Generate Study Plan is clicked", async () => {
-        const { generateExamPlan } = require("@/src/app/actions/examActions");
+        const { generateExamPlan } = require("@/app/actions/examActions");
         (getExamById as jest.Mock).mockResolvedValue(mockExam);
         generateExamPlan.mockResolvedValue({});
         
@@ -114,7 +114,7 @@ describe("Exam detail page [id]", () => {
     });
 
     it("calls updateExamUnavailableDays when a calendar day is selected", async () => {
-        const { updateExamUnavailableDays } = require("@/src/app/actions/examActions");
+        const { updateExamUnavailableDays } = require("@/app/actions/examActions");
         updateExamUnavailableDays.mockResolvedValue({ data: mockExam });
         (getExamById as jest.Mock).mockResolvedValue(mockExam);
 
