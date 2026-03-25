@@ -23,6 +23,11 @@ const DAY_MAP: Record<string, number> = {
   Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
 };
 
+async function fetchJson(url: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+  return res.json();
+}
 // Recurring task expansion helpers
 
 /** Returns occurrences for a single daily or monthly recurrence step. */
@@ -212,7 +217,6 @@ function useCalendarState() {
   const [unscheduledTasks, setUnscheduledTasks] = useState<any[]>([]);
   const [allFetchedTasks, setAllFetchedTasks] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [categoryFilters, setCategoryFilters] = useState<Record<string, boolean>>({});
   const [categoryFilters, setCategoryFilters] = useState<Record<string, boolean>>({});
   const [scheduleLogs, setScheduleLogs] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);

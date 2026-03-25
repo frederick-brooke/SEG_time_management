@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { resolveAvatarSrc } from "@/lib/avatar";
-import { LeaderboardUser } from '@/types/leaderboard';
 
 /**interface LeaderboardUser {
   id: string;
