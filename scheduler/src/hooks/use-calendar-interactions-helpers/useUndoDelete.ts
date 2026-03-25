@@ -2,30 +2,54 @@
  * @file useUndoDelete.ts
  *
  * Hook for managing the undo banner shown after a calendar event is deleted.
+ * Tracks both the deleted event and the deletion mode ("single" or "full") so
+ * that restoreEvent can apply the correct inverse operation.
  */
 
 import { useState, useRef } from "react";
-import { restoreEvent } from "./undoApi";
+import { restoreEvent, type DeleteMode, type DeletableEvent } from "./undoApi";
+
+const UNDO_TIMEOUT_MS = 8000;
+
+interface UndoState {
+  event: DeletableEvent;
+  mode: DeleteMode;
+}
 
 export function useUndoDelete(refreshEvents: () => Promise<any[]>) {
-  const [lastDeleted, setLastDeleted] = useState<any | null>(null);
+  const [pendingUndo, setPendingUndo] = useState<UndoState | null>(null);
   const [showUndo, setShowUndo] = useState(false);
   const undoTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const triggerUndo = (event: any) => {
-    setLastDeleted(event);
-    setShowUndo(true);
+  const clearTimer = () => {
     if (undoTimer.current) clearTimeout(undoTimer.current);
-    undoTimer.current = setTimeout(() => setShowUndo(false), 8000);
+  };
+
+  const dismiss = () => {
+    setShowUndo(false);
+    setPendingUndo(null);
+  };
+
+  /** Call this immediately after a deletion, passing the event and how it was deleted. */
+  const triggerUndo = (event: DeletableEvent, mode: DeleteMode) => {
+    clearTimer();
+    setPendingUndo({ event, mode });
+    setShowUndo(true);
+    undoTimer.current = setTimeout(dismiss, UNDO_TIMEOUT_MS);
   };
 
   const handleUndo = async () => {
-    if (!lastDeleted) return;
-    await restoreEvent(lastDeleted);
-    setShowUndo(false);
-    setLastDeleted(null);
+    if (!pendingUndo) return;
+    clearTimer();
+    await restoreEvent(pendingUndo.event, pendingUndo.mode);
+    dismiss();
     refreshEvents();
   };
 
-  return { showUndo, handleUndo, triggerUndo, dismissUndo: () => setShowUndo(false) };
+  return {
+    showUndo,
+    triggerUndo,
+    handleUndo,
+    dismissUndo: dismiss,
+  };
 }
