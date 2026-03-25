@@ -1,22 +1,22 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { getMyProfile } from "@/src/app/actions/profile";
+import { getMyProfile } from "@/app/actions/profile";
 import ProfilePageClient from "./ProfilePageClient";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
- * Server component that fetches current user's profile data
- * @return {Promise<JSX.Element>} - Own profile page with edit capabilities
+ * Server component that fetches the current user's profile data.
+ * Redirects to login if unauthenticated.
  */
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user?.email) {
     redirect("/login");
   }
 
-  const profile = await getMyProfile(); 
+  const profile = await getMyProfile();
 
   if (!profile) {
     return (

@@ -1,4 +1,6 @@
 import { User } from "lucide-react";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 /**
  * Props for the UserAvatar component.
@@ -15,6 +17,8 @@ interface UserAvatarProps {
  * Renders a user's profile picture or a generated initial-based fallback avatar.
  */
 export default function UserAvatar({ pfp, username, fname, lname, className = "" }: UserAvatarProps) {
+  const avatarSrc = resolveAvatarSrc(pfp);
+
   let initials = "?";
   
   // Extracts up to two initials based on the most complete name data available
@@ -28,8 +32,8 @@ export default function UserAvatar({ pfp, username, fname, lname, className = ""
 
   return (
     <div className={`relative flex items-center justify-center bg-blue-900 text-white rounded-full overflow-hidden ${className}`}>
-      {pfp ? (
-        <img src={pfp} alt={username} className="w-full h-full object-cover" />
+      {avatarSrc ? (
+        <img src={avatarSrc} alt={username} className="w-full h-full object-cover" />
       ) : fname || username ? (
         <span className="font-bold tracking-widest">{initials}</span>
       ) : (
