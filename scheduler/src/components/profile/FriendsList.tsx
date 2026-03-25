@@ -1,18 +1,8 @@
 'use client';
-
 import Link from "next/link";
 import { Users, X, UserMinus } from "lucide-react";
+import { resolveAvatarSrc } from "@/lib/avatar";
 
-/**
- * Renders the user's friend list with options to view profiles or remove friends.
- * @param {object} props - Component props.
- * @param {Array} props.friends - Array of friend objects.
- * @param {boolean} props.isOwnProfile - True if viewing own profile.
- * @param {Function} props.onClose - Function to close the friends list.
- * @param {Function} props.onRemoveFriend - Function to remove a friend.
- * @param {boolean} props.isPending - Transition state for the remove action.
- * @return {JSX.Element} The friends list container.
- */
 export default function FriendsList({
   friends,
   isOwnProfile,
@@ -37,46 +27,47 @@ export default function FriendsList({
           <X size={18} />
         </button>
       </div>
-
       {friends && friends.length > 0 ? (
         <div className="max-h-96 overflow-y-auto space-y-2 pr-2 lunar-scroll">
-          {friends.map((friend: any) => (
-            <div
-              key={friend.id}
-              className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
-            >
-              <Link href={`/profile/${friend.username}`} className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 bg-white/10 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
-                  {friend.pfp ? (
-                    <img src={friend.pfp} alt={friend.username} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/60 font-bold">
-                      {friend.fname?.[0] || friend.username[0]}
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-white truncate text-sm">
-                    {friend.fname || friend.username} {friend.lname}
-                  </p>
-                  <p className="text-xs text-blue-400 truncate">@{friend.username}</p>
-                </div>
-              </Link>
-
-              {isOwnProfile && (
-                <button
-                  onClick={(e) => onRemoveFriend(friend.id, e)}
-                  disabled={isPending}
-                  className={`lunar-item-error flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider flex-shrink-0 ml-2 transition-colors ${
-                    isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-red-500/20"
-                  }`}
-                >
-                  <UserMinus size={12} />
-                  <span>Remove</span>
-                </button>
-              )}
-            </div>
-          ))}
+          {friends.map((friend: any) => {
+            const avatarSrc = resolveAvatarSrc(friend.pfp);
+            return (
+              <div
+                key={friend.id}
+                className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
+              >
+                <Link href={`/profile/${friend.username}`} className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-white/10 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
+                    {avatarSrc ? (
+                      <img src={avatarSrc} alt={friend.username} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white/60 font-bold">
+                        {friend.fname?.[0] || friend.username[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-white truncate text-sm">
+                      {friend.fname || friend.username} {friend.lname}
+                    </p>
+                    <p className="text-xs text-blue-400 truncate">@{friend.username}</p>
+                  </div>
+                </Link>
+                {isOwnProfile && (
+                  <button
+                    onClick={(e) => onRemoveFriend(friend.id, e)}
+                    disabled={isPending}
+                    className={`lunar-item-error flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider flex-shrink-0 ml-2 transition-colors ${
+                      isPending ? "opacity-50 cursor-not-allowed" : "hover:bg-red-500/20"
+                    }`}
+                  >
+                    <UserMinus size={12} />
+                    <span>Remove</span>
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="lunar-value text-center py-8">

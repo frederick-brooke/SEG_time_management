@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * @file MessageInput.tsx
+ * @description Auto-growing textarea input for composing and sending messages.
+ * Expands vertically with content up to a max height, then scrolls.
+ * The Send button is disabled while a message is in-flight or the input is empty.
+ */
+
 import { useEffect, useRef } from "react";
 
 type Props = {

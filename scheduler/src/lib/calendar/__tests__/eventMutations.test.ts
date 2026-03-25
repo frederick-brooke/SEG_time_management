@@ -17,7 +17,7 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-jest.mock("@/src/lib/calendar/googleCalendar", () => ({
+jest.mock("@/lib/calendar/googleCalendar", () => ({
   getGoogleCalendarClient: jest.fn(),
 }));
 

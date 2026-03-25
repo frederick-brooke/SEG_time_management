@@ -5,8 +5,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
+import { User } from "next-auth";
 
-export async function authorizeUser(credentials: Record<"identifier" | "password", string> | undefined) {
+export async function authorizeUser(
+  credentials: Record<string, string> | undefined,
+  req?: any  // <-- now optional
+): Promise<User | null> {
   if (!credentials?.identifier || !credentials?.password) return null;
 
   const user = await prisma.user.findFirst({
@@ -26,13 +30,28 @@ export async function authorizeUser(credentials: Record<"identifier" | "password
 
   if (user.isBanned) {
     if (!user.banExpires || new Date() < user.banExpires) {
-      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+      return {
+        id: user.id.toString(),
+        email: user.email,
+        name: user.username,
+        role: user.role,
+        isBanned: true,
+        username: user.username,
+        isDeleted: user.isDeleted,
+      };
     }
     await prisma.user.update({ where: { id: user.id }, data: { isBanned: false, banExpires: null } });
     user.isBanned = false;
   }
 
-  return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: user.isBanned };
+  return {
+    id: user.id.toString(),
+    email: user.email,
+    username: user.username,
+    role: user.role,
+    isBanned: user.isBanned,
+    isDeleted: user.isDeleted,
+  };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -46,58 +65,7 @@ export const authOptions: NextAuthOptions = {
         identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-
-      async authorize(credentials) {
-        try {
-          if (!credentials?.identifier || !credentials?.password) return null;
-
-          const user = await prisma.user.findFirst({
-            where: {
-              OR: [
-                { email: credentials.identifier },
-                { username: credentials.identifier }
-              ]
-            },
-          });
-
-          if (!user || !user.passwordHash) return null;
-
-          const isValid = await verifyPassword(credentials.password, user.passwordHash);
-          if (!isValid) return null;
-
-          if (user.isBanned) {
-            // permanent ban or temporary ban still active
-            if (!user.banExpires || new Date() < user.banExpires) {
-              return {
-                id: user.id.toString(),
-                email: user.email,
-                username: user.username,
-                role: user.role,
-                isBanned: true,
-                isDeleted: user.isDeleted,
-              };
-            }
-            // ban expired
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { isBanned: false, banExpires: null },
-            });
-            user.isBanned = false;
-          }
-
-          return {
-            id: user.id.toString(),
-            email: user.email,
-            username: user.username,
-            role: user.role,
-            isBanned: user.isBanned,
-            isDeleted: user.isDeleted,
-          };
-        } catch (error) {
-          console.error("AUTHORIZE ERROR:", error);
-          return null;
-        }        
-      },
+      authorize: authorizeUser,
     }),
 
     GoogleProvider({
@@ -126,93 +94,106 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.sub = user.id;
-        token.role = user.role;
-        token.isBanned = user.isBanned;
-        token.username = user.username;
-        token.isDeleted = user.isDeleted;
-      }
+    async jwt({ token, user, account, trigger }) {
+		if (user) {
+			token.sub = user.id;
+			token.role = user.role;
+			token.isBanned = user.isBanned;
+			token.username = user.username;
+			token.isDeleted = user.isDeleted;
+		}
 
-      if (!token.username && token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { username: true },
-        });
-        token.username = dbUser?.username;
-      }
+		if (trigger === "update") {
+			const freshUser = await prisma.user.findUnique({
+				where: { id: token.sub as string },
+				select: { role: true, isBanned: true, isDeleted: true },
+			});
 
-      if (account?.access_token) {
-        token.accessToken = account.access_token;
-      }
+			if (freshUser) {
+				token.role = freshUser.role;
+				token.isBanned = freshUser.isBanned;
+				token.isDeleted = freshUser.isDeleted;
+			}
+		}
 
-      // Handle Google Account linking and creation logic
-      if (account?.provider === "google") {
-        const userId = token.sub ?? user?.id;
+		if (!token.username && token.sub) {
+			const dbUser = await prisma.user.findUnique({
+			where: { id: token.sub },
+			select: { username: true },
+			});
+			token.username = dbUser?.username;
+		}
 
-        if (userId) {
-          const existingAccount = await prisma.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: "google",
-                providerAccountId: account.providerAccountId,
-              },
-            },
-          });
+		if (account?.access_token) {
+			token.accessToken = account.access_token;
+		}
 
-          if (existingAccount && existingAccount.userId !== userId) {
-            throw new Error("GoogleAccountTaken");
-          }
+		// Handle Google Account linking and creation logic
+		if (account?.provider === "google") {
+			const userId = token.sub ?? user?.id;
 
-          await prisma.account.upsert({
-            where: {
-              provider_providerAccountId: {
-                provider: "google",
-                providerAccountId: account.providerAccountId,
-              },
-            },
-            update: {
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              expires_at: account.expires_at,
-              scope: account.scope,
-              token_type: account.token_type,
-              id_token: account.id_token,
-              refresh_token_expires_in: account.refresh_token_expires_in as number,
-            },
-            create: {
-              userId,
-              type: account.type,
-              provider: "google",
-              providerAccountId: account.providerAccountId,
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              expires_at: account.expires_at,
-              scope: account.scope,
-              token_type: account.token_type,
-              id_token: account.id_token,
-              refresh_token_expires_in: account.refresh_token_expires_in as number,
-            },
-          });
-        }
-      } else if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.role = user.role;
-        token.isBanned = user.isBanned;
-        return token;
-      }
+			if (userId) {
+			const existingAccount = await prisma.account.findUnique({
+				where: {
+				provider_providerAccountId: {
+					provider: "google",
+					providerAccountId: account.providerAccountId,
+				},
+				},
+			});
 
-      if (!token.role && token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { role: true },
-        });
-        token.role = dbUser?.role;
-      }
+			if (existingAccount && existingAccount.userId !== userId) {
+				throw new Error("GoogleAccountTaken");
+			}
 
-      return token;
+			await prisma.account.upsert({
+				where: {
+				provider_providerAccountId: {
+					provider: "google",
+					providerAccountId: account.providerAccountId,
+				},
+				},
+				update: {
+				access_token: account.access_token,
+				refresh_token: account.refresh_token,
+				expires_at: account.expires_at,
+				scope: account.scope,
+				token_type: account.token_type,
+				id_token: account.id_token,
+				refresh_token_expires_in: account.refresh_token_expires_in as number,
+				},
+				create: {
+				userId,
+				type: account.type,
+				provider: "google",
+				providerAccountId: account.providerAccountId,
+				access_token: account.access_token,
+				refresh_token: account.refresh_token,
+				expires_at: account.expires_at,
+				scope: account.scope,
+				token_type: account.token_type,
+				id_token: account.id_token,
+				refresh_token_expires_in: account.refresh_token_expires_in as number,
+				},
+			});
+			}
+		} else if (user) {
+			token.id = user.id;
+			token.email = user.email;
+			token.role = user.role;
+			token.isBanned = user.isBanned;
+			return token;
+		}
+
+		if (!token.role && token.sub) {
+			const dbUser = await prisma.user.findUnique({
+			where: { id: token.sub },
+			select: { role: true },
+			});
+			token.role = dbUser?.role;
+		}
+
+		return token;
     },
 
     async session({ session, token }) {

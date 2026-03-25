@@ -14,7 +14,7 @@ jest.mock("date-fns", () => ({
   }),
 }));
 
-jest.mock("@/src/lib/scheduling/taskSchedulingUtils", () => ({
+jest.mock("@/lib/scheduling/taskSchedulingUtils", () => ({
   getNextOccurrenceDeadline: jest.fn(),
 }));
 

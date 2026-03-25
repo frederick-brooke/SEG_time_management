@@ -47,11 +47,11 @@ jest.mock("@/lib/prisma", () => ({
     },
   },
 }));
-jest.mock("@/src/lib/travel", () => ({ calculateTravelTime: jest.fn() }));
-jest.mock("@/src/lib/calendar/eventHelpers", () => ({
+jest.mock("@/lib/travel", () => ({ calculateTravelTime: jest.fn() }));
+jest.mock("@/lib/calendar/eventHelpers", () => ({
   expandRecurringEvents: jest.fn((events) => events),
 }));
-jest.mock("@/src/lib/calendar/googleSync", () => ({
+jest.mock("@/lib/calendar/googleSync", () => ({
   syncGoogleCalendar: jest.fn(),
   insertGoogleEvent: jest.fn(),
   createLocalEvent: jest.fn(),
@@ -60,7 +60,7 @@ jest.mock("@/src/lib/calendar/googleSync", () => ({
   upsertGoogleEvent: jest.fn(),
   fetchAllGoogleEvents: jest.fn(),
 }));
-jest.mock("@/src/lib/calendar/eventMutations", () => ({
+jest.mock("@/lib/calendar/eventMutations", () => ({
   handleSingleInstanceUpdate: jest.fn(),
   handleSeriesUpdate: jest.fn(),
 }));

@@ -136,7 +136,7 @@ function LoginForm() {
               name="identifier"
               value={identifier}
               onChange={(e: any) => setIdentifier(e.target.value)}
-              placeholder="e.g. spaceman"
+              placeholder="e.g. jsmith or john@example.com"
               required
             />
             <FormInput

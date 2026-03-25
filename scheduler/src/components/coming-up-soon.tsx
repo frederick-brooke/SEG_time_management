@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { TaskCard } from "./tasks/TaskCard";
-import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskForm } from "./tasks/TaskForm";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/hooks/useTasks";
@@ -71,9 +71,9 @@ export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
   if (isLoading) {
     return (
       <div>
-        <p className="py-8 text-center">
+        <div className="py-8 text-center">
           <p className="text-muted-foreground">Loading...</p>
-        </p>
+        </div>
       </div>
     );
   }
@@ -87,7 +87,7 @@ export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
           </h2>
 
           <div className="flex items-center">
-            <TaskFormDialog
+            <TaskForm
               isOpen={isDialogOpen}
               onOpenChange={(open) => {
                 setIsDialogOpen(open);
@@ -104,7 +104,7 @@ export function ComingUpSoon({ userId, exams = [] }: ComingUpSoonProps) {
         </div>
         
         {/* Task list in a scrollable container */}
-        <div className="overflow-y-auto pt-0 pb-6 px-2 custom-scrollbar transition-all" style={{ maxHeight: "350px" }}>
+        <div className="lunar-scroll-area pt-0 pb-6 px-2 transition-all" style={{ maxHeight: "350px" }}>
           {comingSoonTasks.length === 0 ? (
             <p className="text-sm text-white/30 text-center py-8 italic font-medium">No tasks due soon</p>
           ) : (

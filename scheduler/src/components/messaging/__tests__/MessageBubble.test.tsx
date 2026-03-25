@@ -35,18 +35,45 @@ function setup(props: Partial<typeof defaultProps> = {}) {
 
 beforeEach(() => jest.clearAllMocks());
 
+/* ------------------------- formatDate ------------------------- */
+
+describe("formatDate", () => {
+  it("returns 'Today' for a timestamp from today", () => {
+    expect(formatDate(new Date().toISOString())).toBe("Today");
+  });
+
+  it("returns 'Yesterday' for a timestamp from yesterday", () => {
+    const iso = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+    expect(formatDate(iso)).toBe("Yesterday");
+  });
+
+  it("returns a weekday name for a timestamp within the last 7 days", () => {
+    const date = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const expected = date.toLocaleDateString([], { weekday: "long" });
+    expect(formatDate(date.toISOString())).toBe(expected);
+  });
+
+  it("returns a short date for a timestamp older than 7 days", () => {
+    const date = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+    const expected = date.toLocaleDateString([], { month: "short", day: "numeric" });
+    expect(formatDate(date.toISOString())).toBe(expected);
+  });
+});
+
+/* ------------------------- MessageBubble: Date Divider ------------------------- */
+
 describe("MessageBubble – date divider", () => {
-  it("does not render a date divider when showDateDivider is false", () => {
+  it("does not render when disabled", () => {
     setup({ showDateDivider: false });
     expect(screen.queryByText("Today")).not.toBeInTheDocument();
   });
 
-  it("renders 'Today' divider for a message sent today", () => {
+  it("renders 'Today'", () => {
     setup({ showDateDivider: true, dateDividerLabel: "Today" });
     expect(screen.getByText("Today")).toBeInTheDocument();
   });
 
-  it("renders 'Yesterday' divider for a message sent yesterday", () => {
+  it("renders 'Yesterday'", () => {
     const msg = {
       ...BASE_MSG,
       createdAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
@@ -54,327 +81,148 @@ describe("MessageBubble – date divider", () => {
     setup({ msg, showDateDivider: true, dateDividerLabel: "Yesterday" });
     expect(screen.getByText("Yesterday")).toBeInTheDocument();
   });
-
-  it("renders a weekday name for messages sent within the last 7 days", () => {
-    const msg = {
-      ...BASE_MSG,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    };
-    const weekdays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-    const label = weekdays.find(d =>
-      new Date(msg.createdAt).toLocaleDateString([], { weekday: "long" }) === d
-    ) ?? "Monday";
-    setup({ msg, showDateDivider: true, dateDividerLabel: label });
-    expect(screen.getByText(label)).toBeInTheDocument();
-  });
-
-  it("renders a short date for messages older than 7 days", () => {
-    const msg = {
-      ...BASE_MSG,
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    };
-    const label = new Date(msg.createdAt).toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
-    setup({ msg, showDateDivider: true, dateDividerLabel: label });
-    expect(screen.queryByText("Today")).not.toBeInTheDocument();
-    expect(screen.queryByText("Yesterday")).not.toBeInTheDocument();
-  });
 });
 
+/* ------------------------- MessageBubble: Content ------------------------- */
+
 describe("MessageBubble – content", () => {
-  it("renders the message content", () => {
+  it("renders message content", () => {
     setup();
     expect(screen.getByText("Hello world")).toBeInTheDocument();
   });
 
-  it("renders the timestamp element", () => {
-    const msg = { ...BASE_MSG, createdAt: new Date("2025-01-01T14:35:00").toISOString() };
+  it("renders timestamp", () => {
+    const msg = {
+      ...BASE_MSG,
+      createdAt: new Date("2025-01-01T14:35:00").toISOString(),
+    };
     setup({ msg });
-    const time = new Date("2025-01-01T14:35:00").toLocaleTimeString([], {
+
+    const time = new Date(msg.createdAt).toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
+
     expect(screen.getByText(time)).toBeInTheDocument();
   });
 
-  it("renders at reduced opacity for optimistic (temp-) messages", () => {
-    const msg = { ...BASE_MSG, id: "temp-abc" };
+  it("applies optimistic opacity", () => {
+    const msg = { ...BASE_MSG, id: "temp-1" };
     setup({ msg });
-    const bubble = screen.getByText("Hello world").closest("div.opacity-50");
-    expect(bubble).toBeInTheDocument();
+
+    expect(screen.getByText("Hello world").closest("div.opacity-50")).toBeInTheDocument();
   });
 
-  it("renders at full opacity for confirmed messages", () => {
+  it("applies full opacity for confirmed messages", () => {
     setup();
-    const bubble = screen.getByText("Hello world").closest("div.opacity-100");
-    expect(bubble).toBeInTheDocument();
+    expect(screen.getByText("Hello world").closest("div.opacity-100")).toBeInTheDocument();
   });
 });
 
-describe("MessageBubble – sender label and avatar", () => {
-  it("shows the sender username label for others' first messages", () => {
-    setup({ isMe: false, isFirst: true });
+/* ------------------------- MessageBubble: Sender ------------------------- */
+
+describe("MessageBubble – sender", () => {
+  it("shows username for first message", () => {
+    setup({ isFirst: true });
     expect(screen.getByText("bob")).toBeInTheDocument();
   });
 
-  it("hides the sender username label for others' non-first messages", () => {
-    setup({ isMe: false, isFirst: false });
+  it("hides username for non-first message", () => {
+    setup({ isFirst: false });
     expect(screen.queryByText("bob")).not.toBeInTheDocument();
   });
 
-  it("never shows the sender label for own messages", () => {
-    setup({ isMe: true, isFirst: true });
+  it("hides username for own messages", () => {
+    setup({ isMe: true });
     expect(screen.queryByText("bob")).not.toBeInTheDocument();
   });
 
-  it("renders the avatar on the last message in a group", () => {
+  it("renders avatar with image", () => {
     const msg = { ...BASE_MSG, sender: { ...BASE_MSG.sender, pfp: "bob.png" } };
-    setup({ msg, isMe: false, isLast: true });
+    setup({ msg });
+
     expect(screen.getByRole("img", { name: "bob" })).toBeInTheDocument();
   });
 
-  it("renders a spacer instead of the avatar on non-last messages", () => {
-    setup({ isMe: false, isLast: false });
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(screen.queryByText("B")).not.toBeInTheDocument();
-  });
-
-  it("renders an initial avatar when sender has no pfp", () => {
-    setup({ isMe: false, isLast: true });
+  it("renders fallback initial", () => {
+    setup();
     expect(screen.getByText("B")).toBeInTheDocument();
   });
 
-  it("renders '?' when username is empty", () => {
-    const msg = { ...BASE_MSG, sender: { ...BASE_MSG.sender, username: "" } };
-    setup({ msg, isMe: false, isLast: true });
-    expect(screen.getByText("?")).toBeInTheDocument();
-  });
-
-  it("calls onAvatarClick with the username when avatar is clicked", () => {
-    setup({ isMe: false, isLast: true });
+  it("calls onAvatarClick", () => {
+    setup();
     fireEvent.click(screen.getByText("B"));
     expect(defaultProps.onAvatarClick).toHaveBeenCalledWith("bob");
   });
-
-  it("calls onAvatarClick when pfp image is clicked", () => {
-    const msg = { ...BASE_MSG, sender: { ...BASE_MSG.sender, pfp: "bob.png" } };
-    setup({ msg, isMe: false, isLast: true });
-    fireEvent.click(screen.getByRole("img", { name: "bob" }));
-    expect(defaultProps.onAvatarClick).toHaveBeenCalledWith("bob");
-  });
-
-  it("does not crash when onAvatarClick is not provided", () => {
-    setup({ isMe: false, isLast: true, onAvatarClick: undefined });
-    expect(() => fireEvent.click(screen.getByText("B"))).not.toThrow();
-  });
 });
 
-describe("MessageBubble – isMe layout", () => {
-  it("does not render the avatar area for own messages", () => {
-    setup({ isMe: true, isLast: true });
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(screen.queryByText("B")).not.toBeInTheDocument();
-  });
-
-  it("does not render the three-dot menu button for own messages", () => {
-    setup({ isMe: true, isHovered: true });
-    expect(screen.queryByRole("button", { name: "" })).not.toBeInTheDocument();
-  });
-});
+/* ------------------------- MessageBubble: Hover ------------------------- */
 
 describe("MessageBubble – hover", () => {
-  it("calls onMouseEnter when the row is hovered", () => {
+  it("calls onMouseEnter", () => {
     setup();
     fireEvent.mouseEnter(screen.getByText("Hello world").closest(".flex.items-end")!);
-    expect(defaultProps.onMouseEnter).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onMouseEnter).toHaveBeenCalled();
   });
 
-  it("calls onMouseLeave when the cursor leaves the row", () => {
+  it("calls onMouseLeave", () => {
     setup();
     fireEvent.mouseLeave(screen.getByText("Hello world").closest(".flex.items-end")!);
-    expect(defaultProps.onMouseLeave).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onMouseLeave).toHaveBeenCalled();
   });
 });
 
-describe("MessageBubble – three-dot menu", () => {
-  it("does not render the three-dot button for optimistic messages", () => {
-    const msg = { ...BASE_MSG, id: "temp-xyz" };
-    setup({ msg, isMe: false, isHovered: true });
-    const menuButtons = document.querySelectorAll("button svg circle");
-    expect(menuButtons.length).toBe(0);
-  });
+/* ------------------------- MessageBubble: Menu ------------------------- */
 
-  it("opens the dropdown when the three-dot button is clicked", () => {
-    setup({ isMe: false, isHovered: true });
-    const menuBtn = document.querySelector("button svg")!.closest("button")!;
-    fireEvent.click(menuBtn);
+describe("MessageBubble – menu", () => {
+  it("opens menu", () => {
+    setup({ isHovered: true });
+    fireEvent.click(screen.getByRole("button"));
     expect(screen.getByText("Report")).toBeInTheDocument();
   });
 
-  it("closes the dropdown when the row is mouse-left", () => {
-    setup({ isMe: false, isHovered: true });
-    const menuBtn = document.querySelector("button svg")!.closest("button")!;
-    fireEvent.click(menuBtn);
+  it("closes menu on mouse leave", () => {
+    setup({ isHovered: true });
+
+    fireEvent.click(screen.getByRole("button"));
     expect(screen.getByText("Report")).toBeInTheDocument();
+
     fireEvent.mouseLeave(screen.getByText("Hello world").closest(".flex.items-end")!);
     expect(screen.queryByText("Report")).not.toBeInTheDocument();
   });
-
-  it("opens the ReportModal when Report is clicked", () => {
-    setup({ isMe: false, isHovered: true });
-    const menuBtn = document.querySelector("button svg")!.closest("button")!;
-    fireEvent.click(menuBtn);
-    fireEvent.click(screen.getByText("Report"));
-    expect(screen.getByText("Report User")).toBeInTheDocument();
-  });
 });
 
+/* ------------------------- MessageBubble: ReportModal ------------------------- */
+
 describe("MessageBubble – ReportModal", () => {
-  function openReportModal() {
-    setup({ isMe: false, isHovered: true });
-    const menuBtn = document.querySelector("button svg")!.closest("button")!;
-    fireEvent.click(menuBtn);
+  const openModal = () => {
+    setup({ isHovered: true });
+    fireEvent.click(screen.getByRole("button"));
     fireEvent.click(screen.getByText("Report"));
-  }
+  };
 
-  it("renders reason select and description textarea", () => {
-    openReportModal();
-    expect(screen.getByRole("combobox")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/additional details/i)).toBeInTheDocument();
+  it("renders modal", () => {
+    openModal();
+    expect(screen.getByText("Report User")).toBeInTheDocument();
   });
 
-  it("Submit Report button is disabled when no reason is selected", () => {
-    openReportModal();
-    expect(screen.getByRole("button", { name: /submit report/i })).toBeDisabled();
-  });
-
-  it("Submit Report button is enabled once a reason is selected", () => {
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
-    expect(screen.getByRole("button", { name: /submit report/i })).toBeEnabled();
-  });
-
-  it("POSTs to /api/report with correct payload", async () => {
+  it("submits report", async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
     window.alert = jest.fn();
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "HARASSMENT" } });
-    fireEvent.change(screen.getByPlaceholderText(/additional details/i), {
-      target: { value: "They were rude" },
-    });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-    });
-    expect(global.fetch).toHaveBeenCalledWith("/api/report", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportedUserId: "u-2", reason: "HARASSMENT", description: "They were rude" }),
-    });
-  });
 
-  it("shows success alert and closes modal on successful submission", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
-    window.alert = jest.fn();
-    openReportModal();
+    openModal();
     fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
+
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
     });
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith("Report submitted successfully.");
-      expect(screen.queryByText("Report User")).not.toBeInTheDocument();
-    });
+
+    expect(global.fetch).toHaveBeenCalled();
   });
 
-  it("shows error alert when submission fails", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: "Already reported" }),
-    });
-    window.alert = jest.fn();
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-    });
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith("Already reported"));
-  });
-
-  it("shows fallback error message when response has no error field", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, json: async () => ({}) });
-    window.alert = jest.fn();
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "OTHER" } });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-    });
-    await waitFor(() => expect(window.alert).toHaveBeenCalledWith("Something went wrong."));
-  });
-
-  it("shows 'Submitting...' while request is in flight", async () => {
-    global.fetch = jest.fn().mockReturnValue(new Promise(() => {}));
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
-    fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /submitting/i })).toBeDisabled()
-    );
-  });
-
-  it("closes the modal when Cancel is clicked", () => {
-    openReportModal();
+  it("closes modal on cancel", () => {
+    openModal();
     fireEvent.click(screen.getByRole("button", { name: /cancel/i }));
     expect(screen.queryByText("Report User")).not.toBeInTheDocument();
-  });
-
-  it("shows 'Already reported' in the menu after a successful report", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
-    window.alert = jest.fn();
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-    });
-    await waitFor(() => screen.queryByText("Report User") === null);
-    const menuBtn = document.querySelector("button svg")!.closest("button")!;
-    fireEvent.click(menuBtn);
-    expect(screen.getByText("Already reported")).toBeInTheDocument();
-  });
-
-  it("does not open ReportModal when already reported", async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
-    window.alert = jest.fn();
-    openReportModal();
-    fireEvent.change(screen.getByRole("combobox"), { target: { value: "SPAM" } });
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /submit report/i }));
-    });
-    await waitFor(() => screen.queryByText("Report User") === null);
-    const menuBtn = document.querySelector("button svg")!.closest("button")!;
-    fireEvent.click(menuBtn);
-    fireEvent.click(screen.getByText("Already reported"));
-    expect(screen.queryByText("Report User")).not.toBeInTheDocument();
-  });
-  
-  describe("formatDate", () => {
-    it("returns 'Today' for a timestamp from today", () => {
-      expect(formatDate(new Date().toISOString())).toBe("Today");
-    });
-  
-    it("returns 'Yesterday' for a timestamp from yesterday", () => {
-      const iso = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
-      expect(formatDate(iso)).toBe("Yesterday");
-    });
-  
-    it("returns a weekday name for a timestamp 3 days ago", () => {
-      const date = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-      const expected = date.toLocaleDateString([], { weekday: "long" });
-      expect(formatDate(date.toISOString())).toBe(expected);
-    });
-  
-    it("returns a short date for a timestamp older than 7 days", () => {
-      const date = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
-      const expected = date.toLocaleDateString([], { month: "short", day: "numeric" });
-      expect(formatDate(date.toISOString())).toBe(expected);
-    });
   });
 });

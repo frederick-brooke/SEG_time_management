@@ -2,7 +2,28 @@
 
 import { Trophy } from "lucide-react";
 
-//section component
+interface StatBoxProps {
+  label: string;
+  value: number | string;
+  suffix?: string;
+}
+
+/**
+ * Reusable unit for displaying a specific stat block to maintain DRY code.
+ */
+function StatBox({ label, value, suffix }: StatBoxProps) {
+  return (
+    <div className="bg-white/10 p-4 rounded-xl flex flex-col border border-white/20">
+      <span className="lunar-label mb-1 text-white/60">{label}</span>
+      <div className="flex items-baseline gap-2 mt-1">
+        <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+          {value}
+        </span>
+        {suffix && <span className="text-sm text-white/40 font-medium">{suffix}</span>}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Renders the user's task performance statistics and progress bar.
@@ -23,34 +44,14 @@ export default function TaskStatsCard({ stats }: { stats: any }) {
       </h3>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        {/* Completed Tasks Box */}
-        <div className="bg-white/10 p-4 rounded-xl flex flex-col border border-white/20">
-          <span className="lunar-label mb-1 text-white/60">Completed</span>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-              {completedTasks}
-            </span>
-            <span className="text-sm text-white/40 font-medium">/ {totalTasks} total</span>
-          </div>
-        </div>
-
-        {/* Success Rate Box */}
-        <div className="bg-white/10 p-4 rounded-xl flex flex-col border border-white/20">
-          <span className="lunar-label mb-1 text-white/60">Success Rate</span>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
-              {completionRate}
-            </span>
-            <span className="text-xl font-black text-white">%</span>
-          </div>
-        </div>
+        <StatBox label="Completed" value={completedTasks} suffix={`/ ${totalTasks} total`} />
+        <StatBox label="Success Rate" value={completionRate} suffix="%" />
       </div>
 
-      {/* Progress Bar Section */}
       <div className="mt-auto">
         <div className="flex justify-between lunar-label mb-2">
           <span className="text-white/60">Progress</span>
-          <span className={isPassing ? "text-white" : "text-white/40"}>
+          <span className={isPassing ? "text-emerald-400" : "text-white/40"}>
             {completionRate}%
           </span>
         </div>
