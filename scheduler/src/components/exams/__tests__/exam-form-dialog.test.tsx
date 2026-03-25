@@ -1,0 +1,42 @@
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import ExamFormDialog from "../exam-form-dialog";
+
+jest.mock("../ExamForm", () => {
+    const React = require("react");
+    return function MockExamForm({ onSuccess }) {
+        return <button onClick={onSuccess}>MockSubmit</button>;
+    };
+});
+
+describe("ExamFormDialog", () => {
+    it("renders Add Exam button in create mode", () => {
+        render(<ExamFormDialog />);
+        expect(screen.getByText("+ Add Exam")).toBeInTheDocument();
+    });
+
+    it("renders Edit Details button when editingExam is provided", () => {
+        render(<ExamFormDialog editingExam={{ id: "e1", title: "Maths" }}/>);
+        expect(screen.getByText("Edit Details")).toBeInTheDocument();
+    });
+
+    it("opens dialog when trigger button is clicked", () => {
+        render(<ExamFormDialog/>);
+        fireEvent.click(screen.getByText("+ Add Exam"));
+        expect(screen.getByText("Setup New Exam")).toBeInTheDocument();
+    });
+
+    it("shows Edit Exam title when editingExam is provided", () => {
+        render(<ExamFormDialog editingExam={{ id: "e1", title: "Maths" }}/>);
+        fireEvent.click(screen.getByText("Edit Details"));
+        expect(screen.getByText("Edit Exam")).toBeInTheDocument();
+    });
+
+    it("closes dialog when onSuccess is called", () => {
+        render(<ExamFormDialog/>);
+        fireEvent.click(screen.getByText("+ Add Exam"));
+        expect(screen.getByText("Setup New Exam")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("MockSubmit"));
+        expect(screen.queryByText("Setup New Exam")).not.toBeInTheDocument();
+    });
+})
