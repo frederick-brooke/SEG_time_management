@@ -105,7 +105,7 @@ function DashboardContent() {
               </div>
             </div>
             <div className="flex flex-col gap-3 shrink-0">
-              <p className="lunar-label-subtitle">Your Progress</p>
+              <p className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Your Progress</p>
               {profile && <ProfileStats profile={profile} />}
             </div>
           </div>
