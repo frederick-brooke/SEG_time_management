@@ -1,5 +1,5 @@
 import { GET, POST } from "../route";
-import prisma from "@/src/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // Mock NextResponse
@@ -14,12 +14,12 @@ jest.mock("next/server", () => ({
 }));
 
 // Mock Prisma
-jest.mock("@/src/lib/prisma", () => ({
+jest.mock("@/lib/prisma", () => ({
   __esModule: true,
-  default: {
+  prisma: {
     userPreferences: {
       findUnique: jest.fn(),
-      create: jest.fn(),
+      upsert: jest.fn(),
     },
   },
 }));
@@ -94,6 +94,38 @@ describe("Preferences API Route", () => {
       expect(data.error).toBe("User ID required");
     });
 
+    it("uses default values when optional fields are missing", async () => {
+      const mockPreferences = { id: "1", userId: "user123" };
+    
+      prisma.userPreferences.upsert.mockResolvedValue(mockPreferences);
+    
+      const req = new Request("http://localhost/api/preferences", {
+        method: "POST",
+        body: JSON.stringify({ userId: "user123" }),
+      });
+    
+      const res = await POST(req);
+      const data = await res.json();
+    
+      expect(res.status).toBe(200);
+      expect(data.preferences).toEqual(mockPreferences);
+    
+      const call = prisma.userPreferences.upsert.mock.calls[0][0];
+    
+      expect(call.create).toMatchObject({
+        workStartTime: "09:00",
+        workEndTime: "17:00",
+        daysOff: [],
+        sessionLength: 60,
+        breakLength: 15,
+        breaksPerDay: 3,
+        taskOrder: "priority",
+        maxTasksPerDay: 10,
+        defaultTaskDuration: 30,
+        reminderDays: 1,
+      });
+    });
+
     it("creates preferences successfully", async () => {
       const mockPreferences = {
         id: "pref123",
@@ -110,7 +142,7 @@ describe("Preferences API Route", () => {
         reminderDays: 1,
       };
 
-      prisma.userPreferences.create.mockResolvedValue(mockPreferences);
+      prisma.userPreferences.upsert.mockResolvedValue(mockPreferences);
 
       const req = new Request("http://localhost/api/preferences", {
         method: "POST",
@@ -138,7 +170,7 @@ describe("Preferences API Route", () => {
     });
 
     it("returns 500 when database error occurs", async () => {
-      prisma.userPreferences.create.mockRejectedValue(new Error("DB error"));
+      prisma.userPreferences.upsert.mockRejectedValue(new Error("DB error"));
 
       const req = new Request("http://localhost/api/preferences", {
         method: "POST",

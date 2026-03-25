@@ -5,19 +5,30 @@ import { prisma } from "@/lib/prisma";
 // UI components
 import MapView from "@/components/map/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
-import MapPageClient from "./MapPageClient";
+import type { Event } from "@prisma/client";
 
-// Server Component
-export default async function MapPage() {
-  // Fetch the current authenticated session
-  const session = await getServerSession(authOptions);
+// Types 
 
-  if (!session?.user?.id) throw new Error("Not authenticated");
+type Coords = { lat: number; lng: number } | null;
 
-  const userId = session.user.id;
+export type SerialisedEvent = {
+  id: string;
+  title: string;
+  category: string;
+  start: string;
+  end: string;
+  startCoords: Coords;
+  destinationCoords: Coords;
+  startLocationName: string | null;
+  destLocationName: string | null;
+  travelDuration: number | null;
+  transportMode: string | null;
+};
 
-  // Fetch events from the database
-  const events = await prisma.event.findMany({
+// Data helpers 
+
+async function fetchUserEvents(userId: string): Promise<Event[]> {
+  return prisma.event.findMany({
     where: {
       userId,
       OR: [
@@ -27,57 +38,68 @@ export default async function MapPage() {
     },
     orderBy: { start: "asc" },
   });
+}
 
-  const eventsSerialized = events.map((e) => ({
-    id: e.id,
-    title: e.title,
-    category: e.category,
-    start: e.start.toISOString(),
-    end: e.end.toISOString(),
-    startCoords: e.startCoords as { lat: number; lng: number } | null,
-    destinationCoords:
-      e.destinationCoords as { lat: number; lng: number } | null,
-    startLocationName: e.startLocationName,
-    destLocationName: e.destLocationName,
-    travelDuration: e.travelDuration,
-    transportMode: e.transportMode,
-  }));
+function serialiseEvent(event: Event): SerialisedEvent {
+  return {
+    id: event.id,
+    title: event.title,
+    category: event.category,
+    start: event.start.toISOString(),
+    end: event.end.toISOString(),
+    startCoords: event.startCoords as Coords,
+    destinationCoords: event.destinationCoords as Coords,
+    startLocationName: event.startLocationName,
+    destLocationName: event.destLocationName,
+    travelDuration: event.travelDuration,
+    transportMode: event.transportMode,
+  };
+}
 
-  // Fetch user's location data
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      location: true,
-      locationHidden: true,
-    },
-  });
+function getEventCountLabel(count: number): string {
+  return `Showing ${count} event${count !== 1 ? "s" : ""} with locations`;
+}
 
-  const userLocation = user?.location as { lat: number; lng: number } | null;
+// Page 
 
-  // Render UI with client component
+export default async function MapPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) throw new Error("Not authenticated");
+
+  const events = await fetchUserEvents(session.user.id);
+  const serialisedEvents = events.map(serialiseEvent);
+
   return (
     <main className="container mx-auto p-6 lg:p-8">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Event Map</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            View your event locations
-          </p>
+      <PageHeader count={serialisedEvents.length} />
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 min-w-0">
+          <MapView events={serialisedEvents} />
         </div>
-
-        <a
-          href="/dashboard"
-          className="text-sm text-blue-600 font-semibold hover:underline"
-        >
-          ← Back to Dashboard
-        </a>
+        <div className="w-full lg:w-72 shrink-0">
+          <SavedLocationsPanel />
+        </div>
       </div>
-
-      <MapPageClient
-        events={eventsSerialized}
-        userLocation={userLocation}
-        userLocationHidden={user?.locationHidden || false}
-      />
     </main>
+  );
+}
+
+// Sub-components
+
+function PageHeader({ count }: { count: number }) {
+  return (
+    <div className="flex justify-between items-center mb-6">
+      <div>
+        <h1 className="text-2xl font-bold">Event Map</h1>
+        <p className="text-sm text-gray-500 mt-1">{getEventCountLabel(count)}</p>
+      </div>
+      <a
+        href="/calendar"
+        className="text-sm text-blue-600 font-semibold hover:underline"
+      >
+        ← Back to Calendar
+      </a>
+    </div>
   );
 }

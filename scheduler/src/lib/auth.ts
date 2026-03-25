@@ -5,8 +5,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
+import { User } from "next-auth";
 
-export async function authorizeUser(credentials: Record<"identifier" | "password", string> | undefined) {
+export async function authorizeUser(
+  credentials: Record<string, string> | undefined,
+  req?: any  // <-- now optional
+): Promise<User | null> {
   if (!credentials?.identifier || !credentials?.password) return null;
 
   const user = await prisma.user.findFirst({
@@ -26,7 +30,15 @@ export async function authorizeUser(credentials: Record<"identifier" | "password
 
   if (user.isBanned) {
     if (!user.banExpires || new Date() < user.banExpires) {
-      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+      return {
+        id: user.id.toString(),
+        email: user.email,
+        name: user.username,
+        role: user.role,
+        isBanned: true,
+        username: user.username,
+        isDeleted: user.isDeleted,
+      };
     }
     await prisma.user.update({ where: { id: user.id }, data: { isBanned: false, banExpires: null } });
     user.isBanned = false;

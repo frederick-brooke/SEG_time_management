@@ -8,7 +8,7 @@ import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
-interface LeaderboardUser {
+/**interface LeaderboardUser {
   id: string;
   username: string;
   name: string;
@@ -19,7 +19,7 @@ interface LeaderboardUser {
   focusTimeRaw: number;
   isCurrentUser: boolean;
 }
-
+*/
 interface LeaderboardClientProps {
   initialData: LeaderboardUser[];
   currentTimeframe: 'day' | 'week' | 'month' | 'all';
