@@ -3,7 +3,60 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+/**
+ * Handles approval of an appeal.
+ *
+ * - Unbans the user
+ * - Clears any ban expiration
+ * - Updates the appeal status to APPROVED
+ * - Records the admin who handled the appeal
+ *
+ * @param {string} appealId - ID of the appeal
+ * @param {string} userId - ID of the user who submitted the appeal
+ * @param {string} handlerId - ID of the admin handling the appeal
+ * @returns {Promise<void>}
+ */
+async function handleApprove(appealId: string, userId: string, handlerId: string) {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { isBanned: false, banExpires: null },
+  });
 
+  await prisma.appeal.update({
+    where: { id: appealId },
+    data: { status: "APPROVED", handledById: handlerId },
+  });
+}
+
+/**
+ * Handles rejection of an appeal.
+ *
+ * - Updates the appeal status to REJECTED
+ *
+ * @param {string} appealId - ID of the appeal
+ * @returns {Promise<void>}
+ */
+async function handleReject(appealId: string) {
+  await prisma.appeal.update({
+    where: { id: appealId },
+    data: { status: "REJECTED" },
+  });
+}
+
+/**
+ * Handles PATCH requests for updating appeal status.
+ *
+ * Supported actions:
+ * - APPROVE: Unbans the user and approves the appeal
+ * - REJECT: Marks the appeal as rejected
+ *
+ * Access Control:
+ * - Only SUPERUSER role is authorized
+ *
+ * @param {Request} req - Incoming request
+ * @param {{ params: Promise<{ id: string }> }} context - Route parameters
+ * @returns {Promise<NextResponse>} JSON response indicating success or failure
+ */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -15,12 +68,10 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const { action } = await req.json(); // approve or reject
+  const { action } = await req.json();
 
   try {
-    const appeal = await prisma.appeal.findUnique({
-      where: { id },
-    });
+    const appeal = await prisma.appeal.findUnique({ where: { id } });
 
     if (!appeal) {
       return NextResponse.json(
@@ -29,28 +80,12 @@ export async function PATCH(
       );
     }
 
-    // unbans the user if they were alredy banned
     if (action === "APPROVE") {
-      await prisma.user.update({
-        where: { id: appeal.userId },
-        data: {
-          isBanned: false,
-          banExpires: null,
-        },
-      });
-
-      await prisma.appeal.update({
-        where: { id },
-        data: { status: "APPROVED", handledById: session.user.id },
-      });
+      await handleApprove(id, appeal.userId, session.user.id);
     }
 
-    // reject to keep them banned
     if (action === "REJECT") {
-      await prisma.appeal.update({
-        where: { id },
-        data: { status: "REJECTED" },
-      });
+      await handleReject(id);
     }
 
     return NextResponse.json({ success: true });

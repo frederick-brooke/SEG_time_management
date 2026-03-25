@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-
 import { IconHeartSpark } from "@tabler/icons-react";
+import { LunarCard } from "./lunar-card";
 
 export default function ReminderModal({ open, onClose, title, children }) {
   const [portalRoot, setPortalRoot] = useState(null);
@@ -16,59 +16,64 @@ export default function ReminderModal({ open, onClose, title, children }) {
 
   return createPortal(
     <>
-      {/* overlay */}
+      {/* Overlay — dismisses modal on click */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
         onClick={onClose}
       />
-
-      {/* centering container */}
+ 
+      {/* Centering container */}
       <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-
-        {/* modal */}
-        <div
-          className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative animate-scaleIn"
+ 
+        {/* Modal card — stops click propagation to prevent overlay dismissal */}
+        <LunarCard
+          variant="blue"
+          className="w-full max-w-md p-8 animate-scaleIn"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* close icon */}
+ 
+          {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-xl"
+            aria-label="Close"
+            className="absolute top-4 right-5 text-white/30 hover:text-white/70 text-lg transition-colors"
           >
-            ×
+            ✕
           </button>
-
-          {/* icon */}
-          <div className="flex justify-center mb-4">
-            <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
-              <IconHeartSpark className="text-blue-600" size={26} />
+ 
+          {/* Icon badge */}
+          <div className="flex justify-center mb-5">
+            <div className="w-14 h-14 rounded-full bg-blue-500/15 border border-blue-400/20 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+              <IconHeartSpark className="text-blue-400" size={26} />
             </div>
           </div>
-
-          {/* title */}
-          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">
+ 
+          {/* Title */}
+          <h2 className="lunar-header text-xl font-black text-white tracking-tight text-center mb-2">
             {title}
           </h2>
-
-          {/* message */}
-          <div className="text-center text-gray-600 mb-6">
+ 
+          {/* Divider */}
+          <div className="border-t border-white/10 mb-4" />
+ 
+          {/* Message */}
+          <div className="lunar-page-subtitle text-sm text-white/50 text-center leading-relaxed mb-6">
             {children}
           </div>
-
-          {/* action */}
+ 
+          {/* Confirm action */}
           <div className="flex justify-center">
             <button
               onClick={onClose}
-              className="px-6 py-2 rounded-full bg-blue-600 text-white font-medium shadow hover:bg-blue-700 transition"
+              className="lunar-page-subtitle px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-bold shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:shadow-[0_0_28px_rgba(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               OK!
             </button>
           </div>
-        </div>
-
+ 
+        </LunarCard>
       </div>
     </>,
-
     portalRoot
   );
 }

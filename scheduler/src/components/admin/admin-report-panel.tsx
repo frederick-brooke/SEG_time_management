@@ -1,36 +1,58 @@
 import { useState } from "react";
 
-//view the information for each report
+/**
+ * Displays detailed information about a selected report
+ * and allows moderators to take action (ban/unban users).
+ *
+ * Features:
+ * - Shows report metadata (users, status, timestamps)
+ * - Displays report description
+ * - Allows moderator actions via modal
+ *
+ * @param {Object} props - Component props
+ * @param {Object|null} props.report - Selected report object
+ * @param {Function} props.onClose - Closes the panel
+ * @param {Function} props.fetchReports - Refetches reports after actions
+ *
+ * @returns {JSX.Element|null} Report panel UI or null if no report
+ */
 export default function ReportPanel({ report, onClose, fetchReports }) {
-  if (!report) return null;
+	if (!report) return null;	 // Do not render if no report is selected
 
-  const [showReportAction, setShowReportAction] = useState(null);
+	const [showReportAction, setShowReportAction] = useState(null);		// Controls visibility of action modal
 
-    async function banUser(user, type, durationDays = null) {
-        if (!user?.id) {
-            alert(`Cannot ban user: user ID is missing.`);
-            return;
-        }
+	/**
+	 * Handles user moderation actions (ban/unban).
+	 *
+	 * @param {Object} user - Target user
+	 * @param {"TEMP" | "PERMANENT" | "UNBAN"} type - Action type
+	 * @param {number|null} durationDays - Duration for temporary bans
+	 */
+	async function banUser(user, type, durationDays = null) {
+		if (!user?.id) {
+			alert(`Cannot ban user: user ID is missing.`);
+			return;
+		}
 
-        await fetch(`/api/admin/users/${user.id}/ban`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type, durationDays, reportId: report.id  }),
-        });
+		await fetch(`/api/admin/users/${user.id}/ban`, {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ type, durationDays, reportId: report.id  }),
+		});
 
-        if(type === "TEMP"){
-            alert(`User ${user.username} Temporarily Banned`);
-        } else if(type === "PERMANENT"){
-            alert(`User ${user.username} Permanently Banned`);
-        }
-        else{
-            alert(`User ${user.username} Unbanned`);
-        }
+		if(type === "TEMP"){
+			alert(`User ${user.username} Temporarily Banned`);
+		} else if(type === "PERMANENT"){
+			alert(`User ${user.username} Permanently Banned`);
+		}
+		else{
+			alert(`User ${user.username} Unbanned`);
+		}
 
-        fetchReports();
-    }
-
-    const statusStyles = report.status === "RESOLVED" ? "bg-green-400/20 text-green-300" : report.status === "REJECTED" ? "bg-red-400/20 text-red-300" : "bg-yellow-400/20 text-yellow-300";
+		fetchReports();
+	}
+	//Determines styling based on report status.
+	const statusStyles = report.status === "RESOLVED" ? "bg-green-400/20 text-green-300" : report.status === "REJECTED" ? "bg-red-400/20 text-red-300" : "bg-yellow-400/20 text-yellow-300";
 
     return (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-sm"
@@ -53,41 +75,41 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
                 {/* Report Info */}
                 <div className="space-y-3">
                     <div className="flex justify-between">
-                    <span className="text-xs uppercase text-white/40 tracking-wider">Report ID</span>
-                    <span className="font-medium text-white">{report.id}</span>
+                    	<span className="text-xs uppercase text-white/40 tracking-wider">Report ID</span>
+                    	<span className="font-medium text-white">{report.id}</span>
                     </div>
 
                     <div className="flex justify-between">
-                    <span className="text-xs uppercase text-white/40 tracking-wider">Reported User</span>
-                    <span className="font-medium text-white">{report.reportedUser.username}</span>
+                    	<span className="text-xs uppercase text-white/40 tracking-wider">Reported User</span>
+                    	<span className="font-medium text-white">{report.reportedUser.username}</span>
                     </div>
 
                     <div className="flex justify-between">
-                    <span className="text-xs uppercase text-white/40 tracking-wider">Reported By</span>
-                    <span className="font-medium text-white">{report.reportedBy.username}</span>
+                    	<span className="text-xs uppercase text-white/40 tracking-wider">Reported By</span>
+                    	<span className="font-medium text-white">{report.reportedBy.username}</span>
                     </div>
 
                     <div className="flex justify-between items-center">
-                    <span className="text-xs uppercase text-white/40 tracking-wider">Status</span>
-                    <span className={`px-2 py-1 text-xs rounded-full font-medium ${statusStyles}`}>
-                        {report.status}
-                    </span>
+                   		<span className="text-xs uppercase text-white/40 tracking-wider">Status</span>
+                   	 	<span className={`px-2 py-1 text-xs rounded-full font-medium ${statusStyles}`}>
+                    	    {report.status}
+                    	</span>
                     </div>
 
                     <div className="flex justify-between">
-                    <span className="text-xs uppercase text-white/40 tracking-wider">Handled By</span>
-                    <span className="font-medium text-white">{report.handledBy?.username ?? "Not handled yet"}</span>
+                    	<span className="text-xs uppercase text-white/40 tracking-wider">Handled By</span>
+                    	<span className="font-medium text-white">{report.handledBy?.username ?? "Not handled yet"}</span>
                     </div>
 
                     {report.status === "RESOLVED" && report.reportedUser.isBanned && (
-                    <div className="flex justify-between">
-                        <span className="text-xs uppercase text-white/40 tracking-wider">Ban Expires</span>
-                        <span className="font-medium text-white">
-                        {report.reportedUser.banExpires
-                            ? new Date(report.reportedUser.banExpires).toLocaleString()
-                            : "Permanent"}
-                        </span>
-                    </div>
+						<div className="flex justify-between">
+							<span className="text-xs uppercase text-white/40 tracking-wider">Ban Expires</span>
+							<span className="font-medium text-white">
+							{report.reportedUser.banExpires
+								? new Date(report.reportedUser.banExpires).toLocaleString()
+								: "Permanent"}
+							</span>
+						</div>
                     )}
                 </div>
 
@@ -95,17 +117,17 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
                 <div className="space-y-1">
                     <p className="lunar-page-subtitle text-xs text-white/40 uppercase tracking-wider">Description</p>
                     <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
-                    {report.description}
+                    	{report.description}
                     </div>
                 </div>
 
                 {/* Action Button */}
                 {!report.handledBy && (
                     <button
-                    onClick={() => setShowReportAction(true)}
-                    className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
+                    	onClick={() => setShowReportAction(true)}
+                    	className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
                     >
-                    Take Action
+                    	Take Action
                     </button>
                 )}
             </div>
@@ -126,14 +148,31 @@ export default function ReportPanel({ report, onClose, fetchReports }) {
   );
 }
 
+/**
+ * Modal for performing moderation actions on a reported user.
+ *
+ * Actions:
+ * - Temporary ban
+ * - Permanent ban
+ * - Unban
+ *
+ * @param {Object} props
+ * @param {Object} props.report - Report object
+ * @param {Function} props.onClose - Closes modal
+ * @param {Function} props.banUser - Moderation handler
+ *
+ * @returns {JSX.Element} Modal UI
+ */
 function ReportActionModal( {report, onClose, banUser} ) {
     return(
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
             <div className="bg-white/5 w-full max-w-md p-6 space-y-4 rounded-xl shadow-2xl backdrop-blur-xl border border-white/10" onClick={(e) => e.stopPropagation()}>
                 <h2 className="lunar-header text-lg font-semibold text-white">Report Action</h2>
 
-                <textarea placeholder="Reasoning (Optional)" className="lunar-page-subtitle w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+				{/* Optional moderator reasoning input */}
+                <textarea placeholder="Reasoning (Optional)" className="w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
 
+				{/* Action buttons */}
                 <div className="space-y-2">
                     <button onClick={() => banUser(report.reportedUser, "TEMP", 7)} className="w-full py-2 rounded-xl bg-yellow-400 text-gray-900 font-medium hover:scale-[1.02] transition">
                         Temporary Ban (7 days)

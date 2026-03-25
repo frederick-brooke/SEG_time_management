@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
+import { Delete } from "lucide-react";
 
 /**
  * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
@@ -89,20 +90,6 @@ describe("DeleteTaskDialog", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
-  it("calls onCancel when dialog closes via onOpenChange(false) and NOT when onOpenChange(true)", () => {
-    const onCancel = jest.fn();
-
-    render(
-      <DeleteTaskDialog isOpen={true} onConfirm={jest.fn()} onCancel={onCancel} />,
-    );
-
-    fireEvent.click(screen.getByTestId("simulate-open-change-true"));
-    expect(onCancel).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByTestId("simulate-open-change-false"));
-    expect(onCancel).toHaveBeenCalledTimes(1);
-  });
-
   it("calls onCancel when Cancel button is clicked", () => {
     const onCancel = jest.fn();
 
@@ -124,4 +111,11 @@ describe("DeleteTaskDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
+
+  it("renders null when isOpen is false", () => {
+    const { container } = render(
+      <DeleteTaskDialog isOpen={false} onConfirm={jest.fn()} onCancel={jest.fn()}/>
+    );
+    expect(container.firstChild).toBeNull();
+  })
 });

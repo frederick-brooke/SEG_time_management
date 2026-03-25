@@ -22,7 +22,7 @@ export function UpcomingExams({ exams }) {
         return (
             <div className="space-y-6">
                 <h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">Exams Approaching</h2>
-                <div className="overflow-y-auto pr-2 custom-scrollbar transition-all space-y-4" style={{ maxHeight: "350px" }}>
+                <div className="lunar-scroll-area transition-all space-y-4" style={{ maxHeight: "350px" }}>
                     {upcoming.map((exam) => (
                         <Link key={exam.id} href={`/exam-planner/${exam.id}`} className="block mb-4 last:mb-0">
                             <div className="group relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-indigo-950/20 p-5 backdrop-blur-xl transition-all hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] hover:-translate-y-1">

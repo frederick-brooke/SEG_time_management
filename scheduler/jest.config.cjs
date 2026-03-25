@@ -3,15 +3,25 @@ const createJestConfig = nextJest({ dir: "./" });
 
 const customJestConfig = {
   testEnvironment: "jsdom",
+  collectCoverage: true,
+  collectCoverageFrom: [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/types.ts"
+  ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   forceExit: true,
   maxWorkers: 1,
   coveragePathIgnorePatterns: [
     "src/components/friend-map/map.tsx",
+    "src/generated/",
+    "src/components/animate-ui",
+    "src/components/effects/",
+    ".next/",
   ], 
   
   moduleNameMapper: {
-    "^@/src/(.*)$": "<rootDir>/src/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^components/(.*)$": "<rootDir>/src/components/$1",
     "\\.module\\.css$": "identity-obj-proxy",

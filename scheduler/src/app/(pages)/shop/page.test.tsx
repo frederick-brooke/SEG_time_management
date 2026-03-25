@@ -16,7 +16,7 @@ jest.mock("next/navigation", () => ({
   redirect: jest.fn(),
 }));
 
-jest.mock("@/src/app/actions/shop", () => ({
+jest.mock("@/app/actions/shop", () => ({
   getShopData: jest.fn(),
 }));
 

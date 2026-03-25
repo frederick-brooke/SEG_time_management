@@ -32,7 +32,6 @@ interface appealManagementProps {
   resetFilters: () => void;
 }
 
-
 export default function AppealsManagement({
   appeals,
   totalAppeals,
@@ -47,38 +46,39 @@ export default function AppealsManagement({
   setFilters,
   resetFilters,
 }: appealManagementProps) {
-  return (
-    <AdminListSection
-      title="Appeals Management"
-      items={appeals}
-      totalItems={totalAppeals}
-      totalPages={totalAppealPages}
-      filters={filters}
-      setFilters={setFilters}
-      onFilterOpen={() => setIsAppealFilterOpen(true)}
-      resetFilters={resetFilters}
-      itemLabel="appeals"
-      renderItem={(appeal, i) => (
-        <motion.div
-          key={appeal.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.03 }}
-          onClick={() => setSelectedAppeal(appeal)}
-          className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
-        >
-          <p className="font-medium text-white">Appeal ID: {appeal.id}</p>
-          <p className="text-sm text-white">User: {appeal.user?.email}</p>
-          <p className="text-sm text-gray-500">Status: {appeal.status}</p>
-        </motion.div>
-      )}
-      renderPanel={() => (
-        <AppealPanel
-          appeal={selectedAppeal}
-          onClose={() => setSelectedAppeal(null)}
-          fetchAppeals={fetchAppeals}
-        />
-      )}
-    />
-  );
+	return (
+		<AdminListSection
+			title="Appeals Management"
+			items={appeals}
+			totalItems={totalAppeals}
+			totalPages={totalAppealPages}
+			filters={filters}
+			setFilters={setFilters}
+			onFilterOpen={() => setIsAppealFilterOpen(true)}
+			resetFilters={resetFilters}
+			itemLabel="appeals"
+			renderItem={(appeal, i) => (
+				<motion.div
+					key={appeal.id}
+					initial={{ opacity: 0, y: 10 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: i * 0.03 }}
+					onClick={() => setSelectedAppeal(appeal)}
+					className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
+				>
+					<p className="font-medium text-white">Appeal ID: {appeal.id}</p>
+					<p className="text-sm text-white">User: {appeal.user?.email}</p>
+					<p className="text-sm text-gray-500">Status: {appeal.status}</p>
+				</motion.div>
+			)}
+
+			renderPanel={() => (
+				<AppealPanel
+					appeal={selectedAppeal}
+					onClose={() => setSelectedAppeal(null)}
+					fetchAppeals={fetchAppeals}
+				/>
+			)}
+		/>
+	);
 }
