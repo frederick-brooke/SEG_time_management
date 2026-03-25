@@ -2,9 +2,21 @@
 //reusable component for user searching
 import { useEffect, useState } from "react";
 
-type Filters = Record<string, string | number | string[] | null | undefined>;
+type Filters = Record<string, string | number | string[] | null | undefined>; //Generic filter type for query params
 
-//fetches and manages user statistics from the admin API route
+/**
+ * Custom hook for fetching and managing user data.
+ * Handles:
+ * - Building query params from flexible filter object
+ * - Fetching users from a provided API endpoint
+ * - Managing loading state
+ * - Returning pagination metadata
+ *
+ * @param {Filters} filters - Filter object for query params
+ * @param {string} endpoint - API endpoint to fetch users from
+ *
+ * @returns {Object} Users data and control state
+ */
 export function useUsers(filters: Filters, endpoint: string) {
     const [users, setUsers] = useState([]);     //list of all the user objects from server
     const [totalUserPages, setTotalUserPages] = useState(1);   
@@ -15,6 +27,13 @@ export function useUsers(filters: Filters, endpoint: string) {
         fetchUsers();   //reapply fetch for every change
     }, [filters]);
 
+	/**
+    * Fetches users from API using dynamic filters.
+    * Handles:
+    * - Converting filters → query string
+    * - Supporting array values (e.g. multiple categories)
+    * - Updating state with response
+    */
     async function fetchUsers() {
         try {
             setLoading(true);
@@ -50,11 +69,5 @@ export function useUsers(filters: Filters, endpoint: string) {
         }
     }
 
-    return {
-        users,
-        totalUserPages,
-        totalUsers,
-        fetchUsers,
-        loading,
-    };
+    return {users, totalUserPages, totalUsers, fetchUsers,loading, };
 }

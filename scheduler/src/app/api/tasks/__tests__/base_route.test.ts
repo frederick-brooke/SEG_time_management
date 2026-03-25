@@ -7,11 +7,8 @@ jest.mock("next/server", () => ({
     },
 }));
 
-import { scheduleTasks } from "@/lib/scheduling/scheduler";
 import { GET, POST } from "../route";
 import { prisma } from "@/lib/prisma";
-import { relativeOffsetLabel } from "@/lib/ui";
-import { NextRequest } from "next/server";
 
 jest.mock("@/lib/prisma", () => ({
     prisma: {
@@ -24,6 +21,7 @@ jest.mock("@/lib/prisma", () => ({
         },
         exam: {
             findUnique: jest.fn(),
+            create: jest.fn(),
         }
     },
 }));
@@ -261,7 +259,7 @@ describe("Base tasks route /api/tasks", () => {
     });
 
     it("POST: returns 500 on error", async () => {
-        (prisma.exam.create as jest.Mock).mockResolvedValue(new Error("DB error"));
+        (prisma.task.create as jest.Mock).mockRejectedValue(new Error("DB error"));
         
         const req = new Request("http://localhost/api/tasks", {
             method: "POST",

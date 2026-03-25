@@ -73,7 +73,8 @@ export default function AdminPage() {
   if (loading || reportLoading) {
     return <p className="p-6">Loading...</p>;
   }
-
+  
+  //tabulated access allows for different views to appear on each tab
   const tabs: Record<string, React.ReactNode> = {
     reports: (
       <ReportManagement
@@ -179,7 +180,8 @@ export default function AdminPage() {
               </motion.div>
 
             </div>
-            
+
+            {/* Respective filter panels */}
             {isUserFilterOpen && (
               <UserFilter 
                 filters={draftUserFilters}

@@ -43,37 +43,37 @@ export default function ReportManagement({
   setFilters,
   resetFilters,
 }: ReportManagementProps) {
-  return (
-    <AdminListSection
-      title="Reports Management"
-      items={reports}
-      totalItems={totalReports}
-      totalPages={totalReportPages}
-      filters={filters}
-      setFilters={setFilters}
-      onFilterOpen={() => setIsReportFilterOpen(true)}
-      resetFilters={resetFilters}
-      itemLabel="reports"
-      renderItem={(report, i) => (
-        <motion.div
-          key={report.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.03 }}
-          onClick={() => setSelectedReport(report)}
-          className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
-        >
-          <p className="font-medium text-white">ID: {report.id}</p>
-          <p className="text-sm text-white/50">Status: {report.status}</p>
-        </motion.div>
-      )}
-      renderPanel={() => (
-        <ReportPanel
-          report={selectedReport}
-          onClose={() => setSelectedReport(null)}
-          fetchReports={fetchReports}
-        />
-      )}
-    />
-  );
+	return (
+		<AdminListSection
+			title="Reports Management"
+			items={reports}
+			totalItems={totalReports}
+			totalPages={totalReportPages}
+			filters={filters}
+			setFilters={setFilters}
+			onFilterOpen={() => setIsReportFilterOpen(true)}
+			resetFilters={resetFilters}
+			itemLabel="reports"
+			renderItem={(report, i) => (
+				<motion.div
+					key={report.id}
+					initial={{ opacity: 0, y: 10 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: i * 0.03 }}
+					onClick={() => setSelectedReport(report)}
+					className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
+					>
+					<p className="font-medium text-white">ID: {report.id}</p>
+					<p className="text-sm text-white/50">Status: {report.status}</p>
+				</motion.div>
+			)}
+			renderPanel={() => (
+				<ReportPanel
+				report={selectedReport}
+				onClose={() => setSelectedReport(null)}
+				fetchReports={fetchReports}
+				/>
+			)}
+		/>
+	);
 }

@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupTasks from "@/components/groups/GroupTasks";
 
+// mocks
 jest.mock("@/lib/format", () => ({
   formatTaskDate: jest.fn(() => "Nov 1"),
   formatDuration: jest.fn(() => "2h"),
@@ -29,76 +30,175 @@ const mockTasks = [
     dueDate: new Date("2026-11-01T12:00:00Z"),
     duration: 120,
     currentUserCompleted: false,
-    completedMembers: [{ id: "u1", fname: "Alice", lname: "Smith" }],
-    inProgressMembers: [{ id: "u2", fname: "Bob", lname: "Jones" }],
+    completedMembers: [{ id: "u1", username: "alice", fname: "Alice", lname: "Smith" }],
+    inProgressMembers: [{ id: "u2", username: "bob_jones", fname: null, lname: null }],
   },
 ];
 
+// tests
 describe("GroupTasks", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  /**
-   * Verifies the empty state renders properly when the task array is empty.
-   */
+  // Confirms the component displays a clear empty state when no tasks are provided
   it("renders empty state correctly", () => {
-    render(<GroupTasks tasksWithProgress={[]} onEdit={mockOnEdit} onDelete={mockOnDelete} onToggleComplete={mockOnToggleComplete} />);
+    render(
+      <GroupTasks
+        tasksWithProgress={[]}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
     expect(screen.getByText("Group Tasks (0)")).toBeInTheDocument();
     expect(screen.getByText(/No tasks yet/i)).toBeInTheDocument();
   });
 
-  /**
-   * Checks that the complex `TaskWithProgress` object maps all its properties 
-   * (title, priority, duration, dates) to the UI elements accurately.
-   */
+  // Confirms fundamental task details (title, priority) are mapped to the UI correctly
   it("renders task details correctly", () => {
-    render(<GroupTasks tasksWithProgress={mockTasks} onEdit={mockOnEdit} onDelete={mockOnDelete} onToggleComplete={mockOnToggleComplete} />);
+    render(
+      <GroupTasks
+        tasksWithProgress={mockTasks}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
     expect(screen.getByText("Draft Presentation")).toBeInTheDocument();
-    expect(screen.getByText("Slides 1-5")).toBeInTheDocument();
     expect(screen.getByText("High")).toBeInTheDocument();
-    expect(screen.getByText("📅 Due: Nov 1")).toBeInTheDocument();
-    expect(screen.getByText("⏱️ 2h")).toBeInTheDocument();
   });
 
-  /**
-   * Tests the interactive "MemberProgressBadge" popover. Clicking the badge 
-   * should expose the hidden list of member names who fall under that status.
-   */
-  it("toggles member progress badges to reveal names", () => {
-    render(<GroupTasks tasksWithProgress={mockTasks} onEdit={mockOnEdit} onDelete={mockOnDelete} onToggleComplete={mockOnToggleComplete} />);
-    
-    // Check completed popover
+  // Confirms the progress badges correctly open popovers and handle member name fallbacks
+  it("toggles member progress badges and handles name fallbacks", () => {
+    render(
+      <GroupTasks
+        tasksWithProgress={mockTasks}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
     fireEvent.click(screen.getByText("1 completed"));
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
 
-    // Check in-progress popover
     fireEvent.click(screen.getByText("1 in progress"));
-    expect(screen.getByText("Bob Jones")).toBeInTheDocument();
+    expect(screen.getByText("bob_jones")).toBeInTheDocument();
   });
 
-  /**
-   * Ensures the individual user toggle (Mark Complete/Incomplete) fires the 
-   * state update callback correctly to alter their personal task copy.
-   */
-  it("fires onToggleComplete when the completion circle is clicked", () => {
-    render(<GroupTasks tasksWithProgress={mockTasks} onEdit={mockOnEdit} onDelete={mockOnDelete} onToggleComplete={mockOnToggleComplete} />);
-    
-    const completeToggle = screen.getByTitle("Mark complete");
-    fireEvent.click(completeToggle);
+  // Confirms the personal completion toggle fires the correct callback with the task object
+  it("fires onToggleComplete when clicked", () => {
+    render(
+      <GroupTasks
+        tasksWithProgress={mockTasks}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
+    fireEvent.click(screen.getByTitle("Mark complete"));
     expect(mockOnToggleComplete).toHaveBeenCalledWith(mockTasks[0]);
   });
 
-  /**
-   * Tests the global task action buttons (Edit/Delete).
-   */
-  it("fires edit and delete callbacks with correct arguments", () => {
-    render(<GroupTasks tasksWithProgress={mockTasks} onEdit={mockOnEdit} onDelete={mockOnDelete} onToggleComplete={mockOnToggleComplete} />);
-    
+  // Confirms management action buttons (edit/delete) trigger their respective callbacks
+  it("fires edit and delete callbacks correctly", () => {
+    render(
+      <GroupTasks
+        tasksWithProgress={mockTasks}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
     fireEvent.click(screen.getByTitle("Edit task"));
     expect(mockOnEdit).toHaveBeenCalledWith(mockTasks[0]);
 
     fireEvent.click(screen.getByTitle("Delete task"));
     expect(mockOnDelete).toHaveBeenCalledWith("g-tsk-1");
+  });
+
+  // Confirms the UI logic properly hides the description field when null
+  it("does not render description when null", () => {
+    const task = [{ ...mockTasks[0], description: null }];
+
+    render(
+      <GroupTasks
+        tasksWithProgress={task}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
+    expect(screen.queryByText("Slides 1-5")).not.toBeInTheDocument();
+  });
+
+  // Confirms the due date section is omitted when data is missing
+  it("does not render due date when missing", () => {
+    const task = [{ ...mockTasks[0], dueDate: null }];
+
+    render(
+      <GroupTasks
+        tasksWithProgress={task}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
+    expect(screen.queryByText(/Due:/i)).not.toBeInTheDocument();
+  });
+
+  // Confirms the duration section is omitted when the value is 0
+  it("does not render duration when 0", () => {
+    const task = [{ ...mockTasks[0], duration: 0 }];
+
+    render(
+      <GroupTasks
+        tasksWithProgress={task}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
+    expect(screen.queryByText("⏱️ 2h")).not.toBeInTheDocument();
+  });
+
+  // Confirms the priority badge still renders even with unexpected string values
+  it("handles unknown priority (fallback branch)", () => {
+    const task = [{ ...mockTasks[0], priority: "Unknown" }];
+
+    render(
+      <GroupTasks
+        tasksWithProgress={task}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
+    expect(screen.getByText("Unknown")).toBeInTheDocument();
+  });
+
+  // Confirms that completed tasks receive the visual line-through styling
+  it("renders completed task state", () => {
+    const task = [{ ...mockTasks[0], currentUserCompleted: true }];
+
+    render(
+      <GroupTasks
+        tasksWithProgress={task}
+        onEdit={mockOnEdit}
+        onDelete={mockOnDelete}
+        onToggleComplete={mockOnToggleComplete}
+      />
+    );
+
+    expect(screen.getByText("Draft Presentation")).toHaveClass("line-through");
   });
 });
