@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 // UI components
-import MapView from "@/components/MapView";
+import MapView from "@/components/map/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
 import MapPageClient from "./MapPageClient";
 
