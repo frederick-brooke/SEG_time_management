@@ -9,7 +9,7 @@ import { User } from "next-auth";
 
 export async function authorizeUser(
   credentials: Record<string, string> | undefined,
-  req: any
+  req?: any  // <-- now optional
 ): Promise<User | null> {
   if (!credentials?.identifier || !credentials?.password) return null;
 
