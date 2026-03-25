@@ -35,9 +35,6 @@ export default function GamesPageClient({ initialBalance }: { initialBalance: nu
         <MissionControlHeader />
         
         <div className="flex-1">
-          {/* OrbitPuzzle now handles its own internal state, 
-            keeping this orchestrator component perfectly clean. 
-          */}
           <OrbitPuzzle initialBalance={initialBalance} />
         </div>
       </div>

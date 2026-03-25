@@ -68,6 +68,7 @@ async function main() {
         level: 1,
         experience: 0,
         streak: 0,
+        streakShields: 0,
       },
     })
 

@@ -1,111 +1,86 @@
 import { prisma } from "@/lib/prisma";
 
-// XP & coin rewards per priority
 const PRIORITY_REWARDS: Record<string, { xp: number; coins: number }> = {
-  Low:    { xp: 10,  coins: 5  },
-  Medium: { xp: 20,  coins: 10 },
-  High:   { xp: 30,  coins: 15 },
+  Low:    { xp: 10, coins: 5  },
+  Medium: { xp: 20, coins: 10 },
+  High:   { xp: 30, coins: 15 },
 };
 
 function getLevelFromXp(xp: number): number {
   return Math.floor(xp / 100) + 1;
 }
 
+function getReward(priority: string) {
+  return PRIORITY_REWARDS[priority] ?? PRIORITY_REWARDS.Low;
+}
+
+async function fetchProgress(userId: string) {
+  return prisma.userProgress.findUnique({ where: { userId } });
+}
+
+function buildTransactionReason(
+  action: "completed" | "un-completed",
+  priority: string,
+  xp: number,
+  coins: number
+): string {
+  const sign = action === "completed" ? "+" : "-";
+  return `Task ${action} (${priority}) — ${sign}${xp} XP, ${sign}${coins} coins`;
+}
+
+async function updateProgress(
+  userId: string,
+  experienceDelta: { increment: number } | { decrement: number },
+  newCoins: number,
+  newLevel: number
+) {
+  await prisma.userProgress.update({
+    where: { userId },
+    data: { experience: experienceDelta, coins: newCoins, level: newLevel },
+  });
+}
+
+async function recordTransaction(
+  progressId: string,
+  taskId: string,
+  amount: number,
+  reason: string
+) {
+  await prisma.pointTransaction.create({
+    data: { progressId, taskId, amount, reason },
+  });
+}
+
 export async function awardTaskPoints(
   userId: string,
   taskId: string,
   priority: string
-) {
-  const reward = PRIORITY_REWARDS[priority] ?? PRIORITY_REWARDS.Low;
-
-  const progress = await prisma.userProgress.findUnique({
-    where: { userId },
-  });
+): Promise<void> {
+  const progress = await fetchProgress(userId);
   if (!progress) return;
 
-  // Check XP boost
-  const xpMultiplier =
-    progress.xpBoostExpires && new Date(progress.xpBoostExpires) > new Date()
-      ? 2
-      : 1;
+  const reward   = getReward(priority);
+  const newCoins = (progress.coins ?? 0) + reward.coins;
+  const newLevel = getLevelFromXp(progress.experience + reward.xp);
+  const reason   = buildTransactionReason("completed", priority, reward.xp, reward.coins);
 
-  const xpGain    = reward.xp * xpMultiplier;
-  const coinGain  = reward.coins;
-  const newXp     = progress.experience + xpGain;
-  const newLevel  = getLevelFromXp(newXp);
-
-  await prisma.userProgress.update({
-    where: { userId },
-    data: {
-      experience: { increment: xpGain },
-      coins:      (progress.coins ?? 0) + coinGain,
-      level:      newLevel,
-    },
-  });
-
-  await prisma.pointTransaction.create({
-    data: {
-      progressId: progress.id,
-      amount:     coinGain,
-      reason:     `Task completed (${priority}) — +${xpGain} XP, +${coinGain} coins`,
-      taskId,
-    },
-  });
+  await updateProgress(userId, { increment: reward.xp }, newCoins, newLevel);
+  await recordTransaction(progress.id, taskId, reward.coins, reason);
 }
 
 export async function revokeTaskPoints(
   userId: string,
   taskId: string,
   priority: string
-) {
-  const reward = PRIORITY_REWARDS[priority] ?? PRIORITY_REWARDS.Low;
-
-  const progress = await prisma.userProgress.findUnique({
-    where: { userId },
-  });
+): Promise<void> {
+  const progress = await fetchProgress(userId);
   if (!progress) return;
 
-  const newXp    = Math.max(0, progress.experience - reward.xp);
-  const newLevel = getLevelFromXp(newXp);
+  const reward   = getReward(priority);
+  const newCoins = Math.max(0, (progress.coins ?? 0) - reward.coins);
+  const newLevel = getLevelFromXp(Math.max(0, progress.experience - reward.xp));
+  const reason   = buildTransactionReason("un-completed", priority, reward.xp, reward.coins);
 
-  await prisma.userProgress.update({
-    where: { userId },
-    data: {
-      experience: { decrement: reward.xp },
-      coins: Math.max(0, (progress.coins ?? 0) - reward.coins),
-      level:      newLevel,
-    },
-  });
-
-  await prisma.pointTransaction.create({
-    data: {
-      progressId: progress.id,
-      amount:     -reward.coins,
-      reason:     `Task un-completed (${priority}) — -${reward.xp} XP, -${reward.coins} coins`,
-      taskId,
-    },
-  });
-}
-
-export async function consumeStreakShield(userId: string): Promise<boolean> {
-  const progress = await prisma.userProgress.findUnique({ where: { userId } });
-  if (!progress || progress.streakShields <= 0) return false;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  if (
-    progress.shieldUsedDate &&
-    new Date(progress.shieldUsedDate) >= today
-  ) {
-    return false;
-  }
-
-  await prisma.userProgress.update({
-    where: { userId },
-    data: {
-      streakShields: { decrement: 1 },
-      shieldUsedDate: new Date(),
-    },
-  });
-  return true;
+  await updateProgress(userId, { decrement: reward.xp }, newCoins, newLevel);
+  await recordTransaction(progress.id, taskId, -reward.coins, reason);
 }
