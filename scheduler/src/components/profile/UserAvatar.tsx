@@ -1,36 +1,39 @@
-import React from "react";
+import { User } from "lucide-react";
 
-// types
-export interface UserAvatarProps {
+/**
+ * Props for the UserAvatar component.
+ */
+interface UserAvatarProps {
   pfp?: string | null;
   username: string;
   fname?: string | null;
+  lname?: string | null;
   className?: string;
 }
 
-// components
-
 /**
- * Displays a user's profile picture or a fallback initial.
- * Centralizes avatar logic to maintain DRY principles across the application.
- * * @param {UserAvatarProps} props - The user's avatar data and optional styling.
- * @return {JSX.Element} The rendered avatar circle.
+ * Renders a user's profile picture or a generated initial-based fallback avatar.
  */
-export default function UserAvatar({ pfp, username, fname, className = "w-10 h-10" }: UserAvatarProps) {
-  const initial = fname?.[0] || username?.[0] || "?";
+export default function UserAvatar({ pfp, username, fname, lname, className = "" }: UserAvatarProps) {
+  let initials = "?";
+  
+  // Extracts up to two initials based on the most complete name data available
+  if (fname && lname) {
+    initials = `${fname[0]}${lname[0]}`.toUpperCase();
+  } else if (fname) {
+    initials = fname.slice(0, 2).toUpperCase();
+  } else if (username) {
+    initials = username.slice(0, 2).toUpperCase();
+  }
 
   return (
-    <div className={`bg-white/10 rounded-full overflow-hidden flex-shrink-0 border border-white/10 ${className}`}>
+    <div className={`relative flex items-center justify-center bg-blue-900 text-white rounded-full overflow-hidden ${className}`}>
       {pfp ? (
-        <img 
-          src={pfp} 
-          alt={`${username}'s avatar`} 
-          className="w-full h-full object-cover" 
-        />
+        <img src={pfp} alt={username} className="w-full h-full object-cover" />
+      ) : fname || username ? (
+        <span className="font-bold tracking-widest">{initials}</span>
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-white/60 font-bold uppercase">
-          {initial}
-        </div>
+        <User size={24} className="text-white/50" />
       )}
     </div>
   );

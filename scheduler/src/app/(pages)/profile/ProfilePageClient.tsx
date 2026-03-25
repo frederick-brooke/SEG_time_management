@@ -1,262 +1,93 @@
 'use client';
 
 import { useState, useTransition } from "react";
-import { 
-  Users, UserPlus, UserCheck, Clock, 
-  ChevronDown, ChevronUp, UserMinus, Flag, Star, Pencil, X
-} from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import { removeFriend } from "@/src/app/actions/profile";
+import { calculateLevelProgress } from "@/src/app/actions/profile/xpUtils";
+import EditProfileForm from "@/src/components/profile/EditProfileForm";
+import FriendsList from "@/src/components/profile/FriendsList";
+import PendingRequests from "@/src/components/profile/PendingRequests";
+import StreakCard from "@/src/components/profile/StreakCard";
+import TaskStatsCard from "@/src/components/profile/TaskStatsCard";
+import PointsCard from "@/src/components/profile/PointsCard";
+import FriendStatCard from "@/src/components/profile/FriendStatCard";
+import ProfileHeader from "@/src/components/profile/ProfileHeader";
+import ProfileBio from "@/src/components/profile/ProfileBio";
 
-//section actions
-import { sendFriendRequest, removeFriend, cancelFriendRequest } from "../../actions/profile";
-
-//section components
-import ReportModal from "components/admin/report-modal";
-import EditProfileForm from "components/profile/EditProfileForm";
-import FriendsList from "components/profile/FriendsList";
-import PendingRequests from "components/profile/PendingRequests";
-import StreakCard from "components/profile/StreakCard";
-import TaskStatsCard from "components/profile/TaskStatsCard";
-import PointsCard from "components/profile/PointsCard";
-import FriendStatCard from "components/profile/FriendStatCard";
-
-//section types
 interface ProfilePageClientProps {
   profile: any;
   isOwnProfile: boolean;
   rank?: number;
 }
 
-//section helpers
-
-/** Formats an ISO date string into DD/MM/YYYY. */
-function formatDate(dateString: string): string {
-  const d = new Date(dateString);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-}
-
-// ─── Friend request action ────────────────────────────────────────────────────
-
 /**
- * Handles the logic and UI for sending, canceling, or removing friend requests.
- * @param {object} props - Component props.
- * @param {any} props.profile - The profile data of the user being viewed.
- * @param {boolean} props.isOwnProfile - True if viewing own profile.
- * @return {JSX.Element | null} The relational action buttons.
- */
-function FriendRequestAction({ profile, isOwnProfile }: { profile: any; isOwnProfile: boolean }) {
-  const [isPending, startTransition] = useTransition();
-  if (isOwnProfile) return null;
-
-  const handleAction = (actionFn: (id: string) => Promise<any>, confirmMsg?: string) => {
-    if (confirmMsg && !confirm(confirmMsg)) return;
-    startTransition(async () => { await actionFn(profile.id); });
-  };
-
-  if (profile.friendStatus === "FRIENDS") {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="lunar-item-success flex items-center gap-2 px-4 py-2 rounded-lg border font-medium">
-          <UserCheck size={18} />
-          <span>Friends</span>
-        </div>
-        <button
-          onClick={() => handleAction(removeFriend, 'Are you sure you want to remove this friend?')}
-          disabled={isPending}
-          className={`lunar-item-error flex items-center gap-2 px-3 py-2 rounded-lg border font-medium transition-colors ${isPending ? "opacity-50" : "hover:bg-red-500/20"}`}
-        >
-          <UserMinus size={16} />
-          <span className="text-sm">{isPending ? "Removing..." : "Remove"}</span>
-        </button>
-      </div>
-    );
-  }
-
-  if (profile.friendStatus === "REQUEST_SENT") {
-    return (
-      <div className="flex items-center gap-2">
-        <div className="lunar-item-warning flex items-center gap-2 px-4 py-2 rounded-lg border font-medium">
-          <Clock size={18} />
-          <span>Request Pending</span>
-        </div>
-        <button
-          onClick={() => handleAction(cancelFriendRequest)}
-          disabled={isPending}
-          className={`lunar-button-ghost flex items-center gap-2 ${isPending ? "opacity-50" : ""}`}
-        >
-          <X size={16} />
-          <span>{isPending ? "Canceling..." : "Cancel"}</span>
-        </button>
-      </div>
-    );
-  }
-
-  if (profile.friendStatus === "REQUEST_RECEIVED") {
-    return (
-      <div className="lunar-item-info flex items-center gap-2 px-4 py-2 rounded-lg border font-medium">
-        <Clock size={18} />
-        <span>Wants to be Friends</span>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      onClick={() => handleAction(sendFriendRequest)}
-      disabled={isPending}
-      className={`lunar-button-primary flex items-center gap-2 ${isPending ? "opacity-50" : ""}`}
-    >
-      <UserPlus size={18} />
-      <span>{isPending ? "Sending..." : "Add Friend"}</span>
-    </button>
-  );
-}
-
-//section component
-
-/**
- * Main client component for the Profile / Dashboard view.
- * Integrates gamification stats (XP, coins, level), user details,
- * friend management, and pending request handling.
+ * Main profile page client component
+ * Coordinates all profile sub-components and manages shared state
  */
 export default function ProfilePageClient({ profile, isOwnProfile, rank }: ProfilePageClientProps) {
   const [showFriends, setShowFriends] = useState(false);
-  const [isEditing,   setIsEditing]   = useState(false);
-  const [showReport,  setShowReport]  = useState(false);
-  const [isPending,   startTransition] = useTransition();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  // Points / Level Math
-  const level = profile.progress?.level ?? 1;
-  const totalPoints = profile.progress?.points ?? 0;
-  const XP_PER_LEVEL = 100;
-  const xpIntoLevel  = totalPoints % XP_PER_LEVEL; // Fixed totalXp -> totalPoints
-  const xpBarWidth   = Math.min((xpIntoLevel / XP_PER_LEVEL) * 100, 100);
-  const xpToNext     = XP_PER_LEVEL - xpIntoLevel;
+  const totalPoints = profile.progress?.experience ?? 0;
+  const { level, xpBarWidth, xpToNext } = calculateLevelProgress(totalPoints);
 
+  /**
+   * Handles friend removal with transition state
+   */
   const handleRemoveFriendFromList = (friendId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm("Are you sure you want to remove this friend?"))
+    if (confirm("Remove this friend?")) {
       startTransition(async () => { await removeFriend(friendId); });
+    }
   };
 
   return (
     <LunarThemeWrapper>
-      <div className="lunar-page">
+      <div className="lunar-page space-y-6">
         
-        {/* ── 1. HEADER & BIO ── */}
-        <div className="lunar-card p-8 flex flex-col md:flex-row gap-8 items-start relative z-10">
-          
-          {/* Avatar + Level Badge */}
-          <div className="relative shrink-0">
-            <div className="w-32 h-32 bg-[#0a0f1d] rounded-full flex items-center justify-center text-4xl font-bold text-white/50 overflow-hidden border-4 border-blue-500/20 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
-              {profile.pfp ? (
-                <img src={profile.pfp} alt="Profile" className="w-full h-full object-cover" />
+        {/* Header + Bio Section */}
+        <div className="lunar-card p-6 md:p-8 relative z-10">
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+            
+            <div className="flex-1 md:max-w-[50%]">
+              <ProfileHeader 
+                profile={profile} 
+                isOwnProfile={isOwnProfile} 
+                onEditToggle={() => setIsEditing(!isEditing)} 
+                level={level}
+                xpBarWidth={xpBarWidth}
+                xpToNext={xpToNext}
+              />
+            </div>
+            
+            <div className="flex-1 w-full border-t md:border-t-0 md:border-l border-white/10 pt-6 md:pt-0 md:pl-8">
+              {isOwnProfile && isEditing ? (
+                <div className="animate-in fade-in duration-300 scale-95 origin-top">
+                  <EditProfileForm profile={profile} onClose={() => setIsEditing(false)} />
+                </div>
               ) : (
-                <span>{profile.fname?.[0] ?? profile.username?.[0] ?? ""}{profile.lname?.[0] ?? ""}</span>
+                <ProfileBio bio={profile.bio} isOwnProfile={isOwnProfile} />
               )}
             </div>
-            <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-blue-500 rounded-xl rotate-12 border-4 border-[#111629] flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-              <span className="text-white font-black text-xl -rotate-12">{level}</span>
-            </div>
-          </div>
-
-          {/* Name, username, XP bar, actions, bio */}
-          <div className="flex-1 w-full flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="lunar-page-title text-4xl">
-                  {profile.fname || profile.username} {profile.lname}
-                </h1>
-                <div className="flex items-center gap-2 mt-2">
-                  <p className="lunar-value text-blue-400">@{profile.username}</p>
-                  {isOwnProfile && (
-                    <button 
-                      onClick={() => setIsEditing(!isEditing)}
-                      className="p-1.5 lunar-button-ghost rounded-full"
-                      title="Edit Profile"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                  )}
-                </div>
-
-                {/* XP Progress Bar */}
-                <div className="mt-6 max-w-xs">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="lunar-label flex items-center gap-1">
-                      <Star size={12} className="text-blue-400 fill-blue-400" />
-                      Level {level}
-                    </span>
-                    <span className="lunar-label text-white/60">{totalPoints} XP total</span>
-                  </div>
-                  <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/10">
-                    <div className="h-full bg-blue-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(59,130,246,0.8)]" style={{ width: `${xpBarWidth}%` }} />
-                  </div>
-                  <p className="text-[10px] text-white/40 mt-2 font-medium">{xpToNext} XP until Level {level + 1}</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 flex-wrap mt-4 sm:mt-0">
-                <FriendRequestAction profile={profile} isOwnProfile={isOwnProfile} />
-                {!isOwnProfile && (
-                  <button
-                    onClick={() => setShowReport(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 font-bold tracking-wider text-[10px] uppercase rounded-xl border border-red-500/20 hover:bg-red-500/20 transition-all"
-                  >
-                    <Flag size={14} /> Report User
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {showReport && (
-              <ReportModal reportedUserId={profile.id} reportedUsername={profile.username} onClose={() => setShowReport(false)} />
-            )}
-
-            {/* Bio Display */}
-            <div className="bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm mt-4">
-              <h3 className="lunar-label mb-2">
-                {isOwnProfile ? "About Me" : "About"}
-              </h3>
-              <p className="text-white/70 leading-relaxed text-sm">
-                {profile.bio ? profile.bio : (
-                  <span className="text-white/30 italic">
-                    {isOwnProfile ? "No bio written yet. Click the pencil icon to add one!" : "No bio yet."}
-                  </span>
-                )}
-              </p>
-            </div>
-
-            {/* Edit profile modal — triggered by pencil icon above */}
-            {isOwnProfile && isEditing && (
-              <EditProfileForm profile={profile} onClose={() => setIsEditing(false)} />
-            )}
-
-            <div className="lunar-value text-xs mt-2">
-              Joined {formatDate(profile.createdAt)}
-            </div>
+            
           </div>
         </div>
 
-        {/* STATS */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
-          
           <StreakCard streak={profile.stats?.streak ?? 0} rank={rank} />
-
           <FriendStatCard 
             friendCount={profile.stats?.friendCount ?? 0} 
-            showFriends={showFriends} 
+            showFriends={showFriends}
             onToggle={() => setShowFriends(!showFriends)} 
           />
-
           <TaskStatsCard stats={profile.stats} />
-          
         </div>
 
-        {/* ── FRIENDS LIST ── */}
-        <div className="relative z-10">
+        {/* Conditional Lists */}
+        <div className="relative z-10 space-y-6">
           {showFriends && (
             <FriendsList 
               friends={profile.friends} 
@@ -266,18 +97,17 @@ export default function ProfilePageClient({ profile, isOwnProfile, rank }: Profi
               isPending={isPending}
             />
           )}
-        </div>
-        
-        {/* ── PENDING REQUESTS ── */}
-        {isOwnProfile && (
-          <div className="relative z-10">
-            <PendingRequests requests={profile.receivedRequests} />
-          </div>
-        )}
 
-        {/* ── POINTS CARD ── */}
-        <div className="relative z-10">
-          <PointsCard totalPoints={totalPoints} level={level} xpToNext={xpToNext} xpBarWidth={xpBarWidth} />
+          {isOwnProfile && profile.receivedRequests?.length > 0 && (
+            <PendingRequests requests={profile.receivedRequests} />
+          )}
+
+          <PointsCard 
+            totalPoints={totalPoints} 
+            level={level} 
+            xpToNext={xpToNext} 
+            xpBarWidth={xpBarWidth} 
+          />
         </div>
 
       </div>
