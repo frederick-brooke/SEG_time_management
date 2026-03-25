@@ -20,7 +20,10 @@ describe("Group Utils", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
+  afterAll(async () => {
+    // Flushes pending asynchronous Prisma calls to prevent Jest open handle warnings.
+    await new Promise(process.nextTick); 
+  });
   describe("requireSession", () => {
     /**
      * Validates that the session guard securely throws an Error if auth fails.
@@ -87,6 +90,66 @@ describe("Group Utils", () => {
           data: expect.objectContaining({ userId: "new-user", title: "Meeting" })
         })
       );
+    });
+  });
+  describe("generateGroupId", () => {
+    // Confirms the generated ID is a valid 24-character hex string.
+    it("should generate a 24-character hex string", () => {
+      const { generateGroupId } = require("../utils");
+      const id = generateGroupId();
+      expect(typeof id).toBe("string");
+      expect(id.length).toBe(24);
+    });
+  });
+
+  describe("syncTasksToMember", () => {
+    // Confirms distinct shared tasks are copied over for a newly joined user.
+    it("should fetch distinct tasks and duplicate them for the new user", async () => {
+      const { syncTasksToMember } = require("../utils");
+      prismaMock.task.findMany.mockResolvedValue([
+        { groupTaskGroupId: "shared-1", title: "Homework" }
+      ] as any);
+
+      await syncTasksToMember("group-1", "new-user");
+
+      expect(prismaMock.task.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ distinct: ["groupTaskGroupId"] })
+      );
+      expect(prismaMock.task.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: "new-user", title: "Homework" })
+        })
+      );
+    });
+  });
+  describe("isGroupOwner and isGroupMember negative branches", () => {
+    // Confirms isGroupOwner safely returns false when no membership record exists in the DB.
+    it("should return false for owner check if membership is null", async () => {
+      const { isGroupOwner } = require("../utils");
+      prismaMock.groupMember.findUnique.mockResolvedValue(null);
+      
+      const isOwner = await isGroupOwner("group-1", "user-1");
+      expect(isOwner).toBe(false);
+    });
+
+    // Confirms isGroupMember safely returns false when no membership record exists in the DB.
+    it("should return false for member check if membership is null", async () => {
+      const { isGroupMember } = require("../utils");
+      prismaMock.groupMember.findUnique.mockResolvedValue(null);
+      
+      const isMember = await isGroupMember("group-1", "user-1");
+      expect(isMember).toBe(false);
+    });
+  });
+
+  describe("fetchFriendsForUser negative branches", () => {
+    // Confirms fetchFriendsForUser handles users with no accepted friend requests gracefully.
+    it("should return an empty array when user has no friends", async () => {
+      const { fetchFriendsForUser } = require("../utils");
+      prismaMock.friendRequest.findMany.mockResolvedValue([]);
+      
+      const friends = await fetchFriendsForUser("user-1");
+      expect(friends).toEqual([]);
     });
   });
 });

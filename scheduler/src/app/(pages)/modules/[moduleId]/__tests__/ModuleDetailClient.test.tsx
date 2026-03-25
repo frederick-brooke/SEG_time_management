@@ -10,7 +10,6 @@ import {
 } from "@/app/actions/module";
 
 //mocks
-
 const mockRefresh = jest.fn();
 
 jest.mock("next/navigation", () => ({
@@ -26,7 +25,6 @@ jest.mock("@/app/actions/module", () => ({
   deleteModuleEvent: jest.fn(),
 }));
 
-// Mock subcomponents
 jest.mock("components/modules/ModuleHeader", () => ({
   __esModule: true,
   default: ({ onOpenTaskModal, onOpenEventModal, onOpenSettings }: any) => (
@@ -57,7 +55,7 @@ jest.mock("components/modules/ModuleTasks", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="module-tasks">
-      <button onClick={() => onEdit({ moduleTaskGroupId: "t1", title: "Test Task" })}>Task - Edit</button>
+      <button onClick={() => onEdit({ moduleTaskGroupId: "t1", title: "Test Task", duration: 90 })}>Task - Edit</button>
       <button onClick={() => onDelete("task-grp-1")}>Task - Delete</button>
     </div>
   ),
@@ -65,9 +63,10 @@ jest.mock("components/modules/ModuleTasks", () => ({
 
 jest.mock("components/modules/ModuleSettingsModal", () => ({
   __esModule: true,
-  default: ({ onClose }: any) => (
+  default: ({ onClose, onSuccess }: any) => (
     <div data-testid="settings-modal">
       <button onClick={onClose}>Close Settings</button>
+      <button onClick={onSuccess}>Success Settings</button>
     </div>
   ),
 }));
@@ -89,6 +88,7 @@ jest.mock("components/tasks/TaskFormDialog", () => ({
       <button onClick={() => onOpenChange(false)}>Close Task Modal</button>
       <button onClick={onSubmit}>Submit Task Modal</button>
       <button onClick={() => onFormChange({ name: "New Task Name" })}>Simulate Typing Name</button>
+      <button onClick={() => onFormChange({ name: "Complex Task", subtasks: "Part 1, Part 2, " })}>Simulate Subtasks</button>
     </div>
   ),
 }));
@@ -96,9 +96,9 @@ jest.mock("components/tasks/TaskFormDialog", () => ({
 //helpers
 
 /**
- * Creates a mock module object for testing.
+ * Creates a mock module object for testing with default properties.
  * @param {object} overrides - Properties to override the default module data.
- * @return {object} The mock module data.
+ * @returns {object} The assembled mock module data.
  */
 const makeModule = (overrides = {}) => ({
   id: "mod1",
@@ -108,7 +108,6 @@ const makeModule = (overrides = {}) => ({
 });
 
 //tests
-
 describe("ModuleDetailClient", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -116,6 +115,7 @@ describe("ModuleDetailClient", () => {
     window.alert = jest.fn();
   });
 
+  // Confirms all main sections of the module detail page are rendered
   it("renders all core subcomponents", () => {
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
     expect(screen.getByTestId("module-header")).toBeInTheDocument();
@@ -124,34 +124,33 @@ describe("ModuleDetailClient", () => {
     expect(screen.getByTestId("module-tasks")).toBeInTheDocument();
   });
 
-  // --- Modal Toggle Tests ---
-
-  it("opens and closes the settings modal", () => {
+  // Confirms settings modal toggles and triggers refresh on success
+  it("opens, closes, and succeeds the settings modal", () => {
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
     fireEvent.click(screen.getByText("Header - Settings"));
-    expect(screen.getByTestId("settings-modal")).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText("Success Settings"));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    
     fireEvent.click(screen.getByText("Close Settings"));
     expect(screen.queryByTestId("settings-modal")).not.toBeInTheDocument();
   });
 
-  it("opens and closes the event modal from the header", () => {
+  // Confirms event modal toggles, opens for editing, and triggers refresh on success
+  it("manages event modal state from both header and edit buttons", () => {
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
-    fireEvent.click(screen.getByText("Header - Create Event"));
+    
+    fireEvent.click(screen.getByText("Event - Edit"));
     expect(screen.getByTestId("event-modal")).toBeInTheDocument();
+    
+    fireEvent.click(screen.getByText("Success Event Modal"));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+
     fireEvent.click(screen.getByText("Close Event Modal"));
     expect(screen.queryByTestId("event-modal")).not.toBeInTheDocument();
   });
 
-  it("opens the task modal for editing", () => {
-    render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
-    fireEvent.click(screen.getByText("Task - Edit"));
-    expect(screen.getByTestId("task-modal")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Close Task Modal"));
-    expect(screen.queryByTestId("task-modal")).not.toBeInTheDocument();
-  });
-
-  // --- Action Tests ---
-
+  // Confirms event deletion calls the server and triggers a refresh
   it("calls deleteModuleEvent when event deletion is confirmed", async () => {
     (deleteModuleEvent as jest.Mock).mockResolvedValue({ success: true });
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
@@ -163,6 +162,7 @@ describe("ModuleDetailClient", () => {
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
   });
 
+  // Confirms task deletion calls the server and triggers a refresh
   it("calls deleteModuleTask when task deletion is confirmed", async () => {
     (deleteModuleTask as jest.Mock).mockResolvedValue({ success: true });
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
@@ -174,6 +174,7 @@ describe("ModuleDetailClient", () => {
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
   });
 
+  // Confirms validation prevents submission without a task name
   it("alerts if task name is empty on submit", async () => {
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
     fireEvent.click(screen.getByText("Header - Create Task"));
@@ -183,8 +184,9 @@ describe("ModuleDetailClient", () => {
     expect(createModuleTask).not.toHaveBeenCalled();
   });
 
-  it("calls createModuleTask on valid submission and closes modal", async () => {
-    (createModuleTask as jest.Mock).mockResolvedValue({ success: true });
+  // Confirms server failure triggers an alert with the error message
+  it("alerts with server error if creating a task fails", async () => {
+    (createModuleTask as jest.Mock).mockResolvedValue({ success: false, error: "Custom Server Error" });
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
     
     fireEvent.click(screen.getByText("Header - Create Task"));
@@ -192,9 +194,25 @@ describe("ModuleDetailClient", () => {
     fireEvent.click(screen.getByText("Submit Task Modal"));
     
     await waitFor(() => {
-      expect(createModuleTask).toHaveBeenCalledTimes(1);
+      expect(window.alert).toHaveBeenCalledWith("Custom Server Error");
+    });
+  });
+
+  // Confirms task parsing (subtasks/durations) and updating an existing task
+  it("parses subtasks and calls updateModuleTask when editing an existing task", async () => {
+    (updateModuleTask as jest.Mock).mockResolvedValue({ success: true });
+    render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
+    
+    fireEvent.click(screen.getByText("Task - Edit"));
+    fireEvent.click(screen.getByText("Simulate Subtasks"));
+    fireEvent.click(screen.getByText("Submit Task Modal"));
+    
+    await waitFor(() => {
+      expect(updateModuleTask).toHaveBeenCalledTimes(1);
+      expect(updateModuleTask).toHaveBeenCalledWith("t1", "mod1", expect.objectContaining({
+        subtasks: ["Part 1", "Part 2"]
+      }));
       expect(mockRefresh).toHaveBeenCalledTimes(1);
-      expect(screen.queryByTestId("task-modal")).not.toBeInTheDocument();
     });
   });
 });

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { LunarCard } from "../ui/lunar-card";
-import { A } from "@faker-js/faker/dist/airline-Dz1uGqgJ";
 
 export function CalendarEvents() {
     const [events, setEvents] = useState([]);

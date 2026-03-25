@@ -14,6 +14,10 @@ const customJestConfig = {
   maxWorkers: 1,
   coveragePathIgnorePatterns: [
     "src/components/friend-map/map.tsx",
+    "src/generated/",
+    "src/components/animate-ui",
+    "src/components/effects/",
+    ".next/",
   ], 
   
   moduleNameMapper: {

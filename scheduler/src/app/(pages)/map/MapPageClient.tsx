@@ -36,7 +36,7 @@ export default function MapPageClient({
     <>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0">
-          <MapView events={events} userLocation={userLocation} />
+          <MapView events={events} />
         </div>
         <div className="w-full lg:w-72 shrink-0 space-y-4">
           <SavedLocationsPanel />
