@@ -24,6 +24,7 @@ const UnifiedMapLayer = dynamic(
 interface CombinedMapProps {
   friends: Friend[];
   events: MapEvent[];
+  userLocation?: { lat: number; lng: number } | null;
   defaultMode?: MapMode;
 }
 
@@ -145,19 +146,25 @@ function LocationLoadingPlaceholder() {
 }
 
 // Main component
-export function CombinedMap({ friends, events, defaultMode = "events" }: CombinedMapProps) {
+export function CombinedMap({
+  friends,
+  events,
+  userLocation: providedUserLocation,
+  defaultMode = "events",
+}: CombinedMapProps) {
   const [mode, setMode] = useState<MapMode>(defaultMode);
   const { locations: savedLocations } = useSavedLocations();
   const { userLocation: userLocationTuple, locationError, loading } = useGeolocation();
 
-  if (loading) {
+  if (!providedUserLocation && loading) {
     return <LocationLoadingPlaceholder />;
   }
 
   // Convert [lat, lng] tuple from useGeolocation to { lat, lng } object
-  const userLocation = userLocationTuple
+  const geolocatedUserLocation = userLocationTuple
     ? { lat: userLocationTuple[0], lng: userLocationTuple[1] }
     : null;
+  const userLocation = providedUserLocation ?? geolocatedUserLocation;
 
   const center =
     mode === "friends"
@@ -177,7 +184,7 @@ export function CombinedMap({ friends, events, defaultMode = "events" }: Combine
       </div>
 
       {/* Location error banner */}
-      {locationError && (
+      {!providedUserLocation && locationError && (
         <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
           {locationError} — using default location
         </div>
