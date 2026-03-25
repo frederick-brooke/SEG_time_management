@@ -181,8 +181,11 @@ function UserFooter({ session, status }: { session: any; status: string }) {
       )}
 
       {/* Trigger row */}
-      <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group">
-        <div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-bold flex-shrink-0 overflow-hidden">
+      <div
+        onClick={() => router.push("/profile")}
+        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group cursor-pointer"
+      >
+          <div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-bold flex-shrink-0 overflow-hidden">
           {pfp ? <img src={pfp} alt={name} className="w-full h-full object-cover" /> : initial}
         </div>
         <span className="flex-1 text-[13.3px] font-semibold text-white/70 truncate group-hover:text-white/90 transition-colors">
@@ -190,9 +193,11 @@ function UserFooter({ session, status }: { session: any; status: string }) {
         </span>
         <button
           data-testid="user-menu-button"
-          onClick={() => setOpen(!open)}
-          className="w-6 h-6 flex items-center justify-center rounded-lg text-white/25 hover:text-white/70 hover:bg-white/10 transition-colors flex-shrink-0"
-        >
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(!open);
+          }}
+          className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/90 hover:bg-white/10 transition-all duration-150 flex-shrink-0 opacity-80 group-hover:opacity-100"        >
           <IconDotsVertical size={14} />
         </button>
       </div>

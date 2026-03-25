@@ -132,7 +132,7 @@ function ReportActionModal( {report, onClose, banUser} ) {
             <div className="bg-white/5 w-full max-w-md p-6 space-y-4 rounded-xl shadow-2xl backdrop-blur-xl border border-white/10" onClick={(e) => e.stopPropagation()}>
                 <h2 className="lunar-header text-lg font-semibold text-white">Report Action</h2>
 
-                <textarea placeholder="Reasoning (Optional)" className="lunar-page-subtitle w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+                <textarea placeholder="Reasoning (Optional)" className="w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
 
                 <div className="space-y-2">
                     <button onClick={() => banUser(report.reportedUser, "TEMP", 7)} className="w-full py-2 rounded-xl bg-yellow-400 text-gray-900 font-medium hover:scale-[1.02] transition">
