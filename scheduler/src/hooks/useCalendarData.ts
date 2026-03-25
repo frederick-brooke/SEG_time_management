@@ -1,4 +1,19 @@
 "use client";
+
+/**
+ * Custom hook that manages all calendar-related data and operations.
+ *
+ * Responsibilities:
+ * - Fetching and managing calendar events
+ * - Fetching, transforming, and expanding recurring tasks
+ * - Computing unscheduled tasks based on current events
+ * - Managing categories, schedule logs, and exams
+ *
+ * Also provides helper actions for refreshing and fetching data from the API.
+ *
+ * This hook acts as the central data layer for the calendar feature.
+ */
+
 import { useState, useCallback } from "react";
 import { addDays, addWeeks, addMonths, addMinutes, subMinutes } from "date-fns";
 import { shouldShowAsUnscheduled } from "@/lib/scheduling/taskSchedulingUtils";
@@ -198,6 +213,7 @@ function useCalendarState() {
   const [allFetchedTasks, setAllFetchedTasks] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [categoryFilters, setCategoryFilters] = useState<Record<string, boolean>>({});
+  const [categoryFilters, setCategoryFilters] = useState<Record<string, boolean>>({});
   const [scheduleLogs, setScheduleLogs] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
   return {
@@ -218,7 +234,9 @@ function useCalendarState() {
 function useComputeUnscheduled() {
   return useCallback(
     (allTasksList: any[], latestEvents: any[]) =>
-      allTasksList.filter((t: any) => shouldShowAsUnscheduled(t, latestEvents)),
+      allTasksList.filter((t: any) =>
+        shouldShowAsUnscheduled(t, latestEvents),
+      ),
     [],
   );
 }
@@ -263,22 +281,29 @@ function useRefreshTasks(
 function useMetaActions(state: ReturnType<typeof useCalendarState>) {
   const { setCategories, setCategoryFilters, setScheduleLogs, setExams } = state;
 
+  /**
+   * Fetches available categories and initializes category filters.
+   */
   const fetchCategories = useCallback(async () => {
     const { cats, filters } = await fetchCategoryData();
     setCategories(cats);
     setCategoryFilters(filters);
   }, [setCategories, setCategoryFilters]);
 
+  /**
+   * Fetches schedule logs from the API.
+   */
   const fetchScheduleLogs = useCallback(async () => {
-    const res = await fetch("/api/schedule-log");
-    const data = await res.json();
+    const data = await fetchJson("/api/schedule-log");
     setScheduleLogs(data.logs || []);
   }, [setScheduleLogs]);
 
+  /**
+   * Fetches exams from the API.
+   */
   const fetchExams = useCallback(async () => {
     try {
-      const res = await fetch("/api/exams");
-      const data = await res.json();
+      const data = await fetchJson("/api/exams");
       setExams(data.exams || []);
     } catch {}
   }, [setExams]);

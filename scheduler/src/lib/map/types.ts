@@ -11,6 +11,7 @@ export interface Friend {
   country?: string;
   location: LatLng | null;
   pfp?: string;
+  equippedAvatar?: string;
 }
 
 export interface MapEvent {

@@ -17,7 +17,6 @@ import { MembersPanel } from "@/components/messaging/MembersPanel";
 import { AddMemberModal } from "@/components/messaging/AddMemberModal";
 import { MessageBubble } from "@/components/messaging/MessageBubble";
 import { MessageInput } from "@/components/messaging/MessageInput";
-import { StarBackground } from "@/components/ui/StarBackground";
 
 type Message = {
   id: string;
@@ -46,7 +45,6 @@ const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
 
 /**
  * Main conversation page handling messages, real-time updates, and group management.
- * @returns JSX full conversation view
  */
 export default function ConversationPage() {
   const { conversationId } = useParams();
@@ -76,7 +74,6 @@ export default function ConversationPage() {
 
   /**
    * Fetches conversation metadata (name, participants, group status) and updates state.
-   * @returns void
    */
   const fetchDetails = useCallback(() => {
     if (!conversationId) return;
@@ -87,8 +84,6 @@ export default function ConversationPage() {
 
   /**
    * Fetches a page of messages.
-   * @param cursorId - ID of the last message from the previous page (omitted for the initial load)
-   * @returns Reversed array of messages (oldest first), or undefined on failure
    */
   const fetchMessages = useCallback(async (cursorId?: string) => {
     if (!conversationId) return;
@@ -126,7 +121,6 @@ export default function ConversationPage() {
 
   /**
    * Prepends older messages when the user scrolls to the top to preserve scroll position.
-   * @returns void
    */
   const loadMore = useCallback(async () => {
     if (!hasMore || loadingMore || !cursor) return;
@@ -186,8 +180,6 @@ export default function ConversationPage() {
 
   /**
    * Updates input state and fires a typing indicator to the API that auto-clears after 2 seconds.
-   * @param e - Input change event
-   * @returns void
    */
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
@@ -207,7 +199,6 @@ export default function ConversationPage() {
   /**
    * Adds message to the UI and sends it to the API.
    * Replaces temporary message with the real one on success and removes it on failure.
-   * @returns void
    */
   const sendMessage = async () => {
     if (!input.trim() || !session?.user?.id) return;
@@ -247,8 +238,6 @@ export default function ConversationPage() {
 
   /**
    * Submits the message when Enter key is pressed.
-   * @param e - Keyboard event from the input
-   * @returns void
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
@@ -256,7 +245,6 @@ export default function ConversationPage() {
 
   /**
    * Confirms and removes the current user from the group, then redirects to messages.
-   * @returns void
    */
   const handleLeave = () => {
     if (!confirm("Leave this group chat?")) return;
@@ -266,9 +254,6 @@ export default function ConversationPage() {
 
   /**
    * Confirms and removes a participant from the group.
-   * @param userId - ID of the user to remove
-   * @param username - Display name used in the confirmation prompt
-   * @returns Promise<void>
    */
   const handleRemove = async (userId: string, username: string) => {
     if (!confirm(`Remove ${username} from the group?`)) return;
@@ -282,9 +267,6 @@ export default function ConversationPage() {
 
   /**
    * Toggles a participant's role between "admin" and "member".
-   * @param userId - ID of the user to promote or demote
-   * @param currentRole - The user's current role
-   * @returns Promise<void>
    */
   const handlePromote = async (userId: string, currentRole: string) => {
     const newRole = currentRole === "admin" ? "member" : "admin";
@@ -320,8 +302,6 @@ export default function ConversationPage() {
 
   return (
     <div className="chat-bg relative flex flex-col h-full bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]">
-      
-      <StarBackground />
 
       {convDetails?.isGroup && (
         <GroupHeader

@@ -8,12 +8,13 @@ import { MapEvent } from "@/lib/map";
 
 interface MapViewProps {
   events: MapEvent[];
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 const MapView = dynamic<MapViewProps>(
   () => import("@/components/map/CombinedMap").then((m) => ({
-    default: ({ events }: MapViewProps) => (
-      <m.CombinedMap friends={[]} events={events} defaultMode="events" />
+    default: ({ events, userLocation }: MapViewProps) => (
+      <m.CombinedMap friends={[]} events={events} userLocation={userLocation} defaultMode="events" />
     ),
   })),
   {
