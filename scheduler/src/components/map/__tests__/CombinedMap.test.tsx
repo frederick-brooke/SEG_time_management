@@ -1,14 +1,12 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-// Mocks 
+// Mocks
 
 jest.mock("next/dynamic", () => ({
   __esModule: true,
   default: (fn: () => Promise<{ [key: string]: React.ComponentType<any> }>, opts?: any) => {
-    // Return a simple stub that just renders a div with a data-testid
     const Stub = (props: any) => {
-      // derive a readable name
       const name = opts?.loading ? "UnifiedMapLayer" : "DynamicComponent";
       return <div data-testid={`dynamic-${name}`} />;
     };
@@ -16,8 +14,7 @@ jest.mock("next/dynamic", () => ({
   },
 }));
 
-// Stable mocks for dynamic imports resolved by component
-jest.mock("./BaseMap", () => ({
+jest.mock("../BaseMap", () => ({
   BaseMap: ({ children, center, zoom }: any) => (
     <div data-testid="base-map" data-center={JSON.stringify(center)} data-zoom={zoom}>
       {children}
@@ -25,7 +22,7 @@ jest.mock("./BaseMap", () => ({
   ),
 }));
 
-jest.mock("./FriendLayer", () => ({
+jest.mock("../FriendLayer", () => ({
   FriendLayer: ({ friends, userLocation }: any) => (
     <div
       data-testid="friend-layer"
@@ -35,7 +32,7 @@ jest.mock("./FriendLayer", () => ({
   ),
 }));
 
-jest.mock("./UnifiedMapLayer", () => ({
+jest.mock("../UnifiedMapLayer", () => ({
   UnifiedMapLayer: ({ events, savedLocations }: any) => (
     <div
       data-testid="unified-map-layer"
@@ -45,7 +42,7 @@ jest.mock("./UnifiedMapLayer", () => ({
   ),
 }));
 
-jest.mock("./MapToggle", () => ({
+jest.mock("../MapToggle", () => ({
   MapToggle: ({ mode, onChange, friendCount, eventCount }: any) => (
     <div data-testid="map-toggle">
       <button onClick={() => onChange("events")}>events-btn</button>
@@ -78,7 +75,7 @@ jest.mock("hooks/useSavedLocations", () => ({
 import { CombinedMap } from "../CombinedMap";
 import type { MapEvent } from "@/lib/map";
 
-// Fixtures 
+// Fixtures
 
 const DEFAULT_CENTER: [number, number] = [51.5, -0.1];
 
@@ -118,7 +115,7 @@ function setupMocks({
   mockFormatDate.mockImplementation((d) => d);
 }
 
-// Tests 
+// Tests
 
 describe("CombinedMap", () => {
   beforeEach(() => {
@@ -282,7 +279,7 @@ describe("CombinedMap", () => {
     render(<CombinedMap friends={friends} events={[]} defaultMode="friends" />);
     expect(mockCalcCenter).toHaveBeenCalled();
     const arg = mockCalcCenter.mock.calls[0][0] as [number, number][];
-    expect(arg).toContainEqual([51.5, -0.1]); // userLocation
+    expect(arg).toContainEqual([51.5, -0.1]);
   });
 
   it("excludes friends without location from calcCenter args", () => {
@@ -297,10 +294,6 @@ describe("CombinedMap", () => {
   it("passes zoom=2 to BaseMap in friends mode", () => {
     setupMocks();
     render(<CombinedMap friends={[]} events={[]} defaultMode="friends" />);
-    // MapToggle is present and mode is friends - BaseMap zoom should be 2
-    // We rely on the mock rendering data-zoom attribute
-    // BaseMap is dynamically imported so we check via our mock
-    // The zoom prop is passed correctly when mode === friends
     expect(screen.getByTestId("toggle-mode")).toHaveTextContent("friends");
   });
 });

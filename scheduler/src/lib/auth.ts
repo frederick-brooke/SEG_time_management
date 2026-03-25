@@ -5,8 +5,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
+import { User } from "next-auth";
 
-export async function authorizeUser(credentials: Record<"identifier" | "password", string> | undefined) {
+export async function authorizeUser(
+  credentials: Record<string, string> | undefined,
+  req?: any  // <-- now optional
+): Promise<User | null> {
   if (!credentials?.identifier || !credentials?.password) return null;
 
   const user = await prisma.user.findFirst({
@@ -26,13 +30,28 @@ export async function authorizeUser(credentials: Record<"identifier" | "password
 
   if (user.isBanned) {
     if (!user.banExpires || new Date() < user.banExpires) {
-      return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: true };
+      return {
+        id: user.id.toString(),
+        email: user.email,
+        name: user.username,
+        role: user.role,
+        isBanned: true,
+        username: user.username,
+        isDeleted: user.isDeleted,
+      };
     }
     await prisma.user.update({ where: { id: user.id }, data: { isBanned: false, banExpires: null } });
     user.isBanned = false;
   }
 
-  return { id: user.id.toString(), email: user.email, name: user.username, role: user.role, isBanned: user.isBanned };
+  return {
+    id: user.id.toString(),
+    email: user.email,
+    username: user.username,
+    role: user.role,
+    isBanned: user.isBanned,
+    isDeleted: user.isDeleted,
+  };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -46,58 +65,7 @@ export const authOptions: NextAuthOptions = {
         identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-
-      async authorize(credentials) {
-        try {
-          if (!credentials?.identifier || !credentials?.password) return null;
-
-          const user = await prisma.user.findFirst({
-            where: {
-              OR: [
-                { email: credentials.identifier },
-                { username: credentials.identifier }
-              ]
-            },
-          });
-
-          if (!user || !user.passwordHash) return null;
-
-          const isValid = await verifyPassword(credentials.password, user.passwordHash);
-          if (!isValid) return null;
-
-          if (user.isBanned) {
-            // permanent ban or temporary ban still active
-            if (!user.banExpires || new Date() < user.banExpires) {
-              return {
-                id: user.id.toString(),
-                email: user.email,
-                username: user.username,
-                role: user.role,
-                isBanned: true,
-                isDeleted: user.isDeleted,
-              };
-            }
-            // ban expired
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { isBanned: false, banExpires: null },
-            });
-            user.isBanned = false;
-          }
-
-          return {
-            id: user.id.toString(),
-            email: user.email,
-            username: user.username,
-            role: user.role,
-            isBanned: user.isBanned,
-            isDeleted: user.isDeleted,
-          };
-        } catch (error) {
-          console.error("AUTHORIZE ERROR:", error);
-          return null;
-        }        
-      },
+      authorize: authorizeUser,
     }),
 
     GoogleProvider({

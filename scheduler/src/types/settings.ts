@@ -1,1 +1,1 @@
-export type TabKey = 'account' | 'preferences' | 'security' | 'integrations';
+export type TabKey = 'account' | 'preferences' | 'privacy' | 'security' | 'integrations';

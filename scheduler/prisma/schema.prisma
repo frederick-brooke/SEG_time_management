@@ -73,6 +73,7 @@ model User {
   city     String?
   country  String?
   location Json? // { lat: number, lng: number }
+  locationHidden Boolean @default(false)
   savedLocations SavedLocation[]
 
   role       Role      @default(BASIC)
