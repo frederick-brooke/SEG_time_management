@@ -3,25 +3,22 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
+// Types 
 type LocationType = "HOME" | "WORK" | "FAVOURITE";
 type Handler = (req: NextRequest) => Promise<Response>;
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// Constants
 
 const VALID_TYPES: LocationType[] = ["HOME", "WORK", "FAVOURITE"];
 const UNIQUE_TYPES: LocationType[] = ["HOME", "WORK"];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers 
 
 async function requireUserId(): Promise<string | null> {
   const session = await getServerSession(authOptions);
   return session?.user?.id ?? null;
 }
 
-// Wraps a handler so unexpected throws always produce a 500 rather than
-// crashing the process — keeps individual handlers free of try/catch noise.
 function withErrorHandling(handler: Handler): Handler {
   return async (req) => {
     try {
@@ -55,7 +52,7 @@ async function removePreviousIfUnique(userId: string, type: LocationType) {
   await prisma.savedLocation.deleteMany({ where: { userId, type } });
 }
 
-// ─── GET ──────────────────────────────────────────────────────────────────────
+// GET 
 
 export const GET = withErrorHandling(async () => {
   const userId = await requireUserId();
@@ -72,7 +69,7 @@ export const GET = withErrorHandling(async () => {
   return NextResponse.json(locations);
 });
 
-// ─── POST ─────────────────────────────────────────────────────────────────────
+// POST 
 
 export const POST = withErrorHandling(async (req) => {
   const userId = await requireUserId();

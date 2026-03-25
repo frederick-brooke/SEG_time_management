@@ -6,7 +6,7 @@
  * duplicating identical assertions across both suites.
  */
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
+// Mocks
 
 // NextResponse.json is broken in Jest/JSDOM — replace with a plain Response
 jest.mock("next/server", () => ({
@@ -37,7 +37,7 @@ import { GET, POST } from "@/app/api/location/saved/route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 
-// ─── Fixtures ─────────────────────────────────────────────────────────────────
+// Fixtures 
 
 const mockSession = { user: { id: "user-123" } };
 
@@ -60,7 +60,7 @@ const baseLocationBody = {
   type: "HOME",
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers 
 
 function makePostRequest(body: object): NextRequest {
   return { json: jest.fn().mockResolvedValue(body) } as unknown as NextRequest;
@@ -103,7 +103,7 @@ function describeAuthGuards(getHandler: () => HandlerFn, makeReq: () => NextRequ
   });
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// Tests
 
 describe("GET /api/saved-locations", () => {
   beforeEach(() => jest.clearAllMocks());
