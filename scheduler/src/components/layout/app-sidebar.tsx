@@ -188,19 +188,30 @@ const data = {
 };
 
 export function AppSidebar({ onSearchClick, ...props }) {
-  const [searchOpen,setSearchOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-  const [toasts, setToasts] = useState([]);
-  const prevCountRef = useRef(0);
-  const prevIdsRef = useRef(new Set());
-  const { data: session } = useSession();
+	const [searchOpen,setSearchOpen] = useState(false);
+	const [notifOpen, setNotifOpen] = useState(false);
+	const [mounted, setMounted] = useState(false);
+	const [unreadCount, setUnreadCount] = useState(0);
+	const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+	const [toasts, setToasts] = useState([]);
+	const prevCountRef = useRef(0);
+	const prevIdsRef = useRef(new Set());
+	const { data: session } = useSession();
+	const userRole = session?.user?.role;	//show or hide the admin icon
 
-  const dismissToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+	const filteredNavMain = data.navMain.filter((item) => {
+		if (!item.role) return true;
+
+		if (Array.isArray(item.role)) {
+			return item.role.includes(userRole);
+		}
+
+		return item.role === userRole;
+	});
+
+	const dismissToast = useCallback((id) => {
+		setToasts((prev) => prev.filter((t) => t.id !== id));
+	}, []);
 
   const pollNotifications = useCallback(async () => {
     try {
@@ -314,7 +325,7 @@ useEffect(() => {
           </SidebarHeader>
 
           <SidebarContent className="lunar-scroll px-2">
-            <NavMain items={data.navMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} unreadMessageCount={unreadMessageCount} onSearchClick={() => setSearchOpen(true)} />
+            <NavMain items={filteredNavMain} label="" onNotifClick={handleOpenNotifications} unreadCount={unreadCount} unreadMessageCount={unreadMessageCount} onSearchClick={() => setSearchOpen(true)}/>
             <NavSecondary items={data.navSecondary} className="mt-auto" onSearchClick={onSearchClick}/>
           </SidebarContent>
           <SidebarFooter>
