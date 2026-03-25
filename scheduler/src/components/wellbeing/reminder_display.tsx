@@ -12,6 +12,28 @@ import {useReminders} from "hooks/useReminders";
 import { IconClock } from "@tabler/icons-react";
 import GlassCard from "../ui/glassCard";
 
+/**
+ * ReminderContainer
+ *
+ * Wrapper component for managing and displaying a single reminder.
+ * Handles:
+ * - Reminder lifecycle via useReminders hook
+ * - Opening settings modal when no duration is set
+ * - Triggering "fired" state UI when reminder completes
+ * - Syncing with global UI state (wellbeing panel)
+ * - Formatting remaining time for display
+ *
+ * @param {Object} props
+ * @param {string} props.id - Unique identifier for the reminder
+ * @param {React.ReactNode} props.iconOn - Icon when reminder is active
+ * @param {React.ReactNode} props.iconOff - Icon when reminder is inactive
+ * @param {string} props.settingsTitle - Title for settings modal
+ * @param {string} props.settingsText - Description for settings modal
+ * @param {string} props.firedTitle - Title shown when reminder fires
+ * @param {string} props.firedText - Message shown when reminder fires
+ *
+ * @returns {JSX.Element} Reminder UI container
+ */
 export default function ReminderContainer({
     id,
     iconOn,
@@ -22,20 +44,20 @@ export default function ReminderContainer({
     firedText,
 })
 {
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);	//local ui state for modals
     const [isFiredOpen, setIsFiredOpen] = useState(false);
     const {wellbeingOpen, setWellbeingOpen} = useUI();      //shared global state via the UI
 
     const reminder = useReminders({
         id,
-        onFire: () => {
+        onFire: () => {		//open fired modal and closes wellbeing panel
             setIsFiredOpen(true),
             setWellbeingOpen(false)
         }
     });
 
-    const handleToggleClick = () => {
-        if (reminder.durationMs === null) {
+    const handleToggleClick = () => {	//determines behaviour when user toggles reminder
+        if (reminder.durationMs === null) {	
             setIsSettingsOpen(true);
         } else {
             reminder.handleToggleClick();

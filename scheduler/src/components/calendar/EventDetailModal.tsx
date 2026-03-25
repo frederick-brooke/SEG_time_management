@@ -237,15 +237,16 @@ export default function EventDetailModal({
             </button>
             <h3 className="text-2xl font-black mb-6 text-white">Edit Task</h3>
             <TaskForm
+              isOpen={true}
+              onOpenChange={(open) => { 
+                if (!open) onSetTaskEdit(false); 
+              }}
+              showTrigger={false}
+              editingTaskId={selectedEvent.id}
               formData={taskFormData}
-              onChange={onFormChange}
+              onFormChange={onFormChange}
               onSubmit={onTaskSubmit}
-              onDelete={onDeleteTask}
-              isEditing={true}
               exams={exams}
-              linkedEventTitle={selectedEvent.eventId ? (events.find((e) => e.id === selectedEvent.eventId)?.title ?? null) : null}
-              relativeOffsetDays={selectedEvent.relativeOffsetDays ?? null}
-              scheduledRelativeTo={selectedEvent.scheduledRelativeTo ?? null}
             />
           </div>
 
