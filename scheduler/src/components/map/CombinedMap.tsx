@@ -10,7 +10,6 @@ import {
   TRANSPORT_ICONS,
   calcCenter,
   formatDate,
-  useGeolocation,
 } from "@/lib/map";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 
@@ -24,15 +23,17 @@ const UnifiedMapLayer = dynamic(
 interface CombinedMapProps {
   friends: Friend[];
   events: MapEvent[];
+  userLocation?: { lat: number; lng: number } | null;
   defaultMode?: MapMode;
 }
 
-// Helper: derive map center from friends + user location 
-function friendsCenter(friends: Friend[], userLocation: [number, number] | null): [number, number] {
+// Helper: derive map center from friends + user location
+function friendsCenter(friends: Friend[], userLocation: { lat: number; lng: number } | null): [number, number] {
   const pts = friends
     .filter((f) => f.location)
     .map((f) => [f.location!.lat, f.location!.lng] as [number, number]);
-  return calcCenter([...(userLocation ? [userLocation] : []), ...pts]);
+  const userPt = userLocation ? [[userLocation.lat, userLocation.lng]] : [];
+  return calcCenter([...userPt, ...pts] as [number, number][]);
 }
 
 // Helper: derive map center from event coordinates 
@@ -135,17 +136,14 @@ function LocationLoadingPlaceholder() {
   );
 }
 
-//   Main component  
-export function CombinedMap({ friends, events, defaultMode = "events" }: CombinedMapProps) {
+//   Main component
+export function CombinedMap({ friends, events, userLocation, defaultMode = "events" }: CombinedMapProps) {
   const [mode, setMode] = useState<MapMode>(defaultMode);
-  const { userLocation, locationError, loading } = useGeolocation();
   const { locations: savedLocations } = useSavedLocations();
-
-  if (loading) return <LocationLoadingPlaceholder />;
 
   const center =
     mode === "friends"
-      ? friendsCenter(friends, userLocation)
+      ? friendsCenter(friends, userLocation || null)
       : eventsCenter(events);
 
   return (
@@ -158,9 +156,6 @@ export function CombinedMap({ friends, events, defaultMode = "events" }: Combine
           friendCount={friends.length}
           eventCount={events.length}
         />
-        {locationError && (
-          <p className="text-xs text-amber-600">{locationError} — using default location</p>
-        )}
       </div>
 
       {/* Category and saved-location legend (events mode only) */}

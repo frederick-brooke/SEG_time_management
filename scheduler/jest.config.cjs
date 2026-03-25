@@ -16,7 +16,7 @@ const customJestConfig = {
     "^components/(.*)$": "<rootDir>/src/components/$1",
     "\\.module\\.css$": "identity-obj-proxy",
     "^hooks/(.*)$": "<rootDir>/src/hooks/$1",
-    "^leaflet$": "<rootDir>/__mocks__/leaflet.js",
+    "^leaflet$": "<rootDir>/__mocks__/leaflet.ts",
   },
   transformIgnorePatterns: [
     "/node_modules/(?!(jose|openid-client|next-auth|@fullcalendar|preact|preact-render-to-string|@panva|bson|uuid)/)",

@@ -3,15 +3,26 @@
 import { Marker, Popup } from "react-leaflet";
 import { Icon } from "leaflet";
 import { Friend, USER_ICON_URL, FRIEND_ICON_URL } from "@/lib/map";
+import { AVATAR_IMAGES } from "@/lib/shop-catalogue";
 
 interface FriendLayerProps {
   friends: Friend[];
-  userLocation: [number, number] | null;
+  userLocation: { lat: number; lng: number } | null;
 }
 
-// Icons for the current user and friends
+// Icon for the current user
 const userIcon = new Icon({ iconUrl: USER_ICON_URL, iconSize: [38, 38] });
-const friendIcon = new Icon({ iconUrl: FRIEND_ICON_URL, iconSize: [32, 32] });
+
+/**
+ * Create a custom icon for a friend based on their equipped avatar
+ */
+function getFriendIcon(equippedAvatar?: string): Icon {
+  const avatarUrl = equippedAvatar && AVATAR_IMAGES[equippedAvatar]
+    ? AVATAR_IMAGES[equippedAvatar]
+    : FRIEND_ICON_URL;
+
+  return new Icon({ iconUrl: avatarUrl, iconSize: [32, 32] });
+}
 
 /**
  * Popup content for a single friend
@@ -45,7 +56,7 @@ export function FriendLayer({ friends, userLocation }: FriendLayerProps) {
     <>
       {/* Render current user marker if location is available */}
       {userLocation && (
-        <Marker position={userLocation} icon={userIcon}>
+        <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
           <Popup>
             <div className="text-center">
               <strong>You are here!</strong>
@@ -62,7 +73,7 @@ export function FriendLayer({ friends, userLocation }: FriendLayerProps) {
           <Marker
             key={friend.id}
             position={[friend.location.lat, friend.location.lng]}
-            icon={friendIcon}
+            icon={getFriendIcon(friend.equippedAvatar)}
           >
             <Popup>
               <FriendPopup friend={friend} />

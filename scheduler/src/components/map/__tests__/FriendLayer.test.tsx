@@ -1,11 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 
-// Mocks 
-
-jest.mock("leaflet", () => ({
-  Icon: jest.fn().mockImplementation((opts) => ({ ...opts, _isIcon: true })),
-}));
+// Mocks (leaflet is auto-mocked via jest.config moduleNameMapper)
 
 jest.mock("react-leaflet", () => ({
   Marker: ({
@@ -29,10 +25,22 @@ jest.mock("@/src/lib/map", () => ({
   FRIEND_ICON_URL: "/friend-icon.png",
 }));
 
-import { FriendLayer } from "../FriendLayer";
+jest.mock("@/lib/shop-catalogue", () => ({
+  AVATAR_IMAGES: {
+    "astronaut-pioneer": "/avatars/astronaut-pioneer.svg",
+    "nebula-witch": "/avatars/nebula-witch.svg",
+    "cosmic-explorer": "/avatars/cosmic-explorer.svg",
+  },
+}));
 
-//  Fixtures 
-const USER_LOCATION: [number, number] = [51.505, -0.09];
+import { FriendLayer } from "../FriendLayer";
+import * as leaflet from "leaflet";
+
+// Get the mock Icon constructor from the leaflet mock
+const mockIconConstructor = leaflet.Icon as unknown as jest.Mock;
+
+//  Fixtures
+const USER_LOCATION = { lat: 51.505, lng: -0.09 };
 
 const makeFriend = (
   id: string,
@@ -43,6 +51,7 @@ const makeFriend = (
     city: string | null;
     country: string | null;
     location: { lat: number; lng: number } | null;
+    equippedAvatar?: string;
   }> = {}
 ) => ({
   id,
@@ -55,15 +64,13 @@ const makeFriend = (
   ...opts,
 });
 
-// Tests 
-
 describe("FriendLayer", () => {
   // User marker
   it("renders a marker for userLocation when provided", () => {
     render(<FriendLayer friends={[]} userLocation={USER_LOCATION} />);
     const markers = screen.getAllByTestId("marker");
     expect(markers).toHaveLength(1);
-    expect(JSON.parse(markers[0].getAttribute("data-position")!)).toEqual(USER_LOCATION);
+    expect(JSON.parse(markers[0].getAttribute("data-position")!)).toEqual([USER_LOCATION.lat, USER_LOCATION.lng]);
   });
 
   it("shows 'You are here!' popup for the user marker", () => {
@@ -178,5 +185,87 @@ describe("FriendLayer", () => {
     render(<FriendLayer friends={friends} userLocation={USER_LOCATION} />);
     // Only the user marker
     expect(screen.getAllByTestId("marker")).toHaveLength(1);
+  });
+
+  // Avatar icon tests
+  it("creates an Icon with the correct avatar URL when friend has equippedAvatar", () => {
+    mockIconConstructor.mockClear();
+    const friend = makeFriend("1", { equippedAvatar: "astronaut-pioneer" });
+    render(<FriendLayer friends={[friend]} userLocation={null} />);
+
+    // Should create icons for both user marker and friend marker
+    expect(mockIconConstructor).toHaveBeenCalled();
+    const iconCalls = mockIconConstructor.mock.calls;
+
+    // Find the call with the avatar URL (not the user icon)
+    const avatarCall = iconCalls.find(
+      (call) => call[0].iconUrl === "/avatars/astronaut-pioneer.svg"
+    );
+    expect(avatarCall).toBeDefined();
+    expect(avatarCall?.[0].iconSize).toEqual([32, 32]);
+  });
+
+  it("uses fallback FRIEND_ICON_URL when friend has no equippedAvatar", () => {
+    mockIconConstructor.mockClear();
+    const friend = makeFriend("1", { equippedAvatar: undefined });
+    render(<FriendLayer friends={[friend]} userLocation={null} />);
+
+    const iconCalls = mockIconConstructor.mock.calls;
+    const fallbackCall = iconCalls.find(
+      (call) => call[0].iconUrl === "/friend-icon.png"
+    );
+    expect(fallbackCall).toBeDefined();
+  });
+
+  it("uses fallback icon when equippedAvatar is not in AVATAR_IMAGES", () => {
+    mockIconConstructor.mockClear();
+    const friend = makeFriend("1", { equippedAvatar: "non-existent-avatar" });
+    render(<FriendLayer friends={[friend]} userLocation={null} />);
+
+    const iconCalls = mockIconConstructor.mock.calls;
+    const fallbackCall = iconCalls.find(
+      (call) => call[0].iconUrl === "/friend-icon.png"
+    );
+    expect(fallbackCall).toBeDefined();
+  });
+
+  it("creates different icons for friends with different avatars", () => {
+    mockIconConstructor.mockClear();
+    const friends = [
+      makeFriend("1", { equippedAvatar: "astronaut-pioneer" }),
+      makeFriend("2", { equippedAvatar: "nebula-witch" }),
+      makeFriend("3", { equippedAvatar: "cosmic-explorer" }),
+    ];
+    render(<FriendLayer friends={friends} userLocation={null} />);
+
+    const iconCalls = mockIconConstructor.mock.calls;
+    const avatarUrls = iconCalls.map((call) => call[0].iconUrl);
+
+    expect(avatarUrls).toContain("/avatars/astronaut-pioneer.svg");
+    expect(avatarUrls).toContain("/avatars/nebula-witch.svg");
+    expect(avatarUrls).toContain("/avatars/cosmic-explorer.svg");
+  });
+
+
+  it("renders multiple friends with mixed avatar presence", () => {
+    mockIconConstructor.mockClear();
+    const friends = [
+      makeFriend("1", { equippedAvatar: "astronaut-pioneer", name: "Alice" }),
+      makeFriend("2", { equippedAvatar: undefined, name: "Bob" }),
+      makeFriend("3", { equippedAvatar: "nebula-witch", name: "Charlie" }),
+    ];
+    render(<FriendLayer friends={friends} userLocation={null} />);
+
+    // Check all friends are rendered
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.getByText("Charlie")).toBeInTheDocument();
+
+    // Check that correct icons were created
+    const iconCalls = mockIconConstructor.mock.calls;
+    const avatarUrls = iconCalls.map((call) => call[0].iconUrl);
+    expect(avatarUrls).toContain("/avatars/astronaut-pioneer.svg");
+    expect(avatarUrls).toContain("/avatars/nebula-witch.svg");
+    expect(avatarUrls).toContain("/friend-icon.png"); // For Bob
   });
 });

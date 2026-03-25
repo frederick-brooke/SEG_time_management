@@ -5,88 +5,79 @@ import { prisma } from "@/lib/prisma";
 // UI components
 import MapView from "@/components/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
+import MapPageClient from "./MapPageClient";
 
 // Server Component
 export default async function MapPage() {
   // Fetch the current authenticated session
   const session = await getServerSession(authOptions);
 
-  // If no session exists, block access
-  if (!session) throw new Error("Not authenticated");
+  if (!session?.user?.id) throw new Error("Not authenticated");
 
-  // Query events from the database
+  const userId = session.user.id;
+
+  // Fetch events from the database
   const events = await prisma.event.findMany({
     where: {
-      // Only fetch events belonging to the logged-in user
-      userId: session.user.id,
-
-      // Only include events that have at least one location
+      userId,
       OR: [
         { startCoords: { not: null } },
         { destinationCoords: { not: null } },
       ],
     },
-
-    // Sort events by start time (earliest first)
     orderBy: { start: "asc" },
   });
 
-  const serialised = events.map((e) => ({
+  const eventsSerialized = events.map((e) => ({
     id: e.id,
     title: e.title,
     category: e.category,
     start: e.start.toISOString(),
     end: e.end.toISOString(),
-
-    // Ensure coords are typed correctly or null
     startCoords: e.startCoords as { lat: number; lng: number } | null,
     destinationCoords:
       e.destinationCoords as { lat: number; lng: number } | null,
-
     startLocationName: e.startLocationName,
     destLocationName: e.destLocationName,
     travelDuration: e.travelDuration,
     transportMode: e.transportMode,
   }));
 
-  // Render UI
+  // Fetch user's location data
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      location: true,
+      locationHidden: true,
+    },
+  });
+
+  const userLocation = user?.location as { lat: number; lng: number } | null;
+
+  // Render UI with client component
   return (
     <main className="container mx-auto p-6 lg:p-8">
-      {/* Header section */}
       <div className="flex justify-between items-center mb-6">
         <div>
-          {/* Page title */}
           <h1 className="text-2xl font-bold">Event Map</h1>
-
-          {/* Dynamic event count with singular/plural logic */}
           <p className="text-sm text-gray-500 mt-1">
-            Showing {serialised.length} event
-            {serialised.length !== 1 ? "s" : ""} with locations
+            View your event locations
           </p>
         </div>
 
-        {/* Navigation link back to calendar */}
         <a
-          href="/calendar"
+          href="/dashboard"
           className="text-sm text-blue-600 font-semibold hover:underline"
         >
-          ← Back to Calendar
+          ← Back to Dashboard
         </a>
       </div>
 
-      {/* Main layout: map + sidebar */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Map section */}
-        <div className="flex-1 min-w-0">
-          {/* Pass serialized events to MapView */}
-          <MapView events={serialised} />
-        </div>
-
-        {/* Sidebar for saved locations */}
-        <div className="w-full lg:w-72 shrink-0">
-          <SavedLocationsPanel />
-        </div>
-      </div>
+      <MapPageClient
+        events={eventsSerialized}
+        userLocation={userLocation}
+        userLocationHidden={user?.locationHidden || false}
+      />
     </main>
   );
 }
