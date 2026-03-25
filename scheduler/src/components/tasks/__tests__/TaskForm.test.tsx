@@ -267,4 +267,40 @@ describe("TaskFormDialog", () => {
     expect(screen.queryByText("+ NEW TASK")).not.toBeInTheDocument();
   });
 
+  it("clicking the backdrop calls onOpenChange with false", () => {
+    const props = setup();
+    const overlay = document.querySelector(".lunar-overlay");
+    fireEvent.click(overlay!, { target: overlay });
+    expect(props.onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("calls onOpenChange when close button is clicked", () => {
+    const props = setup();
+    const closeBtn = document.querySelector(".lunar-close-button");
+    fireEvent.click(closeBtn!);
+    expect(props.onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("calls onFormChange when URL input changes", () => {
+    const props = setup();
+    fireEvent.change(screen.getByPlaceholderText("No URL attached"), {
+      target: { value: "https://example.com" },
+    });
+    expect(props.onFormChange).toHaveBeenCalledWith({ url: "https://example.com" });
+  });
+
+  it("renders URL link button when url is provided", () => {
+    setup({
+      formData: { ...baseFormData, url: "https://example.com" }
+    });
+    expect(screen.getByText("🔗")).toBeInTheDocument();
+  });
+
+  it("shows + NEW TASK trigger when showTrigger is true", () => {
+    setup({ showTrigger: true });
+    fireEvent.click(screen.getByText("+ NEW TASK"));
+    expect(screen.getByText("+ NEW TASK")).toBeInTheDocument();
+  });
+  
+
 });

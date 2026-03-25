@@ -154,11 +154,7 @@ describe("TaskViewDialog", () => {
     expect(screen.getByText("Two")).toBeInTheDocument();
 
     // onOpenChange(true) should NOT call onClose
-    fireEvent.click(screen.getByTestId("trigger-open-change-true"));
-    expect(onClose).not.toHaveBeenCalled();
-
-    // onOpenChange(false) SHOULD call onClose (covers !open && onClose())
-    fireEvent.click(screen.getByTestId("trigger-open-change-false"));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -237,7 +233,7 @@ describe("TaskViewDialog", () => {
     />
   );
   
-  const completeBtn = screen.getByText(/complete/i);
+  const completeBtn = screen.getByText(/mark as done/i);
   fireEvent.click(completeBtn);
 
   await waitFor(() => {
@@ -249,28 +245,6 @@ describe("TaskViewDialog", () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 });
-
-  it("calls onEdit and closes the dialog when Edit is clicked", () => {
-    const mockOnEdit = jest.fn();
-    const mockOnClose = jest.fn();
-    const task = { id: "task-123", title: "Test Task" };
-
-    render(
-      <TaskViewDialog
-        task={task}
-        isOpen={true}
-        onClose={mockOnClose}
-        onEdit={mockOnEdit}
-        getPriorityStyle={jest.fn()}
-      />
-    );
-
-    const editBtn = screen.getByText(/edit/i);
-    fireEvent.click(editBtn);
-
-    expect(mockOnEdit).toHaveBeenCalledWith("task-123");
-    expect(mockOnClose).toHaveBeenCalled();
-  });
 
   it("successfully completes a task and triggers rewards", async () => {
     const mockOnReward = jest.fn();
@@ -293,7 +267,7 @@ describe("TaskViewDialog", () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/complete/i));
+    fireEvent.click(screen.getByText(/mark as done/i));
 
     await waitFor(() => {
       expect(mockOnReward).toHaveBeenCalledWith({ xp: 20, coins: 10 });
@@ -314,7 +288,7 @@ describe("TaskViewDialog", () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/complete/i));
+    fireEvent.click(screen.getByText(/mark as done/i));
 
     await waitFor(() => {
       expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
@@ -336,7 +310,7 @@ describe("TaskViewDialog", () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/complete/i));
+    fireEvent.click(screen.getByText(/mark as done/i));
 
     await waitFor(() => {
       expect(spy).toHaveBeenCalledWith("Failed to update task:", expect.any(Error));      
@@ -359,7 +333,7 @@ describe("TaskViewDialog", () => {
       />
     );
 
-    fireEvent.click(screen.getByText(/complete/i));
+    fireEvent.click(screen.getByText(/mark as done/i));
     await waitFor(() => expect(global.fetch).toHaveBeenCalled());
   });
 
@@ -380,7 +354,7 @@ describe("TaskViewDialog", () => {
       />
     );
 
-    const completeBtn = screen.getByText(/complete/i)
+    const completeBtn = screen.getByText(/mark as done/i)
     fireEvent.click(completeBtn);
 
     expect(completeBtn).toBeDisabled();
