@@ -23,7 +23,6 @@ jest.mock("../BaseMap", () => ({
 }));
 
 jest.mock("../FriendLayer", () => ({
-jest.mock("../FriendLayer", () => ({
   FriendLayer: ({ friends, userLocation }: any) => (
     <div
       data-testid="friend-layer"
@@ -34,7 +33,6 @@ jest.mock("../FriendLayer", () => ({
 }));
 
 jest.mock("../UnifiedMapLayer", () => ({
-jest.mock("../UnifiedMapLayer", () => ({
   UnifiedMapLayer: ({ events, savedLocations }: any) => (
     <div
       data-testid="unified-map-layer"
@@ -44,7 +42,6 @@ jest.mock("../UnifiedMapLayer", () => ({
   ),
 }));
 
-jest.mock("../MapToggle", () => ({
 jest.mock("../MapToggle", () => ({
   MapToggle: ({ mode, onChange, friendCount, eventCount }: any) => (
     <div data-testid="map-toggle">
