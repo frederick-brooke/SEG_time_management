@@ -49,7 +49,7 @@ import { getFriendsLeaderboard } from '@/app/actions/leaderboard';
 import LeaderboardPage from './page';
 
 const mockGetServerSession = getServerSession as jest.Mock;
-const mockRedirect = redirect as jest.Mock;
+const mockRedirect = redirect as unknown as jest.Mock;
 const mockGetFriendsLeaderboard = getFriendsLeaderboard as jest.Mock;
 
 const mockSession = { user: { email: 'test@test.com' } };
