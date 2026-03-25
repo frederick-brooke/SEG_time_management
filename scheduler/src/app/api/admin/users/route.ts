@@ -1,101 +1,136 @@
-// app/api/admin/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma, Role } from "@prisma/client";
 
+/**
+ * Builds a Prisma `where` clause for user queries.
+ *
+ * Supports:
+ * - Username search (case-insensitive)
+ * - Date range filtering (createdAt)
+ * - Role/category filtering
+ *
+ * @param {string} search - Username search query
+ * @param {string | null} startDate - Start date (inclusive)
+ * @param {string | null} endDate - End date (inclusive)
+ * @param {string | null} categories - Comma-separated role values
+ * @returns {Prisma.UserWhereInput} Prisma-compatible where clause
+ */
+function buildUserWhere(search: string, startDate: string | null, endDate: string | null, categories: string | null): Prisma.UserWhereInput {
+	const where: Prisma.UserWhereInput = {};
+
+	if (search.trim()) {
+		// Username search (case-insensitive partial match)
+		where.username = { contains: search, mode: "insensitive" };
+	}
+
+	if (startDate || endDate) {
+		const createdAt: Prisma.DateTimeFilter = {};
+
+		if (startDate && !isNaN(Date.parse(startDate))) {
+			createdAt.gte = new Date(startDate);
+		}
+
+		if (endDate && !isNaN(Date.parse(endDate))) {
+			createdAt.lte = new Date(endDate);
+		}
+
+		if (Object.keys(createdAt).length) {
+			where.createdAt = createdAt;
+		}
+	}
+
+	// Role/category filtering
+	if (categories?.trim()) {
+		const roles = categories.split(",").map(c => c.trim().toUpperCase() as Role).filter(Boolean);
+
+		if (roles.length) { where.role = { in: roles };}
+	}
+
+	return where;
+}
+
+/**
+ * Generates pagination parameters for Prisma queries.
+ *
+ * @param {number} page - Current page number
+ * @param {number} limit - Number of records per page
+ * @returns {{ skip: number, take: number }} Pagination config
+ */
+function getPagination(page: number, limit: number) {
+	return {
+		skip: (page - 1) * limit,
+		take: limit,
+	};
+}
+
+/**
+ * Ensures sorting is restricted to allowed fields.
+ *
+ * Prevents invalid queries or unsafe input usage.
+ *
+ * @param {string} sortBy - Requested sort field
+ * @returns {string} Safe sort field
+ */
+function getSafeSort(sortBy: string) {
+	const allowed = ["username", "createdAt", "role"];
+	return allowed.includes(sortBy) ? sortBy : "createdAt";
+}
+
+/**
+ * Fetches paginated users for admin dashboard.
+ *
+ * Features:
+ * - Search by username
+ * - Filtering (date range, roles)
+ * - Sorting (safe fields only)
+ * - Pagination
+ * - Aggregated counts (reports, appeals)
+ *
+ * Access Control:
+ * - Requires authenticated SUPERUSER session
+ *
+ * @param {Request} req - Incoming request
+ * @returns {Promise<NextResponse>} Users data with metadata
+ */
 export async function GET(req: Request) {
-    const session = await getServerSession(authOptions);
+	const session = await getServerSession(authOptions);
 
-    if (!session) {
-        return NextResponse.json(
-            { error: "No session found. Please log in." },
-            { status: 401 }
-        );
-    }
+	if (!session) {
+		return NextResponse.json({ error: "No session found. Please log in." }, { status: 401 });
+	}
 
-    //change back to the SUPERUSER once added in
-    //needs local key inside the env file to work
-    if (session.user?.role !== "SUPERUSER") {
-        return NextResponse.json(
-            { error: "Access denied. Superuser role required.", currentRole: session.user?.role },
-            { status: 403 }
-        );
-    }
+	if (session.user?.role !== "SUPERUSER") {
+		return NextResponse.json({ error: "Access denied. Superuser role required.", currentRole: session.user?.role }, { status: 403 });
+	}
 
-    const { searchParams } = new URL(req.url);  //from the frontend URLSearchParams
+	const { searchParams } = new URL(req.url);
 
-    const search = searchParams.get("search") || "";
-    const sortBy = searchParams.get("sortBy") || "createdAt";
-    const order = searchParams.get("order") === "asc" ? "asc" : "desc";
-    //by default it is given in descending order
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
-    const categories = searchParams.get("categories");
+	const search = searchParams.get("search") || "";
+	const sortBy = getSafeSort(searchParams.get("sortBy") || "createdAt");
+	const order = searchParams.get("order") === "asc" ? "asc" : "desc";
+	const page = parseInt(searchParams.get("page") || "1");
+	const limit = parseInt(searchParams.get("limit") || "10");
 
-    // restrict sortable fields (security)
-    const allowedSortFields = ["username", "createdAt", "role"];
-    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+	const startDate = searchParams.get("startDate");
+	const endDate = searchParams.get("endDate");
+	const categories = searchParams.get("categories");
 
-    //dynamically build the query set
-    const where: Prisma.UserWhereInput = { };
+	const where = buildUserWhere(search, startDate, endDate, categories);
+	const { skip, take } = getPagination(page, limit);
 
-    //validation input
-    if (search.trim() !== "") {
-        where.username = {
-            contains: search,
-            mode: "insensitive",
-        };
-    }
+	const [users, totalMatchingUsers] = await Promise.all([
+		prisma.user.findMany({
+			where,
+			orderBy: [{ [sortBy]: order }, { id: "asc" }],
+			skip,
+			take,
+			include: {_count: { select: { reportsMade: true, reportsReceived: true, appeals: true,},},},
+		}),
+		prisma.user.count({ where }),
+	]);
 
-    //date filtering of theusers
-    if (startDate || endDate) {
-        const createdAtFilter: Prisma.DateTimeFilter = {};
-
-        if (startDate && !isNaN(Date.parse(startDate))) {
-            createdAtFilter.gte = new Date(startDate);
-        }
-
-        if (endDate && !isNaN(Date.parse(endDate))) {
-            createdAtFilter.lte = new Date(endDate);
-        }
-
-        if (Object.keys(createdAtFilter).length > 0) {
-            where.createdAt = createdAtFilter;
-        }
-    }
-
-    //category filtering
-    if (categories && categories.trim() !== "") {
-        const categoryArray = categories.split(",").map(c => c.trim().toUpperCase() as Role).filter(Boolean); // removes empty values
-
-        if (categoryArray.length > 0) {
-            where.role = { in: categoryArray };
-        }
-    }
-
-    // run queries in parallel
-    const [users, totalMatchingUsers] = await Promise.all([
-        prisma.user.findMany({
-            where,
-            orderBy: [{ [safeSortBy]: order }, { id: "asc" }],
-            skip: (page - 1) * limit,
-            take: limit,
-            include: {
-                _count: {
-                    select: {
-                    reportsMade: true,
-                    reportsReceived: true,
-                    appeals: true
-                    }
-                }
-            },
-        }),
-        prisma.user.count({ where })
-    ]);
-
-    return NextResponse.json({ users, totalUsers: totalMatchingUsers, totalUserPages: Math.ceil(totalMatchingUsers/limit)});
+	return NextResponse.json({users, totalUsers: totalMatchingUsers,totalUserPages: Math.ceil(totalMatchingUsers / limit),});
 }
