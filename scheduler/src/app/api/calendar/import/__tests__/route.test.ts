@@ -21,8 +21,8 @@ jest.mock("next/server", () => ({
 }));
 
 jest.mock("next-auth/next", () => ({ getServerSession: jest.fn() }));
-jest.mock("@/src/lib/auth", () => ({ authOptions: {} }));
-jest.mock("@/src/lib/prisma", () => ({
+jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+jest.mock("@/lib/prisma", () => ({
   prisma: {
     event: {
       findMany: jest.fn(),
@@ -33,7 +33,7 @@ jest.mock("@/src/lib/prisma", () => ({
     },
   },
 }));
-jest.mock("@/src/lib/calendar/ical-parser", () => ({
+jest.mock("@/lib/calendar/ical-parser", () => ({
   parseICal: jest.fn(),
   parseRRule: jest.fn(),
 }));

@@ -17,7 +17,7 @@ jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: () => () => null })
 );
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));

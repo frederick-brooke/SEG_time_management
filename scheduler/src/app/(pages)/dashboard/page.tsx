@@ -5,15 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { getMyExams } from "@/app/actions/examActions";
 import { UpcomingExams } from "components/upcoming-exams";
-import { useUI } from "@/context/UIContext";
+import { useUI } from "@/context/UIContext";  //shared global states for controlling open/closing of modals/panels
 import { ProfileStats } from "@/components/profile/StatModules";
 import { getMyProfile } from "@/app/actions/profile";
 import { ComingUpSoon } from "@/components/coming-up-soon";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import LeaderboardClient from "../leaderboard/LeaderboardClient";
+import { getFriendsLeaderboard } from "../../actions/leaderboard";
 import { IconMoonStars } from "@tabler/icons-react";
 import WellbeingPanel from "@/components/wellbeing/wellbeing_panel";
 import { RocketProgress } from "@/components/ui/rocket-progress";
 import { useTasks } from "@/hooks/useTasks";
+import { CalendarEvents } from "@/components/calendar/CalendarEvents";
 
 function DashboardContent() {
   const { data: session, status }: { data: any; status: string } = useSession();
@@ -23,7 +26,9 @@ function DashboardContent() {
   const { wellbeingOpen, setWellbeingOpen } = useUI();
   const [exams, setExams] = useState([]);
   const [profile, setProfile] = useState(null);
-  const [wellbeingVisible, setWellbeingVisible] = useState(true);
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  const[wellbeingVisible, setWellbeingVisible] = useState(true);
 
   const { tasks } = useTasks(session?.user?.id);
   const totalTasks = tasks?.length || 0;
@@ -34,13 +39,15 @@ function DashboardContent() {
     let isMounted = true;
     async function loadData() {
       if (status === "authenticated" && !profile) {
-        const [examData, profileData] = await Promise.all([
+        const [examData, profileData, leaderboardData] = await Promise.all([
           getMyExams(),
-          getMyProfile()
+          getMyProfile(),
+          getFriendsLeaderboard('week')
         ]);
         if (isMounted) {
           setExams(examData);
           setProfile(profileData);
+          setLeaderboard(leaderboardData || []);
         }
       }
     }
@@ -105,20 +112,33 @@ function DashboardContent() {
               </div>
             </div>
             <div className="flex flex-col gap-3 shrink-0">
-              <p className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Your Progress</p>
+              <p className="lunar-page-subtitle">Your Progress</p>
               {profile && <ProfileStats profile={profile} />}
             </div>
           </div>
 
           <hr className="border-white/5" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-12 items-start pt-12">
-            <ComingUpSoon userId={session?.user?.id} exams={exams} />
-            <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.2)] rounded-full opacity-50" />
-            <UpcomingExams exams={exams} />
+          {/* Grid Layout for Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start pt-12">
+            <div className="flex flex-col gap-8">
+              <div className="lunar-glass p-6">
+                <ComingUpSoon userId={session?.user?.id} exams={exams}/>
+              </div>
+              <div className="lunar-glass p-6">
+                <UpcomingExams exams={exams} />
+              </div>
+            </div>
+            <div className="hidden lg:block w-[3px] self-stretch bg-gradient-to-b from-transparent via-blue-500/40 to-transparent rounded-full opacity-50" />
+              <div className="flex flex-col gap-8">
+                <LeaderboardClient initialData={leaderboard} currentTimeframe="week" />
+                
+                <div className="lunar-glass p-6">
+                  <CalendarEvents />
+                </div>
+              </div>
           </div>
-
-          <WellbeingPanel open={wellbeingOpen} onClose={() => { setWellbeingOpen(false); setWellbeingVisible(true); }} />
+          <WellbeingPanel open={wellbeingOpen} onClose={() => {setWellbeingOpen(false); setWellbeingVisible(true)}}/>
         </main>
       </LunarThemeWrapper>
 

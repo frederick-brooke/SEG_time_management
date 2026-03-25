@@ -22,13 +22,26 @@ jest.mock("@/context/UIContext", () => ({
   useUI: () => ({ wellbeingOpen: mockWellbeingOpen, setWellbeingOpen: setWellbeingOpenMock }),
 }));
 
+jest.mock("@/app/actions/leaderboard", () => ({
+  getFriendsLeaderboard: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock("../../leaderboard/LeaderboardClient", () => ({
+  __esModule: true,
+  default: () => <div>LeaderboardClient</div>,
+}));
+
+jest.mock("@/components/calendar/CalendarEvents", () => ({
+  CalendarEvents: () => <div>CalendarEvents</div>,
+}));
+
 const getMyExamsMock   = jest.fn();
 const getMyProfileMock = jest.fn();
 const useTasksMock     = jest.fn();
 
-jest.mock("@/src/app/actions/examActions", () => ({ getMyExams:   (...a: any[]) => getMyExamsMock(...a) }));
-jest.mock("@/src/app/actions/profile",     () => ({ getMyProfile: (...a: any[]) => getMyProfileMock(...a) }));
-jest.mock("@/src/hooks/useTasks",          () => ({ useTasks:     (...a: any[]) => useTasksMock(...a) }));
+jest.mock("@/app/actions/examActions", () => ({ getMyExams:   (...a: any[]) => getMyExamsMock(...a) }));
+jest.mock("@/app/actions/profile",     () => ({ getMyProfile: (...a: any[]) => getMyProfileMock(...a) }));
+jest.mock("@/hooks/useTasks",          () => ({ useTasks:     (...a: any[]) => useTasksMock(...a) }));
 
 jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: (_: any, name: string) => function MockIcon() { return null; } })
@@ -38,18 +51,18 @@ jest.mock("components/upcoming-exams", () => ({
   UpcomingExams: () => <div>UpcomingExams</div>,
 }));
 
-jest.mock("@/src/components/coming-up-soon", () => ({
+jest.mock("@/components/coming-up-soon", () => ({
   ComingUpSoon: () => <div>ComingUpSoon</div>,
 }));
 
-jest.mock("@/src/components/profile/StatModules", () => ({
+jest.mock("@/components/profile/StatModules", () => ({
   ProfileStats: () => <div>ProfileStats</div>,
 }));
 
 // virtual so that true — file doesn't need to exist on disk
 jest.mock("../wellbeing/page", () => () => <div>WellbeingPage</div>, { virtual: true });
 
-jest.mock("@/src/components/wellbeing/wellbeing_panel", () => ({
+jest.mock("@/components/wellbeing/wellbeing_panel", () => ({
   __esModule: true,
   default: ({ children, open, onClose }: any) => (
     <div>
@@ -64,13 +77,14 @@ jest.mock("@/components/ui/rocket-progress", () => ({
   RocketProgress: ({ progress }: any) => <div data-testid="rocket">Rocket {progress}%</div>,
 }));
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
 // Page import — must come after all jest.mock calls
 import Page from "../page";
+import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
 
 const { useSession, signOut } = require("next-auth/react");
 

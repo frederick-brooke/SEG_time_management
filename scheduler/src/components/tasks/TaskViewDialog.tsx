@@ -16,6 +16,16 @@ interface TaskViewDialogProps {
   onReward?: (rewards: any) => void;
 }
 
+/**
+ * Read-only dialog displaying task details.
+ * @param {any | null} task The task to display.
+ * @param {boolean} isOpen Whether the dialog is visible or not.
+ * @param {Function} onClose Callback to close the dialog.
+ * @param {Function} onEdit Optional callback to open the edit dialog.
+ * @param {Function} getPriorityStyle Optional function to get priority badge styles.
+ * @param {Function} onReward Optional callback fired when XP rewards are received.
+ * @returns 
+ */
 export function TaskViewDialog({ 
   task, 
   isOpen, 

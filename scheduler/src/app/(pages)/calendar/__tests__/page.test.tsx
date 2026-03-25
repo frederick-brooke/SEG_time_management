@@ -24,21 +24,21 @@ jest.mock("@/lib/auth", () => ({
   authOptions: {},
 }));
 
-jest.mock("@/src/components/calendar/CalendarView", () => ({
+jest.mock("@/components/calendar/CalendarView", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => (
     <div data-testid="calendar-view" data-props={JSON.stringify(props)} />
   ),
 }));
 
-jest.mock("@/src/components/googleLinkButton", () => ({
+jest.mock("@/components/googleLinkButton", () => ({
   __esModule: true,
   default: ({ isConnected }: { isConnected: boolean }) => (
     <div data-testid="google-link-button" data-connected={String(isConnected)} />
   ),
 }));
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="lunar-theme-wrapper">{children}</div>

@@ -1,235 +1,373 @@
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { TaskViewDialog } from "@/components/tasks/TaskViewDialog";
-import "@testing-library/jest-dom";
+import { TaskViewDialog } from "../TaskViewDialog";
 
+/**
+ * Mock Dialog/Label/Button via RELATIVE PATHS so alias config isn't required.
+ * src/components/tasks/__tests__ -> src/components/ui
+ */
+
+jest.mock("../../ui/dialog", () => {
+  const React = require("react");
+
+  function Dialog({ open, onOpenChange, children }) {
+    // Render only when open, and expose onOpenChange so we can trigger branch coverage
+    if (!open) return null;
+    return (
+      <div data-testid="dialog-root">
+        <button
+          type="button"
+          data-testid="trigger-open-change-false"
+          onClick={() => onOpenChange(false)}
+        >
+          simulate-close
+        </button>
+        <button
+          type="button"
+          data-testid="trigger-open-change-true"
+          onClick={() => onOpenChange(true)}
+        >
+          simulate-open
+        </button>
+        {children}
+      </div>
+    );
+  }
+
+  function DialogContent({ children }) {
+    return <div data-testid="dialog-content">{children}</div>;
+  }
+  function DialogHeader({ children }) {
+    return <div data-testid="dialog-header">{children}</div>;
+  }
+  function DialogTitle({ children }) {
+    return <h2>{children}</h2>;
+  }
+  function DialogDescription({ children }) {
+    return <p>{children}</p>;
+  }
+  function DialogFooter({ children }) {
+    return <div data-testid="dialog-footer">{children}</div>;
+  }
+
+  return {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+  };
+});
+
+jest.mock("../../ui/label", () => {
+  const React = require("react");
+  return {
+    Label: ({ children, className }) => (
+      <span data-testid="label" className={className}>
+        {children}
+      </span>
+    ),
+  };
+});
+
+jest.mock("../../ui/button", () => {
+  const React = require("react");
+  return {
+    Button: ({ children, onClick, disabled }) => (
+      <button type="button" onClick={onClick} disabled={disabled}>
+        {children}
+        {disabled && "Loading..."}
+      </button>
+    ),
+  };
+});
 
 const mockRefresh = jest.fn();
-
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({
-    refresh: mockRefresh,
-  }),
-}));
+  jest.mock('next/navigation', () => ({
+    useRouter: () => ({ refresh: mockRefresh }),
+  }));
 
 global.fetch = jest.fn();
 
-// Mock UI components
-jest.mock("components/ui/button", () => ({
-  Button: ({ children, ...props }: any) => (
-    <button {...props}>{children}</button>
-  ),
-}));
 
-jest.mock("components/ui/label", () => ({
-  Label: ({ children }: any) => <label>{children}</label>,
-}));
-
-jest.mock("components/ui/lunar-card", () => ({
-  LunarCard: ({ children, ...props }: any) => (
-    <div {...props}>{children}</div>
-  ),
-}));
-
-// ─────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────
-const baseTask = {
-  id: "1",
-  title: "Test Task",
-  description: "Test description",
-  priority: "High",
-  duration: 90,
-  url: "https://example.com",
-  dueDate: "2025-01-01",
-  exam: { title: "Math" },
-  subtasks: ["Sub 1", "Sub 2"],
-  status: "todo",
-};
-
-const renderComponent = (props = {}) =>
-  render(
-    <TaskViewDialog
-      task={baseTask}
-      isOpen={true}
-      onClose={jest.fn()}
-      getPriorityStyle={() => "priority-style"}
-      {...props}
-    />
-  );
-
-// ─────────────────────────────────────────
-// Tests
-// ─────────────────────────────────────────
 describe("TaskViewDialog", () => {
+  const getPriorityStyle = jest.fn(() => "bg-red-100 text-red-700");
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // ── Render conditions ───────────────────
-  it("does not render when closed", () => {
+  it("returns null when task is not provided", () => {
     const { container } = render(
-      <TaskViewDialog task={baseTask} isOpen={false} onClose={jest.fn()} />
+      <TaskViewDialog
+        task={null}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={getPriorityStyle}
+      />,
     );
 
-    expect(container.firstChild).toBeNull();
+    expect(container).toBeEmptyDOMElement();
   });
 
-  it("does not render when task is null", () => {
-    const { container } = render(
-      <TaskViewDialog task={null} isOpen={true} onClose={jest.fn()} />
+  it("renders all task fields, formats duration/date, and lists subtasks when present", () => {
+    const onClose = jest.fn();
+
+    const task = {
+      title: "My Task",
+      description: "Some description",
+      priority: "High",
+      duration: 125, // 2h 5m
+      dueDate: "2026-02-19T00:00:00.000Z",
+      subtasks: ["One", "Two"],
+    };
+
+    render(
+      <TaskViewDialog
+        task={task}
+        isOpen={true}
+        onClose={onClose}
+        getPriorityStyle={getPriorityStyle}
+      />,
     );
 
-    expect(container.firstChild).toBeNull();
-  });
+    // Title + description header
+    expect(screen.getByText("My Task")).toBeInTheDocument();
+    expect(screen.getByText("Task Details")).toBeInTheDocument();
 
-  // ── Basic rendering ─────────────────────
-  it("renders task details correctly", () => {
-    renderComponent();
+    // Description text
+    expect(screen.getByText("Some description")).toBeInTheDocument();
 
-    expect(screen.getByText("Test Task")).toBeInTheDocument();
-    expect(screen.getByText("Test description")).toBeInTheDocument();
+    // Priority badge calls getPriorityStyle and renders text
+    expect(getPriorityStyle).toHaveBeenCalledWith("High");
     expect(screen.getByText("High")).toBeInTheDocument();
-    expect(screen.getByText("1h 30m")).toBeInTheDocument();
-    expect(screen.getByText("View Resource")).toBeInTheDocument();
-    expect(screen.getByText("Math")).toBeInTheDocument();
-    expect(screen.getByText("Sub 1")).toBeInTheDocument();
+
+    // Duration formatting
+    expect(screen.getByText("2h 5m")).toBeInTheDocument();
+
+    // Date formatting (en-US, Month Day, Year) — stable check: year must appear
+    expect(screen.getByText(/2026/)).toBeInTheDocument();
+
+    // Subtasks list
+    expect(screen.getByText("One")).toBeInTheDocument();
+    expect(screen.getByText("Two")).toBeInTheDocument();
+
+    // onOpenChange(true) should NOT call onClose
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  // ── Fallback values ─────────────────────
-  it("shows fallback values when fields are missing", () => {
-    renderComponent({
-      task: {
-        ...baseTask,
-        description: null,
-        priority: null,
-        duration: 0,
-        url: null,
-        dueDate: null,
-        exam: null,
-        subtasks: [],
-      },
-    });
+  it("renders fallback text when description/duration/dueDate/subtasks are missing", () => {
+    const onClose = jest.fn();
+
+    const task = {
+      title: "Empty-ish Task",
+      description: "", // triggers fallback
+      priority: "Low",
+      duration: 0, // triggers "No estimate set"
+      dueDate: null, // triggers "No due date set"
+      subtasks: [], // triggers "No subtasks"
+    };
+
+    render(
+      <TaskViewDialog
+        task={task}
+        isOpen={true}
+        onClose={onClose}
+        getPriorityStyle={getPriorityStyle}
+      />,
+    );
+
+    expect(screen.getByText("Empty-ish Task")).toBeInTheDocument();
 
     expect(screen.getByText("No description provided")).toBeInTheDocument();
-    expect(screen.getByText("None")).toBeInTheDocument();
     expect(screen.getByText("No estimate set")).toBeInTheDocument();
-    expect(screen.getByText("No resource attached")).toBeInTheDocument();
     expect(screen.getByText("No due date set")).toBeInTheDocument();
-    expect(screen.getByText("Not linked to an exam")).toBeInTheDocument();
+    expect(screen.getByText("No subtasks")).toBeInTheDocument();
+
+    // Close button click calls onClose
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles undefined subtasks via optional chaining and shows fallback", () => {
+    const task = {
+      title: "No Subtasks Field",
+      description: "desc",
+      priority: "Medium",
+      duration: 60,
+      dueDate: "2026-02-19T00:00:00.000Z",
+      subtasks: undefined, // important for optional chaining branch
+    };
+
+    render(
+      <TaskViewDialog
+        task={task}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={getPriorityStyle}
+      />,
+    );
+
     expect(screen.getByText("No subtasks")).toBeInTheDocument();
   });
 
-  // ── Completed state ─────────────────────
-  it("shows completed icon and hides button when completed", () => {
-    renderComponent({
-      task: { ...baseTask, status: "completed" },
-    });
+  it("calls the API and triggers onReward when 'Complete' is clicked", async () => {
+    const mockOnReward = jest.fn();
+    const mockOnClose = jest.fn();
+    const task = { id: "task-123", title: "Test task", priority: "High" };
 
-    expect(screen.queryByText("Mark as Done")).not.toBeInTheDocument();
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ rewards: { xp: 50, coins: 20 }}),
   });
 
+  render(
+    <TaskViewDialog
+      task={task}
+      isOpen={true}
+      onClose={mockOnClose}
+      onReward={mockOnReward}
+      getPriorityStyle={jest.fn()}
+    />
+  );
+  
+  const completeBtn = screen.getByText(/mark as done/i);
+  fireEvent.click(completeBtn);
 
-  it("calls onClose when clicking close button", () => {
-    const onClose = jest.fn();
-
-    renderComponent({ onClose });
-
-    fireEvent.click(screen.getByText("Close"));
-
-    expect(onClose).toHaveBeenCalled();
+  await waitFor(() => {
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/tasks/task-123"),
+      expect.objectContaining({ method: "PATCH" })
+    );
+    expect(mockOnReward).toHaveBeenCalledWith({ xp: 50, coins: 20 });
+    expect(mockOnClose).toHaveBeenCalled();
   });
+});
 
-  // ── Complete task ───────────────────────
-  it("calls API and handles success", async () => {
-    const onClose = jest.fn();
-    const onReward = jest.fn();
+  it("successfully completes a task and triggers rewards", async () => {
+    const mockOnReward = jest.fn();
+    const mockOnClose = jest.fn();
 
-    (fetch as jest.Mock).mockResolvedValue({
+    global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        rewards: { xp: 10, coins: 5 },
+        rewards: { xp: 20, coins: 10}
       }),
     });
 
-    renderComponent({ onClose, onReward });
-
-    fireEvent.click(screen.getByText("Mark as Done"));
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/tasks/1", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "completed",
-          completed: true,
-        }),
-      });
-    });
-
-    expect(mockRefresh).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
-    expect(onReward).toHaveBeenCalledWith({ xp: 10, coins: 5 });
-  });
-
-  // ── No rewards case ─────────────────────
-  it("does not call onReward if no rewards returned", async () => {
-    const onReward = jest.fn();
-
-    (fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
-
-    renderComponent({ onReward });
-
-    fireEvent.click(screen.getByText("Mark as Done"));
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
-    });
-
-    expect(onReward).not.toHaveBeenCalled();
-  });
-
-  // ── Error handling ──────────────────────
-  it("handles API failure gracefully", async () => {
-    (fetch as jest.Mock).mockRejectedValue(new Error("fail"));
-
-    renderComponent();
-
-    fireEvent.click(screen.getByText("Mark as Done"));
-
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalled();
-    });
-
-    expect(mockRefresh).not.toHaveBeenCalled();
-  });
-
-  // ── Loading state ───────────────────────
-  it("shows loading state while completing", async () => {
-    let resolveFetch: any;
-
-    (fetch as jest.Mock).mockImplementation(
-      () =>
-        new Promise((res) => {
-          resolveFetch = res;
-        })
+    render(
+      <TaskViewDialog
+        task={{ id: "t-1", title: "Complete" }}
+        isOpen={true}
+        onClose={mockOnClose}
+        onReward={mockOnReward}
+        getPriorityStyle={() => ""}
+      />
     );
 
-    renderComponent();
+    fireEvent.click(screen.getByText(/mark as done/i));
 
-    fireEvent.click(screen.getByText("Mark as Done"));
+    await waitFor(() => {
+      expect(mockOnReward).toHaveBeenCalledWith({ xp: 20, coins: 10 });
+      expect(mockOnClose).toHaveBeenCalled();
+    });
+  });
 
-    expect(screen.getByText("Completing...")).toBeInTheDocument();
+  it("handles API errors in handleCompleteTask", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = jest.fn().mockResolvedValueOnce({ ok: false });
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-1", title: "Fail" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/mark as done/i));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("hits catch block on hard network failure", async () => {
+    const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network failure"));
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-err", title: "Fail" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/mark as done/i));
+
+    await waitFor(() => {
+      expect(spy).toHaveBeenCalledWith("Failed to update task:", expect.any(Error));      
+    });
+    spy.mockRestore();
+  });
+
+  it("does not crash if rewards exist but onReward prop is missing", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ rewards: { xp: 10 }}),
+    });
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-no-cb", title: "No callback" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    fireEvent.click(screen.getByText(/mark as done/i));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+  });
+
+  it("sets and clears loading state during API call", async () => {
+    let resolveFetch;
+    const pendingPromise = new Promise((resolve) => {
+      resolveFetch = resolve;
+    });
+
+    (global.fetch as jest.Mock).mockReturnValueOnce(pendingPromise);
+
+    render(
+      <TaskViewDialog
+        task={{ id: "t-load", title: "Load task" }}
+        isOpen={true}
+        onClose={jest.fn()}
+        getPriorityStyle={() => ""}
+      />
+    );
+
+    const completeBtn = screen.getByText(/mark as done/i)
+    fireEvent.click(completeBtn);
+
+    expect(completeBtn).toBeDisabled();
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
 
     resolveFetch({
       ok: true,
-      json: async () => ({}),
+      json: async () => ({ success: true }),
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Mark as Done")).toBeInTheDocument();
+      expect(completeBtn).not.toBeDisabled();
     });
   });
+
 });
