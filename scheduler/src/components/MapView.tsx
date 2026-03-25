@@ -1,20 +1,24 @@
 "use client";
 
-/**
- * All logic has moved to src/components/map/ and src/lib/map/.
- */
 import dynamic from "next/dynamic";
 import { MapEvent } from "@/lib/map";
 
 interface MapViewProps {
   events: MapEvent[];
+  // userLocation is still here in the interface if other parts of your app 
+  // need it, but we won't pass it to the child component below.
   userLocation?: { lat: number; lng: number } | null;
 }
 
 const MapView = dynamic<MapViewProps>(
   () => import("@/components/map/CombinedMap").then((m) => ({
-    default: ({ events, userLocation }: MapViewProps) => (
-      <m.CombinedMap friends={[]} events={events} userLocation={userLocation} defaultMode="events" />
+    // Removed 'userLocation' from the destructured props and the component call
+    default: ({ events }: MapViewProps) => (
+      <m.CombinedMap 
+        friends={[]} 
+        events={events} 
+        defaultMode="events" 
+      />
     ),
   })),
   {
