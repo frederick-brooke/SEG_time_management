@@ -38,7 +38,6 @@ const makeProfile = (overrides: any = {}) => ({
 describe("ProfileStats", () => {
   
   /**
-   * TEST 1: Fallback/Empty State
    * Ensures the component doesn't crash if the backend returns a completely empty profile
    * without progress or stats objects, and correctly falls back to Level 1 and 0 values.
    */
@@ -56,7 +55,6 @@ describe("ProfileStats", () => {
   });
 
   /**
-   * TEST 2: Standard Data Rendering
    * Ensures that when standard data is passed in, the Streak and Success Rate 
    * cards display the exact numbers provided by the profile object.
    */
@@ -73,7 +71,6 @@ describe("ProfileStats", () => {
   });
 
   /**
-   * TEST 3: Mid-Level Math Logic
    * Ensures the component correctly calculates how much XP is left to the next level 
    * when the user is partially through a level (e.g., Level 3, 250 total points).
    */
@@ -92,7 +89,6 @@ describe("ProfileStats", () => {
   });
 
   /**
-   * TEST 4: Exact Level Boundary Logic
    * Ensures the math doesn't break when a user lands exactly on a level boundary 
    * (e.g., exactly 300 points), which should mean 0 progress into the level and 100 XP to the next.
    */

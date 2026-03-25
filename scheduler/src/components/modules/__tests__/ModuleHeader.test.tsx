@@ -64,7 +64,6 @@ describe('ModuleHeader Component', () => {
     expect(screen.getByText('Advanced Algorithms')).toBeInTheDocument();
     expect(screen.getByText('A very hard module.')).toBeInTheDocument();
     expect(screen.getByText(/42\/100 members/i)).toBeInTheDocument();
-    // FIXED: Text was updated in the component to just "by @"
     expect(screen.getByText('by @dr_smith')).toBeInTheDocument();
   });
 
@@ -89,7 +88,7 @@ describe('ModuleHeader Component', () => {
     expect(screen.queryByText('Leave Module')).not.toBeInTheDocument();
   });
 
-  // NEW TEST: Verifies Admins get the hybrid button state
+  // Verifies Admins get the hybrid button state
   it('renders Admin actions (Create buttons AND Leave button) when user is Admin', () => {
     render(
       <ModuleHeader 

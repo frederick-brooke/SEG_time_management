@@ -4,12 +4,52 @@ import { X } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { updateProfile } from "@/src/app/actions/profile";
 
+// types
+interface EditProfileFormProps {
+  profile: any;
+  onClose: () => void;
+}
+
+interface FormInputProps {
+  id: string;
+  label: string;
+  defaultValue: string;
+  isTextArea?: boolean;
+}
+
+// components
+
 /**
- * Submit button that handles pending state automatically.
- * @param {object} props - Component props.
- * @param {string} props.text - Default button text.
- * @param {string} props.loadingText - Text shown while submitting.
- * @return {JSX.Element} Submit button.
+ * Reusable form input unit to maintain DRY markup.
+ */
+function FormInput({ id, label, defaultValue, isTextArea = false }: FormInputProps) {
+  const commonClasses = "lunar-input w-full p-2.5 rounded-xl";
+  
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="lunar-label">{label}</label>
+      {isTextArea ? (
+        <textarea
+          id={id}
+          name={id}
+          defaultValue={defaultValue}
+          className={`${commonClasses} h-24 resize-none`}
+          placeholder="Tell us a bit about yourself..."
+        />
+      ) : (
+        <input
+          id={id}
+          name={id}
+          defaultValue={defaultValue}
+          className={commonClasses}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Submit button that automatically handles React's pending form state.
  */
 function SubmitButton({ text, loadingText }: { text: string; loadingText: string }) {
   const { pending } = useFormStatus();
@@ -26,12 +66,10 @@ function SubmitButton({ text, loadingText }: { text: string; loadingText: string
 
 /**
  * Renders the inline form to edit user profile details.
- * @param {object} props - Component props.
- * @param {any} props.profile - The user's current profile data.
- * @param {Function} props.onClose - Callback to close the form.
+ * * @param {EditProfileFormProps} props - Component props.
  * @return {JSX.Element} The profile editing form.
  */
-export default function EditProfileForm({ profile, onClose }: { profile: any; onClose: () => void }) {
+export default function EditProfileForm({ profile, onClose }: EditProfileFormProps) {
   return (
     <div className="lunar-card p-6 mt-2 animate-in fade-in slide-in-from-top-2">
       <div className="flex justify-between items-center mb-6">
@@ -43,36 +81,11 @@ export default function EditProfileForm({ profile, onClose }: { profile: any; on
 
       <form action={updateProfile} className="space-y-4" onSubmit={() => setTimeout(onClose, 500)}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label htmlFor="fname" className="lunar-label">First Name</label>
-            <input
-              id="fname"
-              name="fname"
-              defaultValue={profile.fname || ""}
-              className="lunar-input w-full p-2.5 rounded-xl"
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="lname" className="lunar-label">Last Name</label>
-            <input
-              id="lname"
-              name="lname"
-              defaultValue={profile.lname || ""}
-              className="lunar-input w-full p-2.5 rounded-xl"
-            />
-          </div>
+          <FormInput id="fname" label="First Name" defaultValue={profile.fname || ""} />
+          <FormInput id="lname" label="Last Name" defaultValue={profile.lname || ""} />
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="bio" className="lunar-label">Bio</label>
-          <textarea
-            id="bio"
-            name="bio"
-            defaultValue={profile.bio || ""}
-            className="lunar-input w-full p-2.5 rounded-xl h-24 resize-none"
-            placeholder="Tell us a bit about yourself..."
-          />
-        </div>
+        <FormInput id="bio" label="Bio" defaultValue={profile.bio || ""} isTextArea />
 
         <div className="flex justify-end pt-2">
           <SubmitButton text="Save Changes" loadingText="Saving..." />
