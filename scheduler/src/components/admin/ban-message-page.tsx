@@ -6,12 +6,13 @@ import { AlertTriangle, ShieldOff, X } from "lucide-react";
 import { LunarCard } from "@/components/ui/lunar-card";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { useSession } from "next-auth/react";
-const { data: session, update } = useSession();
+
 
 export default function BannedPage() {
-  const [banInfo, setBanInfo]       = useState(null);
-  const [showAppeal, setShowAppeal] = useState(false);
-
+	const [banInfo, setBanInfo]       = useState(null);
+	const [showAppeal, setShowAppeal] = useState(false);
+	const { data: session, update } = useSession();
+	
   useEffect(() => {
     async function fetchBanInfo() {
       try {
