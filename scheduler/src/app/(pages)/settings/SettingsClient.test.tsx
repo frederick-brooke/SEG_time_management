@@ -26,6 +26,10 @@ const defaultUser = {
   email: 'test@test.com',
   hasPassword: true,
   hasGoogleConnected: false,
+  location: { lat: 40.7128, lng: -74.0060 }, // Example: New York City
+  city: 'New York',
+  country: 'United States',
+  locationHidden: false,
   preferences: {
     workStartTime: '09:00',
     workEndTime: '17:00',
