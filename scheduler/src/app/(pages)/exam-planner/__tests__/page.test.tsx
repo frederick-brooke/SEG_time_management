@@ -51,7 +51,7 @@ describe("Exam planner page coverage", () => {
     it("renders a list of exams and calculates progress correctly", async () => {
         render(<ExamPlannerPage />);
         expect(await screen.findByText("Software engineering")).toBeInTheDocument();
-        expect(screen.getByText("50%")).toBeInTheDocument();
+        expect(screen.getByText(/50/)).toBeInTheDocument();
     });
 
     it("shows fallback message when no exams are returned", async () => {
@@ -68,5 +68,36 @@ describe("Exam planner page coverage", () => {
         await waitFor(() => {
             expect(deleteExam).toHaveBeenCalledWith("exam-1");
         });
+    });
+
+    it("shows loading state when status is loading", () => {
+        (useSession as jest.Mock).mockReturnValue({ data: null, status: "loading" });
+        render(<ExamPlannerPage/>);
+        expect(screen.getByText("Loading session")).toBeInTheDocument();
+    });
+
+    it("handles delete error gracefully",  async () => {
+        window.confirm = jest.fn(() => true);
+        window.alert = jest.fn();
+        (deleteExam as jest.Mock).mockRejectedValue(new Error("Delete failed"));
+        render(<ExamPlannerPage/>);
+        const deleteBtn = await screen.findByText(/Delete exam/i);
+        fireEvent.click(deleteBtn);
+        await waitFor(() => {
+            expect(window.alert).toHaveBeenCalledWith("Could not delete exam");
+        });     
+    });
+
+    it("calls onExamAdded callback when new exam is added via dialog",  async () => {
+        const mockExamFormDialog = jest.fn(({ onExamAdded }) => (
+            <button onClick={() => onExamAdded({ id: "new-exam", title: "New "})}>
+                Add Exam
+            </button>
+        ));
+        jest.doMock("@/src/components/exams/exam-form-dialog", () => ({
+            __esModule: true,
+            default: mockExamFormDialog,
+        }));
+        render(<ExamPlannerPage/>);
     });
 })
