@@ -5,6 +5,7 @@ import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { LeaderboardUser } from '@/types/leaderboard';
 
 /**interface LeaderboardUser {
   id: string;

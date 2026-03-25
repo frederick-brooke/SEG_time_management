@@ -2,6 +2,7 @@ import { authOptions, authorizeUser } from './auth';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 
+
 jest.mock('@next-auth/prisma-adapter', () => ({
   PrismaAdapter: jest.fn()
 }));
