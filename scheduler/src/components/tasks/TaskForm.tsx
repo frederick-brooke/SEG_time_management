@@ -215,10 +215,9 @@ export function TaskForm({
               <Label htmlFor="exam-link" className="lunar-label">Link to Exam (Optional)</Label>
               <Select
                 value={formData.examId || "none"}
-                onValueChange={(value) => onFormChange({ examId: value })}
-                className="lunar-select-trigger"
+                onValueChange={(value) => onFormChange({ examId: value })}                
               >
-                <SelectTrigger id="exam-link" className="lunar-input">
+                <SelectTrigger id="exam-link" className="lunar-input lunar-select-trigger">
                   <SelectValue placeholder="Select and exam"/>
                 </SelectTrigger>
                 <SelectContent className="lunar-select-content z-[9999]">
