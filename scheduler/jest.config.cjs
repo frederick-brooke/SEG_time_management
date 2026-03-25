@@ -3,6 +3,12 @@ const createJestConfig = nextJest({ dir: "./" });
 
 const customJestConfig = {
   testEnvironment: "jsdom",
+  collectCoverage: true,
+  collectCoverageFrom: [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/**/types.ts"
+  ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   forceExit: true,
   maxWorkers: 1,
@@ -11,7 +17,7 @@ const customJestConfig = {
   ], 
   
   moduleNameMapper: {
-    "^@/src/(.*)$": "<rootDir>/src/$1",
+    "^@/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^components/(.*)$": "<rootDir>/src/components/$1",
     "\\.module\\.css$": "identity-obj-proxy",

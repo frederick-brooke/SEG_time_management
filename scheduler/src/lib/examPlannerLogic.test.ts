@@ -12,7 +12,7 @@ describe('Exam Planner Suite', () => {
         expect(result).toHaveLength(3);
 
         const dateStrings = result.map(d => d.toDateString());
-        expect(dateStrings).not.toContain(new Date('2026=03-02').toDateString());
+        expect(dateStrings).not.toContain(new Date('2026-03-02').toDateString());
         expect(dateStrings).toContain(new Date('2026-03-01').toDateString());
     });
 

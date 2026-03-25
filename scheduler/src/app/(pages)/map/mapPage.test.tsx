@@ -11,16 +11,16 @@ jest.mock("next-auth/next", () => ({
   getServerSession: (...args: any[]) => mockGetServerSession(...args),
 }));
 
-jest.mock("@/src/lib/auth", () => ({ authOptions: {} }));
+jest.mock("@/lib/auth", () => ({ authOptions: {} }));
 
-jest.mock("@/src/lib/prisma", () => ({
+jest.mock("@/lib/prisma", () => ({
   prisma: {
     event: { findMany: (...args: any[]) => mockFindMany(...args) },
   },
 }));
 
 // Renders a minimal stand-in so tests aren't coupled to map implementation details
-jest.mock("@/src/components/MapView", () => ({
+jest.mock("@/components/MapView", () => ({
   __esModule: true,
   default: ({ events }: { events: any[] }) => (
     <div data-testid="map-view" data-count={events.length} />

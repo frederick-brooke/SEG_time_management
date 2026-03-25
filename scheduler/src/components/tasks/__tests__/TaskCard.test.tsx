@@ -29,7 +29,7 @@ jest.mock("components/ui/checkbox", () => ({
   ),
 }));
 
-jest.mock("@/src/components/task-actions", () => ({
+jest.mock("@/components/task-actions", () => ({
   TaskActions: ({ onView, onEdit, onDelete, canDelete }: any) => (
     <div>
       <button onClick={onView}>View</button>
@@ -39,7 +39,7 @@ jest.mock("@/src/components/task-actions", () => ({
   ),
 }));
 
-jest.mock("@/src/lib/priority", () => ({
+jest.mock("@/lib/priority", () => ({
   getPriorityStyle: (p: string) => `priority-${p}`,
 }));
 

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { createNotification } from "../app/actions/notifications";
-import { NotificationType } from "@prisma/client";
+import { notifyTaskSaved } from "../lib/taskNotifications";
 
-export function useTasks(userId) {
+export function useTasks(userId: string | undefined) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -82,7 +81,6 @@ export function useTasks(userId) {
   };
 
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {
-    console.log("toggleTaskStatus called", taskId, forcedStatus); 
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return null;
   
@@ -100,7 +98,6 @@ export function useTasks(userId) {
     });
   
     const data = await res.json();
-    console.log("toggle response:", data); // ← temp, remove later
   
     setTasks(prev => prev.map((t) => t.id === taskId ? { ...t, status: nextStatus, completed: nextStatus === "completed" } : t));
     return data.rewards ?? null;
@@ -176,14 +173,7 @@ export function useTasks(userId) {
         await createTask(taskData);
       }
 
-      await createNotification(
-        userId,
-        editingTaskId ? "Task Updated" : "Task Created",
-        editingTaskId
-          ? `"${taskData.title}" has been updated.`
-          : `"${taskData.title}" has been added to your tasks.`,
-        editingTaskId ? NotificationType.INFO : NotificationType.SUCCESS
-      );
+      await notifyTaskSaved(userId, taskData.title, editingTaskId !== null);
 
       setIsDialogOpen(false);
       resetForm();

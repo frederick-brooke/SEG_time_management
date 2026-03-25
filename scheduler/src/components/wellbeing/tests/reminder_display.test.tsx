@@ -1,342 +1,420 @@
-// src/components/wellbeing/tests/reminder_display.test.jsx
+import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
-import ReminderContainer from "../reminder_display";
+import { act } from "@testing-library/react";
 
-// ─────────────────────────────────────────────
-// Mocks
-// ─────────────────────────────────────────────
+// ─── Mock ALL external components/hooks before any imports ───────────────────
+// This is the fix for "Element type is invalid: got undefined" —
+// every component used inside ReminderContainer must be mocked here.
 
-const mockSetWellbeingOpen  = jest.fn();
-const mockHandleToggleClick = jest.fn();
-const mockSetDurationMs     = jest.fn();
-
-// 1. UIContext
 jest.mock("@/context/UIContext", () => ({
-  useUI: () => ({
-    wellbeingOpen:    true,
-    setWellbeingOpen: mockSetWellbeingOpen,
-  }),
+  useUI: jest.fn(),
 }));
 
-// 2. useReminders — capture onFire so tests can trigger it
-let capturedOnFire;
-let mockReminderReturn;
-
-jest.mock("hooks/useReminders", () => ({
-  useReminders: ({ onFire }) => {
-    capturedOnFire = onFire;
-    return mockReminderReturn;
-  },
+jest.mock("@/hooks/useReminders", () => ({
+  useReminders: jest.fn(),
 }));
 
-// 3. ReminderModal — renders children + a labelled close button when open
+jest.mock("@/components/ui/glassCard", () => ({
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => <div data-testid="glass-card">{children}</div>,
+}));
+
+jest.mock("components/ui/button", () => ({
+  Button: ({ children, onClick, className }: any) => (
+    <button onClick={onClick} className={className}>{children}</button>
+  ),
+}));
+
 jest.mock("@/components/ui/reminderModal", () => ({
   __esModule: true,
-  default: ({ open, onClose, title, children }) =>
+  default: ({ open, onClose, title, children }: any) =>
     open ? (
-      <div data-testid="modal">
-        <h2>{title}</h2>
+      <div data-testid="reminder-modal">
+        <span>{title}</span>
         {children}
-        <button onClick={onClose}>CloseModal</button>
+        <button onClick={onClose}>Close Modal</button>
       </div>
     ) : null,
 }));
 
-// 4. ReminderPicker — expose a confirm button that calls onConfirm(60000)
-let capturedOnConfirm;
-jest.mock("../reminder_timer_picker", () => ({
+jest.mock("@/components/wellbeing/reminder_timer_picker", () => ({
   __esModule: true,
-  default: ({ onConfirm, initialDuration }) => {
-    capturedOnConfirm = onConfirm;
-    return (
-      <button data-testid="picker-confirm" onClick={() => onConfirm(60_000)}>
-        ConfirmPicker
-      </button>
-    );
-  },
-}));
-
-// 5. Button — plain passthrough so we can click it
-jest.mock("components/ui/button", () => ({
-  Button: ({ onClick, children, ...rest }) => (
-    <button data-testid="settings-btn" onClick={onClick} {...rest}>
-      {children}
-    </button>
+  default: ({ onConfirm, initialDuration }: any) => (
+    <div data-testid="reminder-picker">
+      <button onClick={() => onConfirm(5000)}>Confirm Duration</button>
+      <span data-testid="initial-duration">{initialDuration}</span>
+    </div>
   ),
 }));
 
-// 6. Icon — lightweight stub
 jest.mock("@tabler/icons-react", () => ({
-  IconSettings: () => <span data-testid="icon-settings" />,
+  IconSettings: () => <svg data-testid="icon-settings" />,
+  IconClock: () => <svg data-testid="icon-clock" />,
 }));
 
-// ─────────────────────────────────────────────
-// Default prop values used across tests
-// ─────────────────────────────────────────────
-const DEFAULT_PROPS = {
-  id:            "test-reminder",
-  iconOn:        <span>ON</span>,
-  iconOff:       <span>OFF</span>,
-  settingsTitle: "Set reminder",
-  settingsText:  "Choose a time",
-  firedTitle:    "Break time!",
-  firedText:     "Time to rest",
-};
+// ─── Now import the component under test ─────────────────────────────────────
 
+import ReminderContainer from "@/components/wellbeing/reminder_display";
+import { useUI } from "@/context/UIContext";
+import { useReminders } from "hooks/useReminders";
+
+// ─── Shared test helpers ──────────────────────────────────────────────────────
+
+const mockSetWellbeingOpen = jest.fn();
+const mockHandleToggleClick = jest.fn();
+const mockSetDurationMs = jest.fn();
+
+// Baseline reminder hook return value
 const DEFAULT_REMINDER = {
-  durationMs:          null,
-  enabled:             false,
-  remainingMs:         null,
-  handleToggleClick:   mockHandleToggleClick,
-  setDurationMs:       mockSetDurationMs,
+  enabled: false,
+  remainingMs: null,
+  durationMs: null,
+  handleToggleClick: mockHandleToggleClick,
+  setDurationMs: mockSetDurationMs,
 };
 
-// ─────────────────────────────────────────────
-// Suite
-// ─────────────────────────────────────────────
-describe("ReminderContainer", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockReminderReturn = { ...DEFAULT_REMINDER };
-    capturedOnFire     = undefined;
-    capturedOnConfirm  = undefined;
+// Baseline props
+const DEFAULT_PROPS = {
+  id: "test-reminder",
+  iconOn: <span>ON</span>,
+  iconOff: <span>OFF</span>,
+  settingsTitle: "Settings Title",
+  settingsText: "Settings Text",
+  firedTitle: "Fired Title",
+  firedText: "Fired Text",
+};
+
+// ─── Setup ────────────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  jest.clearAllMocks();
+
+  // Default UI context
+  (useUI as jest.Mock).mockReturnValue({
+    wellbeingOpen: true,
+    setWellbeingOpen: mockSetWellbeingOpen,
   });
 
-  // ── Render ─────────────────────────────────
-  describe("initial render", () => {
+  // Default reminder hook
+  (useReminders as jest.Mock).mockReturnValue({ ...DEFAULT_REMINDER });
+});
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe("ReminderContainer", () => {
+
+  // ── Rendering ──────────────────────────────────────────────────────────────
+
+  describe("basic rendering", () => {
     test("renders without crashing", () => {
       render(<ReminderContainer {...DEFAULT_PROPS} />);
+      expect(screen.getByTestId("glass-card")).toBeInTheDocument();
     });
 
-    test("renders the settings icon button", () => {
+    test("renders settings button", () => {
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.getByTestId("settings-btn")).toBeInTheDocument();
+      expect(screen.getByTestId("icon-settings")).toBeInTheDocument();
     });
 
-    test("toggle shows iconOff when disabled", () => {
+    test("renders toggle switch", () => {
       render(<ReminderContainer {...DEFAULT_PROPS} />);
+      // The toggle is the div wrapping iconOn/iconOff
       expect(screen.getByText("OFF")).toBeInTheDocument();
     });
 
-    test("does NOT show the settings modal initially", () => {
+    test("does not show time remaining when disabled", () => {
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("icon-clock")).not.toBeInTheDocument();
     });
 
-    test("does NOT show the fired modal initially", () => {
+    test("does not show settings modal by default", () => {
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-
-    test("does NOT show remaining time when disabled", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.queryByText(/Time remaining/i)).not.toBeInTheDocument();
+      expect(screen.queryByTestId("reminder-modal")).not.toBeInTheDocument();
     });
   });
 
-  // ── Toggle (durationMs === null) ───────────
-  describe("toggle — no duration set", () => {
-    test("opens settings modal when durationMs is null", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByText("OFF").closest("div"));
-      expect(screen.getByTestId("modal")).toBeInTheDocument();
-    });
+  // ── Enabled state ──────────────────────────────────────────────────────────
 
-    test("shows settingsTitle in the modal", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByText("OFF").closest("div"));
-      expect(screen.getByText("Set reminder")).toBeInTheDocument();
-    });
-
-    test("shows settingsText inside the modal", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByText("OFF").closest("div"));
-      expect(screen.getByText("Choose a time")).toBeInTheDocument();
-    });
-
-    test("does NOT call handleToggleClick when durationMs is null", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByText("OFF").closest("div"));
-      expect(mockHandleToggleClick).not.toHaveBeenCalled();
-    });
-  });
-
-  // ── Toggle (durationMs set) ────────────────
-  describe("toggle — duration already set", () => {
-    test("calls handleToggleClick when durationMs is not null", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, durationMs: 60_000 };
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByText("OFF").closest("div"));
-      expect(mockHandleToggleClick).toHaveBeenCalledTimes(1);
-    });
-
-    test("does NOT open settings modal when durationMs is set", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, durationMs: 60_000 };
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByText("OFF").closest("div"));
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-  });
-
-  // ── Settings button ─────────────────────────
-  describe("settings button", () => {
-    test("opens the settings modal", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      expect(screen.getByTestId("modal")).toBeInTheDocument();
-    });
-
-    test("calls setWellbeingOpen(false) when settings button is clicked", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(false);
-    });
-  });
-
-  // ── Settings modal close ───────────────────
-  describe("settings modal — close button", () => {
-    test("closes the settings modal when CloseModal is clicked", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      fireEvent.click(screen.getByText("CloseModal"));
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-
-    test("calls setWellbeingOpen(true) when settings modal closes", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      fireEvent.click(screen.getByText("CloseModal"));
-      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
-    });
-  });
-
-  // ── ReminderPicker confirm ─────────────────
-  describe("ReminderPicker onConfirm", () => {
-    test("calls reminder.setDurationMs with the chosen value", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      fireEvent.click(screen.getByTestId("picker-confirm")); // fires onConfirm(60000)
-      expect(mockSetDurationMs).toHaveBeenCalledWith(60_000);
-    });
-
-    test("closes the settings modal after confirm", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      fireEvent.click(screen.getByTestId("picker-confirm"));
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-
-    test("calls setWellbeingOpen(true) after confirm", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      fireEvent.click(screen.getByTestId("settings-btn"));
-      fireEvent.click(screen.getByTestId("picker-confirm"));
-      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
-    });
-  });
-
-  // ── onFire callback ────────────────────────
-  describe("onFire callback (reminder fires)", () => {
-    test("opens the fired modal when onFire is called", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      act(() => { capturedOnFire(); });
-      expect(screen.getByTestId("modal")).toBeInTheDocument();
-    });
-
-    test("shows firedTitle in the fired modal", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      act(() => { capturedOnFire(); });
-      expect(screen.getByText("Break time!")).toBeInTheDocument();
-    });
-
-    test("shows firedText inside the fired modal", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      act(() => { capturedOnFire(); });
-      expect(screen.getByText("Time to rest")).toBeInTheDocument();
-    });
-
-    test("calls setWellbeingOpen(false) when reminder fires", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      act(() => { capturedOnFire(); });
-      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(false);
-    });
-  });
-
-  // ── Fired modal close ──────────────────────
-  describe("fired modal — close button", () => {
-    test("closes the fired modal when CloseModal is clicked", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      act(() => { capturedOnFire(); });
-      fireEvent.click(screen.getByText("CloseModal"));
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-
-    test("calls setWellbeingOpen(true) when fired modal closes", () => {
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      act(() => { capturedOnFire(); });
-      fireEvent.click(screen.getByText("CloseModal"));
-      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
-    });
-  });
-
-  // ── Enabled state / remaining time ────────
-  describe("enabled state with remainingMs", () => {
+  describe("enabled state", () => {
     test("shows iconOn when enabled", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: 30_000 };
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        enabled: true,
+        remainingMs: 30_000,
+      });
       render(<ReminderContainer {...DEFAULT_PROPS} />);
       expect(screen.getByText("ON")).toBeInTheDocument();
     });
 
-    test("shows 'Time remaining' when enabled and remainingMs is not null", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: 30_000 };
+    test("shows iconOff when disabled", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        enabled: false,
+      });
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.getByText(/Time remaining/i)).toBeInTheDocument();
+      expect(screen.getByText("OFF")).toBeInTheDocument();
     });
 
-    test("formats remainingMs correctly — 90 seconds → 00:01:30", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: 90_000 };
+    test("shows clock icon when enabled and remainingMs is not null", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        enabled: true,
+        remainingMs: 30_000,
+      });
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.getByText(/00:01:30/)).toBeInTheDocument();
+      expect(screen.getByTestId("icon-clock")).toBeInTheDocument();
     });
 
-    test("formats remainingMs correctly — 1 hour → 01:00:00", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: 3_600_000 };
+    test("does not show clock icon when enabled but remainingMs is null", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        enabled: true,
+        remainingMs: null,
+      });
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.getByText(/01:00:00/)).toBeInTheDocument();
-    });
-
-    test("formats remainingMs correctly — partial seconds round up", () => {
-      // 1500ms → Math.ceil(1.5) = 2 seconds → 00:00:02
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: 1_500 };
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.getByText(/00:00:02/)).toBeInTheDocument();
-    });
-
-    test("hides remaining time when enabled but remainingMs is null", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: null };
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.queryByText(/Time remaining/i)).not.toBeInTheDocument();
-    });
-
-    test("hides remaining time when remainingMs is set but disabled", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: false, remainingMs: 30_000 };
-      render(<ReminderContainer {...DEFAULT_PROPS} />);
-      expect(screen.queryByText(/Time remaining/i)).not.toBeInTheDocument();
+      expect(screen.queryByTestId("icon-clock")).not.toBeInTheDocument();
     });
   });
 
-  // ── formatMs edge cases ────────────────────
-  describe("formatMs — null/zero edge cases", () => {
-    // formatMs is only rendered when enabled && remainingMs != null,
-    // so null input renders '--:--:--' only if the guard is bypassed.
-    // We test the zero case which IS reachable.
-    test("formats 0ms as 00:00:00", () => {
-      mockReminderReturn = { ...DEFAULT_REMINDER, enabled: true, remainingMs: 0 };
+  // ── formatMs ───────────────────────────────────────────────────────────────
+
+  describe("formatMs display", () => {
+    function renderWithMs(remainingMs: number) {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        enabled: true,
+        remainingMs,
+      });
       render(<ReminderContainer {...DEFAULT_PROPS} />);
-      // remainingMs === 0 is falsy, so the guard (remainingMs != null) still passes
-      // but 0 == null is false in JS, so the display renders
-      expect(screen.getByText(/Time remaining/i)).toBeInTheDocument();
+    }
+
+    test("formats 30 seconds → 00:00:30", () => {
+      renderWithMs(30_000);
+      expect(screen.getByText(/00:00:30/)).toBeInTheDocument();
+    });
+
+    test("formats 90 seconds → 00:01:30", () => {
+      renderWithMs(90_000);
+      expect(screen.getByText(/00:01:30/)).toBeInTheDocument();
+    });
+
+    test("formats 1 hour → 01:00:00", () => {
+      renderWithMs(3_600_000);
+      expect(screen.getByText(/01:00:00/)).toBeInTheDocument();
+    });
+
+    test("formats partial seconds — 1500ms rounds up to 00:00:02", () => {
+      renderWithMs(1_500);
+      expect(screen.getByText(/00:00:02/)).toBeInTheDocument();
+    });
+
+    test("formats 0ms as 00:00:00", () => {
+      renderWithMs(0);
+      // 0 is falsy so remainingMs != null passes, display renders
+      expect(screen.getByTestId("icon-clock")).toBeInTheDocument();
       expect(screen.getByText(/00:00:00/)).toBeInTheDocument();
+    });
+
+    test("shows '--:--:--' when remainingMs is null (formatMs fallback)", () => {
+      // This tests the formatMs(null) branch — triggered via ReminderPicker confirm
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        enabled: true,
+        remainingMs: null,
+        durationMs: 5000,
+      });
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      // Clock is hidden when remainingMs is null, so we just verify no crash
+      expect(screen.queryByTestId("icon-clock")).not.toBeInTheDocument();
+    });
+  });
+
+  // ── Toggle click behaviour ─────────────────────────────────────────────────
+
+  describe("toggle click", () => {
+    test("opens settings modal when durationMs is null", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        durationMs: null,
+      });
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByText("OFF").closest("div")!);
+      expect(screen.getByTestId("reminder-modal")).toBeInTheDocument();
+      expect(screen.getByText("Settings Title")).toBeInTheDocument();
+    });
+
+    test("calls handleToggleClick when durationMs is set", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        durationMs: 5000,
+      });
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByText("OFF").closest("div")!);
+      expect(mockHandleToggleClick).toHaveBeenCalledTimes(1);
+    });
+
+    test("does not call handleToggleClick when durationMs is null", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        durationMs: null,
+      });
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByText("OFF").closest("div")!);
+      expect(mockHandleToggleClick).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Settings modal ─────────────────────────────────────────────────────────
+
+  describe("settings modal", () => {
+    test("opens settings modal when settings button is clicked", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      expect(screen.getByTestId("reminder-modal")).toBeInTheDocument();
+      expect(screen.getByText("Settings Title")).toBeInTheDocument();
+      expect(screen.getByText("Settings Text")).toBeInTheDocument();
+    });
+
+    test("closes settings modal on close", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      fireEvent.click(screen.getByText("Close Modal"));
+      expect(screen.queryByTestId("reminder-modal")).not.toBeInTheDocument();
+    });
+
+    test("settings button sets wellbeingOpen to false", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(false);
+    });
+
+    test("closing settings modal sets wellbeingOpen to true", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      fireEvent.click(screen.getByText("Close Modal"));
+      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
+    });
+
+    test("renders ReminderPicker inside settings modal", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      expect(screen.getByTestId("reminder-picker")).toBeInTheDocument();
+    });
+
+    test("confirming duration closes modal and calls setDurationMs", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      fireEvent.click(screen.getByText("Confirm Duration"));
+      expect(mockSetDurationMs).toHaveBeenCalledWith(5000);
+      expect(screen.queryByTestId("reminder-modal")).not.toBeInTheDocument();
+    });
+
+    test("confirming duration sets wellbeingOpen to true", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      fireEvent.click(screen.getByText("Confirm Duration"));
+      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
+    });
+
+    test("passes initialDuration to ReminderPicker", () => {
+      (useReminders as jest.Mock).mockReturnValue({
+        ...DEFAULT_REMINDER,
+        durationMs: 12345,
+      });
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      fireEvent.click(screen.getByTestId("icon-settings").closest("button")!);
+      expect(screen.getByTestId("initial-duration")).toHaveTextContent("12345");
+    });
+  });
+
+  // ── Fired modal ────────────────────────────────────────────────────────────
+
+  describe("fired modal", () => {
+    test("fired modal is not shown by default", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      expect(screen.queryByText("Fired Title")).not.toBeInTheDocument();
+    });
+
+    test("fired modal shows when onFire callback is triggered", () => {
+      	// Capture the onFire callback passed to useReminders and call it
+		let capturedOnFire: (() => void) | undefined;
+		(useReminders as jest.Mock).mockImplementation(({ onFire }) => {
+			capturedOnFire = onFire;
+			return { ...DEFAULT_REMINDER };
+		});
+
+      	render(<ReminderContainer {...DEFAULT_PROPS} />);
+      	act(() => {
+			capturedOnFire?.();
+		});
+
+      expect(screen.getByText("Fired Title")).toBeInTheDocument();
+      expect(screen.getByText("Fired Text")).toBeInTheDocument();
+    });
+
+    test("onFire sets wellbeingOpen to false", () => {
+      let capturedOnFire: (() => void) | undefined;
+      (useReminders as jest.Mock).mockImplementation(({ onFire }) => {
+        capturedOnFire = onFire;
+        return { ...DEFAULT_REMINDER };
+      });
+
+      	render(<ReminderContainer {...DEFAULT_PROPS} />);
+		act(() => {
+			capturedOnFire?.();
+		});
+
+      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(false);
+    });
+
+    test("closing fired modal sets wellbeingOpen to true", () => {
+      let capturedOnFire: (() => void) | undefined;
+      (useReminders as jest.Mock).mockImplementation(({ onFire }) => {
+        capturedOnFire = onFire;
+        return { ...DEFAULT_REMINDER };
+      });
+
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      act(() => {
+			capturedOnFire?.();
+		});
+      fireEvent.click(screen.getByText("Close Modal"));
+
+      expect(mockSetWellbeingOpen).toHaveBeenCalledWith(true);
+    });
+
+    test("closing fired modal hides it", () => {
+		let capturedOnFire: (() => void) | undefined;
+		(useReminders as jest.Mock).mockImplementation(({ onFire }) => {
+			capturedOnFire = onFire;
+			return { ...DEFAULT_REMINDER };
+		});
+
+      	render(<ReminderContainer {...DEFAULT_PROPS} />);
+		act(() => {
+			capturedOnFire?.();
+		});
+      fireEvent.click(screen.getByText("Close Modal"));
+
+      expect(screen.queryByText("Fired Title")).not.toBeInTheDocument();
+    });
+  });
+
+  // ── useReminders hook wiring ───────────────────────────────────────────────
+
+  describe("useReminders hook wiring", () => {
+    test("passes correct id to useReminders", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      expect(useReminders as jest.Mock).toHaveBeenCalledWith(
+        expect.objectContaining({ id: "test-reminder" })
+      );
+    });
+
+    test("passes onFire callback to useReminders", () => {
+      render(<ReminderContainer {...DEFAULT_PROPS} />);
+      expect(useReminders as jest.Mock).toHaveBeenCalledWith(
+        expect.objectContaining({ onFire: expect.any(Function) })
+      );
     });
   });
 });

@@ -17,8 +17,8 @@ jest.mock("next-auth", () => ({
   default: jest.fn(() => ({})),
   getServerSession: jest.fn(),
 }));
-jest.mock("@/src/lib/auth", () => ({ authOptions: {} }));
-jest.mock("@/src/lib/prisma", () => ({
+jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+jest.mock("@/lib/prisma", () => ({
   prisma: {
     message: {
       create: jest.fn(),

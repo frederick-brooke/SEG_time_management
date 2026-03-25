@@ -20,7 +20,7 @@ jest.mock("react-leaflet", () => ({
   ),
 }));
 
-jest.mock("@/src/lib/map", () => ({
+jest.mock("@/lib/map", () => ({
   USER_ICON_URL: "/user-icon.png",
   FRIEND_ICON_URL: "/friend-icon.png",
 }));
