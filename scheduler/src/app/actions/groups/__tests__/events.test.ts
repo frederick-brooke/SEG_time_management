@@ -29,7 +29,10 @@ describe("Group Events Actions", () => {
     (requireSession as jest.Mock).mockResolvedValue({ user: { id: mockUserId } });
     (getServerSession as jest.Mock).mockResolvedValue({ user: { id: mockUserId } });
   });
-
+  afterAll(async () => {
+    // Flushes pending asynchronous Prisma calls to prevent Jest open handle warnings.
+    await new Promise(process.nextTick); 
+  });
   describe("createGroupEvent", () => {
     /**
      * Security check: Verifies that users cannot create events in groups they don't belong to.
@@ -79,6 +82,14 @@ describe("Group Events Actions", () => {
       );
       expect(revalidatePath).toHaveBeenCalledWith("/groups/group-1");
     });
+    // Confirms event creation fails if the group has no members.
+    it("should return an error if the group has no members", async () => {
+      (isGroupMember as jest.Mock).mockResolvedValue(true);
+      prismaMock.groupMember.findMany.mockResolvedValue([]);
+      
+      const result = await createGroupEvent("group-1", { title: "Test" });
+      expect(result.success).toBe(false);
+    });
   });
 
   describe("updateGroupEvent", () => {
@@ -124,6 +135,23 @@ describe("Group Events Actions", () => {
       expect(prismaMock.event.deleteMany).toHaveBeenCalledWith({
         where: { groupEventGroupId: "shared-event-id", groupId: "group-1", isGroupEvent: true },
       });
+    });
+  });
+  describe("getGroupEvents", () => {
+    // Confirms it safely returns an empty array if the user is unauthenticated.
+    it("should return empty array if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+      const result = await getGroupEvents("group-1");
+      expect(result).toEqual([]);
+    });
+
+    // Confirms it fetches the user's localized group events.
+    it("should return the events for the authenticated user", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue({ user: { id: "user-123" } });
+      prismaMock.event.findMany.mockResolvedValue([{ id: "e1", title: "Meeting" }] as any);
+      
+      const result = await getGroupEvents("group-1");
+      expect(result).toHaveLength(1);
     });
   });
 });
