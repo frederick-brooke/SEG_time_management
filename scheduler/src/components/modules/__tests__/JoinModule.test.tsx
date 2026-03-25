@@ -79,4 +79,17 @@ describe("JoinModule", () => {
       expect(mockOnClose).toHaveBeenCalled();
     });
   });
+  // Confirms a fallback error is shown if the server fails without providing a specific error message.
+  it("shows generic error when joinModule fails without specific error", async () => {
+    const { joinModule } = require("@/app/actions/module");
+    joinModule.mockResolvedValue({ success: false }); // No error string provided
+    
+    render(<JoinModule onClose={mockOnClose} />);
+    fireEvent.change(screen.getByPlaceholderText("AB12CD"), { target: { value: "XXXXXX" } });
+    fireEvent.click(screen.getByText("Join"));
+    
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to join module/i)).toBeInTheDocument();
+    });
+  });
 });

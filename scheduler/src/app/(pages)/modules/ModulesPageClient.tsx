@@ -2,34 +2,21 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ModuleCard } from "components/modules/ModuleCard";
-import CreateModule from "components/modules/CreateModule";
-import JoinModule from "components/modules/JoinModule";
+import { ModuleCard } from "@/src/components/modules/ModuleCard";
+import CreateModule from "@/src/components/modules/CreateModule";
+import JoinModule from "@/src/components/modules/JoinModule";
 import { Plus, LogIn, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
-//types
-interface ModuleItem {
-  id: string;
-  name: string;
-  description?: string;
-  memberCount: number;
-  maxMembers: number;
-  userRole: string;
-  joinPin?: string;
-  createdAt: Date;
-  creator: { username: string; fname?: string; lname?: string };
-}
-
-interface ModulesPageClientProps {
-  modules: ModuleItem[];
-}
-
+/**
+ * Global constants for pagination sizing and sorting keys.
+ */
+const PAGE_SIZE = 8;
 type SortKey = 'name-asc' | 'name-desc' | 'members-asc' | 'members-desc' | 'newest' | 'oldest';
 
-//constants
-const PAGE_SIZE = 10;
-
+/**
+ * Configuration for the sorting dropdown labels and values.
+ */
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'newest',       label: 'Newest first'   },
   { value: 'oldest',       label: 'Oldest first'   },
@@ -39,15 +26,13 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'members-asc',  label: 'Fewest members' },
 ];
 
-//helpers
-
 /**
- * Sorts an array of module objects based on the selected sorting key.
- * @param {ModuleItem[]} modules - The unsorted array of module items.
- * @param {SortKey} key - The criteria used to sort the modules.
- * @return {ModuleItem[]} A new sorted array of module items.
+ * Sorts an array of module objects based on a specific criteria key.
+ * @param {any[]} modules - The raw array of modules fetched from the database.
+ * @param {SortKey} key - The sorting criteria to apply (e.g., 'name-asc', 'newest').
+ * @returns {any[]} A new array containing the sorted module items.
  */
-function sortModules(modules: ModuleItem[], key: SortKey): ModuleItem[] {
+function sortModules(modules: any[], key: SortKey): any[] {
   const copy = [...modules];
   switch (key) {
     case 'name-asc':     return copy.sort((a, b) => a.name.localeCompare(b.name));
@@ -60,15 +45,59 @@ function sortModules(modules: ModuleItem[], key: SortKey): ModuleItem[] {
   }
 }
 
-//main component
+/**
+ * Renders a consistent pagination footer with numeric page buttons.
+ * @param {object} props - Component properties.
+ * @param {number} props.page - The current active page index.
+ * @param {number} props.total - The total number of pages available.
+ * @param {function} props.onPageChange - Callback triggered when a new page is selected.
+ * @returns {JSX.Element} The pagination navigation UI.
+ */
+function Pagination({ page, total, onPageChange }: { page: number; total: number; onPageChange: (p: number) => void }) {
+  const safeTotal = Math.max(total, 1);
+  
+  return (
+    <div className="flex items-center justify-center gap-2 mt-8 py-4 border-t border-white/5">
+      <button 
+        onClick={() => onPageChange(page - 1)} 
+        disabled={page === 1} 
+        className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
+      >
+        <ChevronLeft size={16} />
+      </button>
+      
+      {Array.from({ length: safeTotal }, (_, i) => i + 1).map((p) => (
+        <button 
+          key={p} 
+          onClick={() => onPageChange(p)} 
+          className={`w-10 h-10 rounded-xl text-[12px] font-bold transition-all border ${
+            p === page
+              ? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+              : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white"
+          }`}
+        >
+          {p}
+        </button>
+      ))}
+      
+      <button 
+        onClick={() => onPageChange(page + 1)} 
+        disabled={page === safeTotal} 
+        className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
+      >
+        <ChevronRight size={16} />
+      </button>
+    </div>
+  );
+}
 
 /**
- * Client component for the modules list page.
- * Handles displaying module cards, sorting, pagination, and triggering create/join modals.
- * @param {ModulesPageClientProps} props - Component props.
- * @return {JSX.Element} The rendered modules page UI.
+ * Client-side orchestrator for the modules listing page.
+ * @param {object} props - Component properties.
+ * @param {any[]} props.modules - Initial array of modules passed from the server component.
+ * @returns {JSX.Element} The complete modules page interface.
  */
-export default function ModulesPageClient({ modules: initialModules }: ModulesPageClientProps) {
+export default function ModulesPageClient({ modules: initialModules }: { modules: any[] }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
@@ -76,130 +105,78 @@ export default function ModulesPageClient({ modules: initialModules }: ModulesPa
   const [page, setPage] = useState(1);
   const [showSortMenu, setShowSortMenu] = useState(false);
 
+  // Calculates sorted data and pagination boundaries
   const sorted = useMemo(() => sortModules(initialModules, sortKey), [initialModules, sortKey]);
   const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-  const pageStart = (page - 1) * PAGE_SIZE;
-  const paginated = sorted.slice(pageStart, pageStart + PAGE_SIZE);
-  const currentSortLabel = SORT_OPTIONS.find((o) => o.value === sortKey)?.label ?? 'Sort';
-
-  /**
-   * Updates the sort state, resets pagination to page 1, and closes the dropdown.
-   * @param {SortKey} key - The newly selected sort criteria.
-   * @return {void}
-   */
-  const handleSort = (key: SortKey) => {
-    setSortKey(key);
-    setPage(1);
-    setShowSortMenu(false);
-  };
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const paginated = sorted.slice(startIndex, startIndex + PAGE_SIZE);
+  
+  const currentCount = paginated.length;
+  const totalCount = sorted.length;
+  const rangeLabel = totalCount > 0 
+    ? `Showing ${startIndex + 1}-${startIndex + currentCount} of ${totalCount}` 
+    : "No modules found";
+  const pageLabel = `Page ${page}/${Math.max(totalPages, 1)}`;
 
   return (
     <LunarThemeWrapper>
       <div className="lunar-page">
-
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        {/* Page Title and Global Actions */}
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
           <div>
             <h1 className="lunar-page-title">My Modules</h1>
-            <p className="lunar-page-subtitle">Create or join modules to collaborate with others</p>
+            <p className="lunar-page-subtitle">Collaborate with peers on shared goals</p>
           </div>
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3">
             <button onClick={() => setShowJoin(true)} className="lunar-button-ghost flex items-center gap-2">
-              <LogIn size={16} /> Join Module
+              <LogIn size={16} /> Join
             </button>
             <button onClick={() => setShowCreate(true)} className="lunar-button-primary flex items-center gap-2">
-              <Plus size={16} /> Create Module
+              <Plus size={16} /> Create
             </button>
           </div>
         </div>
 
-        {initialModules.length > 0 ? (
-          <>
-            {/* Controls row */}
-            <div className="flex items-center justify-between">
-              <p className="lunar-label">
-                {sorted.length} module{sorted.length !== 1 ? 's' : ''}
-                {totalPages > 1 && ` — page ${page} of ${totalPages}`}
-              </p>
-
-              {/* Sort dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowSortMenu((v) => !v)}
-                  className="lunar-button-ghost flex items-center gap-2"
-                >
-                  <ArrowUpDown size={14} /> {currentSortLabel}
-                </button>
-                {showSortMenu && (
-                  <div className="absolute right-0 mt-1 w-48 bg-[#0a0f1d] border border-white/10 rounded-xl shadow-2xl z-10 overflow-hidden">
-                    {SORT_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleSort(option.value)}
-                        className={`w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-widest transition-colors ${
-                          sortKey === option.value
-                            ? 'bg-blue-500/20 text-blue-400'
-                            : 'text-white/50 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Module list */}
-            <div className="space-y-3">
-              {paginated.map((module) => (
-                <ModuleCard key={module.id} module={module} />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={page === 1}
-                  className="p-2 rounded-lg border border-white/10 text-white/40 hover:bg-white/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-lg text-xs font-black uppercase tracking-widest transition-colors ${
-                      p === page
-                        ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]'
-                        : 'border border-white/10 text-white/40 hover:bg-white/5'
-                    }`}
+        {/* Data Metadata and Sort Controls */}
+        <div className="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-xl border border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <span className="lunar-label !text-white">{rangeLabel}</span>
+            <span className="hidden sm:block text-white/20">|</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">{pageLabel}</span>
+          </div>
+          
+          <div className="relative">
+            <button onClick={() => setShowSortMenu(!showSortMenu)} className="lunar-button-ghost text-xs flex items-center gap-2">
+              <ArrowUpDown size={14} /> Sort
+            </button>
+            {showSortMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-[#0d1117] border border-white/10 rounded-xl z-20 shadow-2xl overflow-hidden">
+                {SORT_OPTIONS.map((opt) => (
+                  <button 
+                    key={opt.value} 
+                    onClick={() => { setSortKey(opt.value); setPage(1); setShowSortMenu(false); }} 
+                    className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors ${sortKey === opt.value ? 'bg-blue-600/20 text-blue-400' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
                   >
-                    {p}
+                    {opt.label}
                   </button>
                 ))}
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page === totalPages}
-                  className="p-2 rounded-lg border border-white/10 text-white/40 hover:bg-white/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight size={16} />
-                </button>
               </div>
             )}
-          </>
-        ) : (
-          <div className="lunar-card p-12 text-center flex flex-col items-center">
-            <div className="bg-blue-500/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
-              <span className="text-4xl">📚</span>
-            </div>
-            <h3 className="lunar-header mb-2">No modules yet</h3>
-            <p className="lunar-value">Create a module or join one with a PIN</p>
           </div>
-        )}
+        </div>
 
+        {/* Rendered List of Module Cards */}
+        <div className="space-y-4 min-h-[400px]">
+          {paginated.map((m) => <ModuleCard key={m.id} module={m} />)}
+          {totalCount === 0 && (
+            <div className="h-64 flex flex-col items-center justify-center opacity-40 italic">
+              <p>No modules enrolled yet.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Controls */}
+        <Pagination page={page} total={totalPages} onPageChange={setPage} />
       </div>
 
       {showCreate && (
