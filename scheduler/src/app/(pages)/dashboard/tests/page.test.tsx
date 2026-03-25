@@ -1,4 +1,3 @@
-// src/app/(pages)/dashboard/tests/page.test.tsx
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 let mockErrorParam: string | null = null;
@@ -31,9 +30,6 @@ jest.mock("@/src/app/actions/examActions", () => ({ getMyExams:   (...a: any[]) 
 jest.mock("@/src/app/actions/profile",     () => ({ getMyProfile: (...a: any[]) => getMyProfileMock(...a) }));
 jest.mock("@/src/hooks/useTasks",          () => ({ useTasks:     (...a: any[]) => useTasksMock(...a) }));
 
-// Wildcard proxy — any IconXxx from tabler returns a silent stub.
-// Without this, any component in the tree that uses an icon we haven't
-// explicitly listed will get undefined, crashing the render.
 jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: (_: any, name: string) => function MockIcon() { return null; } })
 );
@@ -50,7 +46,7 @@ jest.mock("@/src/components/profile/StatModules", () => ({
   ProfileStats: () => <div>ProfileStats</div>,
 }));
 
-// virtual: true — file doesn't need to exist on disk
+// virtual so that true — file doesn't need to exist on disk
 jest.mock("../wellbeing/page", () => () => <div>WellbeingPage</div>, { virtual: true });
 
 jest.mock("@/src/components/wellbeing/wellbeing_panel", () => ({
@@ -98,8 +94,7 @@ describe("Dashboard Page", () => {
     setAuth();
   });
 
-  //  Greeting 
-
+  // greeting 
   it("shows fname from profile when available", async () => {
     getMyProfileMock.mockResolvedValue({ fname: "Ada", accounts: [] });
     render(<Page />);
@@ -119,8 +114,7 @@ describe("Dashboard Page", () => {
     expect(await screen.findByText(/Welcome, User/)).toBeInTheDocument();
   });
 
-  // ── Rocket progress ────────────────────────
-
+  // Rocket progress
   it("shows 0% when there are no tasks", async () => {
     useTasksMock.mockReturnValue({ tasks: [] });
     render(<Page />);
@@ -149,8 +143,7 @@ describe("Dashboard Page", () => {
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 100%");
   });
 
-  // ── Core components ────────────────────────
-
+  //  Core components 
   it("renders UpcomingExams and ComingUpSoon", async () => {
     render(<Page />);
     expect(await screen.findByText("UpcomingExams")).toBeInTheDocument();
@@ -182,8 +175,7 @@ describe("Dashboard Page", () => {
     expect(pushMock).toHaveBeenCalledWith("/api/auth/signin/google");
   });
 
-  // ── Sign out ───────────────────────────────
-
+  // Sign out 
   it("calls signOut with /login callback", async () => {
     render(<Page />);
     fireEvent.click(await screen.findByText("Sign Out"));
@@ -191,7 +183,6 @@ describe("Dashboard Page", () => {
   });
 
   //  Auth redirects 
-
   it("redirects to /login when unauthenticated", async () => {
     setAuth("unauthenticated");
     render(<Page />);
@@ -199,7 +190,6 @@ describe("Dashboard Page", () => {
   });
 
   //  Error query param 
-
   it("replaces URL for GoogleAccountTaken error", async () => {
     mockErrorParam = "GoogleAccountTaken";
     render(<Page />);
@@ -218,8 +208,7 @@ describe("Dashboard Page", () => {
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  // ── Wellbeing panel ────────────────────────
-
+  //  Wellbeing panel 
   it("renders the wellbeing button", async () => {
     render(<Page />);
     expect(await screen.findByLabelText("Open wellbeing panel")).toBeInTheDocument();
@@ -248,7 +237,6 @@ describe("Dashboard Page", () => {
   });
 
   //  Data fetching guards 
-
   it("fetches exams and profile when authenticated", async () => {
     render(<Page />);
     await waitFor(() => {
