@@ -27,7 +27,7 @@ export default async function CalendarPage() {
 
   return (
     <LunarThemeWrapper>
-      <main className="max-w-7xl mx-auto pt-20 pb-12 lg:px-16 space-y-6 text-white/90">
+      <main className="max-w-7xl mx-auto pt-8 pb-12 lg:px-16 space-y-6 text-white/90">
         <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
           <div className="flex-1 space-y-1">
             <h1 className="lunar-header text-4xl">My Schedule</h1>

@@ -28,11 +28,11 @@ import {
     },
   }));
   
-  jest.mock("@/src/lib/calendar/googleCalendar", () => ({
+  jest.mock("@/lib/calendar/googleCalendar", () => ({
     getGoogleCalendarClient: jest.fn(),
   }));
   
-  jest.mock("@/src/lib/calendar/eventHelpers", () => ({
+  jest.mock("@/lib/calendar/eventHelpers", () => ({
     buildGoogleRecurrenceRule: jest.fn().mockReturnValue(undefined),
   }));
   

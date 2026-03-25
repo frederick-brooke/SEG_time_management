@@ -17,7 +17,11 @@ export default async function SettingsPage() {
       username: true,
       passwordHash: true,
       preferences: true,
-      accounts: { where: { provider: 'google' } }
+      accounts: { where: { provider: 'google' } },
+      location: true,
+      city: true,
+      country: true,
+      locationHidden: true,
     }
   });
 
@@ -39,7 +43,11 @@ export default async function SettingsPage() {
             email: user.email,
             hasPassword: !!user.passwordHash,
             hasGoogleConnected: user.accounts.length > 0,
-            preferences: user.preferences
+            preferences: user.preferences,
+            location: user.location as { lat: number; lng: number } | null,
+            city: user.city,
+            country: user.country,
+            locationHidden: user.locationHidden || false,
           }}
         />
       </div>

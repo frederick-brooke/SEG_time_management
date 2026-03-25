@@ -9,7 +9,8 @@
 
 import TravelSection from "./TravelSection";
 import { TaskPromptSection } from "./EventFormParts";
-import { useEventForm } from "@/hooks/useEventForm";
+import { useEventForm } from "@/hooks/Events/useEventForm";
+
 
 export default function EventForm({
   userId,

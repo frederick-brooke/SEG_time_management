@@ -1,6 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
+import { Delete } from "lucide-react";
 
 /**
  * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
@@ -124,4 +125,11 @@ describe("DeleteTaskDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
+
+  it("renders null when isOpen is false", () => {
+    const { container } = render(
+      <DeleteTaskDialog isOpen={false} onConfirm={jest.fn()} onCancel={jest.fn()}/>
+    );
+    expect(container.firstChild).toBeNull();
+  })
 });

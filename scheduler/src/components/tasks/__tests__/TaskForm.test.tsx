@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { TaskFormDialog } from "../TaskFormDialog";
+import { TaskForm } from "../TaskForm";
 
 /**
  * Mock shadcn/Radix wrappers via RELATIVE PATHS so Jest doesn't need alias config.
@@ -68,8 +68,8 @@ jest.mock("../../ui/label", () => {
 jest.mock("../../ui/button", () => {
   const React = require("react");
   return {
-    Button: ({ children, onClick, type = "button" }) => (
-      <button type={type} onClick={onClick}>
+    Button: ({ children, onClick, buttonType = "button" }) => (
+      <button type={buttonType as "button"} onClick={onClick}>
         {children}
       </button>
     ),
@@ -163,7 +163,7 @@ describe("TaskFormDialog", () => {
       ...overrides,
     };
 
-    render(<TaskFormDialog {...props} />);
+    render(<TaskForm {...props} />);
     return props;
   }
 
@@ -234,10 +234,73 @@ describe("TaskFormDialog", () => {
     expect(props.onFormChange).toHaveBeenCalledWith({ priority: "High" });
   });
 
-  it("calls onSubmit on button click", () => {
-    const props = setup({ editingTaskId: null });
+  it("calls onSubmit when name is provided", () => {
+    const props = setup({ 
+      editingTaskId: null,
+      formData: { ...baseFormData, name: "My Task"}
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Create Task" }));
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });
+
+  it("does not call onSubmit when name is empty", () => {
+    const props = setup({ 
+      editingTaskId: null,
+      formData: { ...baseFormData, name: ""}
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Create Task" }));
+    expect(props.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("renders exams in dropdown when provided", () => {
+    setup({ 
+      exams: [{ id: "exam1", title: "Maths Exam" }]
+    });
+
+    expect(screen.getByText("Maths Exam")).toBeInTheDocument();
+  });
+
+  it("hides trigger button when showTrigger is false", () => {
+    setup({ showTrigger: false });
+    expect(screen.queryByText("+ NEW TASK")).not.toBeInTheDocument();
+  });
+
+  it("clicking the backdrop calls onOpenChange with false", () => {
+    const props = setup();
+    const overlay = document.querySelector(".lunar-overlay");
+    fireEvent.click(overlay!, { target: overlay });
+    expect(props.onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("calls onOpenChange when close button is clicked", () => {
+    const props = setup();
+    const closeBtn = document.querySelector(".lunar-close-button");
+    fireEvent.click(closeBtn!);
+    expect(props.onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("calls onFormChange when URL input changes", () => {
+    const props = setup();
+    fireEvent.change(screen.getByPlaceholderText("No URL attached"), {
+      target: { value: "https://example.com" },
+    });
+    expect(props.onFormChange).toHaveBeenCalledWith({ url: "https://example.com" });
+  });
+
+  it("renders URL link button when url is provided", () => {
+    setup({
+      formData: { ...baseFormData, url: "https://example.com" }
+    });
+    expect(screen.getByText("🔗")).toBeInTheDocument();
+  });
+
+  it("shows + NEW TASK trigger when showTrigger is true", () => {
+    setup({ showTrigger: true });
+    fireEvent.click(screen.getByText("+ NEW TASK"));
+    expect(screen.getByText("+ NEW TASK")).toBeInTheDocument();
+  });
+  
+
 });

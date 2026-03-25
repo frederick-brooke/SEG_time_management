@@ -19,7 +19,7 @@ jest.mock("next/navigation", () => ({
   redirect: jest.fn(),
 }));
 
-jest.mock("@/src/app/actions/games", () => ({
+jest.mock("@/app/actions/games", () => ({
   getGameBalance: jest.fn(),
 }));
 

@@ -8,7 +8,7 @@ import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
-interface LeaderboardUser {
+/**interface LeaderboardUser {
   id: string;
   username: string;
   name: string;
@@ -19,7 +19,7 @@ interface LeaderboardUser {
   focusTimeRaw: number;
   isCurrentUser: boolean;
 }
-
+*/
 interface LeaderboardClientProps {
   initialData: LeaderboardUser[];
   currentTimeframe: 'day' | 'week' | 'month' | 'all';
@@ -98,85 +98,87 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
       </div>
 
       {/* Rows */}
-      <div className={`divide-y divide-white/[0.06] transition-opacity duration-200 ${isPending ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-        {!sortedData || sortedData.length === 0 ? (
-          <div className="p-12 text-center text-white/35 text-sm">
-            No friends to compete with yet. Add some from their profiles.
-          </div>
-        ) : (
-          sortedData.map((user, index) => {
-            const rank = index + 1;
-            const avatarSrc = resolveAvatarSrc(user.pfp);
+      <div className="lunar-scroll-area">
+        <div className={`divide-y divide-white/[0.06] transition-opacity duration-200 ${isPending ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+          {!sortedData || sortedData.length === 0 ? (
+            <div className="p-12 text-center text-white/35 text-sm">
+              No friends to compete with yet. Add some from their profiles.
+            </div>
+          ) : (
+            sortedData.map((user, index) => {
+              const rank = index + 1;
+              const avatarSrc = resolveAvatarSrc(user.pfp);
 
-            return (
-              <div
-                key={user.id}
-                className={`grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-white/[0.03] transition-colors ${
-                  user.isCurrentUser ? "bg-blue-500/[0.06]" : ""
-                }`}
-              >
-                {/* Rank */}
-                <div className="col-span-1 flex justify-center">
-                  {rank === 1 ? <Medal className="text-yellow-400" size={20} /> :
-                   rank === 2 ? <Medal className="text-white/50" size={20} /> :
-                   rank === 3 ? <Medal className="text-amber-600" size={20} /> :
-                   <span className="font-semibold text-white/30 text-sm">{rank}</span>}
-                </div>
+              return (
+                <div
+                  key={user.id}
+                  className={`grid grid-cols-12 gap-4 px-5 py-4 items-center hover:bg-white/[0.03] transition-colors ${
+                    user.isCurrentUser ? "bg-blue-500/[0.06]" : ""
+                  }`}
+                >
+                  {/* Rank */}
+                  <div className="col-span-1 flex justify-center">
+                    {rank === 1 ? <Medal className="text-yellow-400" size={20} /> :
+                    rank === 2 ? <Medal className="text-white/50" size={20} /> :
+                    rank === 3 ? <Medal className="text-amber-600" size={20} /> :
+                    <span className="font-semibold text-white/30 text-sm">{rank}</span>}
+                  </div>
 
-                {/* User */}
-                <div className="col-span-4">
-                  <Link href={`/profile/${user.username}`} className="flex items-center gap-3 group">
-                    <div className="w-9 h-9 rounded-full bg-white/10 overflow-hidden shrink-0 border border-white/10 group-hover:border-blue-400/40 transition-colors">
-                      {user.pfp ? (
-                        <img src={user.pfp} alt={user.username} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/60 font-semibold text-xs">
-                          {user.name?.[0] || user.username[0]}
-                        </div>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-white/90 text-sm truncate group-hover:text-blue-300 transition-colors">
-                        {user.name}
-                        {user.isCurrentUser && (
-                          <span className="ml-2 text-[10px] font-semibold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">You</span>
+                  {/* User */}
+                  <div className="col-span-4">
+                    <Link href={`/profile/${user.username}`} className="flex items-center gap-3 group">
+                      <div className="w-9 h-9 rounded-full bg-white/10 overflow-hidden shrink-0 border border-white/10 group-hover:border-blue-400/40 transition-colors">
+                        {user.pfp ? (
+                          <img src={user.pfp} alt={user.username} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/60 font-semibold text-xs">
+                            {user.name?.[0] || user.username[0]}
+                          </div>
                         )}
-                      </p>
-                      <p className="text-xs text-white/35 truncate">@{user.username}</p>
-                    </div>
-                  </Link>
-                </div>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-white/90 text-sm truncate group-hover:text-blue-300 transition-colors">
+                          {user.name}
+                          {user.isCurrentUser && (
+                            <span className="ml-2 text-[10px] font-semibold text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full">You</span>
+                          )}
+                        </p>
+                        <p className="text-xs text-white/35 truncate">@{user.username}</p>
+                      </div>
+                    </Link>
+                  </div>
 
-                {/* Streak */}
-                <div className="col-span-2 flex justify-center items-center gap-1.5">
-                  <Flame size={15} className={user.streak > 0 ? "text-orange-400" : "text-white/20"} />
-                  <span className={`font-semibold text-sm ${user.streak > 0 ? "text-white/90" : "text-white/30"}`}>
-                    {user.streak}
-                  </span>
-                </div>
+                  {/* Streak */}
+                  <div className="col-span-2 flex justify-center items-center gap-1.5">
+                    <Flame size={15} className={user.streak > 0 ? "text-orange-400" : "text-white/20"} />
+                    <span className={`font-semibold text-sm ${user.streak > 0 ? "text-white/90" : "text-white/30"}`}>
+                      {user.streak}
+                    </span>
+                  </div>
 
-                {/* Focus Time */}
-                <div className="col-span-3 flex justify-center items-center gap-1.5">
-                  <Clock size={14} className="text-blue-400/70" />
-                  <span className="text-sm text-white/70 font-medium">{user.focusTime}</span>
-                </div>
+                  {/* Focus Time */}
+                  <div className="col-span-3 flex justify-center items-center gap-1.5">
+                    <Clock size={14} className="text-blue-400/70" />
+                    <span className="text-sm text-white/70 font-medium">{user.focusTime}</span>
+                  </div>
 
-                <div className="col-span-2 flex justify-center items-center gap-1.5">
-                  <Target size={14} className={
-                    user.completionRate >= 80 ? 'text-emerald-400' :
-                    user.completionRate >= 50 ? 'text-yellow-400' : 'text-white/25'
-                  } />
-                  <span className={`font-semibold text-sm ${
-                    user.completionRate >= 80 ? 'text-emerald-400' :
-                    user.completionRate >= 50 ? 'text-yellow-400' : 'text-white/35'
-                  }`}>
-                    {user.completionRate}%
-                  </span>
+                  <div className="col-span-2 flex justify-center items-center gap-1.5">
+                    <Target size={14} className={
+                      user.completionRate >= 80 ? 'text-emerald-400' :
+                      user.completionRate >= 50 ? 'text-yellow-400' : 'text-white/25'
+                    } />
+                    <span className={`font-semibold text-sm ${
+                      user.completionRate >= 80 ? 'text-emerald-400' :
+                      user.completionRate >= 50 ? 'text-yellow-400' : 'text-white/35'
+                    }`}>
+                      {user.completionRate}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

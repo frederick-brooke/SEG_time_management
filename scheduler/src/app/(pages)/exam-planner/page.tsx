@@ -91,7 +91,7 @@ export default function ExamPlannerPage() {
                     >
                       <h2 className="text-xl font-bold">{exam.title}</h2>
                     </Link>
-                    <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md border border-indigo-100 uppercase">
+                    <span className="text-[10px] font-bold bg-blue-500/10 text-blue-400 px-2 py-1 rounded-md border border-blue-500/20 uppercase">
                       {totalTasks} {totalTasks === 1 ? "Task" : "Tasks"}
                     </span>
                   </div>
@@ -130,7 +130,7 @@ export default function ExamPlannerPage() {
                     />
                     <button
                       onClick={() => handleDelete(exam.id)}
-                      className="text-xs font-bold text-red-500 hover:text-red-700 transition-colors px-2 py-1 rounded hover:bg-red-50"
+                      className="text-xs font-bold text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-500/10"
                     >
                       Delete Exam
                     </button>

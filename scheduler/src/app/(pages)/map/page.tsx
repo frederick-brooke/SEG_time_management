@@ -1,92 +1,103 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-// UI components
 import MapView from "@/components/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
+import type { Event } from "@prisma/client";
 
-// Server Component
-export default async function MapPage() {
-  // Fetch the current authenticated session
-  const session = await getServerSession(authOptions);
+// Types 
 
-  // If no session exists, block access
-  if (!session) throw new Error("Not authenticated");
+type Coords = { lat: number; lng: number } | null;
 
-  // Query events from the database
-  const events = await prisma.event.findMany({
+export type SerialisedEvent = {
+  id: string;
+  title: string;
+  category: string;
+  start: string;
+  end: string;
+  startCoords: Coords;
+  destinationCoords: Coords;
+  startLocationName: string | null;
+  destLocationName: string | null;
+  travelDuration: number | null;
+  transportMode: string | null;
+};
+
+// Data helpers 
+
+async function fetchUserEvents(userId: string): Promise<Event[]> {
+  return prisma.event.findMany({
     where: {
-      // Only fetch events belonging to the logged-in user
-      userId: session.user.id,
-
-      // Only include events that have at least one location
+      userId,
       OR: [
         { startCoords: { not: null } },
         { destinationCoords: { not: null } },
       ],
     },
-
-    // Sort events by start time (earliest first)
     orderBy: { start: "asc" },
   });
+}
 
-  const serialised = events.map((e) => ({
-    id: e.id,
-    title: e.title,
-    category: e.category,
-    start: e.start.toISOString(),
-    end: e.end.toISOString(),
+function serialiseEvent(event: Event): SerialisedEvent {
+  return {
+    id: event.id,
+    title: event.title,
+    category: event.category,
+    start: event.start.toISOString(),
+    end: event.end.toISOString(),
+    startCoords: event.startCoords as Coords,
+    destinationCoords: event.destinationCoords as Coords,
+    startLocationName: event.startLocationName,
+    destLocationName: event.destLocationName,
+    travelDuration: event.travelDuration,
+    transportMode: event.transportMode,
+  };
+}
 
-    // Ensure coords are typed correctly or null
-    startCoords: e.startCoords as { lat: number; lng: number } | null,
-    destinationCoords:
-      e.destinationCoords as { lat: number; lng: number } | null,
+function getEventCountLabel(count: number): string {
+  return `Showing ${count} event${count !== 1 ? "s" : ""} with locations`;
+}
 
-    startLocationName: e.startLocationName,
-    destLocationName: e.destLocationName,
-    travelDuration: e.travelDuration,
-    transportMode: e.transportMode,
-  }));
+// Page 
 
-  // Render UI
+export default async function MapPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) throw new Error("Not authenticated");
+
+  const events = await fetchUserEvents(session.user.id);
+  const serialisedEvents = events.map(serialiseEvent);
+
   return (
     <main className="container mx-auto p-6 lg:p-8">
-      {/* Header section */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          {/* Page title */}
-          <h1 className="text-2xl font-bold">Event Map</h1>
-
-          {/* Dynamic event count with singular/plural logic */}
-          <p className="text-sm text-gray-500 mt-1">
-            Showing {serialised.length} event
-            {serialised.length !== 1 ? "s" : ""} with locations
-          </p>
-        </div>
-
-        {/* Navigation link back to calendar */}
-        <a
-          href="/calendar"
-          className="text-sm text-blue-600 font-semibold hover:underline"
-        >
-          ← Back to Calendar
-        </a>
-      </div>
-
-      {/* Main layout: map + sidebar */}
+      <PageHeader count={serialisedEvents.length} />
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Map section */}
         <div className="flex-1 min-w-0">
-          {/* Pass serialized events to MapView */}
-          <MapView events={serialised} />
+          <MapView events={serialisedEvents} />
         </div>
-
-        {/* Sidebar for saved locations */}
         <div className="w-full lg:w-72 shrink-0">
           <SavedLocationsPanel />
         </div>
       </div>
     </main>
+  );
+}
+
+// Sub-components
+
+function PageHeader({ count }: { count: number }) {
+  return (
+    <div className="flex justify-between items-center mb-6">
+      <div>
+        <h1 className="text-2xl font-bold">Event Map</h1>
+        <p className="text-sm text-gray-500 mt-1">{getEventCountLabel(count)}</p>
+      </div>
+      <a
+        href="/calendar"
+        className="text-sm text-blue-600 font-semibold hover:underline"
+      >
+        ← Back to Calendar
+      </a>
+    </div>
   );
 }
