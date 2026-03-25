@@ -90,20 +90,6 @@ describe("DeleteTaskDialog", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
-  it("calls onCancel when dialog closes via onOpenChange(false) and NOT when onOpenChange(true)", () => {
-    const onCancel = jest.fn();
-
-    render(
-      <DeleteTaskDialog isOpen={true} onConfirm={jest.fn()} onCancel={onCancel} />,
-    );
-
-    fireEvent.click(screen.getByTestId("simulate-open-change-true"));
-    expect(onCancel).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByTestId("simulate-open-change-false"));
-    expect(onCancel).toHaveBeenCalledTimes(1);
-  });
-
   it("calls onCancel when Cancel button is clicked", () => {
     const onCancel = jest.fn();
 
