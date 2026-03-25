@@ -11,7 +11,7 @@ import ModuleHeader from "components/modules/ModuleHeader";
 import ModuleMembersList from "components/modules/ModuleMembersList";
 import ModuleEvents from "components/modules/ModuleEvents";
 import ModuleTasks from "components/modules/ModuleTasks";
-import { TaskFormDialog } from "components/tasks/TaskFormDialog";
+import { TaskForm } from "@/src/components/tasks/TaskForm";
 import ModuleEventModal from "components/modules/ModuleEventModal";
 import ModuleSettingsModal from "components/modules/ModuleSettingsModal";
 
@@ -158,7 +158,7 @@ export default function ModuleDetailClient({ module, events, tasks, tasksWithPro
       )}
 
       {showTaskForm && (
-        <TaskFormDialog isOpen={showTaskForm}
+        <TaskForm isOpen={showTaskForm}
           onOpenChange={(open: boolean) => { setShowTaskForm(open); if (!open) setEditingTask(null); }}
           editingTaskId={editingTask?.moduleTaskGroupId ?? null}
           formData={taskFormData}

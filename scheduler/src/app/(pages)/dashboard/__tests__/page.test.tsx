@@ -23,6 +23,19 @@ jest.mock("@/context/UIContext", () => ({
   useUI: () => ({ wellbeingOpen: mockWellbeingOpen, setWellbeingOpen: setWellbeingOpenMock }),
 }));
 
+jest.mock("@/src/app/actions/leaderboard", () => ({
+  getFriendsLeaderboard: jest.fn().mockResolvedValue([]),
+}));
+
+jest.mock("../../leaderboard/LeaderboardClient", () => ({
+  __esModule: true,
+  default: () => <div>LeaderboardClient</div>,
+}));
+
+jest.mock("@/src/components/calendar/CalendarEvents", () => ({
+  CalendarEvents: () => <div>CalendarEvents</div>,
+}));
+
 const getMyExamsMock   = jest.fn();
 const getMyProfileMock = jest.fn();
 const useTasksMock     = jest.fn();
@@ -75,6 +88,7 @@ jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
 
 // Page import — must come after all jest.mock calls
 import Page from "../page";
+import { getFriendsLeaderboard } from "@/src/app/actions/leaderboard";
 
 const { useSession, signOut } = require("next-auth/react");
 

@@ -16,7 +16,7 @@ import GroupHeader from "components/groups/GroupHeader";
 import GroupMembersList from "components/groups/GroupMembersList";
 import GroupEvents from "components/groups/GroupEvents";
 import GroupTasks from "components/groups/GroupTasks";
-import { TaskFormDialog } from "components/tasks/TaskFormDialog";
+import { TaskForm } from "@/src/components/tasks/TaskForm";
 import GroupEventModal from "components/groups/GroupEventModal";
 import GroupSettingsModal from "components/groups/GroupSettingsModal";
 
@@ -212,7 +212,7 @@ export default function GroupDetailClient({ group, events, tasksWithProgress }: 
       )}
 
       {showTaskForm && (
-        <TaskFormDialog 
+        <TaskForm 
           isOpen={showTaskForm} 
           onOpenChange={(open: boolean) => { setShowTaskForm(open); if (!open) setEditingTask(null); }} 
           editingTaskId={editingTask?.groupTaskGroupId ?? null} 

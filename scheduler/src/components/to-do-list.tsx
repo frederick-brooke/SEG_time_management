@@ -12,10 +12,12 @@ import {
 } from "components/ui/card";
 import { Button } from "components/ui/button";
 import { TaskColumn } from "./tasks/TaskColumn";
-import { TaskFormDialog } from "./tasks/TaskFormDialog";
+import { TaskForm } from "./tasks/TaskForm";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
-import { useTasks } from "@/hooks/useTasks";
+import { useTasks } from "@/src/hooks/useTasks";
+import { useTaskFilters } from "../hooks/useTaskFilters";
+import { getPriorityStyle } from "../lib/priority";
 
 interface ToDoListProps {
   userId: string;
@@ -24,6 +26,15 @@ interface ToDoListProps {
   highlightId?: string | null;
 }
 
+/**
+ * Task management board component.
+ * Renders task columns by status, progress bar, search bar and task dialogs.
+ * @param {string} userId The ID of the user whose tasks are to be displayed.
+ * @param {any[]} exams List of exams to populate the task form exam drop down.
+ * @param {string | null} filterExamId Optional exam ID to filter tasks by.
+ * @param {string | null} highlightId Optional task ID to highlight on render.
+ * @returns {JSX.Element} The rendered task board.
+ */
 export function ToDoList({ userId, exams = [], filterExamId = null, highlightId = null }) {
   const {
     tasks,
@@ -47,47 +58,16 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
     cancelDelete,
   } = useTasks(userId);
 
-  const getPriorityStyle = (priority: string) => {
-    switch (priority) {
-      case "High":
-        return "bg-red-500/20 text-red-400 border-red-500/30";
-      case "Medium":
-        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-      case "Low":
-        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
-      default:
-        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
-    }
-  };
   const [searchQuery, setSearchQuery] = React.useState("");
-
-  const isOverdue = (task) => {
-    if (!task.dueDate || task.status === "completed") return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dueDate = new Date(task.dueDate);
-    return dueDate < today;
-  };
-
-  const examFilteredTasks = filterExamId
-    ? tasks.filter(t => t.examId === filterExamId)
-    : tasks;
-
-  const searchedTasks = examFilteredTasks.filter(t =>
-    (t.title || "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const overdueTasks = searchedTasks.filter((task) => isOverdue(task));
-  const todoTasks = searchedTasks.filter(t => (t.status || "todo") === "todo" && !isOverdue(t));
-  const inProgressTasks = searchedTasks.filter(t => (t.status || "todo") === "in-progress" && !isOverdue(t));
-  const completedTasks = searchedTasks.filter(t => (t.status || "todo") === "completed");
-
-  // Progress bar logic
-  const totalTasks = examFilteredTasks.length;
-  const completedCount = examFilteredTasks.filter(t => t.status === "completed").length;
-  const progressPercentage =
-    totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
-
+  const { 
+    examFilteredTasks, 
+    todoTasks, 
+    inProgressTasks, 
+    completedTasks, 
+    overdueTasks, 
+    progressPercentage 
+  } = useTaskFilters(tasks, filterExamId, searchQuery);
+  
   if (isLoading) {
     return (
       <Card className="@container/card">
@@ -134,7 +114,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
           >
             Sort
           </Button>
-          <TaskFormDialog
+          <TaskForm
             isOpen={isDialogOpen}
             onOpenChange={(open) => {
               setIsDialogOpen(open);

@@ -33,6 +33,7 @@ describe("components/ui/button", () => {
       </Button>,
     );
 
+    expect(screen.getByTestId("button-child")).toBeInTheDocument();
     // Slot wrapper exists => asChild branch hit
     const slot = screen.getByTestId("slot");
     expect(slot).toBeInTheDocument();
