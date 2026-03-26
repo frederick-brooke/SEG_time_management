@@ -21,12 +21,10 @@ jest.mock('@/app/actions/update-user-location', () => ({
   updateLocationHidden: jest.fn().mockResolvedValue({ success: true }),
 }));
 
-// ✅ NEW: Mock the modal to prevent Leaflet/Map libraries from crashing JSDOM
-jest.mock('@/components/map/SetLocationModal', () => {
-  return function MockSetLocationModal() {
-    return <div data-testid="mock-set-location-modal" />;
-  };
-});
+jest.mock('@/components/map/SetLocationModal', () => ({
+  __esModule: true,
+  default: () => <div data-testid="set-location-modal" />,
+}));
 
 jest.mock('@/components/layout/LunarThemeWrapper', () => ({
   __esModule: true,
@@ -71,6 +69,72 @@ describe('SettingsClient', () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.submit(screen.getByText('Save Changes').closest('form')!);
       await waitFor(() => expect(updateAccountDetails).toHaveBeenCalled());
+    });
+
+    describe('Privacy tab', () => {
+      it('renders privacy tab with city and country', () => {
+        const userWithLocation = { ...defaultUser, location: { lat: 51.5, lng: -0.1 }, city: 'London', country: 'UK' };
+        render(<SettingsClient user={userWithLocation} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        expect(screen.getByText('📍 London, UK')).toBeInTheDocument();
+      });
+
+      it('renders coordinates when city/country are empty', () => {
+        const userWithCoords = { ...defaultUser, location: { lat: 51.5074, lng: -0.1278 }, city: '', country: '' };
+        render(<SettingsClient user={userWithCoords} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        expect(screen.getByText(/51\.5074/)).toBeInTheDocument();
+      });
+
+      it('renders "No location set" when location is null', () => {
+        const userNoLocation = { ...defaultUser, location: null };
+        render(<SettingsClient user={userNoLocation} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        expect(screen.getByText('No location set')).toBeInTheDocument();
+      });
+
+      it('opens location modal on Edit Location click', () => {
+        render(<SettingsClient user={defaultUser} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        fireEvent.click(screen.getByText('📍 Edit Location'));
+        expect(screen.getByTestId('set-location-modal')).toBeInTheDocument();
+      });
+
+      it('toggles location hidden successfully', async () => {
+        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        updateLocationHidden.mockResolvedValueOnce({ success: true });
+        render(<SettingsClient user={defaultUser} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        fireEvent.click(screen.getByRole('button', { name: '' })); // the toggle button
+        await waitFor(() => expect(screen.getByText('Location visibility updated.')).toBeInTheDocument());
+      });
+
+      it('reverts toggle and shows error when updateLocationHidden returns failure', async () => {
+        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        updateLocationHidden.mockResolvedValueOnce({ success: false, error: 'Server error' });
+        render(<SettingsClient user={defaultUser} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        fireEvent.click(screen.getByRole('button', { name: '' }));
+        await waitFor(() => expect(screen.getByText('Server error')).toBeInTheDocument());
+      });
+
+      it('reverts toggle and shows error when updateLocationHidden returns failure with no error message', async () => {
+        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        updateLocationHidden.mockResolvedValueOnce({ success: false });
+        render(<SettingsClient user={defaultUser} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        fireEvent.click(screen.getByRole('button', { name: '' }));
+        await waitFor(() => expect(screen.getByText('Failed to update location visibility')).toBeInTheDocument());
+      });
+
+      it('shows error when updateLocationHidden throws', async () => {
+        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        updateLocationHidden.mockRejectedValueOnce(new Error('Network error'));
+        render(<SettingsClient user={defaultUser} />);
+        fireEvent.click(screen.getByText('Privacy'));
+        fireEvent.click(screen.getByRole('button', { name: '' }));
+        await waitFor(() => expect(screen.getByText('Network error')).toBeInTheDocument());
+      });
     });
   });
 
