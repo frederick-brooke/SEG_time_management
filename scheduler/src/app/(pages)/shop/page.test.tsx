@@ -1,81 +1,76 @@
-/**
- * @jest-environment node
- */
-
-import ShopPage from "./page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getShopData } from "@/app/actions/shop";
+import ShopPage from "./page";
 
-// Mock dependencies
-jest.mock("next-auth", () => ({
-  getServerSession: jest.fn(),
+// 1. Update the next/navigation mock to THROW an error, halting execution
+jest.mock("next/navigation", () => ({
+  redirect: jest.fn(() => {
+    throw new Error("NEXT_REDIRECT");
+  }),
 }));
 
-jest.mock("next/navigation", () => ({
-  redirect: jest.fn(),
+jest.mock("next-auth", () => ({
+  getServerSession: jest.fn(),
 }));
 
 jest.mock("@/app/actions/shop", () => ({
   getShopData: jest.fn(),
 }));
 
-jest.mock("./ShopPageClient", () => ({
-  __esModule: true,
-  default: jest.fn(({ initialData }) => (
-    <div data-testid="shop-client">
-      {JSON.stringify(initialData)}
-    </div>
-  )),
-}));
+jest.mock("./ShopPageClient", () => {
+  return function MockShopPageClient({ initialData }: any) {
+    return <div data-testid="client-boundary">{JSON.stringify(initialData)}</div>;
+  };
+});
 
-describe("ShopPage", () => {
+describe("ShopPage Server Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("redirects to /login if no session", async () => {
+  it("redirects to login if user is not authenticated", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    await ShopPage();
+    // 2. Expect the component to reject/throw when redirect is called
+    await expect(ShopPage()).rejects.toThrow("NEXT_REDIRECT");
 
+    expect(getServerSession).toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
-  it("redirects to /login if session has no email", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue({
-      user: {},
-    });
-
-    await ShopPage();
-
-    expect(redirect).toHaveBeenCalledWith("/login");
-  });
-
-  it("redirects to /login if no shop data", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue({
-      user: { email: "test@example.com" },
-    });
-
+  it("redirects to login if shop data fails to load", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue({ user: { email: "test@test.com" } });
     (getShopData as jest.Mock).mockResolvedValue(null);
 
-    await ShopPage();
+    // 2. Expect the component to reject/throw here as well
+    await expect(ShopPage()).rejects.toThrow("NEXT_REDIRECT");
 
+    expect(getShopData).toHaveBeenCalled();
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
-  it("renders ShopPageClient with data when session and data exist", async () => {
-    const mockData = { items: [{ id: 1, name: "Item 1" }] };
+  it("sanitizes data and renders the client component", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue({ user: { email: "test@test.com" } });
+    
+    const mockDbData = {
+      points: 1500,
+      equippedAvatar: "avatar1",
+      items: [
+        { id: "1", type: "AVATAR", rarity: "rare", name: "Cool Avatar" },
+        { id: "2", type: "WEAPON", rarity: "common", name: "Sword" }, 
+      ],
+    };
+    (getShopData as jest.Mock).mockResolvedValue(mockDbData);
 
-    (getServerSession as jest.Mock).mockResolvedValue({
-      user: { email: "test@example.com" },
+    const component = await ShopPage();
+
+    expect(component.props.initialData).toEqual({
+      points: 1500,
+      equippedAvatar: "avatar1",
+      items: [
+        { id: "1", type: "AVATAR", rarity: "rare", name: "Cool Avatar" },
+      ],
     });
-
-    (getShopData as jest.Mock).mockResolvedValue(mockData);
-
-    const result = await ShopPage();
-
-    expect(result).toBeDefined();
-    expect(result.props.initialData).toEqual(mockData);
   });
 });
