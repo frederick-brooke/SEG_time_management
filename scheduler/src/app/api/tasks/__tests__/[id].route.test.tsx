@@ -46,9 +46,9 @@ describe("Task API route", () => {
     jest.clearAllMocks();
   });
 
-  // ─────────────────────────────────────────
+  // 
   // DELETE
-  // ─────────────────────────────────────────
+  // 
   describe("DELETE", () => {
     it("deletes a task successfully", async () => {
       (prisma.task.delete as jest.Mock).mockResolvedValue({});
@@ -78,9 +78,9 @@ describe("Task API route", () => {
     });
   });
 
-  // ─────────────────────────────────────────
+  // 
   // PATCH
-  // ─────────────────────────────────────────
+  // 
   describe("PATCH", () => {
     const baseTask = {
       id: "1",

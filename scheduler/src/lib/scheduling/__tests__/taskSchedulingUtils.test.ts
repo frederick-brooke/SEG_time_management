@@ -1,7 +1,7 @@
 import { getNextOccurrenceDeadline, shouldShowAsUnscheduled } from "../taskSchedulingUtils";
 import { addDays, addMonths } from "date-fns";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 function makeFrom(dateStr: string): Date {
   const d = new Date(dateStr);
@@ -25,7 +25,7 @@ function recurringEvent(type: string, days?: string[], until?: Date) {
   };
 }
 
-// ── getNextOccurrenceDeadline — non-recurring ─────────────────────────────────
+// ── getNextOccurrenceDeadline — non-recurring ───
 
 describe("getNextOccurrenceDeadline — non-recurring", () => {
   it("returns the event start date when offset is 0 and event is in the future", () => {
@@ -80,7 +80,7 @@ describe("getNextOccurrenceDeadline — non-recurring", () => {
   });
 });
 
-// ── getNextOccurrenceDeadline — daily ─────────────────────────────────────────
+// ── getNextOccurrenceDeadline — daily 
 
 describe("getNextOccurrenceDeadline — daily recurrence", () => {
   it("returns the first occurrence on or after fromDay", () => {
@@ -106,7 +106,7 @@ describe("getNextOccurrenceDeadline — daily recurrence", () => {
   });
 });
 
-// ── getNextOccurrenceDeadline — monthly ───────────────────────────────────────
+// ── getNextOccurrenceDeadline — monthly ─────────
 
 describe("getNextOccurrenceDeadline — monthly recurrence", () => {
   it("returns the first monthly occurrence on or after fromDay", () => {
@@ -139,7 +139,7 @@ describe("getNextOccurrenceDeadline — monthly recurrence", () => {
   });
 });
 
-// ── getNextOccurrenceDeadline — weekly ────────────────────────────────────────
+// ── getNextOccurrenceDeadline — weekly 
 
 describe("getNextOccurrenceDeadline — weekly recurrence", () => {
   it("returns the next weekly occurrence on or after fromDay", () => {
@@ -206,7 +206,7 @@ describe("getNextOccurrenceDeadline — weekly recurrence", () => {
   });
 });
 
-// ── getNextOccurrenceDeadline — unknown type ──────────────────────────────────
+// ── getNextOccurrenceDeadline — unknown type ────
 
 describe("getNextOccurrenceDeadline — unknown recurrence type", () => {
   it("returns null for unrecognised recurrence type", () => {
@@ -216,7 +216,7 @@ describe("getNextOccurrenceDeadline — unknown recurrence type", () => {
   });
 });
 
-// ── shouldShowAsUnscheduled ───────────────────────────────────────────────────
+// ── shouldShowAsUnscheduled 
 
 describe("shouldShowAsUnscheduled — completed tasks", () => {
   it("never shows completed tasks", () => {

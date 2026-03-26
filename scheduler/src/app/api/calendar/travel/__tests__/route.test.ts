@@ -5,7 +5,7 @@
 import { POST } from "../route";
 import { getTravelTime } from "@/lib/map";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks 
 
 jest.mock("@/lib/map", () => ({
   getTravelTime: jest.fn(),
@@ -22,7 +22,7 @@ jest.mock("next/server", () => ({
 
 const mockGetTravelTime = getTravelTime as unknown as jest.Mock;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 /**
  * Creates a mock request object with a JSON body for testing.
@@ -36,7 +36,7 @@ function createRequest(body: unknown) {
   } as any;
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("POST /api/travel-time", () => {
   beforeEach(() => {
@@ -52,7 +52,7 @@ describe("POST /api/travel-time", () => {
     );
   });
 
-  // ── Success ──────────────────────────────────────────────────────────────────
+  // ── Success ───────
 
   it("should return duration on valid input", async () => {
     mockGetTravelTime.mockResolvedValue(1200);
@@ -141,7 +141,7 @@ describe("POST /api/travel-time", () => {
     );
   });
 
-  // ── Validation ───────────────────────────────────────────────────────────────
+  // ── Validation ────
 
   it("should return 400 when start is missing", async () => {
     const req = createRequest({ end: { lat: 51.6, lng: -0.2 } });
@@ -235,7 +235,7 @@ describe("POST /api/travel-time", () => {
     expect(res.status).toBe(200);
   });
 
-  // ── Error handling ────────────────────────────────────────────────────────────
+  // ── Error handling ─
 
   it("should return 500 when getTravelTime throws an Error", async () => {
     mockGetTravelTime.mockRejectedValue(new Error("Maps API unavailable"));

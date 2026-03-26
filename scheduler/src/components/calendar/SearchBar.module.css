@@ -97,7 +97,7 @@
     color: #e2e8f0;
   }
   
-  /* ── Search input ────────────────────────────────────────────────────────── */
+  /* ── Search input ─────── */
   .searchContainer {
     position: relative;
     height: 100%;
@@ -152,7 +152,7 @@
     color: #94a3b8;
   }
   
-  /* ── Search results dropdown ─────────────────────────────────────────────── */
+  /* ── Search results dropdown ────── */
   .searchDropdown {
     position: absolute;
     top: 100%;

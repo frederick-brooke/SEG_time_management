@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { useCalendarData } from "@/hooks/useCalendarData";
 
-// ── Mocks ──────────────────────────────────────────────────────────────────
+// ── Mocks ───────
 
 global.fetch = jest.fn();
 
@@ -58,7 +58,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ── refreshEvents ──────────────────────────────────────────────────────────
+// ── refreshEvents ───────
 
 describe("refreshEvents", () => {
   it("fetches events, converts start/end to Date objects, and sets state", async () => {
@@ -228,7 +228,7 @@ describe("refreshEvents", () => {
   });
 });
 
-// ── refreshTasks ───────────────────────────────────────────────────────────
+// ── refreshTasks 
 
 describe("refreshTasks", () => {
   it("fetches tasks, splits scheduled vs unscheduled, and sets state", async () => {
@@ -322,7 +322,7 @@ describe("refreshTasks", () => {
   });
 });
 
-// ── expandRecurringTasks ───────────────────────────────────────────────────
+// ── expandRecurringTasks 
 
 describe("recurring tasks via refreshTasks", () => {
   it("expands weekly recurring tasks into multiple occurrences", async () => {
@@ -391,7 +391,7 @@ describe("recurring tasks via refreshTasks", () => {
 
 
 
-// ── travel title formatting branches ──────────────────────────────────────
+// ── travel title formatting branches ────────
 
 describe("travel block title formatting", () => {
   it("formats travelDuration as 'Xh' when it is an exact number of hours", async () => {
@@ -438,7 +438,7 @@ describe("travel block title formatting", () => {
   });
 });
 
-// ── expandRecurringTasks — daily, monthly and no-days branches ─────────────
+// ── expandRecurringTasks — daily, monthly and no-days branches ───
 
 describe("daily and monthly recurring tasks via refreshTasks", () => {
   it("expands a daily recurring task into multiple occurrences", async () => {
@@ -557,7 +557,7 @@ describe("daily and monthly recurring tasks via refreshTasks", () => {
   });
 });
 
-// ── fetchCategories ────────────────────────────────────────────────────────
+// ── fetchCategories ─────
 
 describe("fetchCategories", () => {
   it("fetches categories and initialises all filters to true", async () => {
@@ -615,7 +615,7 @@ describe("fetchCategories", () => {
   });
 });
 
-// ── fetchScheduleLogs ──────────────────────────────────────────────────────
+// ── fetchScheduleLogs ───
 
 describe("fetchScheduleLogs", () => {
   it("fetches and stores schedule logs", async () => {
@@ -652,7 +652,7 @@ describe("fetchScheduleLogs", () => {
   });
 });
 
-// ── fetchExams ─────────────────────────────────────────────────────────────
+// ── fetchExams ──
 
 describe("fetchExams", () => {
   it("fetches and stores exams", async () => {
@@ -702,7 +702,7 @@ describe("fetchExams", () => {
   });
 });
 
-// ── state setters ──────────────────────────────────────────────────────────
+// ── state setters ───────
 
 describe("state setters", () => {
   it("setEvents updates the events state", () => {
@@ -747,7 +747,7 @@ describe("state setters", () => {
   });
 });
 
-// ── computeUnscheduled ─────────────────────────────────────────────────────
+// ── computeUnscheduled ──
 
 describe("computeUnscheduled", () => {
   it("returns tasks that shouldShowAsUnscheduled given events", () => {

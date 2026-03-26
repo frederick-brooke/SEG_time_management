@@ -1,12 +1,12 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import AdminListSection from "../admin-list-section";
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks 
 
 jest.mock("lucide-react", () => ({
   FunnelXIcon: () => <svg data-testid="funnel-icon" />,
 }));
 
-// ── Fixtures ──────────────────────────────────────────────────────────────────
+// ── Fixtures ───────
 
 const baseFilters = { search: "", page: 1, limit: 12 };
 
@@ -27,11 +27,11 @@ const baseProps = {
 const withItems = (count: number) =>
   Array.from({ length: count }, (_, i) => ({ id: i, name: `Item ${i}` }));
 
-// ── Setup ─────────────────────────────────────────────────────────────────────
+// ── Setup 
 
 beforeEach(() => jest.clearAllMocks());
 
-// ── Header ────────────────────────────────────────────────────────────────────
+// ── Header ─────────
 
 describe("header", () => {
   test("renders the section title", () => {
@@ -59,7 +59,7 @@ describe("header", () => {
   });
 });
 
-// ── Search bar ────────────────────────────────────────────────────────────────
+// ── Search bar ─────
 
 describe("search bar (searchable=true)", () => {
   test("renders the search input with correct placeholder", () => {
@@ -107,7 +107,7 @@ describe("search bar (searchable=true)", () => {
   });
 });
 
-// ── List ──────────────────────────────────────────────────────────────────────
+// ── List ─
 
 describe("list", () => {
   test("calls renderItem for each item", () => {
@@ -123,7 +123,7 @@ describe("list", () => {
   });
 });
 
-// ── Count ─────────────────────────────────────────────────────────────────────
+// ── Count 
 
 describe("count line", () => {
   test("shows 'No users found' when items is empty", () => {
@@ -143,7 +143,7 @@ describe("count line", () => {
   });
 });
 
-// ── Pagination ────────────────────────────────────────────────────────────────
+// ── Pagination ─────
 
 describe("pagination", () => {
   test("does not render pagination when totalPages is 0", () => {
@@ -187,7 +187,7 @@ describe("pagination", () => {
   });
 });
 
-// ── Panel ─────────────────────────────────────────────────────────────────────
+// ── Panel 
 
 describe("detail panel", () => {
   test("always renders the panel returned by renderPanel", () => {

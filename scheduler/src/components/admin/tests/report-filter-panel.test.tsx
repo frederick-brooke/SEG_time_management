@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ReportFilter from "../report-filter-panel";
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+// ─── Types 
 
 interface Filters {
   sortBy: string;
@@ -14,7 +14,7 @@ interface Filters {
   page: number;
 }
 
-// ─── Shared helpers ────────────────────────────────────────────────────────────
+// ─── Shared helpers ─
 
 const defaultFilters: Filters = {
   sortBy: "createdAt",
@@ -61,7 +61,7 @@ function getDateInputs(): HTMLInputElement[] {
     );
 }
 
-// ─── Rendering ─────────────────────────────────────────────────────────────────
+// ─── Rendering ──────
 
 describe("ReportFilter – rendering", () => {
   it("renders the Filters heading", () => {
@@ -115,7 +115,7 @@ describe("ReportFilter – rendering", () => {
   });
 });
 
-// ─── Sort By select ─────────────────────────────────────────────────────────────
+// ─── Sort By select ──
 
 describe("ReportFilter – Sort By select", () => {
   it("supports all three sortBy options", () => {
@@ -128,7 +128,7 @@ describe("ReportFilter – Sort By select", () => {
   });
 });
 
-// ─── Order select ───────────────────────────────────────────────────────────────
+// ─── Order select ────
 
 describe("ReportFilter – Order select", () => {
   it("supports both asc and desc options", () => {
@@ -139,7 +139,7 @@ describe("ReportFilter – Order select", () => {
   });
 });
 
-// ─── Status toggles ─────────────────────────────────────────────────────────────
+// ─── Status toggles ──
 describe("ReportFilter – Status toggles", () => {
   it.each(["PENDING", "RESOLVED", "REJECTED"])(
     "selecting %s sets status to %s and resets page",
@@ -182,7 +182,7 @@ describe("ReportFilter – Status toggles", () => {
   });
 });
 
-// ─── Action buttons ─────────────────────────────────────────────────────────────
+// ─── Action buttons ──
 
 describe("ReportFilter – Action buttons", () => {
   it("calls applyFilters when Apply Filters is clicked", () => {
@@ -204,7 +204,7 @@ describe("ReportFilter – Action buttons", () => {
   });
 });
 
-// ─── Backdrop / panel click behaviour ───────────────────────────────────────────
+// ─── Backdrop / panel click behaviour ──
 
 describe("ReportFilter – Backdrop interaction", () => {
   it("calls onClose when the backdrop overlay is clicked", () => {

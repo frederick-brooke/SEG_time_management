@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 
-// ─── Mocks ────────────────────────────────────────────────────────────────────
+// ─── Mocks ─────────
 
 jest.mock("next-auth", () => ({ getServerSession: jest.fn() }));
 jest.mock("next/navigation", () => ({ redirect: jest.fn() }));
@@ -39,7 +39,7 @@ jest.mock("lucide-react", () => ({
   ),
 }));
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ───────
 
 import React from "react";
 import { render, screen } from "@testing-library/react";
@@ -71,7 +71,7 @@ async function renderPage() {
   return render(jsx as React.ReactElement);
 }
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ─── Tests ─────────
 
 describe("SettingsPage", () => {
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── Auth guard ──────────────────────────────────────────────────────────────
+  // ── Auth guard ───
 
   describe("when there is no session", () => {
     it("redirects to /login", async () => {
@@ -111,7 +111,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── Prisma query ────────────────────────────────────────────────────────────
+  // ── Prisma query ─
 
   describe("prisma query", () => {
     it("queries the correct user id from the session", async () => {
@@ -152,7 +152,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── Layout & static content ─────────────────────────────────────────────────
+  // ── Layout & static content ────────
 
   describe("rendered layout", () => {
     beforeEach(() => {
@@ -199,7 +199,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── SettingsClient props ────────────────────────────────────────────────────
+  // ── SettingsClient props ─
 
   describe("props forwarded to SettingsClient", () => {
     const setup = async (userOverrides = {}) => {

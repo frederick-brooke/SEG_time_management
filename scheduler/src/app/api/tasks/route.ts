@@ -109,14 +109,14 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    // ── Bulk creation (event-linked tasks from EventForm) ─────────────────
+    // ── Bulk creation (event-linked tasks from EventForm) ───────
     if (body.tasks && Array.isArray(body.tasks)) {
       const created = await Promise.all(
         body.tasks.map(async (t) => {
           let scheduledDate = null;
           let scheduledTime = null;
 
-          // ── Step 1: figure out WHICH DATE this task belongs to ───────────
+          // ── Step 1: figure out WHICH DATE this task belongs to ─
           // This is determined by the relative option the user picked,
           // regardless of whether they also picked a specific clock time.
           let taskDate = null; // the calendar date (midnight), no time yet
@@ -197,7 +197,7 @@ export async function POST(request) {
       return NextResponse.json({ tasks: created });
     }
 
-    // ── Single task creation ──────────────────────────────────────────────
+    // ── Single task creation ─────
     let examCategory = null;
     if (body.examId && body.examId !== "none") {
       const exam = await prisma.exam.findUnique({ where: { id: body.examId }});

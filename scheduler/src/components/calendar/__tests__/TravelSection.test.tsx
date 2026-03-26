@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import "@testing-library/jest-dom";
 import TravelSection from "../TravelSection";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("../LocationInput", () => ({
   __esModule: true,
@@ -68,7 +68,7 @@ jest.mock("hooks/useSavedLocations", () => ({
 
 global.fetch = jest.fn();
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 function createDefaultProps(overrides: Record<string, any> = {}) {
   return {
@@ -90,7 +90,7 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("TravelSection", () => {
   beforeEach(() => {
@@ -101,7 +101,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Travel time mode toggle ─────────────────────────────────────────────────
+  // ── Travel time mode toggle ────────
 
   describe("travel time mode toggle", () => {
     it("should render Auto-calculate and Enter manually buttons", () => {
@@ -134,7 +134,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Manual mode ─────────────────────────────────────────────────────────────
+  // ── Manual mode ──
 
   describe("manual mode", () => {
     it("should show the manual minutes input when travelTimeMode is 'manual'", () => {
@@ -216,7 +216,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Auto mode — location inputs ─────────────────────────────────────────────
+  // ── Auto mode — location inputs ────
 
   describe("auto mode — location inputs", () => {
     it("should render the Starting Point LocationInput", () => {
@@ -305,7 +305,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Transport mode select ───────────────────────────────────────────────────
+  // ── Transport mode select 
 
   describe("transport mode select", () => {
     it("should render the Mode of Transport select", () => {
@@ -330,7 +330,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Travel preview ──────────────────────────────────────────────────────────
+  // ── Travel preview ───────
 
   describe("travel preview", () => {
     it("should not show the preview when travelPreview is null", () => {
@@ -372,7 +372,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Use current location ────────────────────────────────────────────────────
+  // ── Use current location ─
 
   describe("use current location", () => {
     it("should call onStartCoordsChange with geolocation coords when Use Current Location is clicked", async () => {
@@ -400,7 +400,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── handleSave ──────────────────────────────────────────────────────────────
+  // ── handleSave ───
 
   describe("handleSave", () => {
     it("should call saveLocation when a location is saved from the start input", async () => {
@@ -430,7 +430,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── Location search debounce ────────────────────────────────────────────────
+  // ── Location search debounce ───────
 
   describe("location search", () => {
     it("should not fetch when text is fewer than 3 characters", async () => {
@@ -469,7 +469,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── useCurrentLocation — geolocation not supported ───────────────────────────
+  // ── useCurrentLocation — geolocation not supported ───────
   describe("useCurrentLocation when geolocation unavailable", () => {
     it("should alert when geolocation is not supported", () => {
       const alertMock = jest.spyOn(window, "alert").mockImplementation(() => {});
@@ -486,7 +486,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── handleSave early return when no pending location ─────────────────────────
+  // ── handleSave early return when no pending location ─────
   describe("handleSave with no pending location", () => {
     it("should not call saveLocation when pendingStart is null", async () => {
       render(<TravelSection {...createDefaultProps()} />);
@@ -509,7 +509,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── fetch error branch ────────────────────────────────────────────────────────
+  // ── fetch error branch ─────
   describe("location search fetch error", () => {
     it("should clear suggestions when fetch returns non-ok response", async () => {
       jest.useFakeTimers();
@@ -544,7 +544,7 @@ describe("TravelSection", () => {
       jest.useRealTimers();
     });
   });
-  // ── formatMins exact hour ─────────────────────────────────────────────────────
+  // ── formatMins exact hour ──
   describe("formatMins exact hour", () => {
     it("should show '1h' when manualTravelTime is exactly 60", () => {
       render(
@@ -559,7 +559,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── selectLocation dest branch ───────────────────────────────────────────────
+  // ── selectLocation dest branch ──────
   describe("selectLocation dest branch", () => {
     it("should call onDestCoordsChange and onDestNameChange when suggestion selected for dest", () => {
       const onDestCoordsChange = jest.fn();
@@ -571,7 +571,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── handleSave with pendingDest ───────────────────────────────────────────────
+  // ── handleSave with pendingDest ──────
   describe("handleSave dest branch", () => {
     it("should call saveLocation when a location is saved from the dest input", async () => {
       render(<TravelSection {...createDefaultProps()} />);
@@ -593,7 +593,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── selectLocation early return ────────────────────────────────
+  // ── selectLocation early return ──
   describe("selectLocation with missing geometry", () => {
     it("should not call onStartCoordsChange when suggestion has no geometry", () => {
       const onStartCoordsChange = jest.fn();
@@ -603,7 +603,7 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── debounceTimer clearTimeout branch ────────────────────────────────────────
+  // ── debounceTimer clearTimeout branch 
   describe("debounce timer cleanup", () => {
     it("should clear the previous timer when a new search is triggered quickly", async () => {
       jest.useFakeTimers();
