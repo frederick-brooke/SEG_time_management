@@ -1,4 +1,3 @@
-// useEventDelete.test.ts
 import { renderHook } from "@testing-library/react";
 import { useEventDelete } from "../useEventDelete";
 import { getDeleteConfirmMsg, deleteEventRequest } from "../eventDeleteApi";
@@ -32,7 +31,7 @@ function setup() {
   return { deleteEvent: result.current, refreshEvents, triggerUndo };
 }
 
-// ── ID validation ─────────────────────────────────────────────────────────
+// ID validation 
 
 describe("ID validation", () => {
   it("alerts and returns false when id is missing", async () => {
@@ -50,7 +49,7 @@ describe("ID validation", () => {
   });
 });
 
-// ── confirm dialog ────────────────────────────────────────────────────────
+// confirm dialog 
 
 describe("confirm dialog", () => {
   it("returns false when user cancels confirm", async () => {
@@ -68,7 +67,7 @@ describe("confirm dialog", () => {
   });
 });
 
-// ── deleteEventRequest call ───────────────────────────────────────────────
+// deleteEventRequest call 
 
 describe("deleteEventRequest", () => {
   it("calls deleteEventRequest with id, mode, and instanceDate", async () => {
@@ -101,13 +100,15 @@ describe("deleteEventRequest", () => {
   });
 });
 
-// ── success path ──────────────────────────────────────────────────────────
+// success path
 
 describe("success path", () => {
   it("calls triggerUndo and refreshEvents on success", async () => {
     const { deleteEvent, triggerUndo, refreshEvents } = setup();
     await deleteEvent(BASE_EVENT, "single");
-    expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT);
+    
+    expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT, "single");
+    
     expect(refreshEvents).toHaveBeenCalled();
   });
 
@@ -115,5 +116,12 @@ describe("success path", () => {
     const { deleteEvent } = setup();
     const result = await deleteEvent(BASE_EVENT, "single");
     expect(result).toBe(true);
+  });
+  
+  it("calls triggerUndo with 'full' mode when deleting a series", async () => {
+    const { deleteEvent, triggerUndo } = setup();
+    await deleteEvent(BASE_EVENT, "series");
+    
+    expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT, "full");
   });
 });

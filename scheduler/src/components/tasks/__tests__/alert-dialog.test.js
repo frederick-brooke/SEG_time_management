@@ -1,9 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 
-// IMPORTANT: Use RELATIVE paths that Jest can resolve in your repo:
-// src/components/tasks/__tests__/  ->  src/components/ui/...
-
 // --- Mock Button so we can assert variant/size/asChild ---
 const ButtonMock = jest.fn(({ variant, size, asChild, children }) => (
   <div
@@ -143,7 +140,6 @@ describe("components/ui/alert-dialog", () => {
     expect(screen.getByTestId("radix-root")).toBeInTheDocument();
     expect(screen.getByTestId("radix-trigger")).toHaveTextContent("Open");
 
-    // There are 2 overlays; ensure at least one has the custom class
     const overlays = screen.getAllByTestId("radix-overlay");
     expect(overlays.length).toBeGreaterThanOrEqual(2);
     expect(overlays.some((el) => el.classList.contains("my-overlay"))).toBe(

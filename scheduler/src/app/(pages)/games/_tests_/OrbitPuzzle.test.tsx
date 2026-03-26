@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import OrbitPuzzle from "./OrbitPuzzle"; // Adjust path as needed
+import OrbitPuzzle from "../OrbitPuzzle"; // Adjust path as needed
 import { payGameEntry } from "@/app/actions/games";
 
 // 1. Mock External Dependencies
