@@ -18,10 +18,10 @@ const customJestConfig = {
     "src/components/animate-ui",
     "src/components/effects/",
     ".next/",
+    "src/components/map/index.ts",
   ], 
   
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^components/(.*)$": "<rootDir>/src/components/$1",
     "\\.module\\.css$": "identity-obj-proxy",

@@ -197,3 +197,5 @@ export function SavedLocationsLayer({ locations }: SavedLocationsLayerProps) {
 
   return null;
 }
+// At the bottom of SavedLocationsLayer.tsx
+export { groupByPosition, spreadPositions, createPinSvg, buildPopup };
