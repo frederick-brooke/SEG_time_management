@@ -10,11 +10,12 @@ import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
+      <label htmlFor={name} className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
         {label}
       </label>
       <input
         type={type}
+		id={name}
         name={name}
         value={value}
         onChange={onChange}
@@ -27,7 +28,7 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
 }
 
 // ── Client Component 
-function ResetPasswordContent() {
+export function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");

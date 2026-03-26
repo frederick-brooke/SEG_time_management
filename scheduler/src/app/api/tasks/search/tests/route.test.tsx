@@ -1,4 +1,4 @@
-import { GET } from "@/app/api/tasks/route";
+import { GET } from "@/app/api/tasks/search/route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 
@@ -29,7 +29,7 @@ const mockSession = {
 };
 
 function createRequest(url: string) {
-  return { url } as Request;
+  return new Request(url);
 }
 
 describe("Tasks GET API", () => {
@@ -56,105 +56,46 @@ describe("Tasks GET API", () => {
     const res = await GET(createRequest("http://localhost"));
     const body = await res.json();
 
+    expect(prisma.task.findMany).toHaveBeenCalled();
     expect(res.status).toBe(200);
-    expect(body.tasks).toEqual([]);
-    expect(body.totalTasks).toBe(0);
     expect(body.totalTaskPages).toBe(0);
   });
 
-  it("applies search filter", async () => {
+  it("applies all filters together", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
     (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?search=test"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies status filter", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?status=OPEN"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies priority filter", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?priority=HIGH"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies completed true filter", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?completed=true"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies completed false filter", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?completed=false"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies date range with startDate", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?startDate=2024-01-01"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies date range with endDate", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
-
-    await GET(createRequest("http://localhost?endDate=2024-12-31"));
-
-    expect(prisma.task.findMany).toHaveBeenCalled();
-  });
-
-  it("applies full date range", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-
-    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-    (prisma.task.count as jest.Mock).mockResolvedValue(0);
+    (prisma.task.count as jest.Mock).mockResolvedValue(10);
 
     await GET(
       createRequest(
-        "http://localhost?startDate=2024-01-01&endDate=2024-12-31"
+        "http://localhost?search=test&status=OPEN&priority=HIGH&completed=true&startDate=2024-01-01&endDate=2024-12-31"
       )
     );
 
-    expect(prisma.task.findMany).toHaveBeenCalled();
+    const call = (prisma.task.findMany as jest.Mock).mock.calls[0][0];
+
+    expect(call.where.AND.length).toBeGreaterThan(1);
   });
 
-  it("applies sorting and pagination", async () => {
+  it("handles completed false", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+
+    (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.task.count as jest.Mock).mockResolvedValue(5);
+
+    await GET(createRequest("http://localhost?completed=false"));
+
+    const call = (prisma.task.findMany as jest.Mock).mock.calls[0][0];
+
+    expect(call.where.AND).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ completed: false }),
+      ])
+    );
+  });
+
+  it("applies pagination and sorting", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
     (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
