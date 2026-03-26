@@ -115,7 +115,7 @@ describe("CreateGroup Component", () => {
     const { createGroup } = require("@/app/actions/groups");
     createGroup.mockResolvedValue({ success: false });
 
-    render(<CreateGroup onClose={mockOnClose} />);
+    render(<CreateGroup onClose={mockOnClose} onSuccess={mockOnSuccess} />);
     await waitFor(() => screen.getByPlaceholderText(/e.g. Study Squad/i));
     
     fireEvent.change(screen.getByPlaceholderText(/e.g. Study Squad/i), { target: { value: "Test" } });
@@ -136,7 +136,7 @@ describe("CreateGroup Component", () => {
     // while still triggering the "No friends" branch and clearing the loading state.
     getMyFriendsForGroup.mockResolvedValueOnce([]); 
 
-    render(<CreateGroup onClose={mockOnClose} />);
+    render(<CreateGroup onClose={mockOnClose} onSuccess={mockOnSuccess} />);
     
     await waitFor(() => {
       expect(screen.getByText(/No friends yet/i)).toBeInTheDocument();

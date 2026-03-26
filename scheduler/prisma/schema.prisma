@@ -69,7 +69,6 @@ model User {
   bio          String?
   pfp          String?
 
-  // Location fields for friends map
   city     String?
   country  String?
   location Json? // { lat: number, lng: number }
@@ -498,8 +497,8 @@ model CheckIn {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   userId      String   @db.ObjectId
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date        DateTime // the day being checked in for
-  taskEntries Json // array of { taskId, status: "completed"|"partial"|"missed", progress: 0-100 }
+  date        DateTime 
+  taskEntries Json 
   createdAt   DateTime @default(now())
 }
 

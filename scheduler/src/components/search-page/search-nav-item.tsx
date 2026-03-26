@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { IconSearch } from "@tabler/icons-react";
 
-
 /**
  * SearchNavItem
  *

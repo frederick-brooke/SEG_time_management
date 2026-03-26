@@ -20,8 +20,6 @@ type ReportManagementProps = {
   reports: any[];
   totalReports: number;
   totalReportPages: number;
-  currentReportPage: number;
-  setCurrentReportPage: React.Dispatch<React.SetStateAction<number>>;
   setIsReportFilterOpen: (open: boolean) => void;
   selectedReport: any;
   setSelectedReport: (report: any) => void;

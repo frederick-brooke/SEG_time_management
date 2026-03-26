@@ -8,7 +8,7 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
 }));
 
-jest.mock('@/src/components/groups/CreateGroup', () => ({
+jest.mock('@/components/groups/CreateGroup', () => ({
   __esModule: true,
   default: ({ onSuccess, onClose }: any) => (
     <div data-testid="create-modal">
@@ -18,7 +18,7 @@ jest.mock('@/src/components/groups/CreateGroup', () => ({
   ),
 }));
 
-jest.mock('@/src/components/groups/GroupCard', () => ({
+jest.mock('@/components/groups/GroupCard', () => ({
   GroupCard: ({ group }: any) => <div data-testid="group-card">{group.name}</div>,
 }));
 
@@ -44,7 +44,7 @@ describe('GroupsPageClient', () => {
   // Confirms the range labels and pagination buttons appear even with empty data
   it('covers empty state and safeTotal pagination', () => {
     render(<GroupsPageClient groups={[]} />);
-    expect(screen.getByText(/no groups found/i)).toBeInTheDocument();
+    expect(screen.getByText("No groups found. Try creating one!")).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
   });
 

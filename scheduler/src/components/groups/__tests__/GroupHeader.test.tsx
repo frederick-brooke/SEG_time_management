@@ -214,4 +214,25 @@ describe("GroupHeader", () => {
       expect(mockPush).not.toHaveBeenCalled();
     });
   });
+  // Confirms the singular "member" string is rendered correctly
+  it("renders singular 'member' text when group has exactly 1 member", () => {
+    const singleMemberGroup = { ...mockGroup, memberCount: 1 };
+    render(<GroupHeader group={singleMemberGroup} isOwner={true} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />);
+    expect(screen.getByText(/1 member/i)).toBeInTheDocument();
+    expect(screen.queryByText(/members/i)).not.toBeInTheDocument();
+  });
+
+  // Confirms fallback errors for server failures
+  it("alerts on silent server failures for leave and delete", async () => {
+    (leaveGroup as jest.Mock).mockResolvedValue({ success: false });
+    (deleteGroup as jest.Mock).mockResolvedValue({ success: false });
+    
+    const { rerender } = render(<GroupHeader group={mockGroup} isOwner={false} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />);
+    fireEvent.click(screen.getByText("Leave Group"));
+    await waitFor(() => expect(window.alert).toHaveBeenCalled());
+
+    rerender(<GroupHeader group={mockGroup} isOwner={true} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />);
+    fireEvent.click(screen.getByText("Delete Group"));
+    await waitFor(() => expect(window.alert).toHaveBeenCalledTimes(2));
+  });
 });

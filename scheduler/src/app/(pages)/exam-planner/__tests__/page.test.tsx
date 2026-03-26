@@ -19,7 +19,22 @@ jest.mock("@/app/actions/examActions", () => ({
 
 jest.mock("@/components/exams/exam-form-dialog", () => ({
     __esModule: true,
-    default: () => <div data-testid="exam-dialog">ExamFormDialog</div>,
+    default: ({ onExamAdded, onExamUpdated, editingExam }: any) => (
+        <div>
+            <button 
+                data-testid="add-trigger"
+                onClick={() => onExamAdded({ id: "new", title: "New Exam"})}>
+                    Add Mock Exam
+            </button>
+            {editingExam && (
+                <button 
+                    data-testid="update-trigger"
+                    onClick={() => onExamUpdated({...editingExam, title: "Updated Exam" })}>
+                        Updated Mock Exam
+                </button>
+            )}
+        </div>
+    ),
 }));
 
 describe("Exam planner page coverage", () => {
@@ -88,16 +103,53 @@ describe("Exam planner page coverage", () => {
         });     
     });
 
-    it("calls onExamAdded callback when new exam is added via dialog",  async () => {
-        const mockExamFormDialog = jest.fn(({ onExamAdded }) => (
-            <button onClick={() => onExamAdded({ id: "new-exam", title: "New "})}>
-                Add Exam
-            </button>
-        ));
-        jest.doMock("@/components/exams/exam-form-dialog", () => ({
-            __esModule: true,
-            default: mockExamFormDialog,
-        }));
+    it("renders singular Task text when there is exactly one task", async () => {
+        const singleTaskExam = [
+            {
+                id: "exam-singular",
+                title: "Maths",
+                examDate: "2026-05-20T00:00:00.000Z",
+                maxTimePerDay: 60,
+                tasks: [{ status: "todo" }],
+            },
+        ];
+        (getMyExams as jest.Mock).mockResolvedValue(singleTaskExam);
         render(<ExamPlannerPage/>);
+        expect(await screen.findByText(/1 Task/i)).toBeInTheDocument();
     });
+
+    it("renders 0% progress when exam has no tasks", async () => {
+        const noTaskExam = [
+            {
+                id: "exam-no-tasks",
+                title: "Empty exam",
+                examDate: "2026-05-20T00:00:00.000Z",
+                maxTimePerDay: 30,
+                tasks: [],
+            },
+        ];
+        (getMyExams as jest.Mock).mockResolvedValue(noTaskExam);
+        render(<ExamPlannerPage/>);
+        expect(await screen.findByText("0")).toBeInTheDocument();
+    });
+
+    it("does nothing if exam deletion is cancelled", async () => {
+        window.confirm = jest.fn(() => false);
+        render(<ExamPlannerPage/>);
+        const deleteBtn = await screen.findByText(/Delete exam/i);
+        fireEvent.click(deleteBtn);
+        expect(deleteExam).not.toHaveBeenCalled();
+    });
+
+    it("executes all internal state update functions", async () => {
+        render(<ExamPlannerPage/>);
+        const addBtn = await screen.findByTestId("add-trigger");
+        fireEvent.click(addBtn);
+        expect(await screen.findByText("New Exam")).toBeInTheDocument();
+
+        const updateBtn = (await screen.findAllByTestId("update-trigger"))[0];
+        fireEvent.click(updateBtn);
+        expect(await screen.findByText("Updated Exam")).toBeInTheDocument();
+    })
+
 })

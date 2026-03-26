@@ -25,7 +25,7 @@ jest.mock("@/app/actions/module", () => ({
   deleteModuleEvent: jest.fn(),
 }));
 
-jest.mock("components/modules/ModuleHeader", () => ({
+jest.mock("@/components/modules/ModuleHeader", () => ({
   __esModule: true,
   default: ({ onOpenTaskModal, onOpenEventModal, onOpenSettings }: any) => (
     <div data-testid="module-header">
@@ -36,12 +36,12 @@ jest.mock("components/modules/ModuleHeader", () => ({
   ),
 }));
 
-jest.mock("components/modules/ModuleMembersList", () => ({
+jest.mock("@/components/modules/ModuleMembersList", () => ({
   __esModule: true,
   default: () => <div data-testid="module-members-list" />,
 }));
 
-jest.mock("components/modules/ModuleEvents", () => ({
+jest.mock("@/components/modules/ModuleEvents", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="module-events">
@@ -51,7 +51,7 @@ jest.mock("components/modules/ModuleEvents", () => ({
   ),
 }));
 
-jest.mock("components/modules/ModuleTasks", () => ({
+jest.mock("@/components/modules/ModuleTasks", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="module-tasks">
@@ -61,7 +61,7 @@ jest.mock("components/modules/ModuleTasks", () => ({
   ),
 }));
 
-jest.mock("components/modules/ModuleSettingsModal", () => ({
+jest.mock("@/components/modules/ModuleSettingsModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="settings-modal">
@@ -71,7 +71,7 @@ jest.mock("components/modules/ModuleSettingsModal", () => ({
   ),
 }));
 
-jest.mock("components/modules/ModuleEventModal", () => ({
+jest.mock("@/components/modules/ModuleEventModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="event-modal">
@@ -81,9 +81,9 @@ jest.mock("components/modules/ModuleEventModal", () => ({
   ),
 }));
 
-jest.mock("components/tasks/TaskFormDialog", () => ({
+jest.mock("@/components/tasks/TaskForm", () => ({
   __esModule: true,
-  TaskFormDialog: ({ onOpenChange, onSubmit, onFormChange }: any) => (
+  TaskForm: ({ onOpenChange, onSubmit, onFormChange }: any) => (
     <div data-testid="task-modal">
       <button onClick={() => onOpenChange(false)}>Close Task Modal</button>
       <button onClick={onSubmit}>Submit Task Modal</button>
@@ -116,7 +116,7 @@ describe("ModuleDetailClient", () => {
   });
 
   // Confirms all main sections of the module detail page are rendered
-  it("renders all core subcomponents", () => {
+  it("renders all core sub@/components", () => {
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);
     expect(screen.getByTestId("module-header")).toBeInTheDocument();
     expect(screen.getByTestId("module-members-list")).toBeInTheDocument();

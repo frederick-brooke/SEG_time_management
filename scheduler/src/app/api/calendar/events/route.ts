@@ -182,6 +182,20 @@ export async function PATCH(req: NextRequest) {
       travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
 
     const enrichedBody = { ...body, travelDuration };
+    
+    if (mode === "removeException" && body.exceptionDate) {
+      const updated = await prisma.event.update({
+        where: { id },
+        data: {
+          exceptions: {
+            set: (event.exceptions as string[]).filter(
+              (e) => new Date(e).toISOString() !== new Date(body.exceptionDate).toISOString()
+            ),
+          },
+        },
+      });
+      return NextResponse.json(updated);
+    }
     const result =
       mode === "single" && originalDate
         ? await handleSingleInstanceUpdate(event, enrichedBody, session.user.id)

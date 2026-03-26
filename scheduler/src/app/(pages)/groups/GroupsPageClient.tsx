@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { GroupCard } from "@/src/components/groups/GroupCard";
-import CreateGroup from "@/src/components/groups/CreateGroup";
+import { GroupCard } from "@/components/groups/GroupCard";
+import CreateGroup from "@/components/groups/CreateGroup";
 import { Plus, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
