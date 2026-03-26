@@ -140,4 +140,33 @@ describe("Exam detail page [id]", () => {
         expect(durationInput).toHaveValue(60);
         expect(urlInput).toHaveValue("https://test.com");
     });
+
+    it("prevents negative signs and 'e' in the duration input", async () => {
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        render(<ExamIdPage />);
+        const durationInput = await screen.findByDisplayValue("45");
+        const dashEvent = fireEvent.keyDown(durationInput, { key: '-', code: 'Minus'});
+        expect(dashEvent).toBe(false);
+        const eEvent = fireEvent.keyDown(durationInput, { key: 'e', code: 'KeyE'});
+        expect(eEvent).toBe(false);
+    });
+
+    it("logs an error when generateExamPlan fails", async () => {
+        const { generateExamPlan } = require("@/app/actions/examActions");
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        (getExamById as jest.Mock).mockResolvedValue(mockExam);
+        
+        generateExamPlan.mockRejectedValue(new Error("API Error"));
+
+        render(<ExamIdPage />);
+        const titleInput = await screen.findByPlaceholderText("Topic Name");
+        fireEvent.change(titleInput, { target: { value: "Physics"}});
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("Generate Study Plan"));
+        });
+    
+        expect(consoleSpy).toHaveBeenCalledWith("Failed to generate plan:", expect.any(Error));
+        consoleSpy.mockRestore();
+    });
 });

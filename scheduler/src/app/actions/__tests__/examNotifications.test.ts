@@ -30,6 +30,32 @@ describe("examNotifications Actions", () => {
             }));
             expect(prisma.revisionMaterial.create).toHaveBeenCalled();
         });
+
+        it("creates only a task and skips revision material if no URL is provided", async () => {
+            (prisma.exam.findUnique as jest.Mock).mockResolvedValue({ title: "Maths" });
+            const topic = { title: "No Link", duration: 30 };
+            const dueDate = new Date();
+            await saveTopicAsTask("exam-1", "user-1", topic, dueDate);
+
+            expect(prisma.task.create).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({ url: null })                
+            }));
+            expect(prisma.revisionMaterial.create).not.toHaveBeenCalled();
+        });
+
+        it("uses Exam as a fallback category if the exam is not found", async () => {
+            (prisma.exam.findUnique as jest.Mock).mockResolvedValue(null);
+            const topic = { title: "Missing Exam", duration: 30, url: "http://test.com"};
+
+            await saveTopicAsTask("non-existent-id", "user-1", topic, new Date());
+
+            expect(prisma.task.create).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({ 
+                    category: "Exam"
+                })                
+            }));
+        })
+
     });
 
     describe("checkUpcomingDeadlines", () => {
