@@ -16,6 +16,15 @@ jest.mock('@/app/actions/settings', () => ({
   deleteAccount: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('@/app/actions/update-user-location', () => ({
+  updateLocationHidden: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock('@/components/map/SetLocationModal', () => ({
+  __esModule: true,
+  default: () => <div data-testid="set-location-modal" />,
+}));
+
 jest.mock('@/components/layout/LunarThemeWrapper', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
