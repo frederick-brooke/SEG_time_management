@@ -1,8 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useEventForm } from "@/hooks/useEventForm";
+import { useEventForm } from "@/hooks/Events/useEventForm";
 
-// ── Mocks ──────────────────────────────────────────────────────────────────
-
+// Mocks 
 global.fetch = jest.fn();
 global.confirm = jest.fn();
 global.alert = jest.fn();
@@ -55,7 +54,7 @@ beforeEach(() => {
   defaultFetchMock();
 });
 
-// ── Helper ─────────────────────────────────────────────────────────────────
+// Helper 
 
 function setup(
   initialEvent: any = null,
@@ -68,7 +67,7 @@ function setup(
   );
 }
 
-// ── Initial state ──────────────────────────────────────────────────────────
+// Initial state 
 
 describe("initial state", () => {
   it("defaults to empty fields when no initialEvent is provided", async () => {
@@ -135,7 +134,7 @@ describe("initial state", () => {
   });
 });
 
-// ── Categories effect ──────────────────────────────────────────────────────
+// Categories effect 
 
 describe("categories fetch", () => {
   it("fetches categories on mount", async () => {
@@ -155,7 +154,7 @@ describe("categories fetch", () => {
   });
 });
 
-// ── Recurrence day auto-select effect ─────────────────────────────────────
+// Recurrence day auto-select effect 
 
 describe("recurrenceDays auto-select effect", () => {
   it("auto-selects the weekday matching startDate when switching to weekly", async () => {
@@ -185,7 +184,7 @@ describe("recurrenceDays auto-select effect", () => {
   });
 });
 
-// ── Travel preview effect ──────────────────────────────────────────────────
+// Travel preview effect 
 
 describe("travel preview effect", () => {
   it("fetches travel preview when coords and auto mode are set", async () => {
@@ -252,7 +251,7 @@ describe("travel preview effect", () => {
   });
 });
 
-// ── handleSubmit ───────────────────────────────────────────────────────────
+// handleSubmit 
 
 describe("handleSubmit", () => {
   const makeEvent = (e: React.FormEvent) => {
@@ -468,7 +467,7 @@ describe("handleSubmit", () => {
   });
 });
 
-// ── handleDelete ───────────────────────────────────────────────────────────
+// handleDelete 
 
 describe("handleDelete", () => {
   it("does nothing when there is no initialEvent id", async () => {

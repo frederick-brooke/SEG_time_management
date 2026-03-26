@@ -1,79 +1,105 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import EditProfileForm from '../EditProfileForm';
+import { useFormStatus } from 'react-dom';
 import '@testing-library/jest-dom';
 
 // mocks
-// Replaces the X icon with a testable SVG element
-jest.mock('lucide-react', () => ({
-  X: () => <svg data-testid="x-icon" />,
+jest.mock('react-dom', () => ({
+  ...jest.requireActual('react-dom'),
+  useFormStatus: jest.fn(),
 }));
 
-// Prevents server action from executing in the test environment
-jest.mock('../../../app/actions/profile', () => ({
+jest.mock('@/app/actions/profile', () => ({
   updateProfile: jest.fn(),
 }));
 
-// Bypasses the form status hook so the submit button always renders in its default state
-jest.mock('react-dom', () => ({
-  ...jest.requireActual('react-dom'),
-  useFormStatus: () => ({ pending: false }),
+jest.mock('lucide-react', () => ({
+  X: () => <svg data-testid="icon-x" />,
 }));
 
-describe('EditProfileForm', () => {
-  const mockOnClose = jest.fn();
-
-  const populatedProfile = {
-    fname: 'Jane',
+describe('EditProfileForm Component', () => {
+  const mockProfile = {
+    fname: 'John',
     lname: 'Doe',
-    bio: 'Software Engineering student.',
+    bio: 'Software Engineer'
   };
 
-  beforeEach(() => jest.clearAllMocks());
+  const mockOnClose = jest.fn();
 
-  // Confirms the form pre-fills all three inputs when the user already has profile data
-  it('populates inputs with existing profile data', () => {
-    render(<EditProfileForm profile={populatedProfile} onClose={mockOnClose} />);
-    expect(screen.getByDisplayValue('Jane')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Doe')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Software Engineering student.')).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    (useFormStatus as jest.Mock).mockReturnValue({ pending: false });
   });
 
-  // Confirms the form renders with empty strings rather than undefined/null for new users
-  it('handles missing profile data with empty defaults', () => {
-    render(<EditProfileForm profile={{}} onClose={mockOnClose} />);
-    const fnameInput = screen.getByLabelText(/First Name/i) as HTMLInputElement;
-    const lnameInput = screen.getByLabelText(/Last Name/i) as HTMLInputElement;
-    const bioInput = screen.getByLabelText(/Bio/i) as HTMLTextAreaElement;
-    expect(fnameInput.value).toBe('');
-    expect(lnameInput.value).toBe('');
-    expect(bioInput.value).toBe('');
+  afterEach(() => {
+    // Clears lingering setTimeouts to fix the "Open Handles" Jest warning
+    act(() => { jest.runOnlyPendingTimers(); });
+    jest.useRealTimers();
   });
 
-  // Confirms clicking the X icon button triggers the onClose callback
-  it('calls onClose when the X icon button is clicked', () => {
-    render(<EditProfileForm profile={populatedProfile} onClose={mockOnClose} />);
-    const closeIcon = screen.getByTestId('x-icon');
-    fireEvent.click(closeIcon.closest('button')!);
+  /**
+   * Partitions: Checks standard initialization of form fields.
+   */
+  it('renders the form with prepopulated profile data', () => {
+    render(<EditProfileForm profile={mockProfile} onClose={mockOnClose} />);
+    
+    expect(screen.getByLabelText(/First Name/i)).toHaveValue('John');
+    expect(screen.getByLabelText(/Last Name/i)).toHaveValue('Doe');
+    expect(screen.getByLabelText(/Bio/i)).toHaveValue('Software Engineer');
+  });
+
+  /**
+   * Partitions: Verifies close callback functionality.
+   */
+  it('calls onClose when the X button is clicked', () => {
+    render(<EditProfileForm profile={mockProfile} onClose={mockOnClose} />);
+    
+    const closeBtn = screen.getByTestId('icon-x').closest('button');
+    if (closeBtn) fireEvent.click(closeBtn);
+    
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  // Confirms the submit button renders with the correct label
-  it('renders the Save Changes submit button', () => {
-    render(<EditProfileForm profile={populatedProfile} onClose={mockOnClose} />);
-    expect(screen.getByText('Save Changes')).toBeInTheDocument();
+  /**
+   * Partitions: Ensures the form triggers the close callback after submission timeout.
+   */
+  it('triggers the onClose callback shortly after form submission', () => {
+    render(<EditProfileForm profile={mockProfile} onClose={mockOnClose} />);
+    
+    const form = screen.getByLabelText(/First Name/i).closest('form');
+    if (form) fireEvent.submit(form);
+    
+    expect(mockOnClose).not.toHaveBeenCalled();
+    
+    // Wrapped in act() to ensure React processes the state/timer updates cleanly
+    act(() => { jest.advanceTimersByTime(500); });
+    
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  // Confirms all three labelled form fields are present and accessible
-  it('renders all three form fields', () => {
-    render(<EditProfileForm profile={populatedProfile} onClose={mockOnClose} />);
-    expect(screen.getByLabelText(/First Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Last Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Bio/i)).toBeInTheDocument();
+  /**
+   * Ensures the submit button enters a disabled, visually distinct 
+   * loading state while the server action is pending.
+   */
+  it('disables the submit button and shows loading text when pending', () => {
+    (useFormStatus as jest.Mock).mockReturnValue({ pending: true });
+    render(<EditProfileForm profile={mockProfile} onClose={mockOnClose} />);
+    
+    const submitBtn = screen.getByRole('button', { name: /Saving.../i });
+    expect(submitBtn).toBeDisabled();
+    expect(submitBtn).toHaveClass('opacity-50');
   });
 
-  // Confirms the form section heading is rendered for context
-  it('renders the Edit Details heading', () => {
-    render(<EditProfileForm profile={populatedProfile} onClose={mockOnClose} />);
-    expect(screen.getByText('Edit Details')).toBeInTheDocument();
+  /**
+   * Ensures fallback empty strings are used when profile fields are missing.
+   * This covers the || "" conditional branches.
+   */
+  it('uses empty string fallbacks when profile fields are missing', () => {
+    render(<EditProfileForm profile={{}} onClose={mockOnClose} />);
+    
+    expect(screen.getByLabelText(/First Name/i)).toHaveValue('');
+    expect(screen.getByLabelText(/Last Name/i)).toHaveValue('');
+    expect(screen.getByLabelText(/Bio/i)).toHaveValue('');
   });
 });

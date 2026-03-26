@@ -2,11 +2,25 @@
 
 import { useEffect, useState, useRef } from "react";
 
-type UseTimerProps = {
+type UseTimerProps = {		//type definition for props
   storageKey?: string;
   onTick?: (ms: number) => void;
 };
 
+/**
+ * useTimer
+ *
+ * Custom hook for managing a countdown timer with persistence.
+ * Handles:
+ * - Starting, pausing, resuming, and stopping a timer
+ * - Persisting timer state in localStorage
+ * - Restoring timer state on page reload
+ * - Providing formatted time (hours, minutes, seconds)
+ * - Emitting tick updates via callback
+ *
+ * @param {UseTimerProps} props
+ * @returns {Object} Timer state and control functions
+ */
 export function useTimer( {storageKey, onTick}: UseTimerProps = {}) {
     const saveTimerState = (state) => {
         //Saves the paused time within web browser for local persistance when refresh

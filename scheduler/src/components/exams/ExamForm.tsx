@@ -71,7 +71,7 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 setServerError(result.error || "Failed to save exam details");
             }
         } catch (error) {
-            setServerError("A network error occured. Please try again.");
+            setServerError("A network error occurred. Please try again.");
         } finally {
             setIsPending(false);
         }

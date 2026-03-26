@@ -1,333 +1,282 @@
-"use client";
-// src/components/tasks/TaskForm.tsx
-import { useState, useEffect } from "react";
-import { FormField, RecurrencePanel } from "@/components/shared/FormComponents";
-import { relativeOffsetLabel } from "@/lib/ui";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
+import { LunarCard } from "../ui/lunar-card";
+import { X } from "lucide-react";
+import { createPortal } from "react-dom";
+import React from "react";
 
+// 1. Define and export the missing TaskFormData interface
 export interface TaskFormData {
-  name: string;
-  description: string;
-  dueDate: string | null;
-  url: string;
-  subtasks: string;
-  durationHours: string;
-  durationMinutes: string;
-  examId: string;
-  priority: string;
-  bufferDays: number;
-  isRecurring: boolean;
-  recurrence: { type: string; days: string[]; until: string | null } | null;
-  scheduledDate?: string | null;
-  scheduledTime?: string | null;
+  name?: string;
+  description?: string;
+  dueDate?: string;
+  url?: string;
+  subtasks?: string;
+  durationHours?: string;
+  durationMinutes?: string;
+  examId?: string;
+  priority?: string;
+  [key: string]: any;
 }
 
-export const EMPTY_FORM: TaskFormData = {
-  name: "",
-  description: "",
-  dueDate: null,
-  url: "",
-  subtasks: "",
-  durationHours: "0",
-  durationMinutes: "0",
-  examId: "none",
-  priority: "Medium",
-  bufferDays: 0,
-  isRecurring: false,
-  recurrence: null,
-};
-
-interface Props {
-  formData: TaskFormData;
-  onChange: (patch: Partial<TaskFormData>) => void;
-  onSubmit: (data: TaskFormData) => void;
-  onDelete?: () => void;
-  isEditing: boolean;
+// 2. Apply it to your Props
+interface TaskFormProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingTaskId: string | null;
+  formData: TaskFormData; 
+  onFormChange: (patch: Partial<TaskFormData>) => void;
+  onSubmit: (data: any) => void;
   exams?: { id: string; title: string }[];
-  linkedEventTitle?: string | null;
-  relativeOffsetDays?: number | null;
-  scheduledRelativeTo?: string | null;
-}
-
-const MINUTE_OPTIONS = [
-  "0",
-  "5",
-  "10",
-  "15",
-  "20",
-  "25",
-  "30",
-  "35",
-  "45",
-  "50",
-  "55",
-];
-
-function EventLinkBadge({
-  title,
-  offsetDays,
-}: {
-  title: string;
-  offsetDays?: number | null;
-}) {
-  const label = relativeOffsetLabel(offsetDays);
-  return (
-    <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
-      <span className="text-indigo-500">🔗</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-bold text-indigo-700 truncate">{title}</p>
-        {label && <p className="text-xs text-indigo-400">{label}</p>}
-      </div>
-    </div>
-  );
+  showTrigger?: boolean;
 }
 
 export function TaskForm({
+  isOpen,
+  onOpenChange,
+  editingTaskId,
   formData,
-  onChange,
+  onFormChange,
   onSubmit,
-  onDelete,
-  isEditing,
   exams = [],
-  linkedEventTitle,
-  relativeOffsetDays,
-}: Props) {
-  const [isRecurring, setIsRecurring] = useState(formData.isRecurring ?? false);
-  const [recurrenceType, setRecurrenceType] = useState(
-    formData.recurrence?.type ?? "weekly",
-  );
-  const [recurrenceDays, setRecurrenceDays] = useState<string[]>(
-    formData.recurrence?.days ?? [],
-  );
-  const [recurrenceUntil, setRecurrenceUntil] = useState(
-    formData.recurrence?.until
-      ? new Date(formData.recurrence.until).toISOString().split("T")[0]
-      : "",
-  );
+  showTrigger = true,
+}: TaskFormProps) {
 
-  useEffect(() => {
-    setIsRecurring(formData.isRecurring ?? false);
-    setRecurrenceType(formData.recurrence?.type ?? "weekly");
-    setRecurrenceDays(formData.recurrence?.days ?? []);
-    setRecurrenceUntil(
-      formData.recurrence?.until
-        ? new Date(formData.recurrence.until).toISOString().split("T")[0]
-        : "",
-    );
-  }, [formData.isRecurring, formData.recurrence]);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
 
-  const handleSubmit = () => {
-    const recurrence = isRecurring
-      ? {
-          type: recurrenceType,
-          days: recurrenceType === "weekly" ? recurrenceDays : [],
-          until: recurrenceUntil || null,
-        }
-      : null;
-    onChange({ isRecurring, recurrence });
-    onSubmit({ ...formData, isRecurring, recurrence });
-  };
+  const handleAction = () => {
+    if (!formData.name?.trim()) {
+      return;
+    }
+    onSubmit(formData);
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      {linkedEventTitle && (
-        <EventLinkBadge
-          title={linkedEventTitle}
-          offsetDays={relativeOffsetDays}
-        />
+    <>
+      {showTrigger && (
+        <Button 
+          onClick={() => onOpenChange(true)}
+          className="lunar-button-primary">
+          + NEW TASK
+        </Button>
       )}
 
-      <FormField label="Task Name">
-        <input
-          type="text"
-          placeholder="Enter task name"
-          value={formData.name ?? ""}
-          className="lunar-input"
-          onChange={(e) => onChange({ name: e.target.value })}
-        />
-      </FormField>
-
-      <FormField label="Description">
-        <input
-          type="text"
-          placeholder="Enter task description"
-          value={formData.description ?? ""}
-          className="lunar-input"
-          onChange={(e) => onChange({ description: e.target.value })}
-        />
-      </FormField>
-
-      <FormField label="Due Date">
-        <input
-          type="date"
-          value={
-            formData.dueDate
-              ? new Date(formData.dueDate).toISOString().split("T")[0]
-              : ""
-          }
-          onChange={(e) => onChange({ dueDate: e.target.value || null })}
-          className="lunar-input"
-        />
-      </FormField>
-
-      <FormField label="Time Estimate">
-        <div className="flex gap-2">
-          <select
-            value={formData.durationHours ?? "0"}
-            onChange={(e) => onChange({ durationHours: e.target.value })}
-            className={"flex-1 lunar-input"}
+      {mounted && isOpen && createPortal(
+        <div className={`${!isOpen && 'hidden'} fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md`} style={{ isolation: 'initial'}}
+          onClick={(e) => {
+              if (e.target === e.currentTarget) onOpenChange(false)
+          }}>
+          <LunarCard
+            className="relative p-5 w-full w-full max-w-lg"
+              onClick={(e) => e.stopPropagation()}
           >
-            {Array.from({ length: 9 }, (_, i) => (
-              <option key={i} value={i}>
-                {i}h
-              </option>
-            ))}
-          </select>
-          <select
-            value={formData.durationMinutes ?? "0"}
-            onChange={(e) => onChange({ durationMinutes: e.target.value })}
-            className={`flex-1 $"lunar-input"`}
-          >
-            {MINUTE_OPTIONS.map((m) => (
-              <option key={m} value={m}>
-                {m}m
-              </option>
-            ))}
-          </select>
-        </div>
-      </FormField>
-
-      <FormField label="Priority">
-        <div className="flex gap-2">
-          {(["Low", "Medium", "High"] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => onChange({ priority: p })}
-              className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${
-                (formData.priority ?? "Medium") === p
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
-              }`}
-            >
-              {p}
+            {/* Close Button */}
+            <button onClick={() => onOpenChange(false)} className="lunar-close-button">
+              <X size={20} />
             </button>
-          ))}
-        </div>
-      </FormField>
 
-      <FormField label="Finish before deadline (days)">
-        <div className="flex items-center gap-3">
-          <input
-            type="number"
-            min="0"
-            max="35"
-            placeholder="0"
-            value={formData.bufferDays ?? ""}
-            onChange={(e) =>
-              onChange({ bufferDays: parseInt(e.target.value) || 0 })
-            }
-            className="w-24 border border-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <span className="text-sm text-gray-400">days before due date</span>
-        </div>
-      </FormField>
+            <div className="mb-8">
+              <h3 className="lunar-header">
+                {editingTaskId !== null ? "Edit Task" : "Create New Task"}
+              </h3>
+              <p className="lunar-form-subtitle">
+                {editingTaskId !== null
+                  ? "Update the task details below"
+                  : "Add a new task to your list"}
+              </p>
+            </div>
 
-      <FormField label="Study Resource URL">
-        <div className="flex gap-2">
-          <input
-            type="url"
-            placeholder="https://..."
-            value={formData.url ?? ""}
-            onChange={(e) => onChange({ url: e.target.value })}
-            className={`flex-1 $"lunar-input"`}
-          />
-          {formData.url && (
-            <a
-              href={formData.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50"
-            >
-              🔗
-            </a>
-          )}
-        </div>
-      </FormField>
+            <div className="grid gap-2 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="task-name" className="lunar-label">Task Name</Label>
+                <Input
+                  id="task-name"
+                  type="text"
+                  placeholder="Enter task name"
+                  value={formData.name || ""}
+                  className="lunar-input"
+                  onChange={(e) => onFormChange({ name: e.target.value })}
+                />
+              </div>
 
-      <FormField label="Subtasks (comma separated)">
-        <input
-          type="text"
-          placeholder="e.g. Research, Draft, Review"
-          value={formData.subtasks ?? ""}
-          onChange={(e) => onChange({ subtasks: e.target.value })}
-          className="lunar-input"
-        />
-      </FormField>
+              <div className="grid gap-2">
+                <Label htmlFor="task-description" className="lunar-label">Task Description</Label>
+                <Input
+                  id="task-description"
+                  type="text"
+                  placeholder="Enter task description"
+                  value={formData.description || ""}
+                  className="lunar-input"
+                  onChange={(e) => onFormChange({ description: e.target.value })}
+                />
+              </div>
 
-      {exams.length > 0 && (
-        <FormField label="Link to Exam (Optional)">
-          <select
-            value={formData.examId ?? "none"}
-            onChange={(e) => onChange({ examId: e.target.value })}
-            className="lunar-input"
-          >
-            <option value="none">General Task (No Exam)</option>
-            {exams.map((exam) => (
-              <option key={exam.id} value={exam.id}>
-                {exam.title}
-              </option>
-            ))}
-          </select>
-        </FormField>
+              <div className="grid gap-2">
+                <Label htmlFor="task-due-date" className="lunar-label">Due Date</Label>
+                <Input
+                  id="task-due-date"
+                  type="date"
+                  value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0]: ""}
+                  className="lunar-input"
+                  onChange={(e) => onFormChange({ dueDate: e.target.value })}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="task-url" className="lunar-label">Study Resource URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="task-url"
+                    type="text"
+                    placeholder="No URL attached"
+                    value={formData.url || ""}
+                    className="lunar-input"
+                    onChange={(e) => onFormChange({ url: e.target.value })}
+                  />
+
+                  {formData.url && (
+                    <Button variant="outline" size="icon" asChild className="bg-white/5 border-white/10 text-white">
+                      <a href={formData.url} target="_blank" rel="noopener noreferrer">
+                        🔗
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="subtasks" className="lunar-label">Subtasks (comma separated)</Label>
+                <Input
+                  id="subtasks"
+                  type="text"
+                  placeholder="e.g. Research, Edit"
+                  value={formData.subtasks || ""}
+                  className="lunar-input"
+                  onChange={(e) => onFormChange({ subtasks: e.target.value })}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="lunar-label">Time Estimate</Label>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.durationHours}
+                    onValueChange={(value) =>
+                      onFormChange({ durationHours: value })
+                    }
+                  >
+                    <SelectTrigger className="lunar-input">
+                      <SelectValue placeholder="Hours"/>
+                    </SelectTrigger>
+                    <SelectContent className="lunar-select-content z-[9999]">
+                      {[...Array(9)].map((_, i) => (
+                        <SelectItem key={i} value={i.toString()} className="lunar-select-item">
+                          {i}h
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={formData.durationMinutes}
+                    onValueChange={(value) =>
+                      onFormChange({ durationMinutes: value })
+                    }
+                  >
+                    <SelectTrigger className="lunar-input">
+                      <SelectValue placeholder="Mins"/>
+                    </SelectTrigger>
+                    <SelectContent className="lunar-select-content z-[9999]">
+                      {[
+                        "0",
+                        "5",
+                        "10",
+                        "15",
+                        "20",
+                        "25",
+                        "30",
+                        "35",
+                        "45",
+                        "50",
+                        "55",
+                      ].map((m) => (
+                        <SelectItem key={m} value={m} className="lunar-select-item">
+                          {m}m
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="exam-link" className="lunar-label">Link to Exam (Optional)</Label>
+                <Select
+                  value={formData.examId || "none"}
+                  onValueChange={(value) => onFormChange({ examId: value })}                
+                >
+                  <SelectTrigger id="exam-link" className="lunar-input lunar-select-trigger">
+                    <SelectValue placeholder="Select and exam"/>
+                  </SelectTrigger>
+                  <SelectContent className="lunar-select-content z-[9999]">
+                    <SelectItem value="none" className="lunar-select-item">General Task (No Exam)</SelectItem>
+                    {exams.map((exam) => (
+                      <SelectItem key={exam.id} value={exam.id} className="lunar-select-item">
+                        {exam.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label className="lunar-label">Task Priority</Label>
+                <ToggleGroup
+                  type="single"
+                  value={formData.priority}
+                  onValueChange={(value) => onFormChange({ priority: value })}
+                  className="flex w-full h-12 items-center gap-1 p-[2px] bg-white/5 rounded-xl border border-white/10 overflow-hidden"
+                >
+                  <ToggleGroupItem 
+                    value="Low"
+                    className="lunar-toggle-item lunar-toggle-low">
+                      Low
+                    </ToggleGroupItem>
+                  <ToggleGroupItem 
+                    value="Medium"
+                    className="lunar-toggle-item lunar-toggle-medium">
+                      Medium
+                  </ToggleGroupItem>
+                  <ToggleGroupItem 
+                    value="High"
+                    className="lunar-toggle-item lunar-toggle-high">
+                      High
+                    </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <Button 
+                type="button" 
+                onClick={handleAction} className="lunar-button-primary w-full text-sm">
+                {editingTaskId !== null ? "Update Task" : "Create Task"}
+              </Button>
+            </div>
+          </LunarCard>
+        </div>,
+        document.body
       )}
-
-      <div className="border-t pt-4 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={isRecurring}
-            onClick={() => setIsRecurring((p) => !p)}
-            className={`w-10 h-5 rounded-full transition-all relative ${isRecurring ? "bg-indigo-600" : "bg-gray-200"}`}
-          >
-            <span
-              className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${isRecurring ? "left-5" : "left-0.5"}`}
-            />
-          </button>
-          <span className="text-sm font-medium text-gray-600">
-            {isRecurring ? "This task repeats" : "Does not repeat"}
-          </span>
-        </div>
-        {isRecurring && (
-          <RecurrencePanel
-            type={recurrenceType}
-            days={recurrenceDays}
-            until={recurrenceUntil}
-            onType={setRecurrenceType}
-            onDays={setRecurrenceDays}
-            onUntil={setRecurrenceUntil}
-          />
-        )}
-      </div>
-
-      <div className="flex flex-col gap-2 pt-2">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="lunar-button-primary w-full"
-        >
-          {isEditing ? "Update Task" : "Create Task"}
-        </button>
-        {isEditing && onDelete && (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="w-full bg-red-50 text-red-600 py-4 rounded-2xl font-bold hover:bg-red-100 transition-all border border-red-100"
-          >
-            Delete Task
-          </button>
-        )}
-      </div>
-    </div>
+    </>
   );
 }

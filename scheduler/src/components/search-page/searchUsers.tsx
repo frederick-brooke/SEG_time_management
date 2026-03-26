@@ -9,12 +9,36 @@ import { IconX } from "@tabler/icons-react";
 //UI components
 import GlassCard from "@/components/ui/glassCard";
 
+/**
+ * SearchUsers
+ *
+ * Displays user search results along with recent user history.
+ * Handles:
+ * - Rendering paginated user results
+ * - Tracking and displaying recently viewed users
+ * - Managing selection of a user (opens UserPanel)
+ * - Pagination calculations
+ * - Resetting and updating filters
+ *
+ * @param {Object} props
+ * @param {Array} props.users - List of users returned from API
+ * @param {number} props.totalUsers - Total number of users
+ * @param {number} props.totalUserPages - Total pages available
+ * @param {Function} props.setIsUserFilterOpen - Opens filter panel
+ * @param {Object|null} props.selectedUser - Currently selected user
+ * @param {Function} props.setSelectedUser - Sets selected user
+ * @param {Object} props.filters - Active filter state
+ * @param {Function} props.setFilters - Updates filters
+ * @param {Function} props.resetFilters - Resets filters to default
+ *
+ * @returns {JSX.Element} User search results UI
+ */
 export default function SearchUsers({users,totalUsers, totalUserPages, setIsUserFilterOpen, selectedUser, setSelectedUser, filters, setFilters, resetFilters})
 {    
-    const start = (filters.page - 1) * filters.limit + 1;
+    const start = (filters.page - 1) * filters.limit + 1;		// Calculate visible range of users (e.g. "1–6 of 100")
     const end = Math.min(filters.page * filters.limit, totalUsers);
 
-    const [recentUsers, setRecentUsers] = useState([]);
+    const [recentUsers, setRecentUsers] = useState([]);		// Recently viewed users (stored locally)
 
     useEffect(() => {
         if (filters.search === "") {

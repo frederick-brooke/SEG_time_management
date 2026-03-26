@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupHeader from "@/components/groups/GroupHeader";
 import { useRouter } from "next/navigation";
+import { leaveGroup, deleteGroup } from "@/app/actions/groups";
 
 // mocks
 jest.mock("next/navigation", () => ({
@@ -35,19 +36,18 @@ const mockGroup = {
   creator: { username: "einstein" },
 };
 
+// tests
 describe("GroupHeader", () => {
   const mockPush = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
-    window.confirm = jest.fn(() => true); // Auto-confirm destructive actions
+    window.confirm = jest.fn(() => true); 
+    window.alert = jest.fn(); 
   });
 
-  /**
-   * Verifies that the header correctly displays the fundamental group data 
-   * (title, description, member count, and creator attribution).
-   */
+  // Confirms that the header correctly displays the fundamental group data
   it("renders group details correctly", () => {
     render(
       <GroupHeader
@@ -64,10 +64,7 @@ describe("GroupHeader", () => {
     expect(screen.getByText("Created by @einstein")).toBeInTheDocument();
   });
 
-  /**
-   * Tests the permission matrix for the Group Owner. They should see the 
-   * Settings button and the destructive Delete Group button.
-   */
+  // Confirms the permission matrix for the Group Owner (sees Settings and Delete)
   it("renders owner-specific buttons when user is owner", () => {
     render(
       <GroupHeader
@@ -83,11 +80,7 @@ describe("GroupHeader", () => {
     expect(screen.queryByText("Leave Group")).not.toBeInTheDocument();
   });
 
-  /**
-   * Tests the permission matrix for a regular member. They should NOT see 
-   * Settings or Delete, but they should see the Leave Group button. 
-   * (Note: Both owners and members can see Create Task/Event in peer groups).
-   */
+  // Confirms the permission matrix for a regular member (sees Leave Group, not Settings)
   it("renders member-specific buttons when user is not owner", () => {
     render(
       <GroupHeader
@@ -105,10 +98,7 @@ describe("GroupHeader", () => {
     expect(screen.getByText("Create Event")).toBeInTheDocument();
   });
 
-  /**
-   * Ensures that the modal trigger buttons fire their respective 
-   * callbacks passed down from the parent component.
-   */
+  // Confirms that the modal trigger buttons fire their respective callbacks
   it("fires modal callbacks when create/settings buttons are clicked", () => {
     render(
       <GroupHeader
@@ -129,13 +119,9 @@ describe("GroupHeader", () => {
     expect(mockOnOpenSettings).toHaveBeenCalledTimes(1);
   });
 
-  /**
-   * Tests the destructive Leave Group flow. Verifies it asks for confirmation, 
-   * calls the correct server action, and redirects the user upon success.
-   */
+  // Confirms the happy path for the Leave Group flow
   it("calls leaveGroup and redirects when Leave Group is confirmed", async () => {
-    const { leaveGroup } = require("@/app/actions/groups");
-    leaveGroup.mockResolvedValue({ success: true });
+    (leaveGroup as jest.Mock).mockResolvedValue({ success: true });
 
     render(
       <GroupHeader
@@ -155,13 +141,9 @@ describe("GroupHeader", () => {
     });
   });
 
-  /**
-   * Tests the ultimate destructive action (Delete Group). Verifies it calls 
-   * the specific delete action and safely redirects the owner away from the page.
-   */
+  // Confirms the happy path for the Delete Group flow
   it("calls deleteGroup and redirects when Delete Group is confirmed", async () => {
-    const { deleteGroup } = require("@/app/actions/groups");
-    deleteGroup.mockResolvedValue({ success: true });
+    (deleteGroup as jest.Mock).mockResolvedValue({ success: true });
 
     render(
       <GroupHeader
@@ -179,5 +161,78 @@ describe("GroupHeader", () => {
       expect(deleteGroup).toHaveBeenCalledWith("grp1");
       expect(mockPush).toHaveBeenCalledWith("/groups");
     });
+  });
+
+  // --- Negative Path Tests (Coverage for lines 47 & 58) ---
+
+  // Confirms leaving the group is aborted if the user clicks Cancel on the prompt
+  it("aborts leave group when confirmation is cancelled", () => {
+    window.confirm = jest.fn(() => false);
+    render(
+      <GroupHeader group={mockGroup} isOwner={false} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />
+    );
+    
+    fireEvent.click(screen.getByText("Leave Group"));
+    expect(leaveGroup).not.toHaveBeenCalled();
+  });
+
+  // Confirms an alert is shown when the leave group server action fails
+  it("alerts when leave group fails on the server", async () => {
+    (leaveGroup as jest.Mock).mockResolvedValue({ success: false, error: "Cannot leave group" });
+    render(
+      <GroupHeader group={mockGroup} isOwner={false} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />
+    );
+    
+    fireEvent.click(screen.getByText("Leave Group"));
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith("Cannot leave group");
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  // Confirms deleting the group is aborted if the user clicks Cancel on the prompt
+  it("aborts delete group when confirmation is cancelled", () => {
+    window.confirm = jest.fn(() => false);
+    render(
+      <GroupHeader group={mockGroup} isOwner={true} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />
+    );
+    
+    fireEvent.click(screen.getByText("Delete Group"));
+    expect(deleteGroup).not.toHaveBeenCalled();
+  });
+
+  // Confirms an alert is shown when the delete group server action fails
+  it("alerts when delete group fails on the server", async () => {
+    (deleteGroup as jest.Mock).mockResolvedValue({ success: false, error: "Cannot delete group" });
+    render(
+      <GroupHeader group={mockGroup} isOwner={true} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />
+    );
+    
+    fireEvent.click(screen.getByText("Delete Group"));
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith("Cannot delete group");
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+  // Confirms the singular "member" string is rendered correctly
+  it("renders singular 'member' text when group has exactly 1 member", () => {
+    const singleMemberGroup = { ...mockGroup, memberCount: 1 };
+    render(<GroupHeader group={singleMemberGroup} isOwner={true} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />);
+    expect(screen.getByText(/1 member/i)).toBeInTheDocument();
+    expect(screen.queryByText(/members/i)).not.toBeInTheDocument();
+  });
+
+  // Confirms fallback errors for server failures
+  it("alerts on silent server failures for leave and delete", async () => {
+    (leaveGroup as jest.Mock).mockResolvedValue({ success: false });
+    (deleteGroup as jest.Mock).mockResolvedValue({ success: false });
+    
+    const { rerender } = render(<GroupHeader group={mockGroup} isOwner={false} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />);
+    fireEvent.click(screen.getByText("Leave Group"));
+    await waitFor(() => expect(window.alert).toHaveBeenCalled());
+
+    rerender(<GroupHeader group={mockGroup} isOwner={true} onOpenTaskModal={mockOnOpenTaskModal} onOpenEventModal={mockOnOpenEventModal} onOpenSettings={mockOnOpenSettings} />);
+    fireEvent.click(screen.getByText("Delete Group"));
+    await waitFor(() => expect(window.alert).toHaveBeenCalledTimes(2));
   });
 });

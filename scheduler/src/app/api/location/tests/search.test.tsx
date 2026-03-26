@@ -1,16 +1,28 @@
 /**
  * Tests for src/app/api/location/search/route.ts
  *
- * This suite tests GET /api/geocode, including:
+ * Covers GET /api/geocode including:
  * - missing query param
  * - successful UK/global searches
  * - deduplication and ordering
  * - fallback property mapping
- * - upstream fetch failures
- * - error handling
+ * - upstream fetch failures and JSON parse errors
  */
 
-// Mock global Response 
+// Mocks
+
+// NextResponse.json is broken in Jest/JSDOM — replace with a plain Response.
+// This must be mocked before the route is imported.
+jest.mock("next/server", () => ({
+  NextResponse: {
+    json: (data: unknown, init?: ResponseInit) =>
+      new Response(JSON.stringify(data), {
+        status: init?.status ?? 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+  },
+}));
+
 global.Response = class {
   private body: string;
   public status: number;
@@ -23,15 +35,12 @@ global.Response = class {
   async json() {
     return JSON.parse(this.body);
   }
-
-  static json(data: unknown, init?: ResponseInit) {
-    return new (global.Response as any)(JSON.stringify(data), init);
-  }
 } as any;
 
 import { GET } from "@/app/api/location/search/route";
 
-// Helpers 
+// Fixtures
+
 function makeRequest(query?: string): Request {
   const url = query
     ? `https://example.com/api/geocode?q=${encodeURIComponent(query)}`
@@ -39,8 +48,7 @@ function makeRequest(query?: string): Request {
   return new Request(url);
 }
 
-/** Create mock geocoding feature */
-function makeFeature(overrides: Record<string, any> = {}) {
+function makeFeature(overrides: Record<string, unknown> = {}) {
   return {
     geometry: { coordinates: [-1.5, 52.5] },
     properties: {
@@ -53,122 +61,144 @@ function makeFeature(overrides: Record<string, any> = {}) {
   };
 }
 
+function makeFetchResponse(features: unknown[]) {
+  return { ok: true, json: async () => ({ features }) };
+}
+
+// Helpers 
+
+function stubUkOnly(feature: unknown) {
+  global.fetch = jest.fn()
+    .mockResolvedValueOnce(makeFetchResponse([feature]))
+    .mockResolvedValueOnce(makeFetchResponse([]));
+}
+
+function stubBothSearches(ukFeatures: unknown[], globalFeatures: unknown[]) {
+  global.fetch = jest.fn()
+    .mockResolvedValueOnce(makeFetchResponse(ukFeatures))
+    .mockResolvedValueOnce(makeFetchResponse(globalFeatures));
+}
+
 // Tests 
+
 describe("GET /api/geocode", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.OPENROUTE_API_KEY = "test-api-key";
   });
 
-  describe("missing query param", () => {
-    it("returns empty array when q is not provided", async () => {
-      const res = await GET(makeRequest());
-      const body = await res.json();
-      expect(body).toEqual([]);
-    });
+  // Missing query
+
+  it("returns empty array when q param is not provided", async () => {
+    const res = await GET(makeRequest());
+    expect(await res.json()).toEqual([]);
   });
 
-  describe("successful geocoding", () => {
-    it("maps UK results correctly", async () => {
-      const feature = makeFeature();
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ features: [feature] }) });
-
-      const res = await GET(makeRequest("Coventry"));
-      const body = await res.json();
-
-      expect(body[0].geometry.coordinates).toEqual([-1.5, 52.5]);
-      expect(body[0].properties.name).toBe("Test Place");
-      expect(body[0].properties.city).toBe("Coventry");
-      expect(body[0].properties.display).toBe("Test Place, Coventry, UK");
-    });
-
-    it("deduplicates UK and global results", async () => {
-      const feature = makeFeature();
-      global.fetch = jest.fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [feature] }) })
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [feature] }) });
-
-      const res = await GET(makeRequest("Coventry"));
-      const body = await res.json();
-      expect(body).toHaveLength(1);
-    });
-
-    it("orders UK results before global results", async () => {
-      const ukFeature = makeFeature({ label: "UK Place" });
-      const globalFeature = makeFeature({ label: "Global Place", name: "Global Place" });
-
-      global.fetch = jest.fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [ukFeature] }) })
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [globalFeature] }) });
-
-      const res = await GET(makeRequest("place"));
-      const body = await res.json();
-
-      expect(body[0].properties.display).toBe("UK Place");
-      expect(body[1].properties.display).toBe("Global Place");
-    });
-
-    it("calls fetch twice with API key and boundaries", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ features: [] }) });
-
-      await GET(makeRequest("test"));
-      const calls = (global.fetch as jest.Mock).mock.calls;
-      expect(calls.length).toBe(2);
-      expect(calls[0][0]).toContain("test-api-key");
-      expect(calls[1][0]).toContain("test-api-key");
-      expect(calls[0][0]).toContain("boundary.country=GBR");
-      expect(calls[1][0]).not.toContain("boundary.country");
-    });
+  it("returns empty array when q param is blank", async () => {
+    const res = await GET(makeRequest("   "));
+    expect(await res.json()).toEqual([]);
   });
 
-  describe("feature property mapping", () => {
-    it("falls back to label when name is missing", async () => {
-      const feature = makeFeature({ name: undefined });
-      global.fetch = jest.fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [feature] }) })
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [] }) });
+  // API call structure
 
-      const res = await GET(makeRequest("test"));
-      const body = await res.json();
-      expect(body[0].properties.name).toBe("Test Place, Coventry, UK");
-    });
+  it("calls fetch twice — once UK-bounded, once global", async () => {
+    stubBothSearches([], []);
 
-    it("uses county when locality is missing", async () => {
-      const feature = makeFeature({ locality: undefined, county: "West Midlands" });
-      global.fetch = jest.fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [feature] }) })
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [] }) });
+    await GET(makeRequest("test"));
 
-      const res = await GET(makeRequest("test"));
-      const body = await res.json();
-      expect(body[0].properties.city).toBe("West Midlands");
-    });
-
-    it("returns empty string for city when both locality and county missing", async () => {
-      const feature = makeFeature({ locality: undefined, county: undefined });
-      global.fetch = jest.fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [feature] }) })
-        .mockResolvedValueOnce({ ok: true, json: async () => ({ features: [] }) });
-
-      const res = await GET(makeRequest("test"));
-      const body = await res.json();
-      expect(body[0].properties.city).toBe("");
-    });
+    const calls = (global.fetch as jest.Mock).mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[0][0]).toContain("boundary.country=GBR");
+    expect(calls[1][0]).not.toContain("boundary.country");
   });
 
-  describe("upstream failures & errors", () => {
-    it("returns empty array when fetch fails", async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error("Network error"));
-      const res = await GET(makeRequest("test"));
-      const body = await res.json();
-      expect(body).toEqual([]);
+  it("includes the API key in both fetch calls", async () => {
+    stubBothSearches([], []);
+
+    await GET(makeRequest("test"));
+
+    const calls = (global.fetch as jest.Mock).mock.calls;
+    expect(calls[0][0]).toContain("test-api-key");
+    expect(calls[1][0]).toContain("test-api-key");
+  });
+
+  // Result mapping
+
+  it("maps UK results to the expected shape", async () => {
+    stubUkOnly(makeFeature());
+
+    const body = await (await GET(makeRequest("Coventry"))).json();
+
+    expect(body[0].geometry.coordinates).toEqual([-1.5, 52.5]);
+    expect(body[0].properties.name).toBe("Test Place");
+    expect(body[0].properties.city).toBe("Coventry");
+    expect(body[0].properties.display).toBe("Test Place, Coventry, UK");
+  });
+
+  it("falls back to label when name is missing", async () => {
+    stubUkOnly(makeFeature({ name: undefined }));
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body[0].properties.name).toBe("Test Place, Coventry, UK");
+  });
+
+  it("uses county as city when locality is missing", async () => {
+    stubUkOnly(makeFeature({ locality: undefined, county: "West Midlands" }));
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body[0].properties.city).toBe("West Midlands");
+  });
+
+  it("returns empty string for city when both locality and county are missing", async () => {
+    stubUkOnly(makeFeature({ locality: undefined, county: undefined }));
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body[0].properties.city).toBe("");
+  });
+
+  // Ordering and deduplication
+
+  it("places UK results before global results", async () => {
+    const ukFeature = makeFeature({ label: "UK Place" });
+    const globalFeature = makeFeature({ label: "Global Place", name: "Global Place" });
+    stubBothSearches([ukFeature], [globalFeature]);
+
+    const body = await (await GET(makeRequest("place"))).json();
+
+    expect(body[0].properties.display).toBe("UK Place");
+    expect(body[1].properties.display).toBe("Global Place");
+  });
+
+  it("deduplicates results that share the same display label", async () => {
+    const feature = makeFeature();
+    stubBothSearches([feature], [feature]);
+
+    const body = await (await GET(makeRequest("Coventry"))).json();
+
+    expect(body).toHaveLength(1);
+  });
+
+  // Upstream failures
+
+  it("returns empty array when fetch throws a network error", async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error("Network error"));
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body).toEqual([]);
+  });
+
+  it("returns empty array when response JSON parsing fails", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => { throw new Error("JSON parse error"); },
     });
 
-    it("handles json parse errors gracefully", async () => {
-      global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => { throw new Error("JSON parse error"); } });
-      const res = await GET(makeRequest("test"));
-      const body = await res.json();
-      expect(body).toEqual([]);
-    });
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body).toEqual([]);
   });
 });

@@ -26,37 +26,34 @@ export default function UserManagement({
   setFilters,
   resetFilters,
 }) {
-  return (
-    <AdminListSection
-      title="User Management"
-      items={users}
-      totalItems={totalUsers}
-      totalPages={totalUserPages}
-      filters={filters}
-      setFilters={setFilters}
-      onFilterOpen={() => setIsUserFilterOpen(true)}
-      resetFilters={resetFilters}
-      itemLabel="users"
-      searchable
-      renderItem={(user) => (
-        <li
-          key={user.id}
-          onClick={() => setSelectedUser(user)}
-          className={`px-3 py-2 rounded-lg cursor-pointer transition-all ${
-            user.isBanned
-              ? "bg-red-100/10 text-red-300"
-              : "text-white hover:bg-white/20"
-          }`}
-        >
-          {user.username}
-        </li>
-      )}
-      renderPanel={() => (
-        <UserPanel
-          user={selectedUser}
-          onClose={() => setSelectedUser(null)}
-        />
-      )}
-    />
-  );
+	return (
+		<AdminListSection
+			title="User Management"
+			items={users}
+			totalItems={totalUsers}
+			totalPages={totalUserPages}
+			filters={filters}
+			setFilters={setFilters}
+			onFilterOpen={() => setIsUserFilterOpen(true)}
+			resetFilters={resetFilters}
+			itemLabel="users"
+			searchable
+			renderItem={(user) => (
+				<li
+					key={user.id}
+					onClick={() => setSelectedUser(user)}
+					className={`px-3 py-2 rounded-lg cursor-pointer transition-all ${
+						user.isBanned
+						? "bg-red-100/10 text-red-300"
+						: "text-white hover:bg-white/20"
+					}`}
+					>
+					{user.username}
+				</li>
+			)}
+			renderPanel={() => (
+				<UserPanel user={selectedUser} onClose={() => setSelectedUser(null)}/>
+			)}
+		/>
+	);
 }

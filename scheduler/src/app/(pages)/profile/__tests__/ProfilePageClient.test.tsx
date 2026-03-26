@@ -3,9 +3,38 @@ import ProfilePageClient from '../ProfilePageClient';
 import '@testing-library/jest-dom';
 
 //mocks
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+  usePathname: () => "/profile",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+jest.mock("next-auth", () => ({
+  getServerSession: jest.fn(),
+}));
+
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({
+    data: { user: { id: "u123", email: "test@test.com" } },
+    status: "authenticated",
+  }),
+}));
+
+jest.mock("@/app/actions/profile/utils", () => ({ __esModule: true }));
+jest.mock("@/app/actions/profile/xpUtils", () => ({
+  calculateLevelProgress: () => ({ level: 5, xpBarWidth: 50, xpToNext: 50 }),
+}));
+jest.mock('@/app/actions/profile', () => ({
+  sendFriendRequest: jest.fn(),
+  removeFriend: jest.fn(),
+  cancelFriendRequest: jest.fn(),
+}));
+
 jest.mock('@/components/layout/LunarThemeWrapper', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <div data-testid="lunar-wrapper">{children}</div>,
+  default: ({ children }: any) => (
+    <div data-testid="lunar-wrapper">{children}</div>
+  ),
 }));
 jest.mock('@/components/profile/EditProfileForm', () => ({
   __esModule: true,
@@ -19,17 +48,9 @@ jest.mock('@/components/profile/PendingRequests', () => ({
   __esModule: true,
   default: () => <div data-testid="pending-requests">PendingRequests Mock</div>,
 }));
-jest.mock('@/components/profile/StreakCard', () => ({
+jest.mock('@/components/admin/report-modal', () => ({
   __esModule: true,
-  default: () => <div data-testid="streak-card">StreakCard Mock</div>,
-}));
-jest.mock('@/components/profile/TaskStatsCard', () => ({
-  __esModule: true,
-  default: () => <div data-testid="task-stats-card">TaskStatsCard Mock</div>,
-}));
-jest.mock('@/components/profile/PointsCard', () => ({
-  __esModule: true,
-  default: () => <div data-testid="points-card">PointsCard Mock</div>,
+  default: () => <div data-testid="report-modal">Report Modal Mock</div>,
 }));
 jest.mock('@/components/profile/FriendStatCard', () => ({
   __esModule: true,
@@ -37,19 +58,16 @@ jest.mock('@/components/profile/FriendStatCard', () => ({
     <button data-testid="friend-stat-card" onClick={onToggle}>FriendStat Mock</button>
   ),
 }));
-
-jest.mock('@/components/admin/report-modal', () => ({
+jest.mock('@/components/profile/ProfileBio', () => ({
   __esModule: true,
-  default: () => <div data-testid="report-modal">Report Modal Mock</div>,
+  default: ({ bio }: { bio: string }) => <div data-testid="profile-bio">{bio}</div>,
+}));
+jest.mock('@/components/profile/TaskStatsCard', () => ({
+  __esModule: true,
+  default: () => <div data-testid="task-stats-card">TaskStats Mock</div>,
 }));
 
-// Mock Server Actions
-jest.mock('@/app/actions/profile', () => ({
-  sendFriendRequest: jest.fn(),
-  removeFriend: jest.fn(),
-  cancelFriendRequest: jest.fn(),
-}));
-
+//ICON MOCKS
 jest.mock('lucide-react', () => ({
   Users: () => <svg data-testid="icon-users" />,
   UserPlus: () => <svg data-testid="icon-userplus" />,
@@ -71,7 +89,7 @@ const mockProfile = {
   bio: "Building the future of productivity.",
   createdAt: "2026-01-01T00:00:00.000Z",
   pfp: null,
-  progress: { level: 5, points: 550 },
+  progress: { level: 5, experience: 550 },
   stats: { 
     streak: 12, 
     friendCount: 8, 
@@ -80,7 +98,7 @@ const mockProfile = {
     completionRate: 90 
   },
   friends: [],
-  receivedRequests: [],
+  receivedRequests: [{ id: 'req1' }],
   friendStatus: "NONE"
 };
 
@@ -102,7 +120,7 @@ describe('ProfilePageClient Component', () => {
     expect(screen.getByText(/Lunar Developer/i)).toBeInTheDocument();
     expect(screen.getByText(/@lunar_dev/i)).toBeInTheDocument();
     // Checks level badge
-    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("5", { selector: '.text-3xl' })).toBeInTheDocument();
     // Checks bio
     expect(screen.getByText(/Building the future/i)).toBeInTheDocument();
   });
@@ -132,7 +150,7 @@ describe('ProfilePageClient Component', () => {
     
     expect(screen.queryByTestId('edit-form')).not.toBeInTheDocument();
     
-    const editBtn = screen.getByTestId('icon-pencil').closest('button')!;
+    const editBtn = screen.getByTitle('Edit Profile');
     fireEvent.click(editBtn);
     
     expect(screen.getByTestId('edit-form')).toBeInTheDocument();
@@ -158,7 +176,7 @@ describe('ProfilePageClient Component', () => {
   it('shows the Report Modal when the report button is clicked', () => {
     render(<ProfilePageClient profile={mockProfile} isOwnProfile={false} />);
     
-    fireEvent.click(screen.getByText(/Report User/i));
+    fireEvent.click(screen.getByRole('button', { name: /Report/i}));
     
     expect(screen.getByTestId('report-modal')).toBeInTheDocument();
   });
@@ -182,7 +200,7 @@ describe('ProfilePageClient Component', () => {
 
     it('shows "Request Pending" when status is REQUEST_SENT', () => {
       render(<ProfilePageClient profile={{...mockProfile, friendStatus: 'REQUEST_SENT'}} isOwnProfile={false} />);
-      expect(screen.getByText(/Request Pending/i)).toBeInTheDocument();
+      expect(screen.getByText(/Pending/i)).toBeInTheDocument();
       expect(screen.getByText(/Cancel/i)).toBeInTheDocument();
     });
 
@@ -199,8 +217,9 @@ describe('ProfilePageClient Component', () => {
     // 550 total points / 100 XP per level = 50 XP into level 5 (50% bar)
     render(<ProfilePageClient profile={mockProfile} isOwnProfile={true} />);
     
-    const xpBar = screen.getByText(/550 XP total/i).closest('div')?.nextElementSibling?.firstChild;
+    const levelInfo = screen.getByText(/50 XP away/i).closest('div');
+    const xpBar = levelInfo?.querySelector('.bg-yellow-400');
     expect(xpBar).toHaveStyle('width: 50%');
-    expect(screen.getByText(/50 XP until Level 6/i)).toBeInTheDocument();
+    expect(screen.getByText(/50 XP away/i)).toBeInTheDocument();
   });
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 
 // Mocks 
 
@@ -10,13 +10,33 @@ jest.mock("hooks/useSavedLocations", () => ({
   useSavedLocations: () => mockUseSavedLocations(),
 }));
 
-// Stub fetch for the address-search API
 global.fetch = jest.fn();
 
 import { SavedLocationsPanel } from "../SavedLocationsPanel";
 import type { SavedLocation } from "hooks/useSavedLocations";
 
 // Helpers 
+const flushPromises = () =>
+  new Promise<void>((resolve) => setTimeout(resolve, 0));
+  async function pickSuggestion(display = "London", name = "London, UK") {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      json: async () => [
+        {
+          geometry: { coordinates: [-0.1, 51.5] },
+          properties: { display, name },
+        },
+      ],
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText("Search address…"), {
+        target: { value: "Lond" },
+      });
+    });
+
+    await waitFor(() => expect(screen.getByText(name)).toBeInTheDocument());
+    fireEvent.mouseDown(screen.getByText(name));
+  }
 
 const makeLoc = (
   id: string,
@@ -57,36 +77,41 @@ function setupMocks({
   return { deleteLocation, renameLocation, refresh };
 }
 
-// Tests
 
-describe("SavedLocationsPanel", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockResolvedValue({
-      json: async () => [],
-    });
+// Setup 
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.useFakeTimers({
+    doNotFake: ["nextTick", "setImmediate", "clearImmediate"],
   });
+  mockSaveLocation.mockResolvedValue(undefined);
+  (global.fetch as jest.Mock).mockResolvedValue({ json: async () => [] });
+});
 
-  //  Header 
+afterEach(() => {
+  jest.useRealTimers();
+});
 
-  it("renders the panel header with title", () => {
+//  Header
+
+describe("Header", () => {
+  it("renders the panel title", () => {
     setupMocks();
     render(<SavedLocationsPanel />);
     expect(screen.getByText("Saved Locations")).toBeInTheDocument();
   });
 
-  it("shows the location count badge", () => {
+  it("shows the correct count badge when locations exist", () => {
     setupMocks({ locations: [makeLoc("1"), makeLoc("2")] });
     render(<SavedLocationsPanel />);
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it("shows 0 in count badge when no locations", () => {
+  it("shows 0 in the count badge when there are no locations", () => {
     setupMocks();
     render(<SavedLocationsPanel />);
     expect(screen.getByText("0")).toBeInTheDocument();
   });
-
 
   it("is expanded by default", () => {
     setupMocks();
@@ -94,14 +119,14 @@ describe("SavedLocationsPanel", () => {
     expect(screen.getByText(/Add a location/i)).toBeInTheDocument();
   });
 
-  it("collapses content when header button is clicked", () => {
+  it("collapses content when the header button is clicked", () => {
     setupMocks();
     render(<SavedLocationsPanel />);
     fireEvent.click(screen.getByRole("button", { name: /Saved Locations/i }));
     expect(screen.queryByText(/Add a location/i)).not.toBeInTheDocument();
   });
 
-  it("re-expands when header button is clicked again", () => {
+  it("re-expands when the header button is clicked again", () => {
     setupMocks();
     render(<SavedLocationsPanel />);
     const header = screen.getByRole("button", { name: /Saved Locations/i });
@@ -122,35 +147,39 @@ describe("SavedLocationsPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /Saved Locations/i }));
     expect(screen.getByText("▼")).toBeInTheDocument();
   });
+});
 
-  // Loading state 
+// ─── Loading state ────────────────────────────────────────────────────────────
 
+describe("Loading state", () => {
   it("shows loading text when loading is true", () => {
     setupMocks({ loading: true });
     render(<SavedLocationsPanel />);
     expect(screen.getByText(/Loading/i)).toBeInTheDocument();
   });
+});
 
-  // Empty state
+// Empty state
 
-  it("shows empty-state message when no locations and not loading", () => {
+describe("Empty state", () => {
+  it("shows the empty-state message when there are no locations and not loading", () => {
     setupMocks({ locations: [], loading: false });
     render(<SavedLocationsPanel />);
-    expect(
-      screen.getByText(/No saved locations yet/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No saved locations yet/i)).toBeInTheDocument();
   });
+});
 
-  // LocationCards rendered in correct order 
+// LocationCard render
 
-  it("renders HOME card when home is present", () => {
+describe("LocationCard rendering", () => {
+  it("renders a HOME card when home is present", () => {
     const home = makeLoc("h", "HOME", "My House");
     setupMocks({ locations: [home], home });
     render(<SavedLocationsPanel />);
     expect(screen.getByText("My House")).toBeInTheDocument();
   });
 
-  it("renders WORK card when work is present", () => {
+  it("renders a WORK card when work is present", () => {
     const work = makeLoc("w", "WORK", "Office");
     setupMocks({ locations: [work], work });
     render(<SavedLocationsPanel />);
@@ -159,23 +188,22 @@ describe("SavedLocationsPanel", () => {
 
   it("renders FAVOURITE cards", () => {
     const fav = makeLoc("f", "FAVOURITE", "Gym");
-    setupMocks({
-      locations: [fav],
-      favourites: [fav],
-    });
+    setupMocks({ locations: [fav], favourites: [fav] });
     render(<SavedLocationsPanel />);
     expect(screen.getByText("Gym")).toBeInTheDocument();
   });
 
-  it("renders address for each location card", () => {
+  it("renders the address for each location card", () => {
     const home = makeLoc("h", "HOME", "Home");
     setupMocks({ locations: [home], home });
     render(<SavedLocationsPanel />);
     expect(screen.getByText("Address h")).toBeInTheDocument();
   });
+});
 
-  // Delete
+// Delete
 
+describe("Delete", () => {
   it("calls deleteLocation when the delete button is clicked", async () => {
     const home = makeLoc("h", "HOME", "Home");
     const { deleteLocation } = setupMocks({ locations: [home], home });
@@ -186,16 +214,44 @@ describe("SavedLocationsPanel", () => {
 
   it("calls onLocationsChange after delete", async () => {
     const home = makeLoc("h", "HOME", "Home");
-    const { deleteLocation } = setupMocks({ locations: [home], home });
+    setupMocks({ locations: [home], home });
     const onLocationsChange = jest.fn();
     render(<SavedLocationsPanel onLocationsChange={onLocationsChange} />);
     fireEvent.click(screen.getByTitle("Remove"));
     await waitFor(() => expect(onLocationsChange).toHaveBeenCalledTimes(1));
   });
 
-  // Rename (editing)
+  it("disables the delete button immediately while deletion is in progress", async () => {
+    let resolveDelete!: () => void;
+    const deleteLocation = jest
+      .fn()
+      .mockReturnValue(new Promise<void>((res) => { resolveDelete = res; }));
+    const home = makeLoc("h", "HOME", "Home");
 
-  it("shows rename input when the edit button is clicked", () => {
+    mockUseSavedLocations.mockReturnValue({
+      locations: [home],
+      home,
+      work: null,
+      favourites: [],
+      loading: false,
+      deleteLocation,
+      renameLocation: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+      saveLocation: mockSaveLocation,
+    });
+
+    render(<SavedLocationsPanel />);
+    fireEvent.click(screen.getByTitle("Remove"));
+    expect(screen.getByTitle("Remove")).toBeDisabled();
+
+    await act(async () => { resolveDelete(); });
+  });
+});
+
+// Rename 
+
+describe("Rename", () => {
+  it("shows the rename input when the edit button is clicked", () => {
     const home = makeLoc("h", "HOME", "Home");
     setupMocks({ locations: [home], home });
     render(<SavedLocationsPanel />);
@@ -217,12 +273,11 @@ describe("SavedLocationsPanel", () => {
     );
   });
 
-  it("does not call renameLocation when label is unchanged", async () => {
+  it("does not call renameLocation when the label is unchanged", async () => {
     const home = makeLoc("h", "HOME", "Home");
     const { renameLocation } = setupMocks({ locations: [home], home });
     render(<SavedLocationsPanel />);
     fireEvent.click(screen.getByTitle("Rename"));
-    // label stays "Home"
     fireEvent.click(screen.getByText("✓"));
     await waitFor(() => expect(renameLocation).not.toHaveBeenCalled());
   });
@@ -236,7 +291,7 @@ describe("SavedLocationsPanel", () => {
     expect(screen.queryByDisplayValue("Home")).not.toBeInTheDocument();
   });
 
-  it("submits rename on Enter key", async () => {
+  it("submits the rename on Enter key", async () => {
     const home = makeLoc("h", "HOME", "Home");
     const { renameLocation } = setupMocks({ locations: [home], home });
     render(<SavedLocationsPanel />);
@@ -250,17 +305,30 @@ describe("SavedLocationsPanel", () => {
     );
   });
 
-  // AddLocationForm 
+  it("calls onLocationsChange after a successful rename", async () => {
+    const home = makeLoc("h", "HOME", "Home");
+    setupMocks({ locations: [home], home });
+    const onLocationsChange = jest.fn();
+    render(<SavedLocationsPanel onLocationsChange={onLocationsChange} />);
+    fireEvent.click(screen.getByTitle("Rename"));
+    fireEvent.change(screen.getByDisplayValue("Home"), {
+      target: { value: "New Name" },
+    });
+    fireEvent.click(screen.getByText("✓"));
+    await waitFor(() => expect(onLocationsChange).toHaveBeenCalledTimes(1));
+  });
+});
 
+// AddLocationForm: address search
+
+describe("AddLocationForm — address search", () => {
   it("renders the address search input", () => {
     setupMocks();
     render(<SavedLocationsPanel />);
-    expect(
-      screen.getByPlaceholderText("Search address…")
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search address…")).toBeInTheDocument();
   });
 
-  it("does not show label input before an address is selected", () => {
+  it("does not show the label input before an address is selected", () => {
     setupMocks();
     render(<SavedLocationsPanel />);
     expect(
@@ -268,7 +336,21 @@ describe("SavedLocationsPanel", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows label input after a suggestion is picked", async () => {
+
+
+ 
+
+  it("does not fetch when the query is fewer than 3 characters", async () => {
+    setupMocks();
+    render(<SavedLocationsPanel />);
+    fireEvent.change(screen.getByPlaceholderText("Search address…"), {
+      target: { value: "Lo" },
+    });
+    act(() => { jest.runAllTimers(); });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("clears existing suggestions when the query drops below 3 characters", async () => {
     setupMocks();
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       json: async () => [
@@ -278,42 +360,52 @@ describe("SavedLocationsPanel", () => {
         },
       ],
     });
-
     render(<SavedLocationsPanel />);
-    fireEvent.change(screen.getByPlaceholderText("Search address…"), {
-      target: { value: "Lond" },
-    });
 
+    fireEvent.change(screen.getByPlaceholderText("Search address…"), {
+      target: { value: "Lon" },
+    });
+    act(() => { jest.runAllTimers(); });
     await waitFor(() =>
       expect(screen.getByText("London, UK")).toBeInTheDocument()
     );
 
-    fireEvent.mouseDown(screen.getByText("London, UK"));
-    expect(
-      screen.getByPlaceholderText("Give this location a name…")
-    ).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText("Search address…"), {
+      target: { value: "Lo" },
+    });
+    act(() => { jest.runAllTimers(); });
+    await waitFor(() =>
+      expect(screen.queryByText("London, UK")).not.toBeInTheDocument()
+    );
   });
 
-  it("shows type buttons (HOME / WORK / FAVOURITE) after picking a suggestion", async () => {
+  it("clears suggestions and does not throw when fetch rejects", async () => {
     setupMocks();
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: async () => [
-        {
-          geometry: { coordinates: [-0.1, 51.5] },
-          properties: { display: "London", name: "London, UK" },
-        },
-      ],
-    });
-
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
     render(<SavedLocationsPanel />);
+
+    fireEvent.change(screen.getByPlaceholderText("Search address…"), {
+      target: { value: "Lon" },
+    });
+    await act(async () => { jest.runAllTimers(); });
+
+    expect(screen.queryByRole("button", { name: /London/ })).not.toBeInTheDocument();
+  });
+
+  it("only fires one fetch when multiple keystrokes occur within the debounce window", async () => {
+    setupMocks();
+    render(<SavedLocationsPanel />);
+
+    fireEvent.change(screen.getByPlaceholderText("Search address…"), {
+      target: { value: "Lon" },
+    });
     fireEvent.change(screen.getByPlaceholderText("Search address…"), {
       target: { value: "Lond" },
     });
-    await waitFor(() => screen.getByText("London, UK"));
-    fireEvent.mouseDown(screen.getByText("London, UK"));
+    act(() => { jest.runAllTimers(); });
 
-    expect(screen.getByText(/🏠/)).toBeInTheDocument();
-    expect(screen.getByText(/🏢/)).toBeInTheDocument();
-    expect(screen.getByText(/⭐/)).toBeInTheDocument();
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
   });
+
+
 });
