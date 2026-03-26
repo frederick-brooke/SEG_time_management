@@ -16,8 +16,8 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);
 
-// Mock the new BannedPage component
-jest.mock('@/components/ban-message-page', () => () => <div>Banned Page</div>);
+// FIX: Path must exactly match the component's import path
+jest.mock('@/components/admin/ban-message-page', () => () => <div>Banned Page</div>);
 
 describe('LoginPage Component', () => {
   const mockPush = jest.fn();
@@ -31,16 +31,13 @@ describe('LoginPage Component', () => {
       push: mockPush,
       replace: mockReplace,
     });
-    
     (useSearchParams as jest.Mock).mockReturnValue({
       get: mockGetSearchParam,
     });
-    
     (useSession as jest.Mock).mockReturnValue({
       status: 'unauthenticated',
     });
 
-    // ✅ NEW: Mock the global fetch so the Quiz/Banned checks don't crash the test
     global.fetch = jest.fn((url) => {
       if (typeof url === 'string' && url.includes('/api/auth/session')) {
         return Promise.resolve({ json: () => Promise.resolve({ user: { id: '123' } }) });
@@ -54,15 +51,17 @@ describe('LoginPage Component', () => {
 
   it('renders the login form correctly', () => {
     render(<LoginPage />);
-    expect(screen.getByRole('heading', { name: 'Sign In' })).toBeInTheDocument();
-    expect(screen.getByText('Email')).toBeInTheDocument();
+    // FIX: Match the exact text rendered by your component
+    expect(screen.getByRole('heading', { name: 'Welcome Back' })).toBeInTheDocument();
+    expect(screen.getByText('Email or Username')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
   });
 
-  it('shows a loading state when session is loading', () => {
+  it('shows a loading spinner state when session is loading', () => {
     (useSession as jest.Mock).mockReturnValue({ status: 'loading' });
     render(<LoginPage />);
-    expect(screen.getByText('Redirecting...')).toBeInTheDocument();
+    // FIX: The component renders an empty spinner div, so we just verify the form is hidden
+    expect(screen.queryByRole('button', { name: 'Initiate Launch' })).not.toBeInTheDocument();
   });
 
   it('calls signIn and redirects on success', async () => {
@@ -76,7 +75,9 @@ describe('LoginPage Component', () => {
     
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    
+    // FIX: Match the new button text
+    await user.click(screen.getByRole('button', { name: 'Initiate Launch' }));
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
@@ -94,10 +95,11 @@ describe('LoginPage Component', () => {
     
     await user.type(emailInput, 'wrong@example.com');
     await user.type(passwordInput, 'wrongpass');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Initiate Launch' }));
     
     await waitFor(() => {
-      expect(screen.getByText('Invalid email or password')).toBeInTheDocument();
+      // FIX: Match the exact error text in your component
+      expect(screen.getByText('Invalid email/username or password.')).toBeInTheDocument();
     });
   });
 
@@ -112,7 +114,7 @@ describe('LoginPage Component', () => {
     
     await user.type(emailInput, 'banned@example.com');
     await user.type(passwordInput, 'password123');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Initiate Launch' }));
     
     await waitFor(() => {
       expect(screen.getByText('Your account has been banned.')).toBeInTheDocument();

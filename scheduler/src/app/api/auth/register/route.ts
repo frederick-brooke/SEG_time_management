@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
       lname = "",
     } = body;
 
-    // 1. Basic Field Validation
     if (!email || !password || !username) {
       return NextResponse.json(
         { error: "Username, email, and password are required" },
@@ -28,7 +27,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Format Validations
     if (!isValidUsername(username)) {
       return NextResponse.json(
         { error: "Username must be 3-20 characters (letters, numbers, _ or - only)" },
@@ -41,7 +39,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
-    // 3. Duplicate Checks (Band V: Check both at once for better performance)
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -61,7 +58,6 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hashPassword(password);
 
-    // 4. Atomic Transaction (Band V: Ensures user and categories are created together)
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -70,7 +66,6 @@ export async function POST(req: NextRequest) {
           username,
           fname,
           lname,
-          // Initialize progress record automatically
           progress: { create: { points: 0, level: 1 } }
         },
       });
@@ -88,7 +83,6 @@ export async function POST(req: NextRequest) {
       return user;
     });
 
-    // Remove passwordHash from response for security
     const { passwordHash: _, ...userWithoutPassword } = result;
 
     return NextResponse.json({ user: userWithoutPassword }, { status: 201 });
