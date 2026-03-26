@@ -31,11 +31,9 @@ describe('LoginPage Component', () => {
       push: mockPush,
       replace: mockReplace,
     });
-    
     (useSearchParams as jest.Mock).mockReturnValue({
       get: mockGetSearchParam,
     });
-    
     (useSession as jest.Mock).mockReturnValue({
       status: 'unauthenticated',
     });
