@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { ToDoList } from "../../to-do-list";
+import { ToDoList } from "../to-do-list";
 
 const mockUseTasks = jest.fn();
 jest.mock("@/hooks/useTasks", () => ({

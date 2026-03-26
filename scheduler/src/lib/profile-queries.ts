@@ -8,6 +8,11 @@ export type FriendUser = {
   fname: string | null;
   lname: string | null;
   pfp: string | null;
+  location: { lat: number; lng: number } | null;
+  locationHidden: boolean;
+  city: string | null;
+  country: string | null;
+  equippedAvatar: string | null;
 };
 
 export type FriendStatus =
@@ -23,6 +28,15 @@ const FRIEND_USER_SELECT = {
   fname: true,
   lname: true,
   pfp: true,
+  location: true,
+  locationHidden: true,
+  city: true,
+  country: true,
+  progress: {
+    select: {
+      equippedAvatar: true,
+    },
+  },
 } as const;
 
 
@@ -154,9 +168,22 @@ export async function fetchFriends(userId: string): Promise<FriendUser[]> {
     }),
   ]);
 
+  const flattenUser = (user: any): FriendUser => ({
+    id: user.id,
+    username: user.username,
+    fname: user.fname,
+    lname: user.lname,
+    pfp: user.pfp,
+    location: user.location,
+    locationHidden: user.locationHidden,
+    city: user.city,
+    country: user.country,
+    equippedAvatar: user.progress?.equippedAvatar || null,
+  });
+
   return [
-    ...sent.map((r) => r.receiver),
-    ...received.map((r) => r.sender),
+    ...sent.map((r) => flattenUser(r.receiver)),
+    ...received.map((r) => flattenUser(r.sender)),
   ];
 }
 

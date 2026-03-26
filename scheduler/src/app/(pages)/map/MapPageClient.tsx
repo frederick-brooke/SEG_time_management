@@ -1,9 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import MapView from "@/components/map/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
-import SetLocationModal from "@/components/map/SetLocationModal";
+
+const SetLocationModal = dynamic(
+  () => import("@/components/map/SetLocationModal").then((mod) => mod.default),
+  { ssr: false }
+);
 
 interface Event {
   id: string;

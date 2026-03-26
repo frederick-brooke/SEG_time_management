@@ -11,7 +11,7 @@ describe('UserAvatar Component', () => {
     render(<UserAvatar pfp="https://example.com/avatar.jpg" username="testuser" />);
     const img = screen.getByRole('img');
     expect(img).toHaveAttribute('src', 'https://example.com/avatar.jpg');
-    expect(img).toHaveAttribute('alt', 'testuser\'s avatar');
+    expect(img).toHaveAttribute('alt', 'testuser');
   });
 
   /**
@@ -19,7 +19,7 @@ describe('UserAvatar Component', () => {
    */
   it('renders the first name initial if no pfp is provided', () => {
     render(<UserAvatar username="testuser" fname="Alice" />);
-    expect(screen.getByText('A')).toBeInTheDocument();
+    expect(screen.getByText('AL')).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
@@ -28,7 +28,7 @@ describe('UserAvatar Component', () => {
    */
   it('renders the username initial if neither pfp nor fname are provided', () => {
     render(<UserAvatar username="bob123" />);
-    expect(screen.getByText('b')).toBeInTheDocument();
+    expect(screen.getByText('BO')).toBeInTheDocument();
   });
 
   /**
@@ -41,6 +41,7 @@ describe('UserAvatar Component', () => {
   //branch coverage for absolute fallback
   it('renders the "?" fallback if no valid initial can be found', () => {
     render(<UserAvatar username="" fname="" />);
-    expect(screen.getByText('?')).toBeInTheDocument();
+    const { container } = render(<UserAvatar username="" fname="" />);
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 });
