@@ -6,8 +6,9 @@
  * Only shown in auto mode are the location inputs and transport mode selector.
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
+import { useLocationSearch } from "@/lib/map";
 import LocationInput from "./LocationInput";
 
 interface TravelSectionProps {
@@ -50,49 +51,24 @@ export default function TravelSection({
   onTravelTimeModeChange,
   onManualTravelTimeChange,
 }: TravelSectionProps) {
-  const [suggestions, setSuggestions] = useState<{ start: any[]; dest: any[] }>({
-    start: [],
-    dest: [],
-  });
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const startSearch = useLocationSearch();
+  const destSearch = useLocationSearch();
   const [pendingStart, setPendingStart] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [pendingDest, setPendingDest] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [saveModal, setSaveModal] = useState<"start" | "dest" | null>(null);
 
   const { locations, saveLocation, refresh } = useSavedLocations();
 
-  useEffect(
-    () => () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-    },
-    [debounceTimer],
-  );
+  /** Handles start location search with name sync */
+  const handleStartSearch = (text: string) => {
+    onStartNameChange(text);
+    startSearch.handleLocationSearch(text);
+  };
 
-  /**
-   * Debounces location search queries and fetches autocomplete suggestions
-   * from /api/location/search. Clears suggestions for inputs shorter than 3 characters.
-   */
-  const handleLocationSearch = (text: string, type: "start" | "dest") => {
-    if (type === "start") onStartNameChange(text);
-    else onDestNameChange(text);
-
-    if (debounceTimer) clearTimeout(debounceTimer);
-    const timer = setTimeout(async () => {
-      if (text.length < 3) {
-        setSuggestions((prev) => ({ ...prev, [type]: [] }));
-        return;
-      }
-      try {
-        const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
-        if (!res.ok) {
-          setSuggestions((prev) => ({ ...prev, [type]: [] }));
-          return;
-        }
-        const data = await res.json();
-        setSuggestions((prev) => ({ ...prev, [type]: Array.isArray(data) ? data : [] }));
-      } catch {}
-    }, 400);
-    setDebounceTimer(timer);
+  /** Handles destination search with name sync */
+  const handleDestSearch = (text: string) => {
+    onDestNameChange(text);
+    destSearch.handleLocationSearch(text);
   };
 
   /** Handles selecting an autocomplete suggestion — sets coords, name, and pending save state. */
@@ -107,12 +83,13 @@ export default function TravelSection({
       onStartNameChange(name);
       onStartCoordsChange({ lat, lng });
       setPendingStart({ lat, lng, address });
+      startSearch.handleLocationSearch(""); // Clear suggestions
     } else {
       onDestNameChange(name);
       onDestCoordsChange({ lat, lng });
       setPendingDest({ lat, lng, address });
+      destSearch.handleLocationSearch(""); // Clear suggestions
     }
-    setSuggestions((prev) => ({ ...prev, [type]: [] }));
   };
 
   /** Handles selecting a saved location chip — sets coords, name, and pending save state. */
@@ -213,12 +190,12 @@ export default function TravelSection({
             label="Starting Point"
             placeholder="Where are you coming from?"
             value={startLocationName}
-            suggestions={suggestions.start}
+            suggestions={startSearch.suggestions}
             pending={pendingStart}
             showSaveModal={saveModal === "start"}
             locations={locations}
             showCurrentLocation
-            onSearchChange={(text) => handleLocationSearch(text, "start")}
+            onSearchChange={handleStartSearch}
             onSelectSuggestion={(feature) => selectLocation(feature, "start")}
             onSelectSaved={(loc) => selectSavedLocation(loc, "start")}
             onOpenSaveModal={() => setSaveModal("start")}
@@ -232,11 +209,11 @@ export default function TravelSection({
             label="Destination"
             placeholder="Search destination address..."
             value={destLocationName}
-            suggestions={suggestions.dest}
+            suggestions={destSearch.suggestions}
             pending={pendingDest}
             showSaveModal={saveModal === "dest"}
             locations={locations}
-            onSearchChange={(text) => handleLocationSearch(text, "dest")}
+            onSearchChange={handleDestSearch}
             onSelectSuggestion={(feature) => selectLocation(feature, "dest")}
             onSelectSaved={(loc) => selectSavedLocation(loc, "dest")}
             onOpenSaveModal={() => setSaveModal("dest")}
