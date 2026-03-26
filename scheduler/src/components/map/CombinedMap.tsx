@@ -26,7 +26,6 @@ interface CombinedMapProps {
   events: MapEvent[];
   userLocation?: { lat: number; lng: number } | null;
   defaultMode?: MapMode;
-  userLocation?: { lat: number; lng: number } | null;
 }
 
 // Helper: derive map center from friends + user location
