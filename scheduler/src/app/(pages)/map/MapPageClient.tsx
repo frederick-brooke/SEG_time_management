@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import MapView from "@/components/MapView";
+import MapView from "@/components/map/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
 import SetLocationModal from "@/components/map/SetLocationModal";
 

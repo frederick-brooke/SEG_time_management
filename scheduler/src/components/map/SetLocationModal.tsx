@@ -76,7 +76,9 @@ export default function SetLocationModal({
   const router = useRouter();
   const { userLocation } = useGeolocation();
   const [location, setLocation] = useState<LatLng>(
-    initialLocation || userLocation ? { lat: userLocation?.[0] || 51.505, lng: userLocation?.[1] || -0.09 } : { lat: 51.505, lng: -0.09 }
+    initialLocation ?? (userLocation
+      ? { lat: userLocation[0], lng: userLocation[1] }
+      : { lat: 51.505, lng: -0.09 })
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);

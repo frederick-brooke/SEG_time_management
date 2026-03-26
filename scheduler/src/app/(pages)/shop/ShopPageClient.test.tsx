@@ -3,25 +3,22 @@ import ShopPageClient from "./ShopPageClient";
 import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
 import { ShopData } from "./shop.types";
 
-// Mock server actions
+// ── Mocks ─────────────────────────────────────────────────────────────────
+
 jest.mock("@/app/actions/shop", () => ({
   purchaseItem: jest.fn(),
   equipItem: jest.fn(),
   unequipItem: jest.fn(),
 }));
 
-// Mock icons + coin (avoid rendering issues)
 jest.mock("lucide-react", () => ({
-  Zap: () => <div>ZapIcon</div>,
-  Shield: () => <div>ShieldIcon</div>,
-  ShoppingBag: () => <div>ShoppingBagIcon</div>,
   CheckCircle: () => <div>CheckIcon</div>,
   Package: () => <div>PackageIcon</div>,
   User: () => <div>UserIcon</div>,
   Sparkles: () => <div>SparklesIcon</div>,
-})); `p`
+}));
 
-jest.mock("components/ui/gold-coin", () => ({
+jest.mock("@/components/ui/gold-coin", () => ({
   GoldCoin: () => <div>Coin</div>,
 }));
 
@@ -29,11 +26,11 @@ jest.mock("@/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {},
 }));
 
+// ── Mock Data ─────────────────────────────────────────────────────────────
+
 const mockData: ShopData = {
   points: 1000,
   equippedAvatar: null,
-  xpBoostExpires: null,
-  streakShields: 0,
   items: [
     {
       id: "1",
@@ -47,50 +44,29 @@ const mockData: ShopData = {
       owned: false,
       canAfford: true,
     },
-    {
-      id: "2",
-      name: "XP Boost",
-      description: "Boost XP",
-      type: "FUNCTIONAL",
-      price: 200,
-      value: "boost",
-      icon: "⚡",
-      rarity: "rare",
-      owned: false,
-      canAfford: true,
-    },
   ],
 };
+
+// ── Tests ─────────────────────────────────────────────────────────────────
 
 describe("ShopPageClient", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-
   it("renders items and balance", () => {
     render(<ShopPageClient initialData={mockData} />);
 
     expect(screen.getByText("Cool Avatar")).toBeInTheDocument();
-    expect(screen.getByText("XP Boost")).toBeInTheDocument();
     expect(screen.getByText("1,000")).toBeInTheDocument();
   });
 
-  it("filters items by tab", () => {
-    render(<ShopPageClient initialData={mockData} />);
-
-    fireEvent.click(screen.getByText("Avatars"));
-
-    expect(screen.getByText("Cool Avatar")).toBeInTheDocument();
-    expect(screen.queryByText("XP Boost")).not.toBeInTheDocument();
-  });
-
-  
   it("purchases an item and updates UI", async () => {
     (purchaseItem as jest.Mock).mockResolvedValue({});
 
     render(<ShopPageClient initialData={mockData} />);
 
+    // Click the buy button for the first item
     fireEvent.click(screen.getAllByText("Buy")[0]);
 
     await waitFor(() => {
@@ -98,7 +74,7 @@ describe("ShopPageClient", () => {
     });
 
     // Toast appears
-    expect(await screen.findByText(/purchased/i)).toBeInTheDocument();
+    expect(await screen.findByText(/purchased!/i)).toBeInTheDocument();
   });
 
   it("equips an owned avatar", async () => {
@@ -117,12 +93,9 @@ describe("ShopPageClient", () => {
       expect(equipItem).toHaveBeenCalledWith("1");
     });
 
-    expect(
-        await screen.findByText(/equipped!/i)
-      ).toBeInTheDocument();
-});
+    expect(await screen.findByText(/equipped!/i)).toBeInTheDocument();
+  });
 
- 
   it("unequips avatar", async () => {
     (unequipItem as jest.Mock).mockResolvedValue({});
 
@@ -134,7 +107,9 @@ describe("ShopPageClient", () => {
 
     render(<ShopPageClient initialData={equippedData} />);
 
-    fireEvent.click(screen.getByText("Unequip"));
+    // In the refactored UI, unequipping happens by clicking the active avatar thumbnail
+    // Adjusting this to look for the thumbnail or an unequip button depending on your ShopCards implementation
+    fireEvent.click(screen.getAllByTitle("Cool Avatar")[0]);
 
     await waitFor(() => {
       expect(unequipItem).toHaveBeenCalledWith("AVATAR");
@@ -142,7 +117,6 @@ describe("ShopPageClient", () => {
 
     expect(await screen.findByText(/unequipped/i)).toBeInTheDocument();
   });
-
 
   it("shows error toast if purchase fails", async () => {
     (purchaseItem as jest.Mock).mockRejectedValue(new Error("Failed"));

@@ -1,22 +1,36 @@
+/**
+ * UserFilter
+ *
+ * Slide-over filter panel for refining user queries.
+ * Handles:
+ * - Sorting (username, date created, email)
+ * - Sort order (ascending / descending)
+ * - Conditional admin-only filters (date range + roles)
+ * - Multi-select role filtering
+ * - Resetting, applying, and closing filters
+ *
+ * @param {Object} props
+ * @param {Object} props.filters - Current filter state
+ * @param {Function} props.setFilters - State setter for filters
+ * @param {Function} props.onClose - Closes the filter panel
+ * @param {Function} props.applyFilters - Applies selected filters
+ * @param {Function} props.resetFilters - Resets filters to default state
+ * @param {string} props.type - Determines filter visibility (e.g. "admin")
+ *
+ * @returns {JSX.Element} User filter sidebar UI
+ */
 export default function UserFilter({ filters, setFilters, onClose, applyFilters, resetFilters, type}) {
     return (
-        <div
-        className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
-        onClick={onClose} //click outside closes
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={onClose} //click outside closes
         >
-            <div
-                className="h-full w-96 p-6 flex flex-col gap-6 bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
-                onClick={(e) => e.stopPropagation()} //prevent closing when clicking inside
-            >
+            <div className="h-full w-96 p-6 flex flex-col gap-6 bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="lunar-header flex items-center justify-between">
                     <h3 className="text-lg font-semibold mb-4">
                         Filters
                     </h3>
 
                     {/* reset button to clear all filters*/}
-                    <button onClick={resetFilters}
-                        className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition"
-                    >
+                    <button onClick={resetFilters} className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition">
                         Reset
                     </button>
                 </div>

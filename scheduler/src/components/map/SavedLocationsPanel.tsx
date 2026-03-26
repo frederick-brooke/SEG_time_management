@@ -1,6 +1,6 @@
 "use client";
 // src/components/map/SavedLocationsPanel.tsx
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 
 const TYPE_ICONS: Record<string, string> = {
@@ -108,13 +108,13 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
   const [label, setLabel] = useState("");
   const [type, setType] = useState<"HOME" | "WORK" | "FAVOURITE">("FAVOURITE");
   const [saving, setSaving] = useState(false);
-  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ← changed
 
   const search = (text: string) => {
     setQuery(text);
     setSelected(null);
-    if (timer) clearTimeout(timer);
-    const t = setTimeout(async () => {
+    if (timerRef.current) clearTimeout(timerRef.current); // ← changed
+    timerRef.current = setTimeout(async () => {           // ← changed
       if (text.length < 3) { setSuggestions([]); return; }
       try {
         const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
@@ -122,8 +122,9 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
         setSuggestions(Array.isArray(data) ? data : []);
       } catch { setSuggestions([]); }
     }, 400);
-    setTimer(t);
   };
+
+
 
   const pick = (s: any) => {
     const lat = parseFloat(s.geometry.coordinates[1]);
