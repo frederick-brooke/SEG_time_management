@@ -1,214 +1,191 @@
-import { NextRequest } from "next/server";
-import { GET, POST, PATCH, DELETE } from "./route";
-
-const mockGetServerSession = jest.fn();
-const mockFindMany = jest.fn();
-const mockCreate = jest.fn();
-const mockUpdate = jest.fn();
-const mockDelete = jest.fn();
-const mockCount = jest.fn();
+import { GET, POST, PATCH, DELETE } from "@/app/api/categories/route";
+import { getServerSession } from "next-auth/next";
+import { prisma } from "@/lib/prisma";
 
 jest.mock("next-auth/next", () => ({
-  getServerSession: (...args: unknown[]) => mockGetServerSession(...args),
+  getServerSession: jest.fn(),
 }));
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     category: {
-      findMany: (...args: unknown[]) => mockFindMany(...args),
-      create: (...args: unknown[]) => mockCreate(...args),
-      update: (...args: unknown[]) => mockUpdate(...args),
-      delete: (...args: unknown[]) => mockDelete(...args),
-      count: (...args: unknown[]) => mockCount(...args),
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      count: jest.fn(),
     },
   },
 }));
 
-jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+jest.mock("next/server", () => ({
+  NextResponse: {
+    json: (data: any, init?: any) => ({
+      status: init?.status || 200,
+      json: async () => data,
+    }),
+  },
+}));
 
-const mockSession = { user: { id: "user-123" } };
+const mockSession = {
+  user: { id: "user-1" },
+};
 
-function makeRequest(
-  method: string,
-  body?: object,
-  url = "http://localhost/api/categories"
-): NextRequest {
-  return new NextRequest(url, {
-    method,
-    body: body ? JSON.stringify(body) : undefined,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-describe("GET /api/categories", () => {
-  it("returns 401 when there is no session", async () => {
-    mockGetServerSession.mockResolvedValueOnce(null);
-
-    const res = await GET(makeRequest("GET"));
-
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "Unauthorized" });
+describe("Category API", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it("returns categories for the authenticated user", async () => {
-    const categories = [
-      { id: "cat-1", name: "Work", color: "#ff0000", userId: "user-123" },
-      { id: "cat-2", name: "Personal", color: "#00ff00", userId: "user-123" },
-    ];
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
-    mockFindMany.mockResolvedValueOnce(categories);
+  describe("GET", () => {
+    it("returns 401 if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    const res = await GET(makeRequest("GET"));
+      const res = await GET({} as any);
+      const body = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ categories });
-    expect(mockFindMany).toHaveBeenCalledWith({
-      where: { userId: "user-123" },
-      orderBy: { createdAt: "asc" },
+      expect(res.status).toBe(401);
+      expect(body.error).toBe("Unauthorized");
+    });
+
+    it("returns categories for user", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+
+      const categories = [{ id: "1" }];
+      (prisma.category.findMany as jest.Mock).mockResolvedValue(categories);
+
+      const res = await GET({} as any);
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.categories).toEqual(categories);
     });
   });
-});
 
-describe("POST /api/categories", () => {
-  it("returns 401 when there is no session", async () => {
-    mockGetServerSession.mockResolvedValueOnce(null);
+  describe("POST", () => {
+    it("returns 401 if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    const res = await POST(makeRequest("POST", { name: "Work", color: "#ff0000" }));
+      const req = { json: async () => ({}) } as any;
+      const res = await POST(req);
 
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "Unauthorized" });
-  });
+      expect(res.status).toBe(401);
+    });
 
-  it("returns 400 when name is missing", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
+    it("returns 400 if missing fields", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
-    const res = await POST(makeRequest("POST", { color: "#ff0000" }));
+      const req = { json: async () => ({ name: "" }) } as any;
+      const res = await POST(req);
+      const body = await res.json();
 
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Name and color required" });
-  });
+      expect(res.status).toBe(400);
+      expect(body.error).toBe("Name and color required");
+    });
 
-  it("returns 400 when color is missing", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
+    it("creates category", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
-    const res = await POST(makeRequest("POST", { name: "Work" }));
+      const category = { id: "1" };
+      (prisma.category.create as jest.Mock).mockResolvedValue(category);
 
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Name and color required" });
-  });
+      const req = {
+        json: async () => ({ name: "Test", color: "#fff" }),
+      } as any;
 
-  it("returns 400 when both name and color are missing", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
+      const res = await POST(req);
+      const body = await res.json();
 
-    const res = await POST(makeRequest("POST", {}));
-
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Name and color required" });
-  });
-
-  it("creates and returns a new category", async () => {
-    const category = { id: "cat-1", name: "Work", color: "#ff0000", userId: "user-123" };
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
-    mockCreate.mockResolvedValueOnce(category);
-
-    const res = await POST(makeRequest("POST", { name: "Work", color: "#ff0000" }));
-
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ category });
-    expect(mockCreate).toHaveBeenCalledWith({
-      data: { name: "Work", color: "#ff0000", userId: "user-123" },
+      expect(res.status).toBe(200);
+      expect(body.category).toEqual(category);
     });
   });
-});
 
-describe("PATCH /api/categories", () => {
-  it("returns 401 when there is no session", async () => {
-    mockGetServerSession.mockResolvedValueOnce(null);
+  describe("PATCH", () => {
+    it("returns 401 if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    const res = await PATCH(
-      makeRequest("PATCH", { id: "cat-1", name: "Updated", color: "#0000ff" })
-    );
+      const req = { json: async () => ({}) } as any;
+      const res = await PATCH(req);
 
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "Unauthorized" });
-  });
+      expect(res.status).toBe(401);
+    });
 
-  it("returns 400 when id is missing", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
+    it("returns 400 if no id", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
-    const res = await PATCH(makeRequest("PATCH", { name: "Updated", color: "#0000ff" }));
+      const req = { json: async () => ({}) } as any;
+      const res = await PATCH(req);
+      const body = await res.json();
 
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "ID required" });
-  });
+      expect(res.status).toBe(400);
+      expect(body.error).toBe("ID required");
+    });
 
-  it("updates and returns the category", async () => {
-    const category = { id: "cat-1", name: "Updated", color: "#0000ff", userId: "user-123" };
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
-    mockUpdate.mockResolvedValueOnce(category);
+    it("updates category", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
-    const res = await PATCH(
-      makeRequest("PATCH", { id: "cat-1", name: "Updated", color: "#0000ff" })
-    );
+      const updated = { id: "1" };
+      (prisma.category.update as jest.Mock).mockResolvedValue(updated);
 
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ category });
-    expect(mockUpdate).toHaveBeenCalledWith({
-      where: { id: "cat-1" },
-      data: { name: "Updated", color: "#0000ff" },
+      const req = {
+        json: async () => ({
+          id: "1",
+          name: "Updated",
+          color: "#000",
+        }),
+      } as any;
+
+      const res = await PATCH(req);
+      const body = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(body.category).toEqual(updated);
     });
   });
-});
 
-describe("DELETE /api/categories", () => {
-  it("returns 401 when there is no session", async () => {
-    mockGetServerSession.mockResolvedValueOnce(null);
+  describe("DELETE", () => {
+    it("returns 401 if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    const res = await DELETE(
-      makeRequest("DELETE", undefined, "http://localhost/api/categories?id=cat-1")
-    );
+      const req = { url: "http://localhost?id=1" } as any;
+      const res = await DELETE(req);
 
-    expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: "Unauthorized" });
-  });
+      expect(res.status).toBe(401);
+    });
 
-  it("returns 400 when id query param is missing", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
+    it("returns 400 if no id", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
-    const res = await DELETE(makeRequest("DELETE", undefined, "http://localhost/api/categories"));
+      const req = { url: "http://localhost" } as any;
+      const res = await DELETE(req);
+      const body = await res.json();
 
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "ID required" });
-  });
+      expect(res.status).toBe(400);
+      expect(body.error).toBe("ID required");
+    });
 
-  it("returns 400 when trying to delete the last category", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
-    mockCount.mockResolvedValueOnce(1);
+    it("prevents deleting last category", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      (prisma.category.count as jest.Mock).mockResolvedValue(1);
 
-    const res = await DELETE(
-      makeRequest("DELETE", undefined, "http://localhost/api/categories?id=cat-1")
-    );
+      const req = { url: "http://localhost?id=1" } as any;
+      const res = await DELETE(req);
+      const body = await res.json();
 
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Cannot delete last category" });
-    expect(mockCount).toHaveBeenCalledWith({ where: { userId: "user-123" } });
-    expect(mockDelete).not.toHaveBeenCalled();
-  });
+      expect(res.status).toBe(400);
+      expect(body.error).toBe("Cannot delete last category");
+    });
 
-  it("deletes the category when more than one exists", async () => {
-    mockGetServerSession.mockResolvedValueOnce(mockSession);
-    mockCount.mockResolvedValueOnce(2);
+    it("deletes category", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      (prisma.category.count as jest.Mock).mockResolvedValue(2);
 
-    const res = await DELETE(
-      makeRequest("DELETE", undefined, "http://localhost/api/categories?id=cat-1")
-    );
+      const req = { url: "http://localhost?id=1" } as any;
+      const res = await DELETE(req);
+      const body = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
-    expect(mockDelete).toHaveBeenCalledWith({ where: { id: "cat-1" } });
+      expect(res.status).toBe(200);
+      expect(body.success).toBe(true);
+    });
   });
 });

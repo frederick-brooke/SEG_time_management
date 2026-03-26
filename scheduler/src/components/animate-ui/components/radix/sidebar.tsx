@@ -42,7 +42,7 @@ const HighlightItemAny = HighlightItem as React.ComponentType<any>;
 
 const [LocalSidebarProvider, useSidebar] = getStrictContext("SidebarContext");
 
-// ─── Prop interfaces ──────────────────────────────────────────────────────────
+// ─── Prop interfaces ───────
 
 interface SidebarProviderProps extends React.HTMLAttributes<HTMLDivElement> {
   defaultOpen?: boolean;
@@ -162,7 +162,7 @@ interface SidebarMenuSubButtonProps extends React.AnchorHTMLAttributes<HTMLAncho
   className?: string;
 }
 
-// ─── Components ───────────────────────────────────────────────────────────────
+// ─── Components ────
 
 function SidebarProvider({
   defaultOpen = true,

@@ -1,6 +1,6 @@
 // Shared data importable anywhere — no 'use server'
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────
 
 export type AvatarKey =
   | "astronaut-pioneer"
@@ -24,7 +24,7 @@ export type ShopItem = {
   rarity: Rarity;
 };
 
-// ── Avatar SVGs ───────────────────────────────────────────────────────────────
+// ── Avatar SVGs ────
 
 const STAR_FIELD = [
   `%3Ccircle cx='22' cy='20' r='2' fill='%23ffffff' opacity='0.8'/%3E`,
@@ -180,7 +180,7 @@ export const AVATAR_IMAGES: Record<AvatarKey, string> = {
   ),
 };
 
-// ── Shop catalogue ────────────────────────────────────────────────────────────
+// ── Shop catalogue ─
 
 export const SHOP_CATALOGUE: ShopItem[] = [
   {
@@ -257,7 +257,7 @@ export const SHOP_CATALOGUE: ShopItem[] = [
   },
 ];
 
-// ── Avatar frame styles ───────────────────────────────────────────────────────
+// ── Avatar frame styles ────
 
 export const FRAME_STYLES: Record<string, string> = {
   "solar-flare":   "ring-4 ring-yellow-400 ring-offset-2 shadow-[0_0_20px_4px_rgba(250,204,21,0.6)]",

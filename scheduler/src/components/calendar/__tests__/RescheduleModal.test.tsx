@@ -34,7 +34,7 @@ function renderModal(overrides: Partial<React.ComponentProps<typeof RescheduleMo
 
 beforeEach(() => jest.clearAllMocks());
 
-// ── Header ────────────────────────────────────────────────────────────────────
+// ── Header ─────────
 
 describe("RescheduleModal — header", () => {
   it("renders the title", () => {
@@ -60,7 +60,7 @@ describe("RescheduleModal — header", () => {
   });
 });
 
-// ── Summary strip ─────────────────────────────────────────────────────────────
+// ── Summary strip ──
 
 describe("RescheduleModal — summary strip", () => {
   it("shows correct task count", () => {
@@ -93,7 +93,7 @@ describe("RescheduleModal — summary strip", () => {
   });
 });
 
-// ── Task list ─────────────────────────────────────────────────────────────────
+// ── Task list ──────
 
 describe("RescheduleModal — task list", () => {
   it("renders all tasks", () => {
@@ -142,7 +142,7 @@ describe("RescheduleModal — task list", () => {
   });
 });
 
-// ── Partial tasks ─────────────────────────────────────────────────────────────
+// ── Partial tasks ──
 
 describe("RescheduleModal — partial tasks", () => {
   const partialTask = { ...baseTask, duration: 60, remainingDuration: 30 };
@@ -175,7 +175,7 @@ describe("RescheduleModal — partial tasks", () => {
   });
 });
 
-// ── Selection ─────────────────────────────────────────────────────────────────
+// ── Selection ──────
 
 describe("RescheduleModal — selection", () => {
   it("deselects a task on click", () => {
@@ -203,7 +203,7 @@ describe("RescheduleModal — selection", () => {
   });
 });
 
-// ── Footer button ─────────────────────────────────────────────────────────────
+// ── Footer button ──
 
 describe("RescheduleModal — footer button", () => {
   it("shows correct label with task count", () => {

@@ -32,7 +32,7 @@ function setup() {
   return { deleteEvent: result.current, refreshEvents, triggerUndo };
 }
 
-// ── ID validation ─────────────────────────────────────────────────────────
+// ── ID validation ──────
 
 describe("ID validation", () => {
   it("alerts and returns false when id is missing", async () => {
@@ -50,7 +50,7 @@ describe("ID validation", () => {
   });
 });
 
-// ── confirm dialog ────────────────────────────────────────────────────────
+// ── confirm dialog ─────
 
 describe("confirm dialog", () => {
   it("returns false when user cancels confirm", async () => {
@@ -68,7 +68,7 @@ describe("confirm dialog", () => {
   });
 });
 
-// ── deleteEventRequest call ───────────────────────────────────────────────
+// ── deleteEventRequest call ──────
 
 describe("deleteEventRequest", () => {
   it("calls deleteEventRequest with id, mode, and instanceDate", async () => {
@@ -101,7 +101,7 @@ describe("deleteEventRequest", () => {
   });
 });
 
-// ── success path ──────────────────────────────────────────────────────────
+// ── success path ───────
 
 describe("success path", () => {
   it("calls triggerUndo and refreshEvents on success", async () => {

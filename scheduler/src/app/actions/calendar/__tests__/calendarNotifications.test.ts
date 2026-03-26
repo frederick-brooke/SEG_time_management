@@ -68,7 +68,7 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-// ── Guard: no userId ───────────────────────────────────────────────────────
+// ── Guard: no userId ────
 
 it("returns error when userId is empty", async () => {
     const result = await checkUpcomingEventNotifications("");
@@ -76,7 +76,7 @@ it("returns error when userId is empty", async () => {
     expect(mockFindMany).not.toHaveBeenCalled();
 });
 
-// ── No events ─────────────────────────────────────────────────────────────
+// ── No events ──
 
 it("returns success when no upcoming events found", async () => {
     mockFindMany.mockResolvedValue([]);
@@ -85,7 +85,7 @@ it("returns success when no upcoming events found", async () => {
     expect(mockCreateNotification).not.toHaveBeenCalled();
 });
 
-// ── Event reminder ─────────────────────────────────────────────────────────
+// ── Event reminder ──────
 
 it("sends event reminder when event starts within 5 mins and not yet notified", async () => {
     mockFindMany.mockResolvedValue([makeEvent()]);
@@ -184,7 +184,7 @@ it("includes plural 'minutes' when multiple minutes until event", async () => {
     );
 });
 
-// ── Travel notification ────────────────────────────────────────────────────
+// ── Travel notification ─
 
 it("sends travel notification when within travel window and not yet notified", async () => {
     mockFindMany.mockResolvedValue([
@@ -376,7 +376,7 @@ it("can send both travel and event reminder notifications for the same event", a
     expect(calls).toContain("Event Starting Soon");
 });
 
-// ── Error handling ─────────────────────────────────────────────────────────
+// ── Error handling ──────
 
 it("returns failure when prisma throws", async () => {
     mockFindMany.mockRejectedValue(new Error("DB error"));

@@ -7,7 +7,7 @@ import {
   type ShopItem,
 } from "./shop-catalogue";
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 const AVATAR_KEYS: AvatarKey[] = [
   "astronaut-pioneer",
@@ -30,7 +30,7 @@ const isSvgDataUri = (value: string) =>
   value.includes("%3Csvg") &&   // <svg
   value.includes("%3C/svg%3E"); // </svg>
 
-// ── AVATAR_IMAGES ─────────────────────────────────────────────────────────────
+// ── AVATAR_IMAGES ──
 
 describe("AVATAR_IMAGES", () => {
   it("contains an entry for every AvatarKey", () => {
@@ -80,7 +80,7 @@ describe("AVATAR_IMAGES", () => {
   });
 });
 
-// ── SHOP_CATALOGUE ────────────────────────────────────────────────────────────
+// ── SHOP_CATALOGUE ─
 
 describe("SHOP_CATALOGUE", () => {
   it("contains exactly 8 items", () => {
@@ -204,7 +204,7 @@ describe("SHOP_CATALOGUE", () => {
   });
 });
 
-// ── FRAME_STYLES ──────────────────────────────────────────────────────────────
+// ── FRAME_STYLES ───
 
 describe("FRAME_STYLES", () => {
   const FRAME_KEYS = ["solar-flare", "nebula-glow", "aurora-ring", "event-horizon"];

@@ -29,7 +29,7 @@ function setup() {
   return { result, refreshTasks };
 }
 
-// ── initial state ─────────────────────────────────────────────────────────
+// ── initial state ──────
 
 describe("initial state", () => {
   it("starts with edit dialog closed", () => {
@@ -47,7 +47,7 @@ describe("initial state", () => {
   });
 });
 
-// ── openTaskEdit ──────────────────────────────────────────────────────────
+// ── openTaskEdit ───────
 
 describe("openTaskEdit", () => {
   it("calls taskToFormData with the provided task", () => {
@@ -70,7 +70,7 @@ describe("openTaskEdit", () => {
   });
 });
 
-// ── submitTaskEdit ────────────────────────────────────────────────────────
+// ── submitTaskEdit ─────
 
 describe("submitTaskEdit", () => {
   it("calls patchTask with taskId and form data", async () => {
@@ -93,7 +93,7 @@ describe("submitTaskEdit", () => {
   });
 });
 
-// ── setIsTaskEditOpen / setTaskFormData ───────────────────────────────────
+// ── setIsTaskEditOpen / setTaskFormData ─────
 
 describe("setters", () => {
   it("setIsTaskEditOpen updates dialog state directly", () => {

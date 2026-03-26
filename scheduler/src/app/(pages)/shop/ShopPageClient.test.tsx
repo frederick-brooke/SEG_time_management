@@ -3,7 +3,7 @@ import ShopPageClient from "./ShopPageClient";
 import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
 import { ShopData } from "./shop.types";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────
+// ── Mocks ──────
 
 jest.mock("@/app/actions/shop", () => ({
   purchaseItem: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock("@/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {},
 }));
 
-// ── Mock Data ─────────────────────────────────────────────────────────────
+// ── Mock Data ──
 
 const mockData: ShopData = {
   points: 1000,
@@ -47,7 +47,7 @@ const mockData: ShopData = {
   ],
 };
 
-// ── Tests ─────────────────────────────────────────────────────────────────
+// ── Tests ──────
 
 describe("ShopPageClient", () => {
   beforeEach(() => {

@@ -33,7 +33,7 @@ describe('Auth Logic Coverage (/lib/auth.ts)', () => {
     (verifyPassword as jest.Mock).mockResolvedValue(true);
   });
 
-  // ── authorizeUser ──────────────────────────────────────────────────────────
+  // ── authorizeUser ───────
 
   describe('authorizeUser', () => {
     it('returns null if missing credentials', async () => {
@@ -103,7 +103,7 @@ describe('Auth Logic Coverage (/lib/auth.ts)', () => {
     });
   });
 
-  // ── Callbacks ──────────────────────────────────────────────────────────────
+  // ── Callbacks ───
 
   describe('Callbacks', () => {
 

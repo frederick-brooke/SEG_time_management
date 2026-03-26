@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CalendarBody from "../CalendarBody";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("../CalendarBody.module.css", () =>
   new Proxy({}, { get: (_, key) => String(key) })
@@ -74,7 +74,7 @@ jest.mock("date-fns", () => ({
   }),
 }));
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 const mockLocalizer = {} as any;
 
@@ -151,11 +151,11 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("CalendarBody", () => {
 
-  // ── Rendering ───────────────────────────────────────────────────────────────
+  // ── Rendering ────
 
   describe("rendering", () => {
     it("should render the calendar grid", () => {
@@ -175,7 +175,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── Search input ────────────────────────────────────────────────────────────
+  // ── Search input ─
 
   describe("search input", () => {
     it("should call onSearchChange when the user types in the search box", () => {
@@ -214,7 +214,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── Search results ──────────────────────────────────────────────────────────
+  // ── Search results ───────
 
   describe("search results", () => {
     it("should show the search dropdown when showSearchResults is true", () => {
@@ -380,7 +380,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── Undo bar ────────────────────────────────────────────────────────────────
+  // ── Undo bar ─────
 
   describe("undo bar", () => {
     it("should call onUndo when the Undo button is clicked", () => {
@@ -400,7 +400,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── Event selection ─────────────────────────────────────────────────────────
+  // ── Event selection ──────
 
   describe("event selection", () => {
     it("should call onSelectEvent when a regular event is clicked", () => {
@@ -440,7 +440,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── Slot and navigation callbacks ───────────────────────────────────────────
+  // ── Slot and navigation callbacks ──
 
   describe("slot selection and navigation", () => {
     it("should call onSelectSlot with a formatted date string when a slot is selected", () => {
@@ -509,7 +509,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── makeEventPropGetter ──────────────────────────────────────────────────────
+  // ── makeEventPropGetter ───
 
   describe("makeEventPropGetter", () => {
     const categories = [
@@ -577,7 +577,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── makeDayPropGetter ────────────────────────────────────────────────────────
+  // ── makeDayPropGetter ─────
 
   describe("makeDayPropGetter", () => {
     it("does not highlight a day not matching a day-mode schedule log", () => {
@@ -612,7 +612,7 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── hexToRgb ─────────────────────────────────────────────────────────────────
+  // ── hexToRgb ──────
 
   describe("hexToRgb (via makeEventPropGetter travel branch)", () => {
     it("correctly converts a valid hex colour to r, g, b in gradient", () => {

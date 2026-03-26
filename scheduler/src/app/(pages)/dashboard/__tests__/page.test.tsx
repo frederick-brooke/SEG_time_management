@@ -169,7 +169,7 @@ describe("Dashboard Page", () => {
     expect(await screen.findByText("ProfileStats")).toBeInTheDocument();
   });
 
-  // ── Google calendar ────────────────────────
+  // ── Google calendar ────
 
   it("shows Connect Google Calendar when google is not linked", async () => {
     render(<Page />);

@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import FilterSidebar from "../FilterSidebar";
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 function createDefaultProps(overrides: Record<string, any> = {}) {
   return {
@@ -31,12 +31,12 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("FilterSidebar", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // ── Rendering ───────────────────────────────────────────────────────────────
+  // ── Rendering ────
 
   describe("rendering", () => {
     it("should render the Tasks section heading", () => {
@@ -78,7 +78,7 @@ describe("FilterSidebar", () => {
     });
   });
 
-  // ── FilterCheckbox state ────────────────────────────────────────────────────
+  // ── FilterCheckbox state ─
 
   describe("FilterCheckbox active state", () => {
     it("should show ✓ for an active task filter", () => {
@@ -130,7 +130,7 @@ describe("FilterSidebar", () => {
     });
   });
 
-  // ── Callbacks ───────────────────────────────────────────────────────────────
+  // ── Callbacks ────
 
   describe("callbacks", () => {
     it("should call onToggleFilter with 'tasks' when Tasks checkbox is clicked", () => {
@@ -194,7 +194,7 @@ describe("FilterSidebar", () => {
     });
   });
 
-  // ── Multiple categories ─────────────────────────────────────────────────────
+  // ── Multiple categories ──
 
   describe("multiple categories", () => {
     it("should render all categories when given a larger list", () => {

@@ -26,7 +26,7 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
   );
 }
 
-// ── Client Component ───────────────────────────────────────────────────────────
+// ── Client Component 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
