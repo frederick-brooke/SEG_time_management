@@ -8,7 +8,7 @@ import { getPriorityStyle } from "@/lib/priority";
 import { LunarCard } from "../ui/lunar-card";
 
 /**
- * Renders the checklist of subtasks for a task card.
+ * Renders the checklist of subtasks for a task card.//
  * @param {Array} subtasks List of subtasks to display.
  * @param {boolean[]} checkedList Tracked check state for each subtask.
  * @param {Function} onSubtaskChange Callback triggered when a subtask checkbox changes.
