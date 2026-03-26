@@ -6,7 +6,7 @@ import { getGoogleCalendarClient } from "../googleCalendar";
 import { prisma } from "../../prisma";
 import { google } from "googleapis";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("../../prisma", () => ({
   prisma: {
@@ -41,7 +41,7 @@ jest.mock("googleapis", () => ({
   },
 }));
 
-// ── Typed mock helpers ────────────────────────────────────────────────────────
+// ── Typed mock helpers ─────
 
 const mockPrismaAccount = prisma.account as unknown as {
   findFirst: jest.Mock;
@@ -50,7 +50,7 @@ const mockPrismaAccount = prisma.account as unknown as {
 const mockGoogleCalendar = google.calendar as jest.Mock;
 const mockOAuth2 = google.auth.OAuth2 as unknown as jest.Mock;
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 /**
  * Creates a mock DB account with Google OAuth tokens.
@@ -67,7 +67,7 @@ function createMockAccount(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("getGoogleCalendarClient", () => {
   beforeEach(() => {
@@ -82,7 +82,7 @@ describe("getGoogleCalendarClient", () => {
     mockGoogleCalendar.mockReturnValue({ events: {} });
   });
 
-  // ── Null cases ──────────────────────────────────────────────────────────────
+  // ── Null cases ───
 
   it("should return null when no Google account is found for the user", async () => {
     mockPrismaAccount.findFirst.mockResolvedValue(null);
@@ -112,7 +112,7 @@ describe("getGoogleCalendarClient", () => {
     expect(result).toBeNull();
   });
 
-  // ── Successful client creation ──────────────────────────────────────────────
+  // ── Successful client creation ─────
 
   it("should return a Google Calendar client when the account is valid", async () => {
     mockPrismaAccount.findFirst.mockResolvedValue(createMockAccount());
@@ -133,7 +133,7 @@ describe("getGoogleCalendarClient", () => {
     });
   });
 
-  // ── OAuth2 credentials ──────────────────────────────────────────────────────
+  // ── OAuth2 credentials ───
 
   it("should create an OAuth2 client with the correct env credentials", async () => {
     process.env.GOOGLE_CLIENT_ID = "test-client-id";
@@ -160,7 +160,7 @@ describe("getGoogleCalendarClient", () => {
     });
   });
 
-  // ── Token refresh listener ──────────────────────────────────────────────────
+  // ── Token refresh listener ─────────
 
   it("should register a tokens listener on the OAuth2 client", async () => {
     mockPrismaAccount.findFirst.mockResolvedValue(createMockAccount());

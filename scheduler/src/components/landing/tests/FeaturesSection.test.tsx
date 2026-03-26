@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import FeaturesSection from "../FeaturesSection";
 
-// ─── Mock framer-motion ────────────────────────────────────────────────────────
+// ─── Mock framer-motion ─────
 // Replaces animated wrappers with plain divs/spans so tests stay synchronous
 // and don't depend on animation state.
 jest.mock("framer-motion", () => {
@@ -40,7 +40,7 @@ jest.mock("framer-motion", () => {
   return { ...actual, motion: motionProxy };
 });
 
-// ─── Mock lucide-react ─────────────────────────────────────────────────────────
+// ─── Mock lucide-react ──────
 // Renders each icon as a labelled <svg> so we can assert their presence without
 // depending on the actual SVG paths.
 jest.mock("lucide-react", () => ({
@@ -52,7 +52,7 @@ jest.mock("lucide-react", () => ({
   BarChart3:  (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-barchart3"  {...props} />,
 }));
 
-// ─── Expected feature data ─────────────────────────────────────────────────────
+// ─── Expected feature data ──
 
 const FEATURES = [
   {
@@ -87,13 +87,13 @@ const FEATURES = [
   },
 ];
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
+// ─── Helpers ────────
 
 function renderSection() {
   return render(<FeaturesSection />);
 }
 
-// ─── Section structure ─────────────────────────────────────────────────────────
+// ─── Section structure ──────
 
 describe("FeaturesSection – section structure", () => {
   it("renders the section element with id='features'", () => {
@@ -118,7 +118,7 @@ describe("FeaturesSection – section structure", () => {
   });
 });
 
-// ─── Feature cards – presence ─────────────────────────────────────────────────
+// ─── Feature cards – presence ────────
 
 describe("FeaturesSection – feature cards presence", () => {
   it("renders exactly six feature cards", () => {
@@ -139,7 +139,7 @@ describe("FeaturesSection – feature cards presence", () => {
   });
 });
 
-// ─── Feature cards – icons ────────────────────────────────────────────────────
+// ─── Feature cards – icons ─
 
 describe("FeaturesSection – feature icons", () => {
   it.each(FEATURES)("renders the icon for '$title'", ({ testId }) => {
@@ -163,7 +163,7 @@ describe("FeaturesSection – feature icons", () => {
   });
 });
 
-// ─── Feature cards – styling ──────────────────────────────────────────────────
+// ─── Feature cards – styling ─────────
 
 describe("FeaturesSection – card styling", () => {
   it("every card has the rounded-2xl class", () => {
@@ -189,7 +189,7 @@ describe("FeaturesSection – card styling", () => {
   });
 });
 
-// ─── Heading hierarchy ────────────────────────────────────────────────────────
+// ─── Heading hierarchy ─────
 
 describe("FeaturesSection – heading hierarchy", () => {
   it("renders one h2 for the section headline", () => {
@@ -209,7 +209,7 @@ describe("FeaturesSection – heading hierarchy", () => {
   });
 });
 
-// ─── Ambient decorative elements ──────────────────────────────────────────────
+// ─── Ambient decorative elements ─────
 
 describe("FeaturesSection – decorative elements", () => {
   it("renders the ambient gradient line div", () => {

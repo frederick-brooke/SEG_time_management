@@ -50,7 +50,7 @@ function setup(filterOverrides: Partial<typeof defaultFilters> = {}) {
   return { ...utils, setFilters, onClose, applyFilters, resetFilters, getState };
 }
 
-// ─── Rendering ────────────────────────────────────────────────────────────────
+// ─── Rendering ─────
 
 describe("AppealFilter – rendering", () => {
   it("renders the filter panel heading", () => {
@@ -132,7 +132,7 @@ describe("AppealFilter – rendering", () => {
   });
 });
 
-// ─── Callbacks ────────────────────────────────────────────────────────────────
+// ─── Callbacks ─────
 
 describe("AppealFilter – callbacks", () => {
   it("calls onClose when the backdrop is clicked", () => {
@@ -166,7 +166,7 @@ describe("AppealFilter – callbacks", () => {
   });
 });
 
-// ─── setFilters interactions ───────────────────────────────────────────────────
+// ─── setFilters interactions 
 //
 // KEY INSIGHT: the component's onChange handlers close over `e` (the synthetic
 // event), NOT over `e.target.value`. By the time a test calls the stored updater
@@ -267,7 +267,7 @@ describe("AppealFilter – setFilters interactions", () => {
   });
 });
 
-// ─── Preserved filter state ────────────────────────────────────────────────────
+// ─── Preserved filter state ─
 
 describe("AppealFilter – preserved filter state", () => {
   it("sortBy change preserves other filter fields", async () => {

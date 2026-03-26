@@ -2,7 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import { proxy, config } from "./proxy";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks 
 
 jest.mock("next-auth/jwt", () => ({
   getToken: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock("next/server", () => ({
   },
 }));
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers 
 
 /** Builds a minimal mock request with a given pathname. */
 const mockReq = (pathname: string) => ({
@@ -26,7 +26,7 @@ const mockReq = (pathname: string) => ({
 const mockNext     = { type: "next" };
 const mockRedirect = { type: "redirect" };
 
-// ── Setup ─────────────────────────────────────────────────────────────────────
+// ── Setup 
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -34,7 +34,7 @@ beforeEach(() => {
   (NextResponse.redirect as jest.Mock).mockReturnValue(mockRedirect);
 });
 
-// ── Bypass routes — no token required ─────────────────────────────────────────
+// ── Bypass routes — no token required 
 
 describe("bypass routes", () => {
   const bypassPaths = [
@@ -59,7 +59,7 @@ describe("bypass routes", () => {
   );
 });
 
-// ── Deleted account ────────────────────────────────────────────────────────────
+// ── Deleted account ─
 
 describe("deleted account", () => {
   test("redirects to /account-deleted when token.isDeleted is true", async () => {
@@ -75,7 +75,7 @@ describe("deleted account", () => {
   });
 });
 
-// ── No token ──────────────────────────────────────────────────────────────────
+// ── No token ───────
 
 describe("missing token", () => {
   test("calls next() when there is no token", async () => {
@@ -90,7 +90,7 @@ describe("missing token", () => {
   });
 });
 
-// ── Banned account ────────────────────────────────────────────────────────────
+// ── Banned account ─
 
 describe("banned account", () => {
   test("redirects to /banned when token.isBanned is true", async () => {
@@ -106,7 +106,7 @@ describe("banned account", () => {
   });
 });
 
-// ── Admin route guard ─────────────────────────────────────────────────────────
+// ── Admin route guard 
 
 describe("admin route", () => {
   test("redirects to /unauthorised when role is not SUPERUSER", async () => {
@@ -133,7 +133,7 @@ describe("admin route", () => {
   });
 });
 
-// ── Authenticated non-admin route ─────────────────────────────────────────────
+// ── Authenticated non-admin route 
 
 describe("authenticated standard route", () => {
   test("passes through for a valid token on a non-admin route", async () => {
@@ -148,7 +148,7 @@ describe("authenticated standard route", () => {
   });
 });
 
-// ── Config export ─────────────────────────────────────────────────────────────
+// ── Config export ──
 
 describe("config", () => {
   test("exports the correct matcher paths", () => {

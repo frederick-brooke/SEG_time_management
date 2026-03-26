@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import LocationInput from "../LocationInput";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("../SavedLocationChips", () => ({
   __esModule: true,
@@ -33,7 +33,7 @@ jest.mock("../SaveLocationModal", () => ({
   ),
 }));
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 /**
  * Creates a mock saved location.
@@ -88,12 +88,12 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("LocationInput", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // ── Rendering ───────────────────────────────────────────────────────────────
+  // ── Rendering ────
 
   describe("rendering", () => {
     it("should render the label", () => {
@@ -125,7 +125,7 @@ describe("LocationInput", () => {
     });
   });
 
-  // ── Use My Location button ──────────────────────────────────────────────────
+  // ── Use My Location button ─────────
 
   describe("Use My Location button", () => {
     it("should show Use My Location when showCurrentLocation is true and handler provided", () => {
@@ -173,7 +173,7 @@ describe("LocationInput", () => {
     });
   });
 
-  // ── Search input ────────────────────────────────────────────────────────────
+  // ── Search input ─
 
   describe("search input", () => {
     it("should call onSearchChange when the input value changes", () => {
@@ -188,7 +188,7 @@ describe("LocationInput", () => {
     });
   });
 
-  // ── Save star button ────────────────────────────────────────────────────────
+  // ── Save star button ─────
 
   describe("save star button", () => {
     it("should show the star button when a pending location is set", () => {
@@ -224,7 +224,7 @@ describe("LocationInput", () => {
     });
   });
 
-  // ── Suggestions dropdown ────────────────────────────────────────────────────
+  // ── Suggestions dropdown ─
 
   describe("suggestions dropdown", () => {
     it("should show the dropdown when suggestions are provided", () => {
@@ -298,7 +298,7 @@ describe("LocationInput", () => {
     });
   });
 
-  // ── SaveLocationModal ───────────────────────────────────────────────────────
+  // ── SaveLocationModal ────
 
   describe("SaveLocationModal", () => {
     it("should show SaveLocationModal when showSaveModal is true and pending is set", () => {
@@ -370,7 +370,7 @@ describe("LocationInput", () => {
     });
   });
 
-  // ── SavedLocationChips callbacks ────────────────────────────────────────────
+  // ── SavedLocationChips callbacks ───
 
   describe("SavedLocationChips callbacks", () => {
     it("should call onSelectSaved when a saved location chip is clicked", () => {

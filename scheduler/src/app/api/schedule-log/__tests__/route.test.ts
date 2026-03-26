@@ -1,6 +1,6 @@
 import { GET, POST, DELETE } from "../route";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks 
 
 const mockSession = { user: { id: "user-1" } };
 
@@ -38,7 +38,7 @@ jest.mock("@/lib/prisma", () => ({
 import { getServerSession } from "next-auth/next";
 const mockGetServerSession = getServerSession as jest.Mock;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 function makeRequest(body: object) {
   return { json: () => Promise.resolve(body) } as any;
@@ -52,7 +52,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ── GET ───────────────────────────────────────────────────────────────────────
+// ── GET ──
 
 describe("GET /api/schedule-log — auth", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -86,7 +86,7 @@ describe("GET /api/schedule-log — happy path", () => {
   });
 });
 
-// ── POST ──────────────────────────────────────────────────────────────────────
+// ── POST ─
 
 describe("POST /api/schedule-log — auth", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -154,7 +154,7 @@ describe("POST /api/schedule-log — happy path", () => {
   });
 });
 
-// ── DELETE ────────────────────────────────────────────────────────────────────
+// ── DELETE ─────────
 
 describe("DELETE /api/schedule-log — auth", () => {
   it("returns 401 when unauthenticated", async () => {

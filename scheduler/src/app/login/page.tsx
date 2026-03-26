@@ -7,7 +7,7 @@ import Link from "next/link";
 import { AlertCircle, LogIn } from "lucide-react";
 import BannedPage from "@/components/admin/ban-message-page";
 
-// ── DRY UI Sub-Components ──────────────────────────────────────────────────────
+// ── DRY UI Sub-Components ───
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
@@ -27,7 +27,7 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
   );
 }
 
-// ── Client Component (uses useSearchParams) ─────────────────────────────────────
+// ── Client Component (uses useSearchParams) ───────
 function LoginForm() {
   const router = useRouter();
   const { status } = useSession();
@@ -169,7 +169,7 @@ function LoginForm() {
   );
 }
 
-// ── Page Wrapper with Suspense ─────────────────────────────────────────────────
+// ── Page Wrapper with Suspense ────────
 export default function LoginPage() {
   return (
     <Suspense fallback={<div className="p-6 text-center">Loading...</div>}>

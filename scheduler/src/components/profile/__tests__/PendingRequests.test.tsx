@@ -1,155 +1,80 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import PendingRequests from '../PendingRequests';
-import { useFormStatus } from 'react-dom';
-import '@testing-library/jest-dom';
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import PendingRequests from "../PendingRequests";
+import { acceptFriendRequest, declineFriendRequest } from "@/app/actions/profile/friends";
 
-// mocks
-jest.mock('lucide-react', () => ({
-  Check: () => <svg data-testid="check-icon" />,
-  X: () => <svg data-testid="x-icon" />,
-}));
-
-jest.mock('@/app/actions/profile', () => ({
+jest.mock("@/app/actions/profile/friends", () => ({
   acceptFriendRequest: jest.fn(),
-  rejectFriendRequest: jest.fn(),
+  declineFriendRequest: jest.fn(),
 }));
 
-jest.mock('react-dom', () => ({
-  ...jest.requireActual('react-dom'),
-  useFormStatus: jest.fn(),
+jest.mock("@/lib/avatar", () => ({
+  resolveAvatarSrc: jest.fn((src) => `/resolved/${src}`),
 }));
 
-jest.mock("@/app/actions/profile/utils", () => ({
-  __esModule: true,
-}))
-
-const sampleRequests = [
-  {
-    id: 'req1',
-    sender: { id: 's1', username: 'johndoe', fname: 'John', lname: 'Doe', pfp: null },
-  },
-];
-
-describe('PendingRequests Component', () => {
+describe("PendingRequests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useFormStatus as jest.Mock).mockReturnValue({ pending: false });
   });
 
-  /**
-   * Confirms the component renders nothing when the requests array is empty.
-   */
-  it('renders nothing when requests array is empty', () => {
+  it("returns null if requests array is empty", () => {
     const { container } = render(<PendingRequests requests={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  /**
-   * Confirms the component handles undefined gracefully without crashing.
-   */
-  it('renders nothing when requests are undefined', () => {
+  it("returns null if requests array is undefined", () => {
     const { container } = render(<PendingRequests requests={undefined as any} />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  /**
-   * Confirms the section heading is displayed when there are pending requests.
-   */
-  it('renders the pending requests heading', () => {
-    render(<PendingRequests requests={sampleRequests} />);
-    expect(screen.getByText('Pending Friend Requests')).toBeInTheDocument();
-  });
-
-  /**
-   * Confirms the count badge shows the correct number of pending requests.
-   */
-  it('renders the count badge with the correct number', () => {
-    render(<PendingRequests requests={sampleRequests} />);
-    expect(screen.getByText('1')).toBeInTheDocument();
-  });
-
-  /**
-   * Confirms the sender's full name and username are rendered for each request.
-   */
-  it('renders sender name and username', () => {
-    render(<PendingRequests requests={sampleRequests} />);
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
-  });
-
-  /**
-   * Confirms the Accept button is present and labelled correctly.
-   */
-  it('renders the Accept button', () => {
-    render(<PendingRequests requests={sampleRequests} />);
-    expect(screen.getByText('Accept')).toBeInTheDocument();
-  });
-
-  /**
-   * Confirms the reject button renders as an X icon and is enabled by default.
-   */
-  it('renders the reject X icon button in an enabled state', () => {
-    render(<PendingRequests requests={sampleRequests} />);
-    const rejectIcon = screen.getByTestId('x-icon');
-    expect(rejectIcon).toBeInTheDocument();
-    expect(rejectIcon.closest('button')).not.toBeDisabled();
-  });
-
-  /**
-   * Confirms all senders render and the badge count updates when multiple requests exist.
-   */
-  it('renders multiple requests with correct count badge', () => {
-    const multipleRequests = [
-      { id: 'req1', sender: { id: 's1', username: 'alice', fname: 'Alice', lname: 'A', pfp: null } },
-      { id: 'req2', sender: { id: 's2', username: 'bob', fname: 'Bob', lname: 'B', pfp: null } },
+  it("renders with full sender details and accepts request", async () => {
+    const requests = [
+      {
+        id: "req1",
+        sender: {
+          id: "sender1",
+          username: "testuser",
+          fname: "Test",
+          lname: "User",
+          pfp: "pic.jpg",
+        },
+      },
     ];
-    render(<PendingRequests requests={multipleRequests} />);
-    expect(screen.getByText('Alice A')).toBeInTheDocument();
-    expect(screen.getByText('Bob B')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+
+    render(<PendingRequests requests={requests} />);
+
+    expect(screen.getByText("Test User")).toBeInTheDocument();
+    expect(screen.getByText("@testuser")).toBeInTheDocument();
+    expect(screen.getByAltText("testuser")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Accept"));
+
+    await waitFor(() => {
+      expect(acceptFriendRequest).toHaveBeenCalledWith("sender1");
+    });
   });
 
-  /**
-   * Partitions: Ensures the accept and reject buttons correctly enter a disabled, 
-   * visually distinct loading state while the server action is pending.
-   */
-  it('disables accept and reject buttons when pending', () => {
-    (useFormStatus as jest.Mock).mockReturnValue({ pending: true });
-    render(<PendingRequests requests={sampleRequests} />);
-    
-    const acceptBtn = screen.getByRole('button', { name: /Accept/i });
-    const rejectBtn = screen.getByTestId('x-icon').closest('button');
-    
-    expect(acceptBtn).toBeTruthy();
-    expect(rejectBtn).toBeTruthy();
-  });
+  it("renders without pfp and without fname and rejects request", async () => {
+    const requests = [
+      {
+        id: "req2",
+        sender: {
+          id: "sender2",
+          username: "nouser",
+          pfp: null,
+        },
+      },
+    ];
 
-  /**
-   * Ensures the sender name fallbacks (username only) are covered.
-   */
-  it('uses username fallback when sender fname is missing', () => {
-    const fallbackRequest = [{
-      id: 'req2',
-      sender: { id: 's2', username: 'nofname', pfp: null }
-    }];
-    render(<PendingRequests requests={fallbackRequest} />);
-    
-    // Looks for the fallback username rendering in the bold text area
-    expect(screen.getAllByText('nofname').length).toBeGreaterThan(0);
-  });
+    render(<PendingRequests requests={requests} />);
 
-  /**
-   * Simulates submitting the Accept and Reject forms to cover 
-   * the inline action .bind() branches.
-   */
-  it('submits the accept and reject forms to trigger action bindings', () => {
-    render(<PendingRequests requests={sampleRequests} />);
+    expect(screen.getByText("nouser")).toBeInTheDocument();
+    expect(screen.getByText("n")).toBeInTheDocument();
 
-    const acceptBtn = screen.getByText('Accept');
-    const rejectIcon = screen.getByTestId('x-icon').closest('button');
+    const buttons = screen.getAllByRole("button");
+    fireEvent.click(buttons[1]);
 
-    // Fire form submissions to cover lines 72-81
-    fireEvent.submit(acceptBtn);
-    fireEvent.submit(rejectIcon);
+    await waitFor(() => {
+      expect(declineFriendRequest).toHaveBeenCalledWith("sender2");
+    });
   });
 });

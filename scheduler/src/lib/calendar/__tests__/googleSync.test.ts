@@ -16,7 +16,7 @@ import {
   import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
   import { buildGoogleRecurrenceRule } from "@/lib/calendar/eventHelpers";
   
-  // ── Mocks ────────────────────────────────────────────────────────────────────
+  // ── Mocks ─────────
   
   jest.mock("@/lib/prisma", () => ({
     prisma: {
@@ -36,7 +36,7 @@ import {
     buildGoogleRecurrenceRule: jest.fn().mockReturnValue(undefined),
   }));
   
-  // ── Typed mock helpers ────────────────────────────────────────────────────────
+  // ── Typed mock helpers ─────
   
   const mockPrismaEvent = prisma.event as unknown as {
     findFirst: jest.Mock;
@@ -46,7 +46,7 @@ import {
   const mockGetGoogleCalendarClient = getGoogleCalendarClient as jest.Mock;
   const mockBuildGoogleRecurrenceRule = buildGoogleRecurrenceRule as jest.Mock;
   
-  // ── Factory helpers ───────────────────────────────────────────────────────────
+  // ── Factory helpers 
   
   /**
    * Creates a mock Google Calendar event (as returned by the API).
@@ -90,7 +90,7 @@ import {
     };
   }
   
-  // ── parseDts ──────────────────────────────────────────────────────────────────
+  // ── parseDts ───────
   
   describe("parseDts", () => {
     it("should parse dateTime events into Date objects", () => {
@@ -131,7 +131,7 @@ import {
     });
   });
   
-  // ── upsertGoogleEvent ─────────────────────────────────────────────────────────
+  // ── upsertGoogleEvent ──────
   
   describe("upsertGoogleEvent", () => {
     beforeEach(() => jest.clearAllMocks());
@@ -244,7 +244,7 @@ import {
     });
   });
   
-  // ── syncGoogleCalendar ────────────────────────────────────────────────────────
+  // ── syncGoogleCalendar ─────
   
   describe("syncGoogleCalendar", () => {
     beforeEach(() => jest.clearAllMocks());
@@ -311,7 +311,7 @@ import {
     });
   });
   
-  // ── insertGoogleEvent ─────────────────────────────────────────────────────────
+  // ── insertGoogleEvent ──────
   
   describe("insertGoogleEvent", () => {
     beforeEach(() => jest.clearAllMocks());
@@ -424,7 +424,7 @@ import {
     });
   });
   
-  // ── createLocalEvent ──────────────────────────────────────────────────────────
+  // ── createLocalEvent ───────
   
   describe("createLocalEvent", () => {
     beforeEach(() => jest.clearAllMocks());
@@ -537,7 +537,7 @@ import {
     });
   });
   
-  // ── fetchAllGoogleEvents ──────────────────────────────────────────────────────
+  // ── fetchAllGoogleEvents ───
   
   describe("fetchAllGoogleEvents", () => {
     beforeEach(() => jest.clearAllMocks());
@@ -588,7 +588,7 @@ import {
     });
   });
   
-  // ── deleteSingleOccurrence ────────────────────────────────────────────────────
+  // ── deleteSingleOccurrence ─
   
   describe("deleteSingleOccurrence", () => {
     beforeEach(() => jest.clearAllMocks());
@@ -661,7 +661,7 @@ import {
     });
   });
   
-  // ── deleteGoogleEvent ─────────────────────────────────────────────────────────
+  // ── deleteGoogleEvent ──────
   
   describe("deleteGoogleEvent", () => {
     beforeEach(() => jest.clearAllMocks());

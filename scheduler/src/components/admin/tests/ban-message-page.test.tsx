@@ -265,7 +265,7 @@ describe("BannedPage – view toggling", () => {
   });
 });
 
-// ─── BanInfo ──────────────────────────────────────────────────────────────────
+// ─── BanInfo ───────
 
 describe("BanInfo", () => {
   it("displays the ban reason", async () => {
@@ -323,7 +323,7 @@ describe("BanInfo", () => {
   });
 });
 
-// ─── AppealForm ───────────────────────────────────────────────────────────────
+// ─── AppealForm ────
 
 describe("AppealForm", () => {
   it("renders the 'Submit Appeal' heading", async () => {

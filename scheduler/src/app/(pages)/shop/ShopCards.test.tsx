@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { AvatarCard } from "../ShopCards";
-import type { ShopItem } from "../shop.types";
+import { AvatarCard } from "./ShopCards";
+import type { ShopItem } from "./shop.types";
 
 // Mock the image catalogue to prevent actual image requests
 jest.mock("@/lib/shop-catalogue", () => ({

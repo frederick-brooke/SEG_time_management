@@ -1,7 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useAdminReports } from "../useAdminReports";
 
-// ── Fix 1: spyOn instead of assignment ──────────────────────────────
+// ── Fix 1: spyOn instead of assignment 
 const mockedFetch = jest
   .spyOn(global, "fetch")
   .mockImplementation(jest.fn()) as jest.MockedFunction<typeof fetch>;
@@ -17,7 +17,7 @@ describe("useAdminReports", () => {
     jest.clearAllMocks();
   });
 
-  // ── Initial state ─────────────────────────────────────────────────
+  // ── Initial state ────────
   it("returns correct initial state", () => {
     mockedFetch.mockReturnValue(new Promise(() => {})); // freeze fetch
 
@@ -29,7 +29,7 @@ describe("useAdminReports", () => {
     expect(result.current.reportLoading).toBe(true);
   });
 
-  // ── Successful fetch ──────────────────────────────────────────────
+  // ── Successful fetch ─────
   it("fetches reports successfully", async () => {
     mockedFetch.mockResolvedValueOnce({
       ok:   true,
@@ -49,7 +49,7 @@ describe("useAdminReports", () => {
     expect(result.current.totalReports).toBe(42);
   });
 
-  // ── Non-ok response ───────────────────────────────────────────────
+  // ── Non-ok response ──────
   it("handles non-ok response", async () => {
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 
@@ -65,7 +65,7 @@ describe("useAdminReports", () => {
     logSpy.mockRestore();
   });
 
-  // ── Network error ─────────────────────────────────────────────────
+  // ── Network error ────────
   it("handles fetch rejection", async () => {
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
@@ -82,7 +82,7 @@ describe("useAdminReports", () => {
     errorSpy.mockRestore();
   });
 
-  // ── Filters change triggers re-fetch ──────────────────────────────
+  // ── Filters change triggers re-fetch 
   it("refetches when filters change", async () => {
     mockedFetch.mockResolvedValue({
       ok:   true,
@@ -106,7 +106,7 @@ describe("useAdminReports", () => {
     await waitFor(() => expect(mockedFetch).toHaveBeenCalledTimes(2));
   });
 
-  // ── Manual refetch ────────────────────────────────────────────────
+  // ── Manual refetch ───────
   it("manual fetchReports refetches and updates state", async () => {
     mockedFetch.mockResolvedValueOnce({
       ok:   true,

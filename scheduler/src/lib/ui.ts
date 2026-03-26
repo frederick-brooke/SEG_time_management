@@ -4,7 +4,7 @@
 // Import from here — never re-declare inline.
 // ---------------------------------------------------------------------------
 
-// ── Priority ─────────────────────────────────────────────────────────────────
+// ── Priority ──────
 
 export const PRIORITY_BADGE: Record<string, string> = {
   High: "bg-red-100 text-red-600 border-red-200",
@@ -24,7 +24,7 @@ export const PRIORITY_SCORE: Record<string, number> = {
   Low: 1,
 };
 
-// ── Category colours ──────────────────────────────────────────────────────────
+// ── Category colours ───────
 
 export const CATEGORY_COLORS: Record<string, string> = {
   Lecture: "#6366f1",
@@ -41,7 +41,7 @@ export const TASK_COLORS: Record<string, string> = {
   Low: "#16a34a",
 };
 
-// ── Due-date helpers ──────────────────────────────────────────────────────────
+// ── Due-date helpers ───────
 
 /** Returns days until due date (negative = overdue). */
 export function daysUntil(dueDate: string | Date): number {
@@ -59,7 +59,7 @@ export function isTaskOverdue(task: {
   return daysUntil(task.dueDate) < 0;
 }
 
-// ── Duration formatting ────────────────────────────────────────────────────────
+// ── Duration formatting ─────
 
 /** Formats a duration in minutes to a human-readable string, e.g. "1h 30m". */
 export function formatDuration(mins: number): string {
@@ -70,7 +70,7 @@ export function formatDuration(mins: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
-// ── Task form data helpers ────────────────────────────────────────────────────
+// ── Task form data helpers ─
 
 /** Converts a raw task DB record into TaskFormData shape. */
 export function taskToFormData(task: any) {
@@ -93,7 +93,7 @@ export function taskToFormData(task: any) {
   };
 }
 
-// ── Subtask normalisation ─────────────────────────────────────────────────────
+// ── Subtask normalisation ──
 
 /** Always returns subtasks as a string array regardless of storage format. */
 export function normaliseSubtasks(subtasks: any): string[] {
@@ -105,7 +105,7 @@ export function normaliseSubtasks(subtasks: any): string[] {
     .filter(Boolean);
 }
 
-// ── Relative offset label ─────────────────────────────────────────────────────
+// ── Relative offset label ──
 
 /** Returns a human-readable label for a relative offset, e.g. "2 days before event". */
 export function relativeOffsetLabel(

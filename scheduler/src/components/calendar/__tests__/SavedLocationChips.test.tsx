@@ -8,7 +8,7 @@ import "@testing-library/jest-dom";
 import SavedLocationChips from "../SavedLocationChips";
 import { SavedLocation } from "hooks/useSavedLocations";
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 function createLocation(overrides: Partial<SavedLocation> = {}): SavedLocation {
   return {
@@ -22,12 +22,12 @@ function createLocation(overrides: Partial<SavedLocation> = {}): SavedLocation {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("SavedLocationChips", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // ── Empty state ─────────────────────────────────────────────────────────────
+  // ── Empty state ──
 
   it("should render nothing when locations is empty", () => {
     const { container } = render(
@@ -36,7 +36,7 @@ describe("SavedLocationChips", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  // ── Rendering ───────────────────────────────────────────────────────────────
+  // ── Rendering ────
 
   it("should render one chip per location", () => {
     const locations = [
@@ -59,7 +59,7 @@ describe("SavedLocationChips", () => {
     expect(screen.getByTitle("123 Main St, London")).toBeInTheDocument();
   });
 
-  // ── Type icons ──────────────────────────────────────────────────────────────
+  // ── Type icons ───
 
   it("should display the 🏠 icon for HOME type", () => {
     render(
@@ -91,7 +91,7 @@ describe("SavedLocationChips", () => {
     expect(screen.getByText(/⭐/)).toBeInTheDocument();
   });
 
-  // ── Callbacks ───────────────────────────────────────────────────────────────
+  // ── Callbacks ────
 
   it("should call onSelect with the correct location when a chip is clicked", () => {
     const onSelect = jest.fn();
@@ -127,7 +127,7 @@ describe("SavedLocationChips", () => {
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
-  // ── Multiple locations ──────────────────────────────────────────────────────
+  // ── Multiple locations ───
 
   it("should render all three location types correctly", () => {
     const locations = [

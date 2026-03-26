@@ -1,4 +1,4 @@
-// ─── Date formatting ──────────────────────────────────────────────────────────
+// ─── Date formatting ───────
 
 /**
  * Formats a date string as a short readable event timestamp
@@ -34,7 +34,7 @@ export function formatLongDate(dateString: Date | string): string {
   });
 }
 
-// ─── Duration formatting ──────────────────────────────────────────────────────
+// ─── Duration formatting ───
 
 /**
  * Formats a duration in minutes to a human-readable string

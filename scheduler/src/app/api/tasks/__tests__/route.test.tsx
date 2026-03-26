@@ -253,7 +253,7 @@ describe("POST /api/tasks — bulk creation", () => {
     expect(json.tasks[0].id).toBe("t1");
   });
 
-  // ── relativeMode: "custom" with customDate ───────────────────────────────
+  // ── relativeMode: "custom" with customDate ─
 
   test("bulk: sets scheduledDate and scheduledTime when relativeMode=custom + scheduleTime=true", async () => {
     mockCreate.mockResolvedValue({ id: "t1" });
@@ -331,7 +331,7 @@ describe("POST /api/tasks — bulk creation", () => {
     expect(d.getMonth()).toBe(8); // September (0-indexed)
   });
 
-  // ── relativeOffsetDays ───────────────────────────────────────────────────
+  // ── relativeOffsetDays 
 
   test("bulk: computes date from non-recurring event + relativeOffsetDays", async () => {
     const eventStart = new Date("2025-10-10");
@@ -409,7 +409,7 @@ describe("POST /api/tasks — bulk creation", () => {
     expect(data.scheduledDate).toBeNull();
   });
 
-  // ── recurring tasks ──────────────────────────────────────────────────────
+  // ── recurring tasks ───
 
   test("bulk: sets scheduledDate from recurrence.startDate for recurring task", async () => {
     mockCreate.mockResolvedValue({ id: "t1" });
