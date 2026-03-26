@@ -11,14 +11,36 @@ import { useUsers } from "@/hooks/useUsers";
 import GlassCard from "@/components/ui/glassCard";
 import LunarDrawer from "../layout/lunar-drawer";
 
+/**
+ * SearchPanel
+ *
+ * Main search interface rendered inside a drawer.
+ * Handles:
+ * - Managing user search filters (draft vs applied)
+ * - Debounced search input updates
+ * - Fetching users via useUsers hook
+ * - Opening/closing filter panel
+ * - Passing data to search result components
+ *
+ * @param {Object} props
+ * @param {boolean} props.open - Controls visibility of the search panel
+ * @param {Function} props.onClose - Closes the search panel
+ *
+ * @returns {JSX.Element} Search panel UI
+ */
 export default function SearchPanel({ open, onClose }) {
     const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:6 };
 
-    const [currentTab,setCurrentTab] = useState("users");
+    const [currentTab,setCurrentTab] = useState("users");	// Currently selected tab 
 
     const [appliedUserFilters,setAppliedUserFilters] = useState(defaultUserFilters);
     const [draftUserFilters,setDraftUserFilters] = useState(defaultUserFilters);
 
+	/**
+     * resetUserFilters
+     *
+     * Resets both draft and applied filters to defaults
+     */
     function resetUserFilters(){
         setDraftUserFilters(defaultUserFilters);
         setAppliedUserFilters(defaultUserFilters);

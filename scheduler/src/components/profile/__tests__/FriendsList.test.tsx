@@ -3,13 +3,11 @@ import FriendsList from '../FriendsList';
 import '@testing-library/jest-dom';
 
 // mocks
-// Prevents Next.js router context errors by rendering a plain anchor tag
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }));
 
-// Replaces icons with testable SVG elements
 jest.mock('lucide-react', () => ({
   Users: () => <svg data-testid="users-icon" />,
   X: () => <svg data-testid="x-icon" />,
@@ -28,10 +26,14 @@ const makeFriend = (overrides = {}) => ({
   ...overrides,
 });
 
-describe('FriendsList', () => {
-  beforeEach(() => jest.clearAllMocks());
+describe('FriendsList Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  // Confirms friend full name and username are rendered in the list
+  /**
+   * Confirms friend full name and username are rendered.
+   */
   it('renders friend names and usernames', () => {
     render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
@@ -40,7 +42,9 @@ describe('FriendsList', () => {
     expect(screen.getByText('@alice')).toBeInTheDocument();
   });
 
-  // Confirms the heading shows the correct count of friends
+  /**
+   * Confirms the heading shows the correct count of friends.
+   */
   it('renders correct count in heading', () => {
     render(
       <FriendsList
@@ -51,39 +55,39 @@ describe('FriendsList', () => {
     expect(screen.getByText(/My Friends \(2\)/)).toBeInTheDocument();
   });
 
-  // Confirms the heading says "My Friends" when viewing your own profile
-  it('shows "My Friends" heading when own profile', () => {
-    render(
+  /**
+   * Confirms proper heading text based on profile ownership.
+   */
+  it('shows "My Friends" heading when own profile, and "Friends" for others', () => {
+    const { rerender } = render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     expect(screen.getByText(/My Friends/)).toBeInTheDocument();
-  });
 
-  // Confirms the heading says "Friends" when viewing someone else's profile
-  it('shows "Friends" heading when viewing another profile', () => {
-    render(
+    rerender(
       <FriendsList friends={[makeFriend()]} isOwnProfile={false} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     expect(screen.getByText(/^Friends \(1\)/)).toBeInTheDocument();
   });
 
-  // Confirms the remove button is visible when viewing your own friend list
-  it('shows remove button on own profile', () => {
-    render(
+  /**
+   * Verifies the "Remove" button visibility based on profile ownership.
+   */
+  it('shows remove button on own profile but hides it on other profiles', () => {
+    const { rerender } = render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     expect(screen.getByText('Remove')).toBeInTheDocument();
-  });
 
-  // Confirms the remove button is hidden when viewing someone else's profile
-  it('does not show remove button on other profiles', () => {
-    render(
+    rerender(
       <FriendsList friends={[makeFriend()]} isOwnProfile={false} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     expect(screen.queryByText('Remove')).not.toBeInTheDocument();
   });
 
-  // Confirms the onRemoveFriend callback fires with the correct friend ID when Remove is clicked
+  /**
+   * Confirms the onRemoveFriend callback fires correctly.
+   */
   it('calls onRemoveFriend when Remove is clicked', () => {
     render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
@@ -92,40 +96,47 @@ describe('FriendsList', () => {
     expect(mockOnRemoveFriend).toHaveBeenCalledWith('f1', expect.any(Object));
   });
 
-  // Confirms the remove button is disabled while a transition is in progress to prevent double clicks
+  /**
+   * Confirms the remove button is disabled during a pending transition.
+   */
   it('disables remove button when isPending is true', () => {
     render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={true} />
     );
-    expect(screen.getByText('Remove').closest('button')).toBeDisabled();
+    const removeBtn = screen.getByText('Remove').closest('button');
+    expect(removeBtn).toBeDisabled();
+    expect(removeBtn).toHaveClass('opacity-50');
   });
 
-  // Confirms the X button at the top of the list triggers the onClose callback
+  /**
+   * Confirms the X button triggers the onClose callback.
+   */
   it('calls onClose when X button is clicked', () => {
     render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     fireEvent.click(screen.getByTestId('x-icon').closest('button')!);
-    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  // Confirms the own-profile empty state message renders when the user has no friends
-  it('shows empty state on own profile with no friends', () => {
-    render(
+  /**
+   * Confirms empty state messages render correctly based on profile ownership.
+   */
+  it('shows appropriate empty states when the friend list is empty', () => {
+    const { rerender } = render(
       <FriendsList friends={[]} isOwnProfile={true} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     expect(screen.getByText('No friends yet. Start adding friends!')).toBeInTheDocument();
-  });
 
-  // Confirms the other-profile empty state message renders when the viewed user has no friends
-  it('shows empty state on other profile with no friends', () => {
-    render(
+    rerender(
       <FriendsList friends={[]} isOwnProfile={false} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
     );
     expect(screen.getByText('No friends to show.')).toBeInTheDocument();
   });
 
-  // Confirms each friend entry links to their profile page
+  /**
+   * Confirms each friend entry links to their correct profile page.
+   */
   it('renders the friend profile link with correct href', () => {
     render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={false} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />
@@ -133,7 +144,9 @@ describe('FriendsList', () => {
     expect(screen.getByRole('link')).toHaveAttribute('href', '/profile/alice');
   });
 
-  // Confirms the first letter of the first name renders as an avatar fallback when no pfp is set
+  /**
+   * Confirms the avatar fallback renders when no pfp is provided.
+   */
   it('renders initials when no pfp is provided', () => {
     render(
       <FriendsList friends={[makeFriend()]} isOwnProfile={false} onClose={mockOnClose} onRemoveFriend={mockOnRemoveFriend} isPending={false} />

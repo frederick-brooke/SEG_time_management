@@ -95,7 +95,7 @@ const defaultHookReturn: any = {
 
 let mockHookReturn: any = { ...defaultHookReturn };
 
-jest.mock("@/hooks/useEventForm", () => ({
+jest.mock("@/hooks/Events/useEventForm", () => ({
   useEventForm: jest.fn(() => mockHookReturn),
 }));
 

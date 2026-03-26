@@ -1,78 +1,121 @@
+import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
+import { Delete } from "lucide-react";
+
+/**
+ * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
+ * src/components/tasks/__tests__ -> src/components/ui
+ */
+jest.mock("../../ui/alert-dialog", () => {
+  const React = require("react");
+
+  function AlertDialog({ open, onOpenChange, children }) {
+    if (!open) return null;
+    return (
+      <div data-testid="alert-dialog-root">
+        {/* Expose onOpenChange to test the !open && onCancel() branch */}
+        <button
+          type="button"
+          data-testid="simulate-open-change-true"
+          onClick={() => onOpenChange(true)}
+        >
+          simulate-open
+        </button>
+        <button
+          type="button"
+          data-testid="simulate-open-change-false"
+          onClick={() => onOpenChange(false)}
+        >
+          simulate-close
+        </button>
+        {children}
+      </div>
+    );
+  }
+
+  function AlertDialogContent({ children }) {
+    return <div data-testid="alert-dialog-content">{children}</div>;
+  }
+  function AlertDialogHeader({ children }) {
+    return <div data-testid="alert-dialog-header">{children}</div>;
+  }
+  function AlertDialogTitle({ children }) {
+    return <h2>{children}</h2>;
+  }
+  function AlertDialogDescription({ children }) {
+    return <p>{children}</p>;
+  }
+  function AlertDialogFooter({ children }) {
+    return <div data-testid="alert-dialog-footer">{children}</div>;
+  }
+  function AlertDialogCancel({ children, onClick }) {
+    return (
+      <button type="button" onClick={onClick}>
+        {children}
+      </button>
+    );
+  }
+  function AlertDialogAction({ children, onClick }) {
+    return (
+      <button type="button" onClick={onClick}>
+        {children}
+      </button>
+    );
+  }
+
+  return {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+  };
+});
 
 describe("DeleteTaskDialog", () => {
-  const onConfirm = jest.fn();
-  const onCancel = jest.fn();
-
-  const renderDialog = (isOpen = true) =>
+  it("renders when open and shows text", () => {
     render(
-      <DeleteTaskDialog
-        isOpen={isOpen}
-        onConfirm={onConfirm}
-        onCancel={onCancel}
-      />
+      <DeleteTaskDialog isOpen={true} onConfirm={jest.fn()} onCancel={jest.fn()} />,
     );
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  // ── Rendering ─────────────────────────────────────
-  it("does not render when isOpen is false", () => {
-    renderDialog(false);
-    expect(screen.queryByText("Delete Task?")).toBeNull();
-  });
-
-  it("renders dialog content when open", () => {
-    renderDialog();
 
     expect(screen.getByText("Delete Task?")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "This will permanently delete this task. This cannot be undone."
-      )
+      screen.getByText(/This will permanently delete this task/i),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
-  // ── Buttons ───────────────────────────────────────
-  it("calls onConfirm when clicking Delete button", () => {
-    renderDialog();
+  it("calls onCancel when Cancel button is clicked", () => {
+    const onCancel = jest.fn();
 
-    fireEvent.click(screen.getByText("Delete"));
+    render(
+      <DeleteTaskDialog isOpen={true} onConfirm={jest.fn()} onCancel={onCancel} />,
+    );
 
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls onConfirm when Delete button is clicked", () => {
+    const onConfirm = jest.fn();
+
+    render(
+      <DeleteTaskDialog isOpen={true} onConfirm={onConfirm} onCancel={jest.fn()} />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  it("calls onCancel when clicking Cancel button", () => {
-    renderDialog();
-
-    fireEvent.click(screen.getByText("Cancel"));
-
-    expect(onCancel).toHaveBeenCalledTimes(1);
-  });
-
-  // ── Overlay behavior ──────────────────────────────
-  it("calls onCancel when clicking overlay", () => {
-    renderDialog();
-
-    const overlay = screen
-      .getByText("Delete Task?")
-      .closest("div")!  // inner card
-      .parentElement!;  // overlay
-
-    fireEvent.click(overlay);
-
-    expect(onCancel).toHaveBeenCalledTimes(1);
-  });
-
-  it("does NOT call onCancel when clicking inside modal", () => {
-    renderDialog();
-
-    const modal = screen.getByText("Delete Task?").closest("div")!;
-
-    fireEvent.click(modal);
-
-    expect(onCancel).not.toHaveBeenCalled();
-  });
+  it("renders null when isOpen is false", () => {
+    const { container } = render(
+      <DeleteTaskDialog isOpen={false} onConfirm={jest.fn()} onCancel={jest.fn()}/>
+    );
+    expect(container.firstChild).toBeNull();
+  })
 });

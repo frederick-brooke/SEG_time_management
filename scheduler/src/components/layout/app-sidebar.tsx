@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { checkUpcomingDeadlines } from "@/app/actions/examActions";
+import { checkUpcomingDeadlines } from "@/app/actions/examNotifications";
 import { getNotifications } from "@/app/actions/notifications";
 import { ToastContainer } from "../ui/ToastContainer";
 import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";

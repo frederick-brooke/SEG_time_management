@@ -1,26 +1,41 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
 import { ToDoList } from "../../to-do-list";
 
 const mockUseTasks = jest.fn();
-jest.mock("@/src/hooks/useTasks", () => ({
+jest.mock("@/hooks/useTasks", () => ({
   useTasks: (...args) => mockUseTasks(...args),
 }));
 
-/**
- * NOTE:
- * Your real UI components (Card/Button/Progress) are being rendered by Jest (as seen in your DOM output),
- * so we DO NOT rely on a Progress mock + data-testid="progress".
- * We assert against role="progressbar" + the visible percentage text instead.
- */
+jest.mock("../../../hooks/useTaskFilters", () => ({
+  useTaskFilters: (tasks, filterExamId, searchQuery) => {
+    const filtered = tasks.filter(t =>
+      (!searchQuery || (t.title || "").toLowerCase().includes(searchQuery.toLowerCase()))
+    );
 
-// these are imported by src/components/to-do-list.jsx as "./tasks/..."
+    return {
+      examFilteredTasks: filtered,
+      todoTasks: filtered.filter(t => 
+        (t.status === "todo" || !t.status) &&
+        !(t.dueDate && new Date(t.dueDate) < new Date())
+      ),
+      inProgressTasks: filtered.filter(t => t.status === "in-progress"),
+      completedTasks: filtered.filter(t => t.status === "completed"),
+      overdueTasks: filtered.filter(t => t.status === "todo" && t.dueDate && new Date(t.dueDate) < new Date()),
+      progressPercentage: tasks.length > 0
+        ? Math.round((tasks.filter(t => t.status === "completed").length / tasks.length) * 100)
+        : 0,
+    };
+  },
+}));
+
 jest.mock("../../tasks/TaskColumn", () => ({
   TaskColumn: ({
     title,
     tasks,
     status,
-    getPriorityStyle,
+    getPriorityStyle = (p: string) => `mock-style-${p}`,
     onToggle,
     onView,
     onEdit,
@@ -56,13 +71,10 @@ jest.mock("../../tasks/TaskColumn", () => ({
   ),
 }));
 
-jest.mock("../../tasks/TaskFormDialog", () => ({
-  TaskFormDialog: ({ isOpen, onOpenChange, onSubmit }) => (
+jest.mock("../TaskForm", () => ({
+  TaskForm: ({ isOpen, onOpenChange, onSubmit }) => (
     <div data-testid="task-form-dialog">
       <div data-testid="form-open">{String(isOpen)}</div>
-      <button type="button" onClick={() => onOpenChange(true)}>
-        open-form
-      </button>
       <button type="button" onClick={() => onOpenChange(false)}>
         close-form
       </button>
@@ -168,7 +180,6 @@ describe("ToDoList", () => {
       ),
     ).toBeInTheDocument();
 
-    // Progress logic validated via visible percentage text + existence of progressbar
     expect(screen.getByText("0%")).toBeInTheDocument();
     const progress = screen.getByRole("progressbar");
     expect(progress).toHaveAttribute("aria-valuemin", "0");
@@ -240,28 +251,24 @@ describe("ToDoList", () => {
     expect(screen.getByTestId("count-in-progress")).toHaveTextContent("1");
     expect(screen.getByTestId("count-completed")).toHaveTextContent("1");
 
-    // Progress logic validated via visible percentage text + existence of progressbar
     expect(screen.getByText("25%")).toBeInTheDocument();
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
 
-    // Cover getPriorityStyle switch via rendered outputs
     const priorityOutputs = screen
       .getAllByTestId(/priority-/)
       .map((n) => n.textContent)
       .join(" ");
 
-    expect(priorityOutputs).toMatch(/bg-red-100/);
-    expect(priorityOutputs).toMatch(/bg-amber-100/);
-    expect(priorityOutputs).toMatch(/bg-emerald-100/);
-    expect(priorityOutputs).toMatch(/bg-slate-100/);
+    expect(priorityOutputs).toMatch(/mock-style-High/);
+    expect(priorityOutputs).toMatch(/mock-style-Medium/);
+    expect(priorityOutputs).toMatch(/mock-style-Low/);
+    expect(priorityOutputs).toMatch(/mock-style-WeirdPriority/);
 
     fireEvent.click(screen.getByRole("button", { name: "Sort" }));
     expect(sortTasks).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole("button", { name: "open-form" }));
-    expect(setIsDialogOpen).toHaveBeenCalledWith(true);
-
-    fireEvent.click(screen.getByRole("button", { name: "close-form" }));
+    expect(screen.getByTestId("form-open")).toHaveTextContent("true");
+    fireEvent.click(screen.getByText("close-form"));
     expect(setIsDialogOpen).toHaveBeenCalledWith(false);
     expect(resetForm).toHaveBeenCalledTimes(1);
   });
@@ -374,7 +381,6 @@ describe("ToDoList", () => {
       target: { value: "hel" },
     });
 
-    // Only "Hello" should remain after search filter
     expect(screen.getByTestId("count-todo")).toHaveTextContent("1");
   });
 
@@ -463,7 +469,6 @@ describe("ToDoList", () => {
 
     render(<ToDoList userId="u1" />);
 
-    // Should fall back to "todo" bucket
     expect(screen.getByTestId("count-todo")).toHaveTextContent("1");
     expect(screen.getByTestId("count-in-progress")).toHaveTextContent("0");
     expect(screen.getByTestId("count-completed")).toHaveTextContent("0");

@@ -4,11 +4,29 @@ import { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { LunarCard } from "@/components/ui/lunar-card";
 
+/**
+ * ReportModal
+ *
+ * Modal for submitting a report against a user.
+ * Handles:
+ * - Capturing report reason and additional description
+ * - Submitting report data to backend API
+ * - Loading state during submission
+ * - Success/error feedback and modal closing
+ *
+ * @param {Object} props
+ * @param {string|number} props.reportedUserId - ID of the user being reported
+ * @param {string} props.reportedUsername - Username of the reported user (for display)
+ * @param {Function} props.onClose - Closes the modal
+ *
+ * @returns {JSX.Element} Report modal UI
+ */
 export default function ReportModal({ reportedUserId, reportedUsername, onClose }) {
   const [reason, setReason]           = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading]         = useState(false);
 
+  //sends report data to backend api that loads state and returns result feedback
   const handleSubmit = async () => {
     try {
       setLoading(true);

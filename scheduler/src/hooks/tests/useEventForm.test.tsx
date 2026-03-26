@@ -10,7 +10,7 @@ global.alert = mockAlert;
 const mockConfirm = jest.fn();
 global.confirm = mockConfirm;
 
-import { useEventForm } from "../../hooks/useEventForm";
+import { useEventForm } from "../Events/useEventForm";
 
 
 const okJson = (data: any) =>

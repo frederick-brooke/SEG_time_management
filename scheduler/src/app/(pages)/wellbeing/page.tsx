@@ -1,8 +1,18 @@
 import QuoteBlock from "@/components/wellbeing/quote_block";
 import TimerController from "components/wellbeing/timer_controller";
 
+/**
+ * WellbeingPage Component
+ * 
+ * Provides a focused wellbeing interface featuring:
+ * - A motivational quote
+ * - A timer to encourage productive work sessions
+ * - Guidance text promoting healthy breaks
+ *
+ * @returns {JSX.Element} The wellbeing page layout with quote and timer.
+ */
 export default function WellbeingPage(){
-    //timer handling
+    // Timer handling is managed internally by TimerController
     return (
         <div className="flex flex-1 flex-col min-h-0 overflow-y-auto p-1 lunar-scroll">
             {/* Container */}
@@ -22,7 +32,7 @@ export default function WellbeingPage(){
                     </p>
                 </div>
 
-                {/* Timer */}
+                {/* Timer controller container */}
                 <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-lg p-8 flex justify-center">
                     <TimerController />
                 </div>

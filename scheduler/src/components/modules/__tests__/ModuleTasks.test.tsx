@@ -2,13 +2,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ModuleTasks, { ModuleTask, TaskWithProgress } from '../ModuleTasks';
 import '@testing-library/jest-dom';
 
-// Mock formatting functions
+// mocks
 jest.mock('@/lib/format', () => ({
   formatDuration: jest.fn(() => '1h 30m'),
   formatTaskDate: jest.fn(() => 'Oct 16'),
 }));
 
-// Mock Icons
 jest.mock('lucide-react', () => ({
   ListTodo: () => <svg data-testid="list-icon" />,
   CheckCircle: () => <svg data-testid="completed-icon" />,
@@ -17,6 +16,7 @@ jest.mock('lucide-react', () => ({
   Trash2: () => <svg data-testid="trash-icon" />,
 }));
 
+// tests
 describe('ModuleTasks Component', () => {
   const mockOnEdit = jest.fn();
   const mockOnDelete = jest.fn();
@@ -38,54 +38,58 @@ describe('ModuleTasks Component', () => {
     jest.clearAllMocks();
   });
 
-  // --- MEMBER VIEW TESTS ---
+  // --- Member View Tests ---
+
+  // Confirms the empty state renders correctly for standard members without tasks
   it('renders Member view empty state correctly', () => {
     render(<ModuleTasks tasks={[]} tasksWithProgress={[]} isOwnerOrAdmin={false} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
     expect(screen.getByText('My Tasks (0)')).toBeInTheDocument();
     expect(screen.getByText('No tasks assigned to you yet.')).toBeInTheDocument();
   });
 
+  // Confirms a populated list of assigned tasks renders correctly with completion status icons
   it('renders Member view populated list correctly', () => {
     render(<ModuleTasks tasks={mockMemberTasks} tasksWithProgress={[]} isOwnerOrAdmin={false} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
     expect(screen.getByText('My Tasks (2)')).toBeInTheDocument();
     expect(screen.getByText('Read Chapter 1')).toBeInTheDocument();
     expect(screen.getByText('Write Essay')).toBeInTheDocument();
     
-    // Check completion UI
     expect(screen.getByTestId('completed-icon')).toBeInTheDocument();
     expect(screen.getByTestId('incomplete-icon')).toBeInTheDocument();
   });
 
-  // --- OWNER/ADMIN VIEW TESTS ---
+  // --- Owner/Admin View Tests ---
+
+  // Confirms the empty state displays a specific creation prompt for owners and admins
   it('renders Owner/Admin view empty state correctly', () => {
     render(<ModuleTasks tasks={[]} tasksWithProgress={[]} isOwnerOrAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
     expect(screen.getByText('Assigned Tasks (0)')).toBeInTheDocument();
     expect(screen.getByText('No tasks assigned yet. Create one using the button above!')).toBeInTheDocument();
   });
 
+  // Confirms the populated list renders with aggregate progress badges for owners and admins
   it('renders Owner/Admin view populated list correctly with badges', () => {
     render(<ModuleTasks tasks={[]} tasksWithProgress={mockTasksWithProgress} isOwnerOrAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
     
     expect(screen.getByText('Assigned Tasks (1)')).toBeInTheDocument();
     expect(screen.getByText('Read Chapter 1')).toBeInTheDocument();
     
-    // Check if badges are rendered
     expect(screen.getByText('1 completed')).toBeInTheDocument();
     expect(screen.getByText('1 in progress')).toBeInTheDocument();
   });
 
+  // Confirms clicking the progress badges toggles the visibility of the member completion popovers
   it('toggles member lists on progress badges when clicked', () => {
     render(<ModuleTasks tasks={[]} tasksWithProgress={mockTasksWithProgress} isOwnerOrAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
     
-    // Click the "completed" badge
     fireEvent.click(screen.getByText('1 completed'));
-    expect(screen.getByText('Alice')).toBeInTheDocument(); // Name appears from popover
+    expect(screen.getByText('Alice')).toBeInTheDocument(); 
 
-    // Click the "in progress" badge
     fireEvent.click(screen.getByText('1 in progress'));
     expect(screen.getByText('Bob')).toBeInTheDocument();
   });
 
+  // Confirms the edit and delete action buttons trigger the corresponding callbacks with the correct payload
   it('fires callbacks correctly for owner actions', () => {
     render(<ModuleTasks tasks={[]} tasksWithProgress={mockTasksWithProgress} isOwnerOrAdmin={true} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
     

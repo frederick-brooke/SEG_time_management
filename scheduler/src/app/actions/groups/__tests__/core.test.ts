@@ -57,7 +57,10 @@ describe("Group Core Actions", () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
     (requireSession as jest.Mock).mockResolvedValue(mockSession);
   });
-
+  afterAll(async () => {
+    // Flushes pending asynchronous Prisma calls to prevent Jest open handle warnings.
+    await new Promise(process.nextTick); 
+  });
   describe("createGroup", () => {
     /**
      * Verifies that providing an empty or whitespace-only name fails validation

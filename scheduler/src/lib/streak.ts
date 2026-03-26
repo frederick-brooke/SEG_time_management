@@ -1,5 +1,4 @@
 import { prisma } from "lib/prisma";
-import { consumeStreakShield } from "lib/points";
 
 
 /**
@@ -78,11 +77,6 @@ export async function calculateStreak(userId: string): Promise<number> {
 
   if (gap > 2) return 0;
 
-  // If exactly one day was missed, attempt to consume a streak shield
-  if (gap === 2) {
-    const shieldUsed = await consumeStreakShield(userId);
-    if (!shieldUsed) return 0;
-  }
 
   return countStreak(uniqueDays, todayMs);
 }

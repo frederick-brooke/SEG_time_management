@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// UI components
+// UI components/map
 import MapPageClient from "./MapPageClient";
 import type { Event } from "@prisma/client";
 

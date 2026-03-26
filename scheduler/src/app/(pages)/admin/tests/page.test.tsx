@@ -1,23 +1,23 @@
-// src/app/(pages)/admin/tests/page.test.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
 
-//  mutable hook return values 
-let mockUsersLoading      = false;
-let mockReportLoading     = false;
-
 //  mocks 
-
+/**
+ * Mock framer-motion to avoid animation-related issues in tests.
+ */
 jest.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
   },
 }));
 
+/**
+ * Mock icon library to prevent rendering overhead.
+ */
 jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: () => () => null })
 );
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));
@@ -43,6 +43,10 @@ jest.mock("@/components/admin/admin-statistics", () => ({
 }));
 
 // Management component mocks expose buttons to trigger every callback prop
+/**
+ * Mock UserManagement component.
+ * Exposes buttons to trigger all callback props.
+ */
 jest.mock("@/components/admin/userManagement", () => ({
   __esModule: true,
   default: ({ setIsUserFilterOpen, resetFilters, setFilters }: any) => (
@@ -55,6 +59,9 @@ jest.mock("@/components/admin/userManagement", () => ({
   ),
 }));
 
+/**
+ * Mock ReportManagement component.
+ */
 jest.mock("@/components/admin/reportManagement", () => ({
   __esModule: true,
   default: ({ setIsReportFilterOpen, resetFilters, setFilters }: any) => (
@@ -67,6 +74,9 @@ jest.mock("@/components/admin/reportManagement", () => ({
   ),
 }));
 
+/**
+ * Mock AppealsManagement component.
+ */
 jest.mock("@/components/admin/appealManagement", () => ({
   __esModule: true,
   default: ({ setIsAppealFilterOpen, resetFilters, setFilters }: any) => (
@@ -127,7 +137,6 @@ jest.mock("@/hooks/useUsers",        () => ({ useUsers:        (...a: any[]) => 
 jest.mock("@/hooks/useAdminReports", () => ({ useAdminReports: (...a: any[]) => useAdminReportsMock(...a) }));
 jest.mock("@/hooks/useAdminAppeals", () => ({ useAdminAppeals: (...a: any[]) => useAdminAppealsMock(...a) }));
 
-//  import after mocks 
 import AdminPage from "../page";
 
 //  helpers 
@@ -175,7 +184,6 @@ describe("AdminPage", () => {
   });
 
   // base render 
-
   it("renders the Admin Dashboard heading", () => {
     render(<AdminPage />);
     expect(screen.getByText("Admin Dashboard")).toBeInTheDocument();
@@ -191,7 +199,7 @@ describe("AdminPage", () => {
     expect(screen.getByText("UserManagement")).toBeInTheDocument();
   });
 
-  // ── tabs ────────────────────────────────────────────────────────────────────
+  // tabs
 
   it("shows ReportManagement by default", () => {
     render(<AdminPage />);
@@ -215,7 +223,6 @@ describe("AdminPage", () => {
   });
 
   // user filter panel 
-
   it("opens UserFilter when triggered from UserManagement", () => {
     render(<AdminPage />);
     fireEvent.click(screen.getByText("Open User Filter"));
@@ -263,7 +270,6 @@ describe("AdminPage", () => {
   });
 
   // report filter panel 
-
   it("opens ReportFilter when triggered from ReportManagement", () => {
     render(<AdminPage />);
     fireEvent.click(screen.getByText("Open Report Filter"));

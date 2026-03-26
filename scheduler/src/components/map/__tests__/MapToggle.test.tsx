@@ -1,8 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 
-// MapToggle imports from @/src/lib/map — mock only what the component needs
-jest.mock("@/src/lib/map", () => ({}));
+// MapToggle imports from @/lib/map — mock only what the component needs
+jest.mock("@/lib/map", () => ({}));
 
 import { MapToggle } from "../MapToggle";
 

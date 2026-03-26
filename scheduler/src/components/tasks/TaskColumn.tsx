@@ -1,5 +1,16 @@
 import { TaskCard } from "./TaskCard";
 
+/**
+ * Single column in the task board, rendering the list of TaskCards.
+ * @param {string} title The display name of the column.
+ * @param {any[]} tasks The list of tasks to render in the column.
+ * @param {string} status The status identifier for the column.
+ * @param {Function} onToggle Callback to toggle a task's status.
+ * @param {Function} onView Callback to open the task view dialog.
+ * @param {Function} onEdit Callback to open the task edit dialog.
+ * @param {Function} onDelete Callback to trigger task deletion.
+ * @param {string | null} highlightId Optional task ID to highlight.
+ */
 export function TaskColumn({
   title,
   tasks,
@@ -12,7 +23,7 @@ export function TaskColumn({
 }) {
   return (
     <div
-      className={`flex-1 min-w-[300px] rounded-lg border p-4 flex flex-col h-[calc(100vh-380px)] ${
+      className={`flex-1 min-w-[240px] rounded-lg border p-4 flex flex-col h-[calc(100vh-280px)] ${
         status === "overdue" ? 
           "bg-red-500/5 border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.05)]" 
           : "bg-white/[0.03] border-white/10 shadow-[0_0_40px_rgba(255,255,255,0.02)]"

@@ -148,4 +148,46 @@ describe('ModuleMembersList Component', () => {
       expect(removeMember).toHaveBeenCalledWith('mod1', 'u3'); // u3 is Charlie
     });
   });
+  // Confirms removing a member is aborted if the user cancels the confirmation dialogue.
+  it('aborts removing member when confirmation is cancelled', async () => {
+    window.confirm = jest.fn(() => false);
+    render(<ModuleMembersList members={mockMembers} isOwner={true} moduleId="mod1" currentUserRole="OWNER" />);
+    fireEvent.click(screen.getByText('Members (3)').closest('button')!);
+    
+    const removeButtons = screen.getAllByTestId('user-minus-icon');
+    fireEvent.click(removeButtons[0].closest('button')!);
+    
+    expect(removeMember).not.toHaveBeenCalled();
+  });
+
+  // Confirms an alert is shown when updating a member role fails on the server.
+  it('shows an alert when updating member role fails', async () => {
+    window.alert = jest.fn();
+    (updateMemberRole as jest.Mock).mockResolvedValue({ success: false, error: 'Update failed' });
+    
+    render(<ModuleMembersList members={mockMembers} isOwner={true} moduleId="mod1" currentUserRole="OWNER" />);
+    fireEvent.click(screen.getByText('Members (3)').closest('button')!);
+    
+    fireEvent.click(screen.getByText('Make Admin'));
+    
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('Update failed');
+    });
+  });
+
+  // Confirms an alert is shown when removing a member fails on the server.
+  it('shows an alert when removing a member fails', async () => {
+    window.alert = jest.fn();
+    (removeMember as jest.Mock).mockResolvedValue({ success: false, error: 'Remove failed' });
+    
+    render(<ModuleMembersList members={mockMembers} isOwner={true} moduleId="mod1" currentUserRole="OWNER" />);
+    fireEvent.click(screen.getByText('Members (3)').closest('button')!);
+    
+    const removeButtons = screen.getAllByTestId('user-minus-icon');
+    fireEvent.click(removeButtons[0].closest('button')!);
+    
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('Remove failed');
+    });
+  });
 });

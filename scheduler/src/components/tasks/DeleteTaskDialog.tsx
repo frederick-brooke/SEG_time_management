@@ -1,3 +1,9 @@
+/**
+ * Confirmation modal for permanently deleting a task.
+ * @param {boolean} isOpen Whether the dialog is visible or not.
+ * @param {Function} onConfirm Callback triggered when the user confirms deletion.
+ * @param {Function} onCancel Callback triggered when the user cancels.
+ */
 export function DeleteTaskDialog({ isOpen, onConfirm, onCancel }) {
   if (!isOpen) return null;
   return (

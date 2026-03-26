@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import CalendarPage from "../page";
 import "@testing-library/jest-dom";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// Mocks 
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
@@ -24,28 +24,28 @@ jest.mock("@/lib/auth", () => ({
   authOptions: {},
 }));
 
-jest.mock("@/src/components/calendar/CalendarView", () => ({
+jest.mock("@/components/calendar/CalendarView", () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => (
     <div data-testid="calendar-view" data-props={JSON.stringify(props)} />
   ),
 }));
 
-jest.mock("@/src/components/googleLinkButton", () => ({
+jest.mock("@/components/googleLinkButton", () => ({
   __esModule: true,
   default: ({ isConnected }: { isConnected: boolean }) => (
     <div data-testid="google-link-button" data-connected={String(isConnected)} />
   ),
 }));
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="lunar-theme-wrapper">{children}</div>
   ),
 }));
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Helpers 
 
 const mockGetServerSession = getServerSession as unknown as jest.Mock;
 const mockRedirect = redirect as unknown as jest.Mock;
@@ -65,7 +65,7 @@ function createMockSession(googleConnected = false) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// Tests 
 
 describe("CalendarPage", () => {
   beforeEach(() => {
@@ -77,7 +77,7 @@ describe("CalendarPage", () => {
     });
   });
 
-  // ── Authentication ──────────────────────────────────────────────────────────
+  // Authentication 
 
   it("should redirect to /login when the user is not authenticated", async () => {
     mockGetServerSession.mockResolvedValue(null);
@@ -104,7 +104,7 @@ describe("CalendarPage", () => {
     expect(mockGetServerSession).toHaveBeenCalledWith(authOptions);
   });
 
-  // ── Rendering ───────────────────────────────────────────────────────────────
+  // Rendering 
 
   it("should render the page heading as an h1", async () => {
     mockGetServerSession.mockResolvedValue(createMockSession());
@@ -138,7 +138,7 @@ describe("CalendarPage", () => {
     expect(screen.getByTestId("google-link-button")).toBeInTheDocument();
   });
 
-  // ── Props ───────────────────────────────────────────────────────────────────
+  // Props 
 
   it("should pass the correct userId to CalendarView", async () => {
     mockGetServerSession.mockResolvedValue(createMockSession());
@@ -207,7 +207,7 @@ describe("CalendarPage", () => {
     ).toBe("true");
   });
 
-  // ── Edge Cases ───────────────────────────────────────────────────────────────
+  // Edge Cases 
 
   it("should handle googleConnected being undefined on the session user", async () => {
     mockGetServerSession.mockResolvedValue({
