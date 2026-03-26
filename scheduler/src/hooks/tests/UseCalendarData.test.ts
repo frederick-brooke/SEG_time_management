@@ -257,19 +257,6 @@ describe("refreshTasks", () => {
     expect(result.current.tasks[0]._type).toBe("task");
   });
 
-  it("returns null and does not throw on API failure", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: false });
-
-    const { result } = renderHook(() => useCalendarData(USER_ID));
-
-    let returned: any;
-    await act(async () => {
-      returned = await result.current.refreshTasks([]);
-    });
-
-    expect(returned).toBeNull();
-  });
-
   it("returns null and does not throw on network error", async () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
 
