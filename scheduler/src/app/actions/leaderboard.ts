@@ -36,11 +36,11 @@ export async function getFriendsLeaderboard(timeframe: 'day' | 'week' | 'month' 
   const now = new Date();
   
   if (timeframe === 'day') {
-    dateThreshold = new Date(now.setHours(0, 0, 0, 0)); // Start of today
+    dateThreshold = new Date(now.setHours(0, 0, 0, 0));
   } else if (timeframe === 'week') {
-    dateThreshold = new Date(now.setDate(now.getDate() - 7)); // 7 days ago
+    dateThreshold = new Date(now.setDate(now.getDate() - 7));
   } else if (timeframe === 'month') {
-    dateThreshold = new Date(now.setMonth(now.getMonth() - 1)); // 1 month ago
+    dateThreshold = new Date(now.setMonth(now.getMonth() - 1));
   }
 
   const users = await prisma.user.findMany({
@@ -53,7 +53,6 @@ export async function getFriendsLeaderboard(timeframe: 'day' | 'week' | 'month' 
       fname: true,
       lname: true,
       pfp: true,
-      // ✅ FIX 1: We must select the dates from the DB so we can filter by them!
       tasks: { select: { completed: true, duration: true, completedAt: true, createdAt: true } }
     }
   });
@@ -69,7 +68,6 @@ export async function getFriendsLeaderboard(timeframe: 'day' | 'week' | 'month' 
       });
     }
     
-    // ✅ FIX 2: Calculate stats using `validTasks` (the filtered list), not all-time tasks
     const totalTasks = validTasks.length;
     const completedTasksList = validTasks.filter(t => t.completed);
     const completedTasksCount = completedTasksList.length;
