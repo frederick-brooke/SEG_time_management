@@ -27,6 +27,10 @@ jest.mock("lib/profile-queries", () => ({
   fetchUsernameByEmail: jest.fn(),
 }));
 
+jest.mock("next/navigation", () => ({
+  redirect: jest.fn(() => { throw new Error("NEXT_REDIRECT"); }),
+}));
+
 // ── 2. Mock Child Components ────────────────────────────────────────────────
 
 jest.mock("../ProfilePageClient", () => ({
@@ -55,8 +59,8 @@ describe("UserProfilePage (Server Component)", () => {
   it("redirects to /login if no session is found (Line 18)", async () => {
     (getServerSession as jest.Mock).mockResolvedValueOnce(null);
 
-    await UserProfilePage({ params: mockParams("bob") });
-
+    await expect(UserProfilePage({ params: mockParams("bob") })).rejects.toThrow("NEXT_REDIRECT");
+    
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
@@ -66,8 +70,8 @@ describe("UserProfilePage (Server Component)", () => {
     });
     (fetchUsernameByEmail as jest.Mock).mockResolvedValueOnce("alice");
 
-    await UserProfilePage({ params: mockParams("alice") });
-
+    await expect(UserProfilePage({ params: mockParams("alice") })).rejects.toThrow("NEXT_REDIRECT");
+    
     expect(fetchUsernameByEmail).toHaveBeenCalledWith("alice@test.com");
     expect(redirect).toHaveBeenCalledWith("/profile");
   });
