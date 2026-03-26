@@ -14,7 +14,11 @@ jest.mock('next/navigation', () => ({
   useSearchParams: jest.fn(),
 }));
 
-jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);
+jest.mock('next/link', () => {
+  const MockLink = ({ children, href }: any) => <a href={href}>{children}</a>;
+  MockLink.displayName = 'MockLink';
+  return MockLink;
+});
 
 jest.mock('@/components/admin/ban-message-page', () => () => <div>Banned Page</div>);
 

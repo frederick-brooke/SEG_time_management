@@ -1,21 +1,27 @@
 import { GET } from "../route";
 
-jest.mock("next/server", () => ({
-  NextRequest: jest.fn(),
-  NextResponse: {
-    json: jest.fn((data: any, init?: { status?: number }) => ({
-      status: init?.status ?? 200,
-      json: async () => data,
-    })),
-  },
-}));
+jest.mock("next/server", () => {
+  const actual = jest.requireActual("next/server");
+
+  return {
+    ...actual,
+    NextResponse: {
+      json: (data: any, init?: { status?: number }) => ({
+        status: init?.status ?? 200,
+        json: async () => data,
+      }),
+    },
+  };
+});
+
 jest.mock("next-auth", () => ({
   __esModule: true,
-  default: jest.fn(() => ({})),
   getServerSession: jest.fn(),
 }));
-jest.mock("@/src/lib/auth", () => ({ authOptions: {} }));
-jest.mock("@/src/lib/prisma", () => ({
+
+jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
+jest.mock("@/lib/prisma", () => ({
   prisma: {
     conversation: {
       findUnique: jest.fn(),
@@ -55,8 +61,11 @@ const mockConversation = {
 };
 
 beforeEach(() => {
-  jest.clearAllMocks();
-  jest.mocked(getServerSession).mockResolvedValue({ user: { id: "user-1" } });
+  jest.resetAllMocks();
+
+  (getServerSession as jest.Mock).mockResolvedValue({
+    user: { id: "user-1" },
+  });
 });
 
 describe("GET /api/conversations/[conversationId]", () => {
