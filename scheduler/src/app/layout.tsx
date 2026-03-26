@@ -2,7 +2,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
-import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
+import { UIProvider } from "@/context/UIContext";  
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
