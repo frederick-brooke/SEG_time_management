@@ -28,6 +28,7 @@ jest.mock("@/app/actions/groups", () => ({
 }));
 
 jest.mock("@/components/groups/GroupHeader", () => ({
+jest.mock("@/components/groups/GroupHeader", () => ({
   __esModule: true,
   default: ({ onOpenTaskModal, onOpenEventModal, onOpenSettings }: any) => (
     <div data-testid="group-header">
@@ -44,6 +45,7 @@ jest.mock("@/components/groups/GroupMembersList", () => ({
 }));
 
 jest.mock("@/components/groups/GroupEvents", () => ({
+jest.mock("@/components/groups/GroupEvents", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="group-events">
@@ -53,6 +55,7 @@ jest.mock("@/components/groups/GroupEvents", () => ({
   ),
 }));
 
+jest.mock("@/components/groups/GroupTasks", () => ({
 jest.mock("@/components/groups/GroupTasks", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete, onToggleComplete }: any) => (
@@ -65,6 +68,7 @@ jest.mock("@/components/groups/GroupTasks", () => ({
 }));
 
 jest.mock("@/components/groups/GroupSettingsModal", () => ({
+jest.mock("@/components/groups/GroupSettingsModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="settings-modal">
@@ -74,6 +78,7 @@ jest.mock("@/components/groups/GroupSettingsModal", () => ({
   ),
 }));
 
+jest.mock("@/components/groups/GroupEventModal", () => ({
 jest.mock("@/components/groups/GroupEventModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
