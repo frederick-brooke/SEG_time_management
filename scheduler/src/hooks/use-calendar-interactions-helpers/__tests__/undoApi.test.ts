@@ -19,7 +19,7 @@ beforeEach(() => {
   (fetch as jest.Mock).mockResolvedValue({ ok: true });
 });
 
-// ── full mode: fetch call ─────────────────────────────────────────────────
+// full mode: fetch call 
 describe('restoreEvent mode="full" fetch call', () => {
   it("calls the correct endpoint with POST", async () => {
     await restoreEvent(BASE_EVENT, "full");
@@ -43,7 +43,7 @@ describe('restoreEvent mode="full" fetch call', () => {
   });
 });
 
-// ── full mode: body fields ────────────────────────────────────────────────
+// full mode: body fields
 describe('restoreEvent mode="full" body', () => {
   const getBody = () => JSON.parse((fetch as jest.Mock).mock.calls[0][1].body);
 
@@ -82,7 +82,7 @@ describe('restoreEvent mode="full" body', () => {
   });
 });
 
-// ── single mode: fetch call ───────────────────────────────────────────────
+// single mode: fetch call 
 describe('restoreEvent mode="single" fetch call', () => {
   it("calls the correct endpoint with PATCH", async () => {
     await restoreEvent(BASE_EVENT, "single");
@@ -106,7 +106,7 @@ describe('restoreEvent mode="single" fetch call', () => {
   });
 });
 
-// ── single mode: body fields ──────────────────────────────────────────────
+// single mode: body fields
 describe('restoreEvent mode="single" body', () => {
   const getBody = () => JSON.parse((fetch as jest.Mock).mock.calls[0][1].body);
 

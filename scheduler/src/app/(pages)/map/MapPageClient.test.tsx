@@ -7,7 +7,11 @@ import MapPageClient from "./MapPageClient";
 jest.mock("@/components/map/MapView", () => ({
   __esModule: true,
   default: ({ events, userLocation }: { events: unknown[]; userLocation: unknown }) => (
-    <div data-testid="map-view" data-events={JSON.stringify(events)} data-user-location={JSON.stringify(userLocation)} />
+    <div
+      data-testid="map-view"
+      data-events={JSON.stringify(events)}
+      data-user-location={JSON.stringify(userLocation)}
+    />
   ),
 }));
 
@@ -76,18 +80,24 @@ const mockEvents = [
 
 const mockUserLocation = { lat: 51.5074, lng: -0.1278 };
 
+//Test Helper
+
+const defaultProps = {
+  events: mockEvents,
+  userLocation: mockUserLocation,
+  userLocationHidden: false,
+};
+
+const renderMapPage = (overrideProps = {}) => {
+  return render(<MapPageClient {...defaultProps} {...overrideProps} />);
+};
+
 // --- Tests ---
 
 describe("MapPageClient", () => {
   describe("Rendering", () => {
     it("renders MapView with correct props", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       const mapView = screen.getByTestId("map-view");
       expect(mapView).toBeInTheDocument();
@@ -96,37 +106,19 @@ describe("MapPageClient", () => {
     });
 
     it("renders SavedLocationsPanel", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       expect(screen.getByTestId("saved-locations-panel")).toBeInTheDocument();
     });
 
     it("renders the Set Your Location button", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       expect(screen.getByRole("button", { name: /set your location/i })).toBeInTheDocument();
     });
 
     it("renders SetLocationModal (initially closed)", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       const modal = screen.getByTestId("set-location-modal");
       expect(modal).toBeInTheDocument();
@@ -136,52 +128,28 @@ describe("MapPageClient", () => {
 
   describe("Location Visibility Indicator", () => {
     it("shows 'Location visible to friends' when userLocationHidden is false", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       expect(screen.getByText("Location visible to friends")).toBeInTheDocument();
       expect(screen.getByText("Friends can see your location")).toBeInTheDocument();
     });
 
     it("shows 'Location hidden from friends' when userLocationHidden is true", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={true}
-        />
-      );
+      renderMapPage({ userLocationHidden: true });
 
       expect(screen.getByText("Location hidden from friends")).toBeInTheDocument();
       expect(screen.getByText("Friends cannot see your location")).toBeInTheDocument();
     });
 
     it("applies green indicator dot when location is visible", () => {
-      const { container } = render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      const { container } = renderMapPage();
 
       const dot = container.querySelector(".bg-green-400");
       expect(dot).toBeInTheDocument();
     });
 
     it("applies red indicator dot when location is hidden", () => {
-      const { container } = render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={true}
-        />
-      );
+      const { container } = renderMapPage({ userLocationHidden: true });
 
       const dot = container.querySelector(".bg-red-400");
       expect(dot).toBeInTheDocument();
@@ -190,13 +158,7 @@ describe("MapPageClient", () => {
 
   describe("Set Location Modal – open/close", () => {
     it("opens the modal when the Set Your Location button is clicked", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       fireEvent.click(screen.getByRole("button", { name: /set your location/i }));
 
@@ -205,57 +167,31 @@ describe("MapPageClient", () => {
     });
 
     it("closes the modal when onClose is called", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
-      // Open it first
       fireEvent.click(screen.getByRole("button", { name: /set your location/i }));
       expect(screen.getByTestId("set-location-modal").getAttribute("data-is-open")).toBe("true");
 
-      // Close it via the modal's close button
       fireEvent.click(screen.getByTestId("modal-close-btn"));
       expect(screen.getByTestId("set-location-modal").getAttribute("data-is-open")).toBe("false");
     });
 
     it("passes initialLocation to modal", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       const modal = screen.getByTestId("set-location-modal");
       expect(JSON.parse(modal.getAttribute("data-initial-location") || "null")).toEqual(mockUserLocation);
     });
 
     it("passes initialHidden correctly when location is hidden", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={true}
-        />
-      );
+      renderMapPage({ userLocationHidden: true });
 
       const modal = screen.getByTestId("set-location-modal");
       expect(modal.getAttribute("data-initial-hidden")).toBe("true");
     });
 
     it("passes initialHidden correctly when location is visible", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage();
 
       const modal = screen.getByTestId("set-location-modal");
       expect(modal.getAttribute("data-initial-hidden")).toBe("false");
@@ -264,41 +200,28 @@ describe("MapPageClient", () => {
 
   describe("Edge cases", () => {
     it("renders with null userLocation", () => {
-      render(
-        <MapPageClient
-          events={mockEvents}
-          userLocation={null}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage({ userLocation: null });
 
       const mapView = screen.getByTestId("map-view");
       expect(JSON.parse(mapView.getAttribute("data-user-location") || "null")).toBeNull();
     });
 
     it("renders with an empty events array", () => {
-      render(
-        <MapPageClient
-          events={[]}
-          userLocation={mockUserLocation}
-          userLocationHidden={false}
-        />
-      );
+      renderMapPage({ events: [] });
 
       const mapView = screen.getByTestId("map-view");
       expect(JSON.parse(mapView.getAttribute("data-events") || "[]")).toEqual([]);
     });
 
     it("renders with both null userLocation and hidden true", () => {
-      render(
-        <MapPageClient
-          events={[]}
-          userLocation={null}
-          userLocationHidden={true}
-        />
-      );
+      renderMapPage({
+        events: [],
+        userLocation: null,
+        userLocationHidden: true,
+      });
 
       expect(screen.getByText("Location hidden from friends")).toBeInTheDocument();
+
       const mapView = screen.getByTestId("map-view");
       expect(JSON.parse(mapView.getAttribute("data-user-location") || "null")).toBeNull();
     });
