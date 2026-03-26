@@ -1,6 +1,6 @@
 import { NotificationType } from "@prisma/client";
 
-// Mocks
+// Mocks 
 jest.mock("lib/prisma", () => ({
   prisma: {
     notification: {
@@ -21,7 +21,7 @@ jest.mock("lib/auth", () => ({
   authOptions: {},
 }));
 
-// Imports 
+// Imports
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import {
@@ -33,7 +33,13 @@ import {
 
 // Typed mock helpers
 const mockGetServerSession = getServerSession as jest.Mock;
-const db = prisma.notification as jest.Mocked<typeof prisma.notification>;
+const db = prisma.notification as unknown as {
+  findMany: jest.Mock;
+  findUnique: jest.Mock;
+  update: jest.Mock;
+  updateMany: jest.Mock;
+  create: jest.Mock;
+};
 
 // Shared fixtures 
 const SESSION = { user: { id: "user-1" } };
@@ -133,6 +139,7 @@ describe("getNotifications", () => {
   });
 });
 
+// ═════════════════════════════════════════════════════════════════════════════
 describe("markNotificationAsRead", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -194,6 +201,7 @@ describe("markNotificationAsRead", () => {
   });
 });
 
+// ═════════════════════════════════════════════════════════════════════════════
 describe("markAllNotificationsAsRead", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -241,6 +249,7 @@ describe("markAllNotificationsAsRead", () => {
   });
 });
 
+// ═════════════════════════════════════════════════════════════════════════════
 describe("createNotification", () => {
   beforeEach(() => jest.clearAllMocks());
 
