@@ -107,7 +107,10 @@ describe("success path", () => {
   it("calls triggerUndo and refreshEvents on success", async () => {
     const { deleteEvent, triggerUndo, refreshEvents } = setup();
     await deleteEvent(BASE_EVENT, "single");
-    expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT);
+    
+    // FIX: Include the second argument "single" to match the hook implementation
+    expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT, "single");
+    
     expect(refreshEvents).toHaveBeenCalled();
   });
 
@@ -115,5 +118,13 @@ describe("success path", () => {
     const { deleteEvent } = setup();
     const result = await deleteEvent(BASE_EVENT, "single");
     expect(result).toBe(true);
+  });
+  
+  // Optional: Add a test to ensure "series" maps to "full" for triggerUndo
+  it("calls triggerUndo with 'full' mode when deleting a series", async () => {
+    const { deleteEvent, triggerUndo } = setup();
+    await deleteEvent(BASE_EVENT, "series");
+    
+    expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT, "full");
   });
 });
