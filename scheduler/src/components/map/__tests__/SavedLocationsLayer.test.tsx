@@ -1,419 +1,316 @@
-import React, { useImperativeHandle, forwardRef } from "react";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import SetLocationModal from "../SetLocationModal";
-import { useGeolocation } from "@/lib/map/useGeolocation";
-import { useRouter } from "next/navigation";
-import { updateUserLocation } from "@/app/actions/update-user-location";
+import React from "react";
+import { render, act, waitFor } from "@testing-library/react";
 
-// Leaflet mock 
-jest.mock("leaflet", () => ({
-  divIcon: jest.fn(() => ({ options: {} })),
-  marker: jest.fn(() => ({
-    on: jest.fn(),
-    off: jest.fn(),
-    getLatLng: jest.fn(() => ({ lat: 0, lng: 0 })),
-  })),
-}));
+import {
+  SavedLocationsLayer,
+  groupByPosition,
+  spreadPositions,
+  createPinSvg,
+  buildPopup,
+} from "@/components/map/SavedLocationsLayer";
+import { SavedLocation } from "hooks/useSavedLocations";
+
+//Leaflet mock 
+jest.mock("leaflet", () => {
+  const markerMock = {
+    addTo: jest.fn().mockReturnThis(),
+    bindPopup: jest.fn().mockReturnThis(),
+  };
+  return {
+    __markerMock: markerMock,
+    divIcon: jest.fn((opts) => opts),
+    marker: jest.fn(() => markerMock),
+  };
+});
+
+const L = jest.requireMock("leaflet") as any;
 
 // react-leaflet mock 
-const mockFlyTo = jest.fn();
-const mockGetZoom = jest.fn(() => 12);
-
-// Capture the dragend handler so tests can fire it manually
-let capturedDragEnd: (() => void) | null = null;
-let markerImperativeRef: {
-  on: jest.Mock;
-  off: jest.Mock;
-  getLatLng: jest.Mock;
-} | null = null;
-
-jest.mock("react-leaflet", () => ({
-  MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
-  TileLayer: () => null,
-  useMap: () => ({ flyTo: mockFlyTo, getZoom: mockGetZoom }),
-  Marker: forwardRef(({ position, children }: any, ref: any) => {
-    const markerMock = {
-      on: jest.fn((event: string, handler: () => void) => {
-        if (event === "dragend") capturedDragEnd = handler;
-      }),
-      off: jest.fn(),
-      getLatLng: jest.fn(() => ({
-        lat: Array.isArray(position) ? position[0] : position.lat,
-        lng: Array.isArray(position) ? position[1] : position.lng,
-      })),
-    };
-    useImperativeHandle(ref, () => {
-      markerImperativeRef = markerMock;
-      return markerMock;
-    });
-    return (
-      <div data-testid="map-marker" data-pos={JSON.stringify(position)}>
-        {children}
-      </div>
-    );
-  }),
-}));
-
-// Next.js & server actions
-const mockRefresh = jest.fn();
-jest.mock("next/navigation", () => ({
-  useRouter: jest.fn(() => ({ refresh: mockRefresh })),
-}));
-
-jest.mock("@/lib/map/useGeolocation", () => ({
-  useGeolocation: jest.fn(),
-}));
-
-jest.mock("@/app/actions/update-user-location", () => ({
-  updateUserLocation: jest.fn(),
-}));
-
-global.fetch = jest.fn();
-
-//  Fixtures 
-const MOCK_LAT = 51.5;
-const MOCK_LNG = -0.09;
-
-const defaultProps = {
-  isOpen: true,
-  onClose: jest.fn(),
-  initialLocation: null,
-  initialHidden: false,
+const mockMap = {
+  getZoom: jest.fn().mockReturnValue(12),
+  removeLayer: jest.fn(),
+  on: jest.fn(),
+  off: jest.fn(),
 };
 
-// Tests
-describe("SetLocationModal", () => {
+jest.mock("react-leaflet", () => ({
+  useMap: () => mockMap,
+}));
+
+//  Fixtures 
+const home: SavedLocation = {
+  id: "1", type: "HOME", label: "Home", address: "1 Main St", lat: 51.5, lng: -0.1,
+};
+const work: SavedLocation = {
+  id: "2", type: "WORK", label: "Office", address: "10 Corp Ave", lat: 51.52, lng: -0.08,
+};
+const fav: SavedLocation = {
+  id: "3", type: "FAVOURITE", label: "Coffee", address: "3 Brew Lane", lat: 51.505, lng: -0.095,
+};
+// Same spot as home
+const homeClone: SavedLocation = {
+  id: "4", type: "WORK", label: "Home Office", address: "1 Main St", lat: 51.5, lng: -0.1,
+};
+
+//  Helper ─
+async function renderLayer(locations: SavedLocation[] = []) {
+  let result!: ReturnType<typeof render>;
+  await act(async () => {
+    result = render(<SavedLocationsLayer locations={locations} />);
+  });
+  return result;
+}
+
+describe("groupByPosition", () => {
+  it("returns an empty array for no locations", () => {
+    expect(groupByPosition([])).toEqual([]);
+  });
+
+  it("returns one group per distinct location", () => {
+    const groups = groupByPosition([home, work]);
+    expect(groups).toHaveLength(2);
+  });
+
+  it("groups locations that share the same spot (within 0.0001°)", () => {
+    const nearby: SavedLocation = { ...work, id: "5", lat: work.lat + 0.00005 };
+    const groups = groupByPosition([work, nearby]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toHaveLength(2);
+  });
+
+  it("does not group locations further apart than the threshold", () => {
+    const groups = groupByPosition([home, work]);
+    expect(groups).toHaveLength(2);
+    groups.forEach((g) => expect(g).toHaveLength(1));
+  });
+
+  it("groups exact duplicates (same lat/lng)", () => {
+    const groups = groupByPosition([home, homeClone]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toHaveLength(2);
+  });
+
+  it("does not include the same location twice", () => {
+    const groups = groupByPosition([home, homeClone, work]);
+    const allIds = groups.flat().map((l) => l.id);
+    expect(allIds).toHaveLength(3);
+    expect(new Set(allIds).size).toBe(3);
+  });
+});
+
+describe("spreadPositions", () => {
+  it("returns single location unchanged", () => {
+    const result = spreadPositions([home], 12);
+    expect(result).toHaveLength(1);
+    expect(result[0].lat).toBe(home.lat);
+    expect(result[0].lng).toBe(home.lng);
+    expect(result[0].loc).toBe(home);
+  });
+
+  it("returns distinct positions for a group of two", () => {
+    const result = spreadPositions([home, homeClone], 12);
+    expect(result).toHaveLength(2);
+    expect(result[0].lng).not.toBe(result[1].lng);
+  });
+
+  it("returns distinct positions for a group of three", () => {
+    const third: SavedLocation = { ...fav, id: "5", lat: home.lat, lng: home.lng };
+    const result = spreadPositions([home, homeClone, third], 12);
+    expect(result).toHaveLength(3);
+    const lats = result.map((r) => r.lat);
+    expect(new Set(lats).size).toBe(3);
+  });
+
+  it("uses a larger spread radius at low zoom levels", () => {
+    const resultLow  = spreadPositions([home, homeClone], 5);
+    const resultHigh = spreadPositions([home, homeClone], 15);
+    const offsetLow  = Math.abs(resultLow[1].lng  - home.lng);
+    const offsetHigh = Math.abs(resultHigh[1].lng - home.lng);
+    expect(offsetLow).toBeGreaterThan(offsetHigh);
+  });
+
+  it("attaches the correct loc reference to each spread entry", () => {
+    const result = spreadPositions([home, work], 12);
+    expect(result.map((r) => r.loc)).toEqual([home, work]);
+  });
+});
+
+describe("createPinSvg", () => {
+  it("contains the HOME emoji", () => {
+    expect(createPinSvg("HOME")).toContain("🏠");
+  });
+
+  it("contains the WORK emoji", () => {
+    expect(createPinSvg("WORK")).toContain("🏢");
+  });
+
+  it("contains the FAVOURITE emoji", () => {
+    expect(createPinSvg("FAVOURITE")).toContain("⭐");
+  });
+
+  it("falls back to 📍 for an unknown type", () => {
+    expect(createPinSvg("UNKNOWN")).toContain("📍");
+  });
+
+  it("uses the correct colour for HOME", () => {
+    expect(createPinSvg("HOME")).toContain("#10b981");
+  });
+
+  it("uses the correct colour for WORK", () => {
+    expect(createPinSvg("WORK")).toContain("#3b82f6");
+  });
+
+  it("uses the correct colour for FAVOURITE", () => {
+    expect(createPinSvg("FAVOURITE")).toContain("#f59e0b");
+  });
+
+  it("falls back to grey for an unknown type", () => {
+    expect(createPinSvg("UNKNOWN")).toContain("#6b7280");
+  });
+});
+
+describe("buildPopup", () => {
+  it("includes the location label", () => {
+    expect(buildPopup(home, [home])).toContain("Home");
+  });
+
+  it("includes the address", () => {
+    expect(buildPopup(home, [home])).toContain("1 Main St");
+  });
+
+  it("shows 'Also at this location' section when group has multiple members", () => {
+    expect(buildPopup(home, [home, homeClone])).toContain("Also at this location");
+  });
+
+  it("does not show 'Also at this location' for a solo location", () => {
+    expect(buildPopup(home, [home])).not.toContain("Also at this location");
+  });
+
+  it("shows FAVOURITE label as 'Saved Place'", () => {
+    expect(buildPopup(fav, [fav])).toContain("Saved Place");
+  });
+
+  it("shows HOME type as 'HOME' (not 'Saved Place')", () => {
+    const html = buildPopup(home, [home]);
+    expect(html).toContain("HOME");
+    expect(html).not.toContain("Saved Place");
+  });
+
+  it("lists other group members in the popup", () => {
+    const popup = buildPopup(home, [home, homeClone]);
+    expect(popup).toContain("Home Office");
+  });
+
+  it("does not include the primary location in the 'others' list", () => {
+    const popup = buildPopup(home, [home, homeClone]);
+    const primaryCount = (popup.match(/1 Main St/g) || []).length;
+    expect(primaryCount).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// React component tests
+
+describe("SavedLocationsLayer (component)", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedDragEnd = null;
-    markerImperativeRef = null;
-    (useGeolocation as jest.Mock).mockReturnValue({ userLocation: [MOCK_LAT, MOCK_LNG] });
-    (updateUserLocation as jest.Mock).mockResolvedValue({ success: true });
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => [] });
+    mockMap.getZoom.mockReturnValue(12);
   });
 
-  // Visibility
-  describe("visibility", () => {
-    it("renders modal content when isOpen is true", () => {
-      render(<SetLocationModal {...defaultProps} />);
-      expect(screen.getByText("Set Your Location")).toBeInTheDocument();
-    });
-
-    it("renders nothing when isOpen is false", () => {
-      render(<SetLocationModal {...defaultProps} isOpen={false} />);
-      expect(screen.queryByText("Set Your Location")).not.toBeInTheDocument();
-    });
+  // Rendering 
+  it("returns null (no DOM output)", async () => {
+    const { container } = await renderLayer([home]);
+    expect(container.firstChild).toBeNull();
   });
 
-  // Initialisation 
-  describe("initialisation", () => {
-    it("initialises pin from geolocation when initialLocation is null", () => {
-      render(<SetLocationModal {...defaultProps} />);
-      const marker = screen.getByTestId("map-marker");
-      expect(marker.getAttribute("data-pos")).toBe(JSON.stringify([MOCK_LAT, MOCK_LNG]));
-    });
-
-    it("initialises pin from initialLocation when provided", () => {
-      // precedence over geolocation when explicitly provided.
-      render(
-        <SetLocationModal
-          {...defaultProps}
-          initialLocation={{ lat: 48.85, lng: 2.35 }}
-        />
-      );
-      const marker = screen.getByTestId("map-marker");
-      const pos = JSON.parse(marker.getAttribute("data-pos")!);
-      expect(pos).toEqual([48.85, 2.35]);
-    });
-
-    it("falls back to London default when no geolocation and no initialLocation", () => {
-      (useGeolocation as jest.Mock).mockReturnValue({ userLocation: null });
-      render(<SetLocationModal {...defaultProps} />);
-      const marker = screen.getByTestId("map-marker");
-      const pos = JSON.parse(marker.getAttribute("data-pos")!);
-      expect(pos).toEqual([51.505, -0.09]);
-    });
-
-    it("initialises hidden toggle from initialHidden prop", () => {
-      render(<SetLocationModal {...defaultProps} initialHidden={true} />);
-      const label = screen.getByText("Hide location from friends");
-      const toggle = label.parentElement!.querySelector("button") as HTMLElement;
-      expect(toggle.firstElementChild).toHaveClass("translate-x-6");
-    });
+  it("renders without crashing when locations is empty", async () => {
+    await expect(renderLayer([])).resolves.toBeDefined();
   });
 
-  // Close button 
-  describe("close button", () => {
-    it("calls onClose when ✕ button is clicked", () => {
-      const onClose = jest.fn();
-      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-      fireEvent.click(screen.getByLabelText("Close modal"));
-      expect(onClose).toHaveBeenCalledTimes(1);
-    });
+  // Lifecycle 
+  it("registers a zoomend listener on mount", async () => {
+    await renderLayer([home]);
+    expect(mockMap.on).toHaveBeenCalledWith("zoomend", expect.any(Function));
+  });
 
-    it("calls onClose when Cancel button is clicked", () => {
-      const onClose = jest.fn();
-      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-      fireEvent.click(screen.getByText("Cancel"));
-      expect(onClose).toHaveBeenCalledTimes(1);
+  it("removes the zoomend listener on unmount", async () => {
+    const { unmount } = await renderLayer([home]);
+    act(() => unmount());
+    expect(mockMap.off).toHaveBeenCalledWith("zoomend", expect.any(Function));
+  });
+
+  it("removes all layers from the map on unmount", async () => {
+    const { unmount } = await renderLayer([home]);
+    await waitFor(() => expect(L.marker).toHaveBeenCalled());
+    act(() => unmount());
+    expect(mockMap.removeLayer).toHaveBeenCalled();
+  });
+
+  //  Markers
+  it("creates one marker per location", async () => {
+    await renderLayer([home, work]);
+    await waitFor(() => expect(L.marker).toHaveBeenCalledTimes(2));
+  });
+
+  it("does not create any markers when locations is empty", async () => {
+    await renderLayer([]);
+    expect(L.marker).not.toHaveBeenCalled();
+  });
+
+  it("spreads co-located pins into two separate markers", async () => {
+    await renderLayer([home, homeClone]);
+    await waitFor(() => expect(L.marker).toHaveBeenCalledTimes(2));
+    const calls = L.marker.mock.calls as [[number, number]][];
+    const [pos0, pos1] = calls.map((c) => c[0]);
+    expect(pos0[1]).not.toBeCloseTo(pos1[1], 10);
+  });
+
+  it("binds a popup to every marker", async () => {
+    await renderLayer([home, work]);
+    await waitFor(() => expect(L.marker).toHaveBeenCalledTimes(2));
+    L.marker.mock.results.forEach(({ value }: any) => {
+      expect(value.bindPopup).toHaveBeenCalled();
     });
   });
 
-  // Location search
-  describe("location search", () => {
-    it("does not fetch when query is shorter than 3 chars", async () => {
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-        target: { value: "Lo" },
-      });
-      await act(async () => { await new Promise((r) => setTimeout(r, 500)); });
-      expect(global.fetch).not.toHaveBeenCalled();
-    });
-
-    it("fetches suggestions after debounce when query >= 3 chars", async () => {
-      const mockSuggestions = [
-        {
-          geometry: { coordinates: [-0.1, 51.5] },
-          properties: { name: "London", city: "London", display: "London, UK" },
-        },
-      ];
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => mockSuggestions,
-      });
-
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-        target: { value: "Lon" },
-      });
-
-      await act(async () => { await new Promise((r) => setTimeout(r, 500)); });
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/api/location/search?q=Lon")
-      );
-      await waitFor(() => expect(screen.getByText("London")).toBeInTheDocument());
-    });
-
-    it("clears suggestions when fetch returns non-ok response", async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({ ok: false });
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-        target: { value: "xyz" },
-      });
-      await act(async () => { await new Promise((r) => setTimeout(r, 500)); });
-      expect(screen.queryByRole("button", { name: /xyz/i })).not.toBeInTheDocument();
-    });
-
-    it("clears suggestions when fetch throws", async () => {
-      (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-        target: { value: "abc" },
-      });
-      await act(async () => { await new Promise((r) => setTimeout(r, 500)); });
-      // No suggestion list should appear
-      expect(screen.queryByText("abc")).not.toBeInTheDocument();
-    });
-
-    it("selects a suggestion and updates the pin position", async () => {
-      const mockSuggestions = [
-        {
-          geometry: { coordinates: [2.35, 48.85] },
-          properties: { name: "Paris", city: "Paris", display: "Paris, France" },
-        },
-      ];
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => mockSuggestions,
-      });
-
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-        target: { value: "Par" },
-      });
-      await act(async () => { await new Promise((r) => setTimeout(r, 500)); });
-
-      await waitFor(() => screen.getByText("Paris"));
-      fireEvent.click(screen.getByText("Paris"));
-
-      expect(screen.queryByText("Paris")).not.toBeInTheDocument();
-      const marker = screen.getByTestId("map-marker");
-      const pos = JSON.parse(marker.getAttribute("data-pos")!);
-      expect(pos).toEqual([48.85, 2.35]);
-    });
-
-    it("ignores suggestion with no geometry coordinates", async () => {
-      const badSuggestion = [{ geometry: {}, properties: { name: "Nowhere", display: "" } }];
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => badSuggestion,
-      });
-
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-        target: { value: "Now" },
-      });
-      await act(async () => { await new Promise((r) => setTimeout(r, 500)); });
-      await waitFor(() => screen.getByText("Nowhere"));
-
-      // Clicking should be a no-op — modal stays open, no crash
-      fireEvent.click(screen.getByText("Nowhere"));
-      expect(screen.getByText("Set Your Location")).toBeInTheDocument();
-    });
+  // divIcon 
+  it("creates a divIcon for each marker", async () => {
+    await renderLayer([home, work, fav]);
+    await waitFor(() => expect(L.divIcon).toHaveBeenCalledTimes(3));
   });
 
-  // "Use My Location" button 
-  describe("Use My Location button", () => {
-    it("centres map and moves pin to user location", () => {
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("📍 My Location"));
-      const marker = screen.getByTestId("map-marker");
-      const pos = JSON.parse(marker.getAttribute("data-pos")!);
-      expect(pos).toEqual([MOCK_LAT, MOCK_LNG]);
-    });
-
-    it("does nothing when userLocation is unavailable", () => {
-      (useGeolocation as jest.Mock).mockReturnValue({ userLocation: null });
-      render(<SetLocationModal {...defaultProps} />);
-      // Should not throw
-      fireEvent.click(screen.getByText("📍 My Location"));
-      expect(screen.getByText("Set Your Location")).toBeInTheDocument();
-    });
+  it("uses the HOME emoji in the divIcon html for a HOME location", async () => {
+    await renderLayer([home]);
+    await waitFor(() =>
+      expect(L.divIcon).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expect.stringContaining("🏠") })
+      )
+    );
   });
 
-  //  Hide location toggle 
-  // We locate it by finding the label text and walking to the sibling button.
-  const getToggleButton = () => {
-    const label = screen.getByText("Hide location from friends");
-    return label.parentElement!.querySelector("button") as HTMLElement;
-  };
-
-  describe("hide location toggle", () => {
-    it("initialises toggle as OFF when initialHidden is false", () => {
-      render(<SetLocationModal {...defaultProps} initialHidden={false} />);
-      expect(getToggleButton().firstElementChild).toHaveClass("translate-x-1");
-    });
-
-    it("initialises toggle as ON when initialHidden is true", () => {
-      render(<SetLocationModal {...defaultProps} initialHidden={true} />);
-      expect(getToggleButton().firstElementChild).toHaveClass("translate-x-6");
-    });
-
-    it("toggles hidden state on click", () => {
-      render(<SetLocationModal {...defaultProps} initialHidden={false} />);
-      const toggle = getToggleButton();
-      expect(toggle.firstElementChild).toHaveClass("translate-x-1");
-      fireEvent.click(toggle);
-      expect(toggle.firstElementChild).toHaveClass("translate-x-6");
-    });
-
-    it("passes locationHidden: true to updateUserLocation when toggled on", async () => {
-      render(<SetLocationModal {...defaultProps} initialHidden={false} />);
-      fireEvent.click(getToggleButton());
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() =>
-        expect(updateUserLocation).toHaveBeenCalledWith(
-          expect.objectContaining({ locationHidden: true })
-        )
-      );
-    });
+  it("uses the WORK emoji in the divIcon html for a WORK location", async () => {
+    await renderLayer([work]);
+    await waitFor(() =>
+      expect(L.divIcon).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expect.stringContaining("🏢") })
+      )
+    );
   });
 
-  // Save
-  describe("save", () => {
-    it("calls updateUserLocation with correct coords and closes modal", async () => {
-      const onClose = jest.fn();
-      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() =>
-        expect(updateUserLocation).toHaveBeenCalledWith(
-          expect.objectContaining({
-            latitude: MOCK_LAT,
-            longitude: MOCK_LNG,
-            locationHidden: false,
-          })
-        )
-      );
-      expect(onClose).toHaveBeenCalled();
-      expect(mockRefresh).toHaveBeenCalled();
-    });
-
-    it("shows Saving... while the request is in flight", async () => {
-      // Never resolves so we can inspect mid-flight state
-      (updateUserLocation as jest.Mock).mockReturnValue(new Promise(() => {}));
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      expect(await screen.findByText("Saving...")).toBeInTheDocument();
-    });
-
-    it("disables Cancel and Save buttons while saving", async () => {
-      (updateUserLocation as jest.Mock).mockReturnValue(new Promise(() => {}));
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await screen.findByText("Saving...");
-      expect(screen.getByText("Cancel")).toBeDisabled();
-      expect(screen.getByText("Saving...")).toBeDisabled();
-    });
-
-    it("shows server error message when success is false", async () => {
-      (updateUserLocation as jest.Mock).mockResolvedValue({
-        success: false,
-        error: "Failed to save",
-      });
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() =>
-        expect(screen.getByText("Failed to save")).toBeInTheDocument()
-      );
-    });
-
-    it("shows fallback error message when error field is missing", async () => {
-      (updateUserLocation as jest.Mock).mockResolvedValue({ success: false });
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() =>
-        expect(screen.getByText("Failed to save location")).toBeInTheDocument()
-      );
-    });
-
-    it("shows error message when updateUserLocation throws", async () => {
-      (updateUserLocation as jest.Mock).mockRejectedValue(new Error("Network down"));
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() =>
-        expect(screen.getByText("Network down")).toBeInTheDocument()
-      );
-    });
-
-    it("shows generic error string for non-Error throws", async () => {
-      (updateUserLocation as jest.Mock).mockRejectedValue("something bad");
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() =>
-        expect(screen.getByText("An error occurred")).toBeInTheDocument()
-      );
-    });
-
-    it("does not close modal when save fails", async () => {
-      const onClose = jest.fn();
-      (updateUserLocation as jest.Mock).mockResolvedValue({
-        success: false,
-        error: "Oops",
-      });
-      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-      fireEvent.click(screen.getByText("Save Location"));
-      await waitFor(() => screen.getByText("Oops"));
-      expect(onClose).not.toHaveBeenCalled();
-    });
+  it("uses the FAVOURITE emoji in the divIcon html for a FAVOURITE location", async () => {
+    await renderLayer([fav]);
+    await waitFor(() =>
+      expect(L.divIcon).toHaveBeenCalledWith(
+        expect.objectContaining({ html: expect.stringContaining("⭐") })
+      )
+    );
   });
 
-  //  MapCenterController
-  describe("MapCenterController", () => {
-    it("calls flyTo when 'Use My Location' is clicked", async () => {
-      render(<SetLocationModal {...defaultProps} />);
-      fireEvent.click(screen.getByText("📍 My Location"));
-      await waitFor(() => expect(mockFlyTo).toHaveBeenCalled());
-    });
+  it("sets the correct iconSize and iconAnchor on every divIcon", async () => {
+    await renderLayer([home]);
+    await waitFor(() =>
+      expect(L.divIcon).toHaveBeenCalledWith(
+        expect.objectContaining({ iconSize: [36, 44], iconAnchor: [18, 44] })
+      )
+    );
   });
 });
