@@ -21,8 +21,8 @@ coveragePathIgnorePatterns: [
   "src/lib/map/index.ts",
   "src/app/actions/module/index.ts",
   "src/app/actions/profile/index.ts",
-  
-], 
+  "src/app/api/auth",
+],
 
 moduleNameMapper: {
   "^@/(.*)$": "<rootDir>/src/$1",
