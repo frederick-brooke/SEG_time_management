@@ -9,7 +9,7 @@ jest.mock('react-dom', () => ({
   useFormStatus: jest.fn(),
 }));
 
-jest.mock('@/src/app/actions/profile', () => ({
+jest.mock('@/app/actions/profile', () => ({
   updateProfile: jest.fn(),
 }));
 
