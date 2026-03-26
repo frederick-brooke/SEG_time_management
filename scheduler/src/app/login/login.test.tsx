@@ -16,7 +16,6 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);
 
-// FIX: Path must exactly match the component's import path
 jest.mock('@/components/admin/ban-message-page', () => () => <div>Banned Page</div>);
 
 describe('LoginPage Component', () => {
@@ -51,7 +50,6 @@ describe('LoginPage Component', () => {
 
   it('renders the login form correctly', () => {
     render(<LoginPage />);
-    // FIX: Match the exact text rendered by your component
     expect(screen.getByRole('heading', { name: 'Welcome Back' })).toBeInTheDocument();
     expect(screen.getByText('Email or Username')).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
@@ -60,7 +58,6 @@ describe('LoginPage Component', () => {
   it('shows a loading spinner state when session is loading', () => {
     (useSession as jest.Mock).mockReturnValue({ status: 'loading' });
     render(<LoginPage />);
-    // FIX: The component renders an empty spinner div, so we just verify the form is hidden
     expect(screen.queryByRole('button', { name: 'Initiate Launch' })).not.toBeInTheDocument();
   });
 
@@ -76,7 +73,6 @@ describe('LoginPage Component', () => {
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
     
-    // FIX: Match the new button text
     await user.click(screen.getByRole('button', { name: 'Initiate Launch' }));
     
     await waitFor(() => {
@@ -98,7 +94,6 @@ describe('LoginPage Component', () => {
     await user.click(screen.getByRole('button', { name: 'Initiate Launch' }));
     
     await waitFor(() => {
-      // FIX: Match the exact error text in your component
       expect(screen.getByText('Invalid email/username or password.')).toBeInTheDocument();
     });
   });

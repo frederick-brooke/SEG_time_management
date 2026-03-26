@@ -17,7 +17,7 @@ jest.mock("components/ui/button", () => ({
   ),
 }));
 
-jest.mock("components/ui/checkbox", () => ({
+jest.mock("components/animate-ui/primitives/radix/checkbox", () => ({
   Checkbox: ({ checked, onCheckedChange, id }: any) => (
     <input
       type="checkbox"

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { AppSidebar } from './app-sidebar';
 
-// ── Mocks 
+// Mocks 
 
 const mockPush = jest.fn();
 const mockPathname = jest.fn().mockReturnValue('/dashboard');
@@ -24,7 +24,6 @@ jest.mock('next-auth/react', () => ({
   signOut: jest.fn(),
 }));
 
-// FIX: Changed from examActions to examNotifications to match the component
 jest.mock('@/app/actions/examNotifications', () => ({
   checkUpcomingDeadlines: jest.fn().mockResolvedValue(undefined),
 }));
@@ -79,12 +78,11 @@ jest.mock('@/components/ui/sidebar', () => ({
   SidebarMenuItem: ({ children }: any) => <div>{children}</div>,
 }));
 
-// ── Helpers ────────
+// Helpers
 
 const { useSession, signOut } = require('next-auth/react');
 const { getNotifications } = require('@/app/actions/notifications');
 const { checkUpcomingEventNotifications } = require('@/app/actions/calendar/calendarNotifications');
-// FIX: Changed from examActions to examNotifications to match the mock
 const { checkUpcomingDeadlines } = require('@/app/actions/examNotifications');
 
 const mockSession = (overrides = {}) => {
@@ -103,7 +101,7 @@ const mockSession = (overrides = {}) => {
   });
 };
 
-// ── Tests 
+// Tests 
 
 describe('AppSidebar', () => {
   beforeEach(() => {
@@ -118,7 +116,7 @@ describe('AppSidebar', () => {
     checkUpcomingDeadlines.mockResolvedValue(undefined);
   });
 
-  // ── Rendering ───
+  // Rendering 
 
   describe('rendering', () => {
     it('renders the sidebar', async () => {
@@ -217,7 +215,7 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Active state 
+  // Active state 
 
   describe('active state', () => {
     it('marks dashboard as active when on /dashboard', async () => {
@@ -228,7 +226,7 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Search ──────
+  // Search 
 
   describe('search panel', () => {
     it('opens search panel when search pill clicked', async () => {
@@ -245,7 +243,7 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Notifications ───────
+  // Notifications 
 
   describe('notifications', () => {
     it('opens notification modal when bell clicked', async () => {
@@ -306,7 +304,6 @@ describe('AppSidebar', () => {
     });
 
     it('shows toast for new notifications after initial poll', async () => {
-      // First poll: empty. Second poll: new notification appears.
       getNotifications
         .mockResolvedValueOnce({ notifications: [{ id: 'n1', title: 'First', message: 'msg', type: 'INFO' }] })
         .mockResolvedValueOnce({ notifications: [
@@ -316,7 +313,6 @@ describe('AppSidebar', () => {
 
       await act(async () => { render(<AppSidebar />); });
 
-      // Trigger second poll
       await act(async () => {
         await getNotifications();
       });
@@ -360,7 +356,7 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Unread messages ─────
+  // Unread messages 
 
   describe('unread messages', () => {
     it('shows message badge when unread conversations exist', async () => {
@@ -401,7 +397,7 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── User footer dropdown 
+  // User footer dropdown 
 
   describe('user footer dropdown', () => {
     it('opens dropdown when 3-dots clicked', async () => {
@@ -471,7 +467,7 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Session-driven effects ────────
+  // Session-driven effects 
 
   describe('session effects', () => {
     it('calls checkUpcomingDeadlines when session has user id', async () => {

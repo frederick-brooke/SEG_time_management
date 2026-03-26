@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getShopData } from "@/app/actions/shop";
-import ShopPage from "./page";
+import ShopPage from "../page";
 
 // 1. Update the next/navigation mock to THROW an error, halting execution
 jest.mock("next/navigation", () => ({

@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import MapView from "@/components/map/MapView";
-import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
+
+// UI components/map
+import MapPageClient from "./MapPageClient";
 import type { Event } from "@prisma/client";
 
 // Types 
@@ -38,6 +39,21 @@ async function fetchUserEvents(userId: string): Promise<Event[]> {
   });
 }
 
+async function fetchUserLocationData(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      location: true,
+      locationHidden: true,
+    },
+  });
+
+  return {
+    userLocation: user?.location as { lat: number; lng: number } | null,
+    userLocationHidden: user?.locationHidden || false,
+  };
+}
+
 function serialiseEvent(event: Event): SerialisedEvent {
   return {
     id: event.id,
@@ -65,20 +81,21 @@ export default async function MapPage() {
 
   if (!session) throw new Error("Not authenticated");
 
-  const events = await fetchUserEvents(session.user.id);
+  const [events, locationData] = await Promise.all([
+    fetchUserEvents(session.user.id),
+    fetchUserLocationData(session.user.id),
+  ]);
+
   const serialisedEvents = events.map(serialiseEvent);
 
   return (
     <main className="container mx-auto p-6 lg:p-8">
       <PageHeader count={serialisedEvents.length} />
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 min-w-0">
-          <MapView events={serialisedEvents} />
-        </div>
-        <div className="w-full lg:w-72 shrink-0">
-          <SavedLocationsPanel />
-        </div>
-      </div>
+      <MapPageClient
+        events={serialisedEvents}
+        userLocation={locationData.userLocation}
+        userLocationHidden={locationData.userLocationHidden}
+      />
     </main>
   );
 }

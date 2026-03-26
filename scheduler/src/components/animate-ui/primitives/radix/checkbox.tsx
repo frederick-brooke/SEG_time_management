@@ -1,13 +1,25 @@
-'use client';;
+'use client';
 import * as React from 'react';
-import { Checkbox as CheckboxPrimitive } from 'radix-ui';
-import { motion } from 'motion/react';
-
+import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
+import { motion } from 'framer-motion';
+import type { SVGMotionProps } from 'framer-motion';
+import { CheckIcon } from 'lucide-react';
 import { getStrictContext } from 'lib/get-strict-context';
 import { useControlledState } from 'hooks/use-controlled-state';
+import { cn } from 'lib/utils';
 
-const [CheckboxProvider, useCheckbox] =
-  getStrictContext('CheckboxContext');
+const [CheckboxProvider, useCheckbox] = getStrictContext('CheckboxContext');
+
+interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
+  defaultChecked?: boolean;
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  disabled?: boolean;
+  required?: boolean;
+  name?: string;
+  value?: string;
+  className?: string;
+}
 
 function Checkbox({
   defaultChecked,
@@ -17,8 +29,9 @@ function Checkbox({
   required,
   name,
   value,
+  className,
   ...props
-}) {
+}: CheckboxProps) {
   const [isChecked, setIsChecked] = useControlledState({
     value: checked,
     defaultValue: defaultChecked,
@@ -35,18 +48,31 @@ function Checkbox({
         required={required}
         name={name}
         value={value}
-        asChild>
+        className={cn(
+          'peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
+          className
+        )}
+        asChild
+        {...props}
+      >
         <motion.button
           data-slot="checkbox"
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.05 }}
-          {...props} />
+        >
+          <CheckboxPrimitive.Indicator forceMount>
+            <motion.div className="grid place-content-center text-current">
+              <CheckIcon className="size-3.5" />
+            </motion.div>
+          </CheckboxPrimitive.Indicator>
+        </motion.button>
       </CheckboxPrimitive.Root>
     </CheckboxProvider>
   );
 }
 
-function CheckboxIndicator(props) {
+type CheckboxIndicatorProps = Omit<SVGMotionProps<SVGSVGElement>, 'onAnimationStart' | 'onDragStart' | 'onDrag' | 'onDragEnd'>;
+function CheckboxIndicator(props: CheckboxIndicatorProps) {
   const { isChecked } = useCheckbox();
 
   return (
@@ -56,46 +82,36 @@ function CheckboxIndicator(props) {
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
-        strokeWidth="3.5"
+        strokeWidth={3.5}
         stroke="currentColor"
         initial="unchecked"
         animate={isChecked ? 'checked' : 'unchecked'}
-        {...props}>
+        {...props}
+      >
         {isChecked === 'indeterminate' ? (
           <motion.line
-            x1="5"
-            y1="12"
-            x2="19"
-            y2="12"
+            x1={5}
+            y1={12}
+            x2={19}
+            y2={12}
             strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{
               pathLength: 1,
               opacity: 1,
               transition: { duration: 0.2 },
-            }} />
+            }}
+          />
         ) : (
           <motion.path
             strokeLinecap="round"
             strokeLinejoin="round"
             d="M4.5 12.75l6 6 9-13.5"
             variants={{
-              checked: {
-                pathLength: 1,
-                opacity: 1,
-                transition: {
-                  duration: 0.2,
-                  delay: 0.2,
-                },
-              },
-              unchecked: {
-                pathLength: 0,
-                opacity: 0,
-                transition: {
-                  duration: 0.2,
-                },
-              },
-            }} />
+              checked: { pathLength: 1, opacity: 1, transition: { duration: 0.2, delay: 0.2 } },
+              unchecked: { pathLength: 0, opacity: 0, transition: { duration: 0.2 } },
+            }}
+          />
         )}
       </motion.svg>
     </CheckboxPrimitive.Indicator>

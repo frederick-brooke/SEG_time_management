@@ -1,14 +1,14 @@
 import * as React from "react";
-import { Button } from "components/ui/button";
-import { Checkbox } from "components/ui/checkbox";
-import { TaskActions } from "@/components/task-actions";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from '@/components/animate-ui/primitives/radix/checkbox';
+import { TaskActions } from "@/components/tasks/task-actions";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/lib/priority";
 import { LunarCard } from "../ui/lunar-card";
 
 /**
- * Renders the checklist of subtasks for a task card.
+ * Renders the checklist of subtasks for a task card.//
  * @param {Array} subtasks List of subtasks to display.
  * @param {boolean[]} checkedList Tracked check state for each subtask.
  * @param {Function} onSubtaskChange Callback triggered when a subtask checkbox changes.
