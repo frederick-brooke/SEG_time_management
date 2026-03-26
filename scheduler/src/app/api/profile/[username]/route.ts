@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
 
-//gets the route of one specific user and will load up their profile page
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ username: string }> }
