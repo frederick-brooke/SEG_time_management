@@ -4,7 +4,17 @@ const quote_link = "http://api.forismatic.com/api/1.0/"
 const max_length = 150;     //quotes longer than 200 characters are rejected
 const max_attempts = 5;     //If more than 5 unsuccessful tries then show default instead
 
-//accesses and returns the random quote from the external API 
+/**
+ * Fetches a random quote from the external Forismatic API.
+ *
+ * Behavior:
+ * - Builds query parameters dynamically
+ * - Disables caching to ensure fresh quotes
+ * - Safely parses JSON response (handles malformed responses)
+ *
+ * @param {number} [key] - Optional key to influence quote selection
+ * @returns {Promise<{ quoteText?: string } | null>} Parsed quote data or null on failure
+ */
 async function fetchQuote(key) {
     const params = new URLSearchParams({
         //stores the parameter values needed to access the quote
@@ -34,7 +44,18 @@ async function fetchQuote(key) {
         return null;    //returns null and failure if JSON parsing invalid
     }
 }
-//GET request for the quotes and enforces condition checking on it 
+
+/**
+ * Retrieves a random quote with validation constraints.
+ *
+ * Behavior:
+ * - Attempts multiple fetches (up to max_attempts)
+ * - Skips invalid or malformed responses
+ * - Enforces maximum quote length
+ * - Falls back to a default quote if all attempts fail
+ *
+ * @returns {Promise<Response>} JSON response containing a valid quote
+ */
 export async function GET() {
     let key = Math.floor(Math.random() * 100000); //generates random key
 
