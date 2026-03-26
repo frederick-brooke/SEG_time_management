@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Button } from "components/ui/button";
-import { Checkbox } from "components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from '@/components/animate-ui/primitives/radix/checkbox';
 import { TaskActions } from "@/components/task-actions";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
