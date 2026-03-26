@@ -26,7 +26,6 @@ jest.mock("@/app/actions/module", () => ({
 }));
 
 jest.mock("@/components/modules/ModuleHeader", () => ({
-jest.mock("@/components/modules/ModuleHeader", () => ({
   __esModule: true,
   default: ({ onOpenTaskModal, onOpenEventModal, onOpenSettings }: any) => (
     <div data-testid="module-header">
@@ -38,12 +37,10 @@ jest.mock("@/components/modules/ModuleHeader", () => ({
 }));
 
 jest.mock("@/components/modules/ModuleMembersList", () => ({
-jest.mock("@/components/modules/ModuleMembersList", () => ({
   __esModule: true,
   default: () => <div data-testid="module-members-list" />,
 }));
 
-jest.mock("@/components/modules/ModuleEvents", () => ({
 jest.mock("@/components/modules/ModuleEvents", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
@@ -55,7 +52,6 @@ jest.mock("@/components/modules/ModuleEvents", () => ({
 }));
 
 jest.mock("@/components/modules/ModuleTasks", () => ({
-jest.mock("@/components/modules/ModuleTasks", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="module-tasks">
@@ -65,7 +61,6 @@ jest.mock("@/components/modules/ModuleTasks", () => ({
   ),
 }));
 
-jest.mock("@/components/modules/ModuleSettingsModal", () => ({
 jest.mock("@/components/modules/ModuleSettingsModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
@@ -77,7 +72,6 @@ jest.mock("@/components/modules/ModuleSettingsModal", () => ({
 }));
 
 jest.mock("@/components/modules/ModuleEventModal", () => ({
-jest.mock("@/components/modules/ModuleEventModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="event-modal">
@@ -87,11 +81,7 @@ jest.mock("@/components/modules/ModuleEventModal", () => ({
   ),
 }));
 
-<<<<<<< HEAD
 jest.mock("@/components/tasks/TaskForm", () => ({
-=======
-jest.mock("components/tasks/TaskForm", () => ({
->>>>>>> 8494af71 (Update module and group client tests)
   __esModule: true,
   TaskForm: ({ onOpenChange, onSubmit, onFormChange }: any) => (
     <div data-testid="task-modal">

@@ -44,7 +44,11 @@ describe("GroupDetailPage Server Component", () => {
     (getServerSession as jest.Mock).mockResolvedValueOnce(null);
 
     // For Async Server Components, we must await the component function call
-    await GroupDetailPage({ params: mockParams });
+    const props = {
+      params: Promise.resolve({ groupId: "grp-123" })
+    } as any;
+
+    await GroupDetailPage(props);
 
     expect(redirect).toHaveBeenCalledWith("/login");
   });
