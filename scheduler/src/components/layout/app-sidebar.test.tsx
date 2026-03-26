@@ -24,7 +24,8 @@ jest.mock('next-auth/react', () => ({
   signOut: jest.fn(),
 }));
 
-jest.mock('@/app/actions/examActions', () => ({
+// FIX: Changed from examActions to examNotifications to match the component
+jest.mock('@/app/actions/examNotifications', () => ({
   checkUpcomingDeadlines: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -83,7 +84,8 @@ jest.mock('@/components/ui/sidebar', () => ({
 const { useSession, signOut } = require('next-auth/react');
 const { getNotifications } = require('@/app/actions/notifications');
 const { checkUpcomingEventNotifications } = require('@/app/actions/calendar/calendarNotifications');
-const { checkUpcomingDeadlines } = require('@/app/actions/examActions');
+// FIX: Changed from examActions to examNotifications to match the mock
+const { checkUpcomingDeadlines } = require('@/app/actions/examNotifications');
 
 const mockSession = (overrides = {}) => {
   useSession.mockReturnValue({
