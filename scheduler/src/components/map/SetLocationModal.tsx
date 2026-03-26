@@ -87,6 +87,8 @@ export default function SetLocationModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shouldCenterMap, setShouldCenterMap] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; width: number } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Handle location search with debouncing
   const handleLocationSearch = useCallback(
@@ -127,6 +129,8 @@ export default function SetLocationModal({
     const lat = parseFloat(feature.geometry.coordinates[1]);
 
     setLocation({ lat, lng });
+    setShouldCenterMap(true);
+    setTimeout(() => setShouldCenterMap(false), 100);
     setSearchQuery("");
     setSuggestions([]);
   };
@@ -139,6 +143,18 @@ export default function SetLocationModal({
       setTimeout(() => setShouldCenterMap(false), 100);
     }
   };
+
+  // Calculate dropdown position when suggestions appear
+  useEffect(() => {
+    if (suggestions.length > 0 && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [suggestions]);
 
   // Handle save
   const handleSave = async () => {
@@ -196,6 +212,7 @@ export default function SetLocationModal({
             </label>
             <div className="relative">
               <input
+                ref={inputRef}
                 type="text"
                 placeholder="Search for a location..."
                 value={searchQuery}
@@ -214,8 +231,11 @@ export default function SetLocationModal({
             </div>
 
             {/* Suggestions Dropdown */}
-            {suggestions.length > 0 && (
-              <div className="absolute z-[100] w-full max-w-[calc(100%-3rem)] bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl max-h-48 overflow-auto">
+            {suggestions.length > 0 && dropdownStyle && (
+              <div
+                className="fixed z-[9999] bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl max-h-48 overflow-auto"
+                style={{ top: dropdownStyle.top, left: dropdownStyle.left, width: dropdownStyle.width }}
+              >
                 {suggestions.map((s: any, i: number) => (
                   <button
                     key={i}
