@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { useGeolocation } from "@/lib/map/useGeolocation";
+import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { updateUserLocation } from "@/app/actions/update-user-location";
 import L from "leaflet";
 
@@ -75,51 +75,18 @@ export default function SetLocationModal({
 }: SetLocationModalProps) {
   const router = useRouter();
   const { userLocation } = useGeolocation();
+  const { searchQuery, suggestions, handleLocationSearch } = useLocationSearch();
   const [location, setLocation] = useState<LatLng>(
     initialLocation ?? (userLocation
       ? { lat: userLocation[0], lng: userLocation[1] }
       : { lat: 51.505, lng: -0.09 })
   );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [hidden, setHidden] = useState(initialHidden);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shouldCenterMap, setShouldCenterMap] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; width: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Handle location search with debouncing
-  const handleLocationSearch = useCallback(
-    (text: string) => {
-      setSearchQuery(text);
-
-      if (debounceTimer) clearTimeout(debounceTimer);
-
-      if (text.length < 3) {
-        setSuggestions([]);
-        return;
-      }
-
-      const timer = setTimeout(async () => {
-        try {
-          const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
-          if (!res.ok) {
-            setSuggestions([]);
-            return;
-          }
-          const data = await res.json();
-          setSuggestions(Array.isArray(data) ? data : []);
-        } catch (err) {
-          setSuggestions([]);
-        }
-      }, 400);
-
-      setDebounceTimer(timer);
-    },
-    [debounceTimer]
-  );
 
   // Handle selecting a suggestion
   const handleSelectSuggestion = (feature: any) => {
@@ -131,8 +98,8 @@ export default function SetLocationModal({
     setLocation({ lat, lng });
     setShouldCenterMap(true);
     setTimeout(() => setShouldCenterMap(false), 100);
-    setSearchQuery("");
-    setSuggestions([]);
+    // Note: search is cleared by re-calling handleLocationSearch with empty string
+    handleLocationSearch("");
   };
 
   // Handle "Use My Location" button
