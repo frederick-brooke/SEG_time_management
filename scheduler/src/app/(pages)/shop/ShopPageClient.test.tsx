@@ -25,7 +25,7 @@ jest.mock("components/ui/gold-coin", () => ({
   GoldCoin: () => <div>Coin</div>,
 }));
 
-jest.mock("@/src/lib/shop-catalogue", () => ({
+jest.mock("@/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {},
 }));
 

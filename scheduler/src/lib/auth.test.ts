@@ -24,7 +24,7 @@ import { verifyPassword } from './password';
 
 const getCallbacks = () => authOptions.callbacks as any;
 
-describe('Auth Logic Coverage (src/lib/auth.ts)', () => {
+describe('Auth Logic Coverage (/lib/auth.ts)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (verifyPassword as jest.Mock).mockResolvedValue(true);

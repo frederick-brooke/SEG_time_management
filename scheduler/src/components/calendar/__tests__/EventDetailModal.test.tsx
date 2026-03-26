@@ -22,7 +22,7 @@ jest.mock("@/components/tasks/TaskForm", () => ({
   ),
 }));
 
-jest.mock("@/src/components/calendar/EventForm", () => ({
+jest.mock("@/components/calendar/EventForm", () => ({
   __esModule: true,
   default: ({ initialEvent, onSuccess }: any) => (
     <div data-testid="event-form">

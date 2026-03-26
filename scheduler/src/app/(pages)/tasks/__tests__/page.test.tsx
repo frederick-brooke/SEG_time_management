@@ -17,7 +17,7 @@ jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: () => () => null })
 );
 
-jest.mock("@/src/components/layout/LunarThemeWrapper", () => ({
+jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));
@@ -26,7 +26,7 @@ jest.mock("@/components/landing/HeroSection", () => ({
   StarField: () => <div data-testid="star-field" />,
 }));
 
-jest.mock("@/src/components/to-do-list", () => ({
+jest.mock("@/components/to-do-list", () => ({
   ToDoList: ({ userId, exams, highlightId }: any) => (
     <div>
       <div data-testid="todo-list">ToDoList</div>
@@ -39,7 +39,7 @@ jest.mock("@/src/components/to-do-list", () => ({
 
 const getMyExamsMock = jest.fn();
 
-jest.mock("@/src/app/actions/examActions", () => ({
+jest.mock("@/app/actions/examActions", () => ({
   getMyExams: (...a: any[]) => getMyExamsMock(...a),
 }));
 
