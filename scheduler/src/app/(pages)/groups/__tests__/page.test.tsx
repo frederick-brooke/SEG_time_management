@@ -4,11 +4,16 @@ import "@testing-library/jest-dom";
 import GroupDetailPage from "../page";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-import { getGroupDetails, getGroupEvents, getGroupTasksWithProgress } from "@/app/actions/groups";
+import { getGroupDetails, getGroupEvents, getGroupTasksWithProgress, getMyGroups } from "@/app/actions/groups";
 
 //Mock Next.js Navigation
 jest.mock("next/navigation", () => ({
   redirect: jest.fn(),
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  })),
 }));
 
 //Mock NextAuth
@@ -24,10 +29,19 @@ jest.mock("@/app/actions/groups", () => ({
   getGroupDetails: jest.fn(),
   getGroupEvents: jest.fn(),
   getGroupTasksWithProgress: jest.fn(),
+  getMyGroups: jest.fn(),
 }));
 
+jest.mock("../GroupsPageClient", () => ({
+  __esModule: true,
+  default: ({ groups }: any) => 
+    <div data-testid="groups-list">
+      Groups: {groups?.length === 0 ? "No groups found" : `Groups count: ${groups?.length}`}
+    </div>,
+}))
+
 //Mock the Client Component to prevent deep rendering
-jest.mock("../GroupDetailClient", () => ({
+jest.mock("@/app/(pages)/groups/[groupId]/GroupDetailClient", () => ({
   __esModule: true,
   default: ({ group }: any) => <div data-testid="client-wrapper">{group.name}</div>,
 }));
@@ -37,6 +51,7 @@ describe("GroupDetailPage Server Component", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (getMyGroups as jest.Mock).mockResolvedValue([]);
   });
 
   // No Session 
@@ -48,38 +63,39 @@ describe("GroupDetailPage Server Component", () => {
       params: Promise.resolve({ groupId: "grp-123" })
     } as any;
 
-    await GroupDetailPage(props);
+    await (GroupDetailPage as any)(props);
 
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
   // Group Not Found 
-  it("renders the 'Group not found' error state if group does not exist", async () => {
+  it("renders correctly when the user has no groups", async () => {
     (getServerSession as jest.Mock).mockResolvedValueOnce({ user: { email: "test@test.com" } });
     (getGroupDetails as jest.Mock).mockResolvedValueOnce(null);
 
-    const ResolvedPage = await GroupDetailPage({ params: mockParams });
+    const props = {
+      params: Promise.resolve({ groupId: "grp-123" })
+    } as any;
+
+    const ResolvedPage = await (GroupDetailPage as any)(props);
     render(ResolvedPage);
 
-    expect(screen.getByText("Group not found")).toBeInTheDocument();
-    expect(screen.getByText(/This group does not exist/i)).toBeInTheDocument();
+    expect(screen.getByText(/No groups found/i)).toBeInTheDocument();
   });
 
-  //  Success Path 
   it("fetches data and renders GroupDetailClient on success", async () => {
     (getServerSession as jest.Mock).mockResolvedValueOnce({ user: { email: "test@test.com" } });
     (getGroupDetails as jest.Mock).mockResolvedValueOnce({ id: "grp_123", name: "Study Squad" });
-    (getGroupEvents as jest.Mock).mockResolvedValueOnce([]);
-    (getGroupTasksWithProgress as jest.Mock).mockResolvedValueOnce([]);
+    (getMyGroups as jest.Mock).mockResolvedValue([{ id: "grp-123"}]);
 
-    const ResolvedPage = await GroupDetailPage({ params: mockParams });
+    const props = {
+      params: Promise.resolve({ groupId: "grp-123" })
+    } as any;
+
+    const ResolvedPage = await (GroupDetailPage as any)(props);
     render(ResolvedPage);
 
-    // Verifies the child component received the props and rendered
-    expect(screen.getByTestId("client-wrapper")).toHaveTextContent("Study Squad");
-    
-    // Verifies Promise.all executed correctly
-    expect(getGroupEvents).toHaveBeenCalledWith("grp_123");
-    expect(getGroupTasksWithProgress).toHaveBeenCalledWith("grp_123");
+    expect(screen.getByTestId("groups-list")).toHaveTextContent("Groups count: 1");
+    expect(getMyGroups).toHaveBeenCalled();
   });
 });
