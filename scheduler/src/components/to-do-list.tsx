@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Progress } from "components/ui/progress";
+import { Progress } from "@/components/ui/progress";
 import {
   Card,
   CardAction,
@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "components/ui/card";
-import { Button } from "components/ui/button";
+import { Button } from "@/components/ui/button";
 import { TaskColumn } from "./tasks/TaskColumn";
 import { TaskForm } from "./tasks/TaskForm";
 import { TaskViewDialog } from "./tasks/TaskViewDialog";
