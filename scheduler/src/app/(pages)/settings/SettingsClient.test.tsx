@@ -16,7 +16,6 @@ jest.mock('@/app/actions/settings', () => ({
   deleteAccount: jest.fn().mockResolvedValue({}),
 }));
 
-// ✅ NEW: Mock the location action to prevent deep server-side imports
 jest.mock('@/app/actions/update-user-location', () => ({
   updateLocationHidden: jest.fn().mockResolvedValue({ success: true }),
 }));
