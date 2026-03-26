@@ -1,4 +1,3 @@
-// pages/admin.js
 "use client";
 import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
@@ -35,8 +34,8 @@ export default function AdminPage() {
     setAppliedUserFilters(defaultUserFilters);
   }
 
-  const [selectedUser, setSelectedUser] = useState(null);   //user profile view
-  const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  //search values to be checked and filtered for the usesrs
+  const [selectedUser, setSelectedUser] = useState(null);   
+  const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  
 
   //report management
   const [currentReportPage, setCurrentReportPage] = useState(1);
@@ -57,7 +56,7 @@ export default function AdminPage() {
   const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12};
   const [appliedAppealFilters, setAppliedAppealFilters] = useState(defaultAppealFilters);
   const [draftAppealFilters, setDraftAppealFilters] = useState(defaultAppealFilters);
-  const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  //open and close the panel
+  const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  
 
   function resetAppealFilters(){
     setDraftAppealFilters(defaultAppealFilters);
