@@ -92,7 +92,7 @@ const renderMapPage = (overrideProps = {}) => {
   return render(<MapPageClient {...defaultProps} {...overrideProps} />);
 };
 
-// --- Tests ---
+//  Tests 
 
 describe("MapPageClient", () => {
   describe("Rendering", () => {
