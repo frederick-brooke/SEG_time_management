@@ -84,9 +84,10 @@ jest.mock("@/components/groups/GroupEventModal", () => ({
   ),
 }));
 
+jest.mock("@/components/tasks/TaskForm", () => ({
 jest.mock("@/components/tasks/TaskFormDialog", () => ({
   __esModule: true,
-  TaskFormDialog: ({ onOpenChange, onSubmit, onFormChange }: any) => (
+  TaskForm: ({ onOpenChange, onSubmit, onFormChange }: any) => (
     <div data-testid="task-modal">
       <button onClick={() => onOpenChange(false)}>Close Task Modal</button>
       <button onClick={() => onOpenChange(true)}>Keep Task Modal Open</button>
