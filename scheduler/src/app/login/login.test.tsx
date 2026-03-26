@@ -16,8 +16,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('next/link', () => ({ children, href }: any) => <a href={href}>{children}</a>);
 
-// Mock the new BannedPage component
-jest.mock('@/components/ban-message-page', () => () => <div>Banned Page</div>);
+jest.mock('@/components/admin/ban-message-page', () => () => <div>Banned Page</div>);
 
 describe('LoginPage Component', () => {
   const mockPush = jest.fn();
@@ -31,16 +30,12 @@ describe('LoginPage Component', () => {
       push: mockPush,
       replace: mockReplace,
     });
-    
     (useSearchParams as jest.Mock).mockReturnValue({
       get: mockGetSearchParam,
     });
-    
     (useSession as jest.Mock).mockReturnValue({
       status: 'unauthenticated',
     });
-
-    // ✅ NEW: Mock the global fetch so the Quiz/Banned checks don't crash the test
     global.fetch = jest.fn((url) => {
       if (typeof url === 'string' && url.includes('/api/auth/session')) {
         return Promise.resolve({ json: () => Promise.resolve({ user: { id: '123' } }) });
@@ -54,15 +49,15 @@ describe('LoginPage Component', () => {
 
   it('renders the login form correctly', () => {
     render(<LoginPage />);
-    expect(screen.getByRole('heading', { name: 'Sign In' })).toBeInTheDocument();
-    expect(screen.getByText('Email')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
+    expect(screen.getByText(/email or username/i)).toBeInTheDocument();
     expect(screen.getByText('Password')).toBeInTheDocument();
   });
 
   it('shows a loading state when session is loading', () => {
     (useSession as jest.Mock).mockReturnValue({ status: 'loading' });
     render(<LoginPage />);
-    expect(screen.getByText('Redirecting...')).toBeInTheDocument();
+    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
   });
 
   it('calls signIn and redirects on success', async () => {
@@ -76,7 +71,7 @@ describe('LoginPage Component', () => {
     
     await user.type(emailInput, 'test@example.com');
     await user.type(passwordInput, 'password123');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: /initiate launch/i }));
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
@@ -94,10 +89,10 @@ describe('LoginPage Component', () => {
     
     await user.type(emailInput, 'wrong@example.com');
     await user.type(passwordInput, 'wrongpass');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: /initiate launch/i }));
     
     await waitFor(() => {
-      expect(screen.getByText('Invalid email or password')).toBeInTheDocument();
+      expect(screen.getByText('Invalid email/username or password.')).toBeInTheDocument();
     });
   });
 
@@ -112,7 +107,7 @@ describe('LoginPage Component', () => {
     
     await user.type(emailInput, 'banned@example.com');
     await user.type(passwordInput, 'password123');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: /initiate launch/i }));
     
     await waitFor(() => {
       expect(screen.getByText('Your account has been banned.')).toBeInTheDocument();
