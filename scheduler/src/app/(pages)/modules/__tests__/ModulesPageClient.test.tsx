@@ -8,21 +8,21 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
 }));
 
-jest.mock('@/src/components/modules/CreateModule', () => ({
+jest.mock('@/components/modules/CreateModule', () => ({
   __esModule: true,
   default: ({ onSuccess }: any) => (
     <button onClick={onSuccess} data-testid="create-modal-trigger">Mock Create</button>
   ),
 }));
 
-jest.mock('@/src/components/modules/JoinModule', () => ({
+jest.mock('@/components/modules/JoinModule', () => ({
   __esModule: true,
   default: ({ onSuccess }: any) => (
     <button onClick={onSuccess} data-testid="join-modal-trigger">Mock Join</button>
   ),
 }));
 
-jest.mock('@/src/components/modules/ModuleCard', () => ({
+jest.mock('@/components/modules/ModuleCard', () => ({
   ModuleCard: ({ module }: any) => <div data-testid="module-card">{module.name}</div>,
 }));
 

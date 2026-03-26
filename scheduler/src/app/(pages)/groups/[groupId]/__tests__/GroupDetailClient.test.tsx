@@ -27,7 +27,7 @@ jest.mock("@/app/actions/groups", () => ({
   toggleGroupTaskComplete: jest.fn(),
 }));
 
-jest.mock("components/groups/GroupHeader", () => ({
+jest.mock("@/components/groups/GroupHeader", () => ({
   __esModule: true,
   default: ({ onOpenTaskModal, onOpenEventModal, onOpenSettings }: any) => (
     <div data-testid="group-header">
@@ -38,12 +38,12 @@ jest.mock("components/groups/GroupHeader", () => ({
   ),
 }));
 
-jest.mock("components/groups/GroupMembersList", () => ({
+jest.mock("@/components/groups/GroupMembersList", () => ({
   __esModule: true,
   default: () => <div data-testid="group-members-list" />,
 }));
 
-jest.mock("components/groups/GroupEvents", () => ({
+jest.mock("@/components/groups/GroupEvents", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="group-events">
@@ -53,7 +53,7 @@ jest.mock("components/groups/GroupEvents", () => ({
   ),
 }));
 
-jest.mock("components/groups/GroupTasks", () => ({
+jest.mock("@/components/groups/GroupTasks", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete, onToggleComplete }: any) => (
     <div data-testid="group-tasks">
@@ -64,7 +64,7 @@ jest.mock("components/groups/GroupTasks", () => ({
   ),
 }));
 
-jest.mock("components/groups/GroupSettingsModal", () => ({
+jest.mock("@/components/groups/GroupSettingsModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="settings-modal">
@@ -74,7 +74,7 @@ jest.mock("components/groups/GroupSettingsModal", () => ({
   ),
 }));
 
-jest.mock("components/groups/GroupEventModal", () => ({
+jest.mock("@/components/groups/GroupEventModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="event-modal">
@@ -84,7 +84,7 @@ jest.mock("components/groups/GroupEventModal", () => ({
   ),
 }));
 
-jest.mock("components/tasks/TaskFormDialog", () => ({
+jest.mock("@/components/tasks/TaskFormDialog", () => ({
   __esModule: true,
   TaskFormDialog: ({ onOpenChange, onSubmit, onFormChange }: any) => (
     <div data-testid="task-modal">
@@ -120,7 +120,7 @@ describe("GroupDetailClient", () => {
   });
 
   // Confirms all main sections of the group detail page are rendered
-  it("renders all core subcomponents", () => {
+  it("renders all core sub@/components", () => {
     render(<GroupDetailClient group={makeGroup()} events={[]} tasksWithProgress={[]} />);
     expect(screen.getByTestId("group-header")).toBeInTheDocument();
     expect(screen.getByTestId("group-members-list")).toBeInTheDocument();

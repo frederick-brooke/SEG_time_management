@@ -3,9 +3,36 @@ import ProfilePageClient from '../ProfilePageClient';
 import '@testing-library/jest-dom';
 
 //mocks
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+  usePathname: () => "/profile",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+jest.mock("next-auth", () => ({
+  getServerSession: jest.fn(),
+}));
+
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({
+    data: { user: { id: "u123", email: "test@test.com" } },
+    status: "authenticated",
+  }),
+}));
+
+jest.mock("@/app/actions/profile/utils", () => ({ __esModule: true }));
+jest.mock("@/app/actions/profile/xpUtils", () => ({
+  calculateLevelProgress: () => ({ level: 5, xpBarWidth: 50, xpToNext: 50 }),
+}));
+jest.mock('@/app/actions/profile', () => ({
+  sendFriendRequest: jest.fn(),
+  removeFriend: jest.fn(),
+  cancelFriendRequest: jest.fn(),
+}));
+
 jest.mock('@/components/layout/LunarThemeWrapper', () => ({
   __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <div data-testid="lunar-wrapper">{children}</div>,
+  default: ({ children }: any) => <div data-testid="lunar-wrapper">{children}</div>,
 }));
 jest.mock('@/components/profile/EditProfileForm', () => ({
   __esModule: true,
@@ -19,17 +46,9 @@ jest.mock('@/components/profile/PendingRequests', () => ({
   __esModule: true,
   default: () => <div data-testid="pending-requests">PendingRequests Mock</div>,
 }));
-jest.mock('@/components/profile/StreakCard', () => ({
+jest.mock('@/components/admin/report-modal', () => ({
   __esModule: true,
-  default: () => <div data-testid="streak-card">StreakCard Mock</div>,
-}));
-jest.mock('@/components/profile/TaskStatsCard', () => ({
-  __esModule: true,
-  default: () => <div data-testid="task-stats-card">TaskStatsCard Mock</div>,
-}));
-jest.mock('@/components/profile/PointsCard', () => ({
-  __esModule: true,
-  default: () => <div data-testid="points-card">PointsCard Mock</div>,
+  default: () => <div data-testid="report-modal">Report Modal Mock</div>,
 }));
 jest.mock('@/components/profile/FriendStatCard', () => ({
   __esModule: true,
@@ -38,18 +57,7 @@ jest.mock('@/components/profile/FriendStatCard', () => ({
   ),
 }));
 
-jest.mock('@/components/admin/report-modal', () => ({
-  __esModule: true,
-  default: () => <div data-testid="report-modal">Report Modal Mock</div>,
-}));
-
-// Mock Server Actions
-jest.mock('@/app/actions/profile', () => ({
-  sendFriendRequest: jest.fn(),
-  removeFriend: jest.fn(),
-  cancelFriendRequest: jest.fn(),
-}));
-
+//ICON MOCKS
 jest.mock('lucide-react', () => ({
   Users: () => <svg data-testid="icon-users" />,
   UserPlus: () => <svg data-testid="icon-userplus" />,
@@ -71,7 +79,7 @@ const mockProfile = {
   bio: "Building the future of productivity.",
   createdAt: "2026-01-01T00:00:00.000Z",
   pfp: null,
-  progress: { level: 5, points: 550 },
+  progress: { level: 5, experience: 550 },
   stats: { 
     streak: 12, 
     friendCount: 8, 
