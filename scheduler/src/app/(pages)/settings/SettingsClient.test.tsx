@@ -16,12 +16,10 @@ jest.mock('@/app/actions/settings', () => ({
   deleteAccount: jest.fn().mockResolvedValue({}),
 }));
 
-// ✅ NEW: Mock the location action to prevent deep server-side imports
 jest.mock('@/app/actions/update-user-location', () => ({
   updateLocationHidden: jest.fn().mockResolvedValue({ success: true }),
 }));
 
-// ✅ NEW: Mock the modal to prevent Leaflet/Map libraries from crashing JSDOM
 jest.mock('@/components/map/SetLocationModal', () => {
   return function MockSetLocationModal() {
     return <div data-testid="mock-set-location-modal" />;
