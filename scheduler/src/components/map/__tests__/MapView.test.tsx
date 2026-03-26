@@ -29,24 +29,25 @@ jest.mock("@/components/map/CombinedMap", () => ({
 
 jest.mock("next/dynamic", () => ({
   __esModule: true,
-  default: (factory: () => Promise<any>) => {
-    let Component: React.ComponentType<any> | null = null;
-
-    const DynamicWrapper = (props: any) => {
-      if (!Component) {
-        throw new Error("Dynamic component not yet resolved in test");
-      }
-      return <Component {...props} />;
-    };
-
-    // Resolve synchronously for tests
-    factory().then((mod) => {
-      Component = mod.default;
-    });
-
-    return DynamicWrapper;
+  default: (factory: () => Promise<any>, _options?: any) => {
+    // For testing, we synchronously resolve the dynamic import
+    // This prevents the "Dynamic component not yet resolved" error
+    const mod = require("@/components/map/CombinedMap");
+    return mod.CombinedMap;
   },
 }));
+
+jest.mock("@/lib/map", () => {
+  const actual = jest.requireActual("@/lib/map");
+  return {
+    ...actual,
+    useFriends: jest.fn(() => ({
+      friends: [],
+      error: null,
+      loading: false,
+    })),
+  };
+});
 
 // Fixtures
 
@@ -111,6 +112,30 @@ describe("MapView", () => {
       "data-friend-count",
       "0"
     );
+  });
+
+  it("shows loading state when defaultMode is friends and useFriends is loading", () => {
+    const { useFriends: mockUseFriends } = require("@/lib/map");
+    mockUseFriends.mockReturnValueOnce({
+      friends: [],
+      error: null,
+      loading: true,
+    });
+
+    render(<MapView events={[]} defaultMode="friends" />);
+    expect(screen.getByText("Loading friends...")).toBeInTheDocument();
+  });
+
+  it("shows error message when useFriends returns an error", () => {
+    const { useFriends: mockUseFriends } = require("@/lib/map");
+    mockUseFriends.mockReturnValueOnce({
+      friends: [],
+      error: "Failed to fetch friends: 500",
+      loading: false,
+    });
+
+    render(<MapView events={[]} />);
+    expect(screen.getByText("Failed to fetch friends: 500")).toBeInTheDocument();
   });
 
   // userLocation prop

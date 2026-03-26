@@ -35,9 +35,9 @@ const defaultUser = {
   email: 'test@test.com',
   hasPassword: true,
   hasGoogleConnected: false,
-  location: { lat: 0, lng: 0 },
-  city: '',
-  country: '',
+  location: { lat: 40.7128, lng: -74.0060 }, // Example: New York City
+  city: 'New York',
+  country: 'United States',
   locationHidden: false,
   preferences: {
     workStartTime: '09:00',
@@ -141,9 +141,7 @@ describe('SettingsClient', () => {
     it('renders preferences when tab clicked', () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Preferences'));
-      // Component renders "Workflow Configuration" not "Workflow Preferences"
       expect(screen.getByText('Workflow Configuration')).toBeInTheDocument();
-      // Days are abbreviated to 3 chars: "Sat", not "Saturday"
       expect(screen.getByText('Sat')).toBeInTheDocument();
     });
 
@@ -160,7 +158,6 @@ describe('SettingsClient', () => {
       const { updatePreferences } = require('@/app/actions/settings');
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Preferences'));
-      // Button text is "Update Preferences", not "Save Preferences"
       fireEvent.submit(screen.getByText('Update Preferences').closest('form')!);
       await waitFor(() => expect(updatePreferences).toHaveBeenCalled());
     });
@@ -170,7 +167,6 @@ describe('SettingsClient', () => {
       render(<SettingsClient user={userNoPref} />);
       fireEvent.click(screen.getByText('Preferences'));
       expect(screen.getByText('Workflow Configuration')).toBeInTheDocument();
-      // All day checkboxes should be unchecked since daysOff defaults to []
       const satCheckbox = screen.getByDisplayValue('Saturday') as HTMLInputElement;
       expect(satCheckbox.checked).toBe(false);
     });
@@ -188,7 +184,6 @@ describe('SettingsClient', () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Security'));
       expect(screen.getByText('Update Password')).toBeInTheDocument();
-      // "Delete Account" appears as both h3 and button — just check it exists at all
       expect(screen.getAllByText('Delete Account').length).toBeGreaterThan(0);
     });
 
@@ -196,7 +191,6 @@ describe('SettingsClient', () => {
       const { changePassword } = require('@/app/actions/settings');
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Security'));
-      // Must submit the form, not just click the button
       fireEvent.submit(screen.getByText('Update Password').closest('form')!);
       await waitFor(() => expect(changePassword).toHaveBeenCalled());
     });
@@ -204,9 +198,7 @@ describe('SettingsClient', () => {
     it('opens delete modal on button click', () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Security'));
-      // Target the button specifically to avoid ambiguity with the h3
       fireEvent.click(screen.getByRole('button', { name: /delete account/i }));
-      // Modal title is "Initiate Self-Destruct?" not "Delete Account?"
       expect(screen.getByText('Initiate Self-Destruct?')).toBeInTheDocument();
     });
 
@@ -214,9 +206,7 @@ describe('SettingsClient', () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Security'));
       fireEvent.click(screen.getByRole('button', { name: /delete account/i }));
-      // Button text is "Yes, Continue" not "Continue"
       fireEvent.click(screen.getByText('Yes, Continue'));
-      // Stage 2 title is "Authorization Required" not "Confirm Deletion"
       expect(screen.getByText('Authorization Required')).toBeInTheDocument();
     });
 
@@ -224,7 +214,6 @@ describe('SettingsClient', () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.click(screen.getByText('Security'));
       fireEvent.click(screen.getByRole('button', { name: /delete account/i }));
-      // Cancel button in initial stage is "Abort" not "No, Cancel"
       fireEvent.click(screen.getByText('Abort'));
       expect(screen.queryByText('Initiate Self-Destruct?')).not.toBeInTheDocument();
     });
@@ -234,7 +223,6 @@ describe('SettingsClient', () => {
       fireEvent.click(screen.getByText('Security'));
       fireEvent.click(screen.getByRole('button', { name: /delete account/i }));
       fireEvent.click(screen.getByText('Yes, Continue'));
-      // Cancel in password stage closes the whole modal
       fireEvent.click(screen.getByText('Cancel'));
       expect(screen.queryByText('Authorization Required')).not.toBeInTheDocument();
     });
@@ -274,14 +262,12 @@ describe('SettingsClient', () => {
     it('shows success message after saving account', async () => {
       render(<SettingsClient user={defaultUser} />);
       fireEvent.submit(screen.getByText('Save Changes').closest('form')!);
-      // Success message is "Account details updated."
       await waitFor(() => expect(screen.getByText('Account details updated.')).toBeInTheDocument());
     });
 
     it('shows no status message on initial render', () => {
       render(<SettingsClient user={defaultUser} />);
       expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument();
-      // Neither error nor success shown by default
       expect(screen.queryByText(/updated|error/i)).not.toBeInTheDocument();
     });
 
@@ -300,6 +286,7 @@ describe('SettingsClient', () => {
       fireEvent.click(screen.getByText('Security'));
       expect(screen.queryByText('Account details updated.')).not.toBeInTheDocument();
     });
+
     it('shows error when disconnect google fails', async () => {
       const { disconnectGoogle } = require('@/app/actions/settings');
       disconnectGoogle.mockRejectedValueOnce(new Error('Disconnect failed'));

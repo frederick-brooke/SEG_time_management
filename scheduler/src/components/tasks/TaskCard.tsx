@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "components/ui/button";
 import { Checkbox } from "components/ui/checkbox";
-import { TaskActions } from "@/components/task-actions";
+import { TaskActions } from "@/components/tasks/task-actions";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/lib/priority";

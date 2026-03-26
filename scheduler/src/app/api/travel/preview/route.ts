@@ -15,10 +15,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateTravelTime } from "@/lib/travel";
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-
-  // Extract and validate query parameters 
   const mode = (searchParams.get("mode") || "walking") as "walking" | "cycling" | "driving";
   const startStr = searchParams.get("start");
   const destStr = searchParams.get("dest");
