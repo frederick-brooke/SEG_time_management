@@ -14,7 +14,6 @@ jest.mock("lib/auth", () => ({
   authOptions: {},
 }));
 
-// Throw an error to stop execution, exactly how real Next.js works
 jest.mock("next/navigation", () => ({
   redirect: jest.fn(() => { throw new Error("NEXT_REDIRECT"); }),
 }));
@@ -25,7 +24,7 @@ jest.mock("@/app/actions/module", () => ({
 
 // ── 2. Mock Child Component ─────────────────────────────────────────────────
 
-jest.mock("./ModulesPageClient", () => ({
+jest.mock("../ModulesPageClient", () => ({
   __esModule: true,
   default: ({ modules }: any) => (
     <div data-testid="modules-client">
@@ -44,11 +43,9 @@ describe("ModulesPage (Server Component)", () => {
   it("redirects to /login if no session or email is found", async () => {
     (getServerSession as jest.Mock).mockResolvedValueOnce(null);
 
-    // Catch the intentional mock error
     await expect(ModulesPage()).rejects.toThrow("NEXT_REDIRECT");
     
     expect(redirect).toHaveBeenCalledWith("/login");
-    // Ensure it didn't keep executing down to the DB call
     expect(getMyModules).not.toHaveBeenCalled(); 
   });
 
@@ -60,7 +57,6 @@ describe("ModulesPage (Server Component)", () => {
     const mockModulesData = [{ id: "mod1" }, { id: "mod2" }];
     (getMyModules as jest.Mock).mockResolvedValueOnce(mockModulesData);
 
-    // Call the async server component and render the result
     const ui = await ModulesPage();
     render(ui);
 
