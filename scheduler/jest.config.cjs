@@ -19,6 +19,7 @@ const customJestConfig = {
     "src/components/effects/",
     ".next/",
     "src/components/map/index.ts",
+    "src/lib/map/index.ts",
   ], 
   
   moduleNameMapper: {
