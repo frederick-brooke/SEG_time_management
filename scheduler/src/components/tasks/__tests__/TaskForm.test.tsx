@@ -58,6 +58,11 @@ jest.mock("../../ui/input", () => {
   };
 });
 
+jest.mock("react-dom", () => ({
+  ...jest.requireActual("react-dom"),
+  createPortal: (node: React.ReactNode) => node,
+}));
+
 jest.mock("../../ui/label", () => {
   const React = require("react");
   return {
@@ -79,38 +84,22 @@ jest.mock("../../ui/button", () => {
 jest.mock("../../ui/select", () => {
   const React = require("react");
 
-  function Select({ value, onValueChange, children }) {
-    return (
-      <select
-        aria-label="mock-select"
-        value={value}
+  return {
+    Select: ({ value, onValueChange, children }: any) => (
+      <select 
+        data-testid="mock-select" 
+        value={value} 
         onChange={(e) => onValueChange(e.target.value)}
       >
         {children}
       </select>
-    );
-  }
-
-  function SelectItem({ value, children }) {
-    return <option value={value}>{children}</option>;
-  }
-
-  function SelectTrigger({ children }) {
-    return <>{children}</>;
-  }
-  function SelectValue({ placeholder }) {
-    return <span>{placeholder}</span>;
-  }
-  function SelectContent({ children }) {
-    return <>{children}</>;
-  }
-
-  return {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+    ),
+    SelectTrigger: ({ children }: any) => <></>,
+    SelectValue: ({ placeholder }: any) => <></>,
+    SelectContent: ({ children }: any) => <>{children}</>,
+    SelectItem: ({ value, children }: any) => (
+      <option value={value}>{children}</option>
+    ),
   };
 });
 
@@ -214,7 +203,7 @@ describe("TaskFormDialog", () => {
       formData: { ...baseFormData, durationHours: "0", durationMinutes: "0" },
     });
 
-    const selects = screen.getAllByLabelText("mock-select");
+    const selects = screen.getAllByTestId("mock-select");
     const [hoursSelect, minutesSelect] = selects;
 
     fireEvent.change(hoursSelect, { target: { value: "2" } });
@@ -269,8 +258,8 @@ describe("TaskFormDialog", () => {
 
   it("clicking the backdrop calls onOpenChange with false", () => {
     const props = setup();
-    const overlay = document.querySelector(".lunar-overlay");
-    fireEvent.click(overlay!, { target: overlay });
+    const backdrop = document.querySelector(".bg-black\\/60");
+    fireEvent.click(backdrop!, { target: backdrop });
     expect(props.onOpenChange).toHaveBeenCalledWith(false);
   });
 
