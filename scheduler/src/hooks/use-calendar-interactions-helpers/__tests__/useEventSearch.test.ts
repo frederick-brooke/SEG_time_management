@@ -19,7 +19,7 @@ function setup() {
   return result;
 }
 
-// ── initial state ─────────────────────────────────────────────────────────
+// ── initial state ──────
 
 describe("initial state", () => {
   it("starts with empty search query", () => {
@@ -35,7 +35,7 @@ describe("initial state", () => {
   });
 });
 
-// ── handleSearch: empty/whitespace query ──────────────────────────────────
+// ── handleSearch: empty/whitespace query ────
 
 describe("handleSearch with empty query", () => {
   it("clears results and hides panel for empty string", async () => {
@@ -55,7 +55,7 @@ describe("handleSearch with empty query", () => {
   });
 });
 
-// ── handleSearch: valid query ─────────────────────────────────────────────
+// ── handleSearch: valid query ────
 
 describe("handleSearch with valid query", () => {
   it("sets searchQuery to the provided query", async () => {
@@ -90,7 +90,7 @@ describe("handleSearch with valid query", () => {
   });
 });
 
-// ── clearSearch ───────────────────────────────────────────────────────────
+// ── clearSearch 
 
 describe("clearSearch", () => {
   it("resets all search state", async () => {
@@ -103,7 +103,7 @@ describe("clearSearch", () => {
   });
 });
 
-// ── showSearchResultsFor ──────────────────────────────────────────────────
+// ── showSearchResultsFor ─────────
 
 describe("showSearchResultsFor", () => {
   it("does not show results panel when query is empty", () => {

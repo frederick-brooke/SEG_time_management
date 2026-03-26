@@ -149,7 +149,7 @@ describe("Header", () => {
   });
 });
 
-// ─── Loading state ────────────────────────────────────────────────────────────
+// ─── Loading state ─
 
 describe("Loading state", () => {
   it("shows loading text when loading is true", () => {

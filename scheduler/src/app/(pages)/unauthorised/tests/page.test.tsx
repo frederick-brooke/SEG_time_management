@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import UnauthorizedPage from "../page";
-// ── Mocks ─────────────────────────────────────────────────────────────────────
+// ── Mocks 
 
 /** LunarThemeWrapper is a layout concern — render children directly. */
 jest.mock("@/components/layout/LunarThemeWrapper", () => ({
@@ -8,7 +8,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("UnauthorizedPage", () => {
   beforeEach(() => render(<UnauthorizedPage />));

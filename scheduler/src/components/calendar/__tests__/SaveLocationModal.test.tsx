@@ -7,7 +7,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import "@testing-library/jest-dom";
 import SaveLocationModal from "../SaveLocationModal";
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 function createDefaultProps(overrides: Record<string, any> = {}) {
   return {
@@ -20,12 +20,12 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("SaveLocationModal", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // ── Rendering ───────────────────────────────────────────────────────────────
+  // ── Rendering ────
 
   describe("rendering", () => {
     it("should render the Save Location heading", () => {
@@ -70,7 +70,7 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Label input ─────────────────────────────────────────────────────────────
+  // ── Label input ──
 
   describe("label input", () => {
     it("should update the label when the input changes", () => {
@@ -100,7 +100,7 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Type selection ──────────────────────────────────────────────────────────
+  // ── Type selection ───────
 
   describe("type selection", () => {
     it("should default to FAVOURITE type", () => {
@@ -131,7 +131,7 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Save behaviour ──────────────────────────────────────────────────────────
+  // ── Save behaviour ───────
 
   describe("save behaviour", () => {
     it("should call onSave with the trimmed label and selected type", async () => {
@@ -220,7 +220,7 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Close button ────────────────────────────────────────────────────────────
+  // ── Close button ─
 
   describe("close button", () => {
     it("should call onClose when ✕ is clicked", () => {

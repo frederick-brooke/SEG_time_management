@@ -8,7 +8,7 @@ jest.mock("../../ui", () => ({
   PRIORITY_SCORE: { high: 3, medium: 2, low: 1, none: 0 },
 }));
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 const basePrefs = {
   workStartTime: "09:00",
@@ -52,7 +52,7 @@ const FRI = makeDay("2030-01-11");
 const SAT = makeDay("2030-01-12");
 const SUN = makeDay("2030-01-13");
 
-// ── Basic scheduling ──────────────────────────────────────────────────────────
+// ── Basic scheduling ───────
 
 describe("scheduleTasks — basic scheduling", () => {
   it("schedules a single task", () => {
@@ -88,7 +88,7 @@ describe("scheduleTasks — basic scheduling", () => {
   });
 });
 
-// ── All work days full ────────────────────────────────────────────────────────
+// ── All work days full ─────
 
 describe("scheduleTasks — no working days", () => {
   it("puts all tasks in overCapacity when all days are days off", () => {
@@ -106,7 +106,7 @@ describe("scheduleTasks — no working days", () => {
   });
 });
 
-// ── Days off ──────────────────────────────────────────────────────────────────
+// ── Days off ───────
 
 describe("scheduleTasks — days off", () => {
   it("skips days off and schedules on next available day", () => {
@@ -122,7 +122,7 @@ describe("scheduleTasks — days off", () => {
   });
 });
 
-// ── Deadlines ─────────────────────────────────────────────────────────────────
+// ── Deadlines ──────
 
 describe("scheduleTasks — deadlines", () => {
   it("places task with dueDate before the deadline", () => {
@@ -154,7 +154,7 @@ describe("scheduleTasks — deadlines", () => {
   });
 });
 
-// ── Over capacity ─────────────────────────────────────────────────────────────
+// ── Over capacity ──
 
 describe("scheduleTasks — over capacity", () => {
   it("adds task to overCapacity when no slot available and no dueDate", () => {
@@ -168,7 +168,7 @@ describe("scheduleTasks — over capacity", () => {
   });
 });
 
-// ── Week mode load spreading ──────────────────────────────────────────────────
+// ── Week mode load spreading ─────────
 
 describe("scheduleTasks — week mode", () => {
   it("spreads tasks across multiple days", () => {
@@ -187,7 +187,7 @@ describe("scheduleTasks — week mode", () => {
   });
 });
 
-// ── Calendar event blocking ───────────────────────────────────────────────────
+// ── Calendar event blocking 
 
 describe("scheduleTasks — calendar event blocking", () => {
   it("schedules task after a blocking event", () => {
@@ -211,7 +211,7 @@ describe("scheduleTasks — calendar event blocking", () => {
   });
 });
 
-// ── Session and break rules ───────────────────────────────────────────────────
+// ── Session and break rules 
 
 describe("scheduleTasks — session and break rules", () => {
   it("inserts a break after the session length is reached", () => {
@@ -228,7 +228,7 @@ describe("scheduleTasks — session and break rules", () => {
   });
 });
 
-// ── Task ordering ─────────────────────────────────────────────────────────────
+// ── Task ordering ──
 
 describe("scheduleTasks — task ordering", () => {
   const highTask = makeTask({ id: "high", priority: "high", duration: 60 });
@@ -282,7 +282,7 @@ describe("scheduleTasks — task ordering", () => {
   });
 });
 
-// ── Preference normalisation ──────────────────────────────────────────────────
+// ── Preference normalisation ─────────
 
 describe("scheduleTasks — preference normalisation", () => {
   it("falls back to 09:00 work start when not provided", () => {
@@ -304,7 +304,7 @@ describe("scheduleTasks — preference normalisation", () => {
   });
 });
 
-// ── allEvents for dynamic deadlines ──────────────────────────────────────────
+// ── allEvents for dynamic deadlines ─
 
 describe("scheduleTasks — allEvents", () => {
   it("uses allEvents over events for event lookup when provided", () => {
@@ -317,7 +317,7 @@ describe("scheduleTasks — allEvents", () => {
   });
 });
 
-// ── Scheduled date and time shape ────────────────────────────────────────────
+// ── Scheduled date and time shape ───
 
 describe("scheduleTasks — output shape", () => {
   it("scheduled entry has taskId, scheduledDate, scheduledTime", () => {

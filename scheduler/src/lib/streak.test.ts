@@ -1,6 +1,6 @@
 import { toUniqueDays, daysSinceMostRecent, countStreak } from "lib/streak";
 
-// ─── toUniqueDays ─────────────────────────────────────────────────────────────
+// ─── toUniqueDays ──
 
 describe("toUniqueDays", () => {
   it("returns empty array for empty input", () => {
@@ -35,7 +35,7 @@ describe("toUniqueDays", () => {
   });
 });
 
-// ─── daysSinceMostRecent ──────────────────────────────────────────────────────
+// ─── daysSinceMostRecent ───
 
 describe("daysSinceMostRecent", () => {
   it("returns Infinity for empty array", () => {
@@ -66,7 +66,7 @@ describe("daysSinceMostRecent", () => {
   });
 });
 
-// ─── countStreak ─────────────────────────────────────────────────────────────
+// ─── countStreak ──
 
 describe("countStreak", () => {
   it("returns 0 for empty array", () => {

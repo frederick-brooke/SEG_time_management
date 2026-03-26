@@ -7,7 +7,7 @@ import Link from "next/link";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { validatePassword } from "@/lib/password";
 
-// ── DRY UI Sub-Components ──────────────────────────────────────────────────────
+// ── DRY UI Sub-Components ───
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
@@ -27,7 +27,7 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
   );
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+// ── Main Component ──
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");

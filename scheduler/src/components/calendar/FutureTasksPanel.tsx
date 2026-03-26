@@ -4,7 +4,7 @@ import type { ScheduleState } from "@/hooks/useSchedule";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import { format } from "date-fns";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types 
 
 interface Task {
   id: string;
@@ -22,7 +22,7 @@ interface FutureTasksPanelProps {
   futureTasks: Task[];
 }
 
-// ── Reusable task row ─────────────────────────────────────────────────────────
+// ── Reusable task row ──────
 
 function TaskRow({
   task,
@@ -71,7 +71,7 @@ function TaskRow({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ─
 
 export default function FutureTasksPanel({
   state,

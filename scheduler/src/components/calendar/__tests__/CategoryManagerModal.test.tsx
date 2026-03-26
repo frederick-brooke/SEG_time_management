@@ -7,11 +7,11 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CategoryManagerModal from "../CategoryManagerModal";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 /**
  * Creates a mock category object.
@@ -37,7 +37,7 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("CategoryManagerModal", () => {
   beforeEach(() => {
@@ -48,7 +48,7 @@ describe("CategoryManagerModal", () => {
     });
   });
 
-  // ── Modal rendering ─────────────────────────────────────────────────────────
+  // ── Modal rendering ──────
 
   describe("modal rendering", () => {
     it("should render the modal title", () => {
@@ -105,7 +105,7 @@ describe("CategoryManagerModal", () => {
     });
   });
 
-  // ── CategoryRow ─────────────────────────────────────────────────────────────
+  // ── CategoryRow ──
 
   describe("CategoryRow", () => {
     it("should display the category name in read mode", () => {
@@ -268,7 +268,7 @@ describe("CategoryManagerModal", () => {
     });
   });
 
-  // ── AddCategoryForm ─────────────────────────────────────────────────────────
+  // ── AddCategoryForm ──────
 
   describe("AddCategoryForm", () => {
     it("should not call fetch when the name is empty", async () => {

@@ -16,7 +16,7 @@ function setup() {
   return { deleteTask: result.current, refreshTasks };
 }
 
-// ── confirm dialog ────────────────────────────────────────────────────────
+// ── confirm dialog ─────
 
 describe("confirm dialog", () => {
   it("returns false without fetching when user cancels", async () => {
@@ -35,7 +35,7 @@ describe("confirm dialog", () => {
   });
 });
 
-// ── success path ──────────────────────────────────────────────────────────
+// ── success path ───────
 
 describe("success path", () => {
   it("calls fetch with DELETE and correct URL", async () => {
