@@ -1,51 +1,19 @@
 "use client";
-
 import { motion } from "framer-motion";
-import { Calendar, Clock, Users, Zap, Shield, BarChart3 } from "lucide-react";
+import { Calendar, Clock, Users, Map, Settings2, BarChart3 } from "lucide-react";
 
 const features = [
-  {
-    icon: Calendar,
-    title: "Lunar Calendar",
-    description:
-      "An intuitive calendar that adapts to your rhythm. Drag, drop, and flow.",
-  },
-  {
-    icon: Zap,
-    title: "Instant Sync",
-    description:
-      "Real-time sync across every device. Your schedule follows you like moonlight.",
-  },
-  {
-    icon: Users,
-    title: "Team Orbits",
-    description:
-      "See everyone's availability in one shared orbit. Coordination, simplified.",
-  },
-  {
-    icon: Clock,
-    title: "Smart Blocks",
-    description:
-      "AI-powered time blocking that learns your patterns and guards your focus.",
-  },
-  {
-    icon: Shield,
-    title: "Privacy First",
-    description:
-      "End-to-end encryption. Your schedule is invisible to everyone but you.",
-  },
-  {
-    icon: BarChart3,
-    title: "Time Analytics",
-    description:
-      "Beautiful insights into where your hours go. Understand. Optimize. Grow.",
-  },
+  { icon: Calendar, title: "Task Scheduling", description: "Auto-schedules tasks into your calendar around your work hours and rest days." },
+  { icon: Clock, title: "Smart Time Blocking", description: "Focus sessions, breaks, and task limits shaped around how you work." },
+  { icon: Users, title: "Friend Map", description: "See where your friends are in real time. Coordinate without the back-and-forth." },
+  { icon: Map, title: "Module Planner", description: "Track deadlines across all your modules in one place." },
+  { icon: Settings2, title: "Preferences", description: "Set your hours, rest days, and session lengths to make Lunar yours." },
+  { icon: BarChart3, title: "Profiles", description: "View completed tasks, current workload, and how your week is shaping up." },
 ];
 
 export default function FeaturesSection() {
   return (
     <section id="features" className="relative py-28 px-6">
-      {/* ambient line */}
       <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[560px] h-[1px] bg-gradient-to-r from-transparent via-blue-300/30 to-transparent" />
 
       <div className="mx-auto max-w-5xl">
@@ -65,7 +33,6 @@ export default function FeaturesSection() {
           >
             Features
           </motion.span>
-
           <h2 className="mt-4 mb-4 text-4xl md:text-6xl font-semibold tracking-tight text-white">
             Built for the way
             <br />
@@ -83,24 +50,17 @@ export default function FeaturesSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6, delay: i * 0.08 }}
-                whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                className="group relative p-8 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm hover:border-blue-300/30 hover:bg-white/[0.06] transition-colors duration-500 overflow-hidden"
+                className="relative p-8 rounded-2xl border border-white/[0.07] bg-white/[0.03] backdrop-blur-sm overflow-hidden"
               >
-                {/* hover glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(circle_at_50%_0%,rgba(90,150,255,0.16),transparent_70%)]" />
+                {/* subtle top-edge accent */}
+                <div className="absolute top-0 left-8 right-8 h-[1px] bg-gradient-to-r from-transparent via-blue-300/20 to-transparent" />
 
-                <div className="relative">
-                  <Icon
-                    className="w-6 h-6 text-blue-200 mb-5"
-                    strokeWidth={1.5}
-                  />
-                  <h3 className="text-lg font-semibold text-white mb-2.5">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm text-white/55 leading-relaxed">
-                    {feature.description}
-                  </p>
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-400/10 flex items-center justify-center mb-6">
+                  <Icon className="w-5 h-5 text-blue-300/80" strokeWidth={1.5} />
                 </div>
+
+                <h3 className="text-lg font-semibold text-white mb-2.5">{feature.title}</h3>
+                <p className="text-sm text-white/50 leading-relaxed">{feature.description}</p>
               </motion.div>
             );
           })}
