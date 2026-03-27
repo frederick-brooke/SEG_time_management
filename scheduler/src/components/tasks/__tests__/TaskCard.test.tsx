@@ -1,4 +1,3 @@
-// src/components/__tests__/TaskCard.test.tsx
 import { render, screen, fireEvent, act } from "@testing-library/react";
 
 const pushMock = jest.fn();
@@ -29,7 +28,7 @@ jest.mock("components/ui/checkbox", () => ({
   ),
 }));
 
-jest.mock("@/components/task-actions", () => ({
+jest.mock("@/components/tasks/task-actions", () => ({
   TaskActions: ({ onView, onEdit, onDelete, canDelete }: any) => (
     <div>
       <button onClick={onView}>View</button>

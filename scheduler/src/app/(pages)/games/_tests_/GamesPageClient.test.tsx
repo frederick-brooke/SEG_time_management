@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import GamesPageClient from "./GamesPageClient";
+import GamesPageClient from "../GamesPageClient";
 
 // 1. Strict Dependency Mocks 
 
@@ -11,7 +11,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => {
 });
 
 // Mock the complex game logic so we only test the prop delegation in this suite
-jest.mock("./OrbitPuzzle", () => {
+jest.mock("../OrbitPuzzle", () => {
   return function MockOrbitPuzzle({ initialBalance }: { initialBalance: number }) {
     return <div data-testid="orbit-puzzle" data-balance={initialBalance} />;
   };

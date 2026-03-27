@@ -18,7 +18,7 @@ jest.mock("@/app/actions/shop", () => ({
   getShopData: jest.fn(),
 }));
 
-jest.mock("./ShopPageClient", () => {
+jest.mock("../ShopPageClient", () => {
   return function MockShopPageClient({ initialData }: any) {
     return <div data-testid="client-boundary">{JSON.stringify(initialData)}</div>;
   };

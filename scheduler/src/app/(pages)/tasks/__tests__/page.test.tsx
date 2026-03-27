@@ -1,4 +1,3 @@
-// src/app/(pages)/tasks/tests/page.test.tsx
 import { render, screen, waitFor, act } from "@testing-library/react";
 
 let mockHighlightParam: string | null = null;
@@ -26,7 +25,7 @@ jest.mock("@/components/landing/HeroSection", () => ({
   StarField: () => <div data-testid="star-field" />,
 }));
 
-jest.mock("@/components/to-do-list", () => ({
+jest.mock("@/components/tasks/to-do-list", () => ({
   ToDoList: ({ userId, exams, highlightId }: any) => (
     <div>
       <div data-testid="todo-list">ToDoList</div>
