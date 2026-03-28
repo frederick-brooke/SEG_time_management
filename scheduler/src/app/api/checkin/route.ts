@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
           status === "partial" ? Math.max(0, Math.min(progress, 100)) : 0;
         const remainingMins = Math.round(originalDuration * (1 - pct / 100));
 
-        // ── Persist progress so TaskCard/TaskViewDialog can show it ──────────
+        // ── Persist progress so TaskCard/TaskViewDialog can show it 
         updateData.progress = status === "partial" ? pct : 0;
 
         needsReschedule.push({

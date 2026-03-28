@@ -1,3 +1,7 @@
+/**
+ * Testing for exam-planner page.
+ */
+
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import ExamPlannerPage from "../page";
 import { useSession } from "next-auth/react";

@@ -1,11 +1,15 @@
 'use client';
 
+ /**
+  * Client-side Avatar Shop UI.
+  * Composes reusable UI primitives to render avatar cards with pricing,
+  * rarity styling, and purchase/equip/unequip actions.
+  */
+
 import { CheckCircle } from "lucide-react";
 import { GoldCoin } from "@/components/ui/gold-coin";
 import { AVATAR_IMAGES } from "@/lib/shop-catalogue";
 import { RARITY_CONFIG, ShopItem } from "./shop.types";
-
-// 1. Atomic UI Elements 
 
 /**
  * Displays the item's cost alongside the currency icon.
@@ -49,7 +53,6 @@ function AvatarBadges({ rarityTheme, isEquipped, isOwned }: { rarityTheme: any; 
 
 /**
  * Evaluates the item's ownership state and renders the appropriate action button.
- * Uses early returns to strictly maintain a nesting depth of 0.
  *
  * @param {ShopItem} item - The current shop item data.
  * @param {boolean} isEquipped - True if the avatar is currently active.
@@ -91,11 +94,8 @@ function AvatarActionButtons({
   );
 }
 
-// 2. Main Composed Component 
-
 /**
  * Renders a complete storefront card for an Avatar item.
- * Composes highly cohesive sub-components to stay under the 30-line limit per unit.
  *
  * @param {ShopItem} item - The full item data payload.
  * @param {string | null} equippedAvatar - The string value of the globally active avatar.

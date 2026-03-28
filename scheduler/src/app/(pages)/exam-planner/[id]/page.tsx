@@ -1,8 +1,14 @@
 "use client";
 
+/**
+ * Exam hub page for managing a specific exam.
+ * Allows users to build a syllabus, set unavailable days,
+ * generate a study plan, and view related revision tasks.
+ */
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ToDoList } from "@/components/tasks/to-do-list";
+import { ToDoList } from "@/components/to-do-list";
 import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/app/actions/examActions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -14,7 +20,7 @@ import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
  * @param {number} index The index of the topic in the list.
  * @param {Function} onUpdate Callback to update a field on the topic.
  * @param {Function} onRemove Callback to remove a topic.
- * @param {boolean} showRemove Whether to the remove button or not.
+ * @param {boolean} showRemove Whether to show the remove button or not.
  */
 function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
     return (
@@ -44,7 +50,7 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
             </div>
             <input
                 className="w-full lunar-input"
-                placeholder="Resource URL(Optional"
+                placeholder="Resource URL (optional)"
                 value={topic.url}
                 onChange={(e) => onUpdate(index, 'url', e.target.value)}
             />
@@ -69,7 +75,7 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
  * @param {Function} onRemove Callback to remove a topic by index.
  * @param {Function} onGenerate Callback to trigger study plan generation.
  * @param {boolean} isGenerating Whether the plan is currently being generated or not.
- * @returns 
+ * @returns {JSX.Element} Exam hub UI
  */
 function SyllabusBuilder({ topics, onAdd, onUpdate, onRemove, onGenerate, isGenerating }) {
     return (
@@ -223,6 +229,5 @@ export default function ExamDetailPage() {
                 </div>
             </main>
         </LunarThemeWrapper>
-
     );
 }

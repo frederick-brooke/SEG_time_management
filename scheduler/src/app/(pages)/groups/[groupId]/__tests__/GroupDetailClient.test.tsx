@@ -1,3 +1,7 @@
+/**
+ * Testing for Group Detail Client.
+ */
+
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -10,7 +14,8 @@ import {
   toggleGroupTaskComplete,
 } from "@/app/actions/groups";
 
-// mocks
+
+// Mocks
 const mockRefresh = jest.fn();
 
 jest.mock("next/navigation", () => ({
@@ -97,7 +102,8 @@ jest.mock("@/components/tasks/TaskForm", () => ({
   ),
 }));
 
-// helpers
+
+// Helpers
 
 /**
  * Creates a mock group object for testing.
@@ -111,7 +117,9 @@ const makeGroup = (overrides = {}) => ({
   ...overrides,
 });
 
-// tests
+
+// Tests
+
 describe("GroupDetailClient", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -213,7 +221,7 @@ describe("GroupDetailClient", () => {
     });
   });
 
-  // Confirms task parsing (subtasks/durations) and updating an existing task
+  // Confirms task parsing (subtasks/ durations) and updating an existing task
   it("parses subtasks and calls updateGroupTask when editing an existing task", async () => {
     (updateGroupTask as jest.Mock).mockResolvedValue({ success: true });
     render(<GroupDetailClient group={makeGroup()} events={[]} tasksWithProgress={[]} />);
@@ -230,8 +238,6 @@ describe("GroupDetailClient", () => {
       expect(mockRefresh).toHaveBeenCalledTimes(1);
     });
   });
-
-  // --- NEW NEGATIVE PATH COVERAGE TESTS ---
 
   // Confirms deletion is aborted when confirmation is cancelled
   it("aborts deletion if confirmation is cancelled", () => {

@@ -1,12 +1,18 @@
 'use client';
 
+/**
+ * Client-side Module Detail page container.
+ * Handles UI state for tasks, events, and settings modals,
+ * and coordinates create/update/delete actions with server actions.
+ */
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createModuleTask, updateModuleTask, deleteModuleTask, deleteModuleEvent } from "@/app/actions/module";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
-//components
+// Components
 import ModuleHeader from "components/modules/ModuleHeader";
 import ModuleMembersList from "components/modules/ModuleMembersList";
 import ModuleEvents from "components/modules/ModuleEvents";
@@ -15,14 +21,13 @@ import { TaskForm } from "@/components/tasks/TaskForm";
 import ModuleEventModal from "components/modules/ModuleEventModal";
 import ModuleSettingsModal from "components/modules/ModuleSettingsModal";
 
-//constants
+// Constants
 const EMPTY_TASK_FORM = {
   name: "", description: "", dueDate: "", url: "", subtasks: "",
   durationHours: "0", durationMinutes: "0", priority: "Low", examId: "none",
   bufferDays: 0, isRecurring: false, recurrence: null,
 };
 
-//main component
 
 /**
  * Client-side container for the Module Detail page.

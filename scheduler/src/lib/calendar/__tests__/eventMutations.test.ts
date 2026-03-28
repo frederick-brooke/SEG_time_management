@@ -6,7 +6,7 @@ import { handleSingleInstanceUpdate, handleSeriesUpdate } from "../eventMutation
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -21,7 +21,7 @@ jest.mock("@/lib/calendar/googleCalendar", () => ({
   getGoogleCalendarClient: jest.fn(),
 }));
 
-// ── Typed mock helpers ────────────────────────────────────────────────────────
+// ── Typed mock helpers ─────
 
 const mockPrismaEvent = prisma.event as unknown as {
   update: jest.Mock;
@@ -29,7 +29,7 @@ const mockPrismaEvent = prisma.event as unknown as {
 };
 const mockGetGoogleCalendarClient = getGoogleCalendarClient as jest.Mock;
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 /**
  * Creates a mock Google Calendar client with a patchable events.patch method.
@@ -103,14 +103,14 @@ function createSeriesBody(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── handleSingleInstanceUpdate ────────────────────────────────────────────────
+// ── handleSingleInstanceUpdate ───────
 
 describe("handleSingleInstanceUpdate", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // ── Exception pushing ───────────────────────────────────────────────────────
+  // ── Exception pushing ────
 
   it("should push the originalDate ISO string to the event exceptions", async () => {
     const event = createMockEvent();
@@ -130,7 +130,7 @@ describe("handleSingleInstanceUpdate", () => {
     );
   });
 
-  // ── Exception event creation ────────────────────────────────────────────────
+  // ── Exception event creation ───────
 
   it("should create a new exception event with the updated fields", async () => {
     const event = createMockEvent();
@@ -206,7 +206,7 @@ describe("handleSingleInstanceUpdate", () => {
     );
   });
 
-  // ── Google patching ─────────────────────────────────────────────────────────
+  // ── Google patching ──────
 
   it("should patch the Google Calendar instance when googleEventId exists", async () => {
     const event = createMockEvent({ googleEventId: "google-event-id" });
@@ -281,7 +281,7 @@ describe("handleSingleInstanceUpdate", () => {
     expect(result).toEqual(createdEvent);
   });
 
-  // ── Google instance ID format ───────────────────────────────────────────────
+  // ── Google instance ID format ──────
 
   it("should format the Google instance ID by stripping dashes and colons from the date", async () => {
     const event = createMockEvent({ googleEventId: "google-event-id" });
@@ -299,14 +299,14 @@ describe("handleSingleInstanceUpdate", () => {
   });
 });
 
-// ── handleSeriesUpdate ────────────────────────────────────────────────────────
+// ── handleSeriesUpdate ─────
 
 describe("handleSeriesUpdate", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // ── Time calculation ────────────────────────────────────────────────────────
+  // ── Time calculation ─────
 
   it("should preserve the original date and apply the new time-of-day from the body", async () => {
     const event = createMockEvent({
@@ -343,7 +343,7 @@ describe("handleSeriesUpdate", () => {
     expect(duration).toBe(2 * 60 * 60 * 1000); // 2 hours in ms
   });
 
-  // ── Prisma update ───────────────────────────────────────────────────────────
+  // ── Prisma update 
 
   it("should call prisma.event.update with the correct event ID", async () => {
     const event = createMockEvent();
@@ -430,7 +430,7 @@ describe("handleSeriesUpdate", () => {
     );
   });
 
-  // ── Return value ────────────────────────────────────────────────────────────
+  // ── Return value ─
 
   it("should return the updated event from Prisma", async () => {
     const event = createMockEvent();
@@ -443,7 +443,7 @@ describe("handleSeriesUpdate", () => {
     expect(result).toEqual(updatedEvent);
   });
 
-  // ── Google fire-and-forget ──────────────────────────────────────────────────
+  // ── Google fire-and-forget ─────────
 
   it("should fire-and-forget the Google patch without awaiting it", async () => {
     const event = createMockEvent({ googleEventId: "google-event-id" });

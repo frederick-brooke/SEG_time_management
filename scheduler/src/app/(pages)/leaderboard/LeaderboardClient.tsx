@@ -1,25 +1,20 @@
 'use client';
 
+/**
+ * Leaderboard client component.
+ * Renders a live rankings table with sorting and timeframe filtering,
+ * allowing users to compare streaks, focus time, and completion rates.
+ * Handles client-side sorting and navigation updates via query parameters.
+ */
+
 import { useState, useTransition } from "react";
 import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
-import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
-/**interface LeaderboardUser {
-  id: string;
-  username: string;
-  name: string;
-  pfp: string | null;
-  streak: number;
-  completionRate: number;
-  focusTime: string;
-  focusTimeRaw: number;
-  isCurrentUser: boolean;
-}
-*/
+
 interface LeaderboardClientProps {
   initialData: LeaderboardUser[];
   currentTimeframe: 'day' | 'week' | 'month' | 'all';

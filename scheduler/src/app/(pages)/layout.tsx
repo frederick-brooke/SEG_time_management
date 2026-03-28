@@ -1,4 +1,11 @@
 "use client";
+
+ /**
+  * Application layout wrapper.
+  * Provides sidebar navigation, search panel overlay, and shared page structure
+  * for all main authenticated pages.
+  */
+ 
 import { useState } from "react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";

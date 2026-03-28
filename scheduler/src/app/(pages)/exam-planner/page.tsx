@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * Exam Planner dashboard page.
+ * Displays all user exams with progress tracking and allows creating, editing, and deleting exams.
+ */
+
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";

@@ -1,8 +1,13 @@
+/**
+ * Testing for Groups Page Client.
+ */
+
 import { render, screen, fireEvent } from '@testing-library/react';
 import GroupsPageClient from '../GroupsPageClient';
 import '@testing-library/jest-dom';
 
-// mocks
+// Mocks
+
 const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
@@ -22,7 +27,6 @@ jest.mock('@/components/groups/GroupCard', () => ({
   GroupCard: ({ group }: any) => <div data-testid="group-card">{group.name}</div>,
 }));
 
-// Mock icons carefully to ensure we can target buttons precisely
 jest.mock('lucide-react', () => ({
   Plus: () => <svg data-testid="plus-icon" />,
   ArrowUpDown: () => <svg data-testid="arrow-icon" />,
@@ -30,7 +34,9 @@ jest.mock('lucide-react', () => ({
   ChevronRight: () => <svg data-testid="next-icon" />,
 }));
 
-// tests
+
+// Tests
+
 describe('GroupsPageClient', () => {
   const mockGroups = [
     { id: '1', name: 'Zebra', memberCount: 1, createdAt: '2020-01-01', creator: { username: 'a' } },
@@ -85,16 +91,15 @@ describe('GroupsPageClient', () => {
     fireEvent.click(screen.getByText('Newest first'));
     expect(screen.getAllByTestId('group-card')[0]).toHaveTextContent('Alpha');
 
-    // Toggle menu off manually (hits line 148 alternate branch)
+    // Toggle menu off manually
     fireEvent.click(getSortToggle()); 
-    expect(screen.getByText('Name A → Z')).toBeInTheDocument(); // Verifies it opened
+    expect(screen.getByText('Name A → Z')).toBeInTheDocument();
     fireEvent.click(getSortToggle()); 
-    expect(screen.queryByText('Name A → Z')).not.toBeInTheDocument(); // Verifies it closed
+    expect(screen.queryByText('Name A → Z')).not.toBeInTheDocument();
   });
 
   // Confirms previous and next chevron buttons work correctly across multiple pages
   it('navigates through pagination using next and previous arrow buttons', () => {
-    // Generate 17 groups to force 3 pages (Page size is 8)
     const manyGroups = Array.from({ length: 17 }, (_, i) => ({
       ...mockGroups[0], id: `${i}`, name: `Grp ${i}`
     }));

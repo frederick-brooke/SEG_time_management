@@ -1,13 +1,16 @@
 'use client';
 
+/**
+ * Games Hub client page.
+ * Provides a themed layout for mini-games and passes the user's coin balance into gameplay components.
+ */
+
 import OrbitPuzzle from "./OrbitPuzzle";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
-// 1. Pure Presentational Components 
 
 /**
- * Renders the thematic header for the Games Hub.
- * Strictly presentational; contains no state or logic.
+ * Renders the header for the Games Hub.
  */
 const MissionControlHeader = () => (
   <div className="text-center pt-8 pb-4 px-4">
@@ -19,13 +22,11 @@ const MissionControlHeader = () => (
   </div>
 );
 
-// 2. Main Layout Orchestrator
-
 /**
  * The interactive client boundary for the Games Hub.
- * Wraps the mini-games in the application's global theme and orchestrates the layout.
+ * Wraps the mini-games in the application's global theme.
  *
- * @param {number} initialBalance - The user's starting coin balance, fetched securely on the server.
+ * @param {number} initialBalance - The user's starting coin balance.
  * @returns {JSX.Element} The composed layout for the games page.
  */
 export default function GamesPageClient({ initialBalance }: { initialBalance: number }) {
@@ -33,7 +34,6 @@ export default function GamesPageClient({ initialBalance }: { initialBalance: nu
     <LunarThemeWrapper>
       <div className="flex flex-col min-h-screen">
         <MissionControlHeader />
-        
         <div className="flex-1">
           <OrbitPuzzle initialBalance={initialBalance} />
         </div>

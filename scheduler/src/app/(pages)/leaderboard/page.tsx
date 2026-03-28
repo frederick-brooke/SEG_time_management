@@ -1,3 +1,9 @@
+/**
+ * Leaderboard server page.
+ * Authenticates the user, retrieves friends leaderboard data based on timeframe,
+ * and renders the client-side leaderboard UI.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
@@ -21,7 +27,7 @@ export default async function LeaderboardPage(props: {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <div className="max-w-5xl w-full mx-auto px-6 py-12 space-y-8">
-        
+
         <PageHeader 
           icon={<Trophy size={26} className="text-yellow-400" />} 
           title="Friends Leaderboard" 

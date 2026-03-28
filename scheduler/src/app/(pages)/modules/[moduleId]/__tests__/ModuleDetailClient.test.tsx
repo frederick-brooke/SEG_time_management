@@ -1,3 +1,7 @@
+/**
+ * Testing for modules/[moduleId]/ModuleDetailClient.
+ */
+
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -9,7 +13,8 @@ import {
   deleteModuleEvent,
 } from "@/app/actions/module";
 
-//mocks
+
+// Mocks
 const mockRefresh = jest.fn();
 
 jest.mock("next/navigation", () => ({
@@ -93,7 +98,7 @@ jest.mock("@/components/tasks/TaskForm", () => ({
   ),
 }));
 
-//helpers
+// Helpers
 
 /**
  * Creates a mock module object for testing with default properties.
@@ -107,7 +112,7 @@ const makeModule = (overrides = {}) => ({
   ...overrides,
 });
 
-//tests
+// Tests
 describe("ModuleDetailClient", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -198,7 +203,7 @@ describe("ModuleDetailClient", () => {
     });
   });
 
-  // Confirms task parsing (subtasks/durations) and updating an existing task
+  // Confirms task parsing (subtasks/ durations) and updating an existing task
   it("parses subtasks and calls updateModuleTask when editing an existing task", async () => {
     (updateModuleTask as jest.Mock).mockResolvedValue({ success: true });
     render(<ModuleDetailClient module={makeModule()} events={[]} tasks={[]} tasksWithProgress={[]} />);

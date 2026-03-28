@@ -7,7 +7,7 @@ import { render, screen, fireEvent, act, waitFor } from "@testing-library/react"
 import "@testing-library/jest-dom";
 import CalendarView from "../CalendarView";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("react-big-calendar", () => ({
   dateFnsLocalizer: jest.fn(() => ({})),
@@ -28,7 +28,7 @@ jest.mock("date-fns", () => ({
   addDays: jest.fn(),
 }));
 
-// ── Child component mocks ─────────────────────────────────────────────────────
+// ── Child component mocks ──
 
 jest.mock("../CheckInModal", () => ({
   __esModule: true,
@@ -159,7 +159,7 @@ jest.mock("../CalendarBody", () => ({
   ),
 }));
 
-// ── Hook mocks ────────────────────────────────────────────────────────────────
+// ── Hook mocks ─────
 
 const mockRefreshEvents = jest.fn().mockResolvedValue([]);
 const mockRefreshTasks = jest.fn().mockResolvedValue(undefined);
@@ -238,7 +238,7 @@ jest.mock("@/hooks/useCalendarInteractions", () => ({
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 function renderCalendarView(props = {}) {
   return render(
@@ -246,7 +246,7 @@ function renderCalendarView(props = {}) {
   );
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("CalendarView", () => {
   beforeEach(() => {
@@ -257,7 +257,7 @@ describe("CalendarView", () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({}) });
   });
 
-  // ── Initial render ──────────────────────────────────────────────────────────
+  // ── Initial render ───────
 
   describe("initial render", () => {
     it("should render the calendar body", async () => {
@@ -297,7 +297,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Init effects ────────────────────────────────────────────────────────────
+  // ── Init effects ─
 
   describe("mount effects", () => {
     it("should call fetchCategories on mount", async () => {
@@ -326,7 +326,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Visibility change effect ────────────────────────────────────────────────
+  // ── Visibility change effect ───────
 
   describe("visibility change effect", () => {
     it("should call refreshTasks when the tab becomes visible", async () => {
@@ -360,7 +360,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Schedule buttons ────────────────────────────────────────────────────────
+  // ── Schedule buttons ─────
 
   describe("schedule buttons", () => {
     it("should call sched.open with 'day' when Schedule My Day is clicked", async () => {
@@ -376,7 +376,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Modal open / close ──────────────────────────────────────────────────────
+  // ── Modal open / close ───
 
   describe("modal open and close", () => {
     it("should open the event detail modal when an event is selected", async () => {
@@ -405,7 +405,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Check-in flow ───────────────────────────────────────────────────────────
+  // ── Check-in flow 
 
   describe("check-in flow", () => {
     it("should show the check-in modal after the mount delay", async () => {
@@ -441,7 +441,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Reschedule flow ─────────────────────────────────────────────────────────
+  // ── Reschedule flow ──────
 
   describe("reschedule flow", () => {
     async function openReschedule() {
@@ -495,7 +495,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Category manager ────────────────────────────────────────────────────────
+  // ── Category manager ─────
 
   describe("category manager", () => {
     it("should open the category manager when Manage Categories is clicked", async () => {
@@ -520,7 +520,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Quick schedule modal ────────────────────────────────────────────────────
+  // ── Quick schedule modal ─
 
   describe("quick schedule modal", () => {
     it("should open the quick schedule modal when a task is clicked in the unscheduled panel", async () => {
@@ -548,7 +548,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Unscheduled panel callbacks ─────────────────────────────────────────────
+  // ── Unscheduled panel callbacks ────
 
   describe("unscheduled panel callbacks", () => {
     it("should call DELETE on /api/schedule-log when a log is deleted", async () => {
@@ -565,7 +565,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── getFilteredItems ────────────────────────────────────────────────────────
+  // ── getFilteredItems ─────
 
   describe("getFilteredItems filter logic", () => {
     it("should include non-high-priority incomplete tasks when tasks filter is active", async () => {
@@ -586,7 +586,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── getFilteredItems (full branch coverage) ─────────────────────────────────
+  // ── getFilteredItems (full branch coverage) ───
 
   describe("getFilteredItems branch coverage", () => {
     it("includes event with a known category when categoryFilters[cat.id] is true", async () => {
@@ -639,7 +639,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Filter sidebar toggle callbacks ─────────────────────────────────────────
+  // ── Filter sidebar toggle callbacks 
 
   describe("filter sidebar callbacks", () => {
     it("should toggle a filter key when onToggleFilter is called", async () => {
@@ -655,7 +655,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── onEditLog in UnscheduledPanel ────────────────────────────────────────────
+  // ── onEditLog in UnscheduledPanel ───
 
   describe("unscheduled panel onEditLog", () => {
     it("should call sched.patch with scheduleDate when log.mode is 'day'", async () => {
@@ -676,7 +676,7 @@ describe("CalendarView", () => {
       }));
     });
   });
-  // ── onEditLog in UnscheduledPanel ────────────────────────────────────────────
+  // ── onEditLog in UnscheduledPanel ───
 
   describe("unscheduled panel onEditLog", () => {
     it("should call sched.patch with scheduleDate when log mode is day", async () => {
@@ -696,7 +696,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── EventDetailModal callbacks ───────────────────────────────────────────────
+  // ── EventDetailModal callbacks ──────
 
   describe("event detail modal callbacks", () => {
     async function openModal() {
@@ -747,7 +747,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── ScheduleDrawer callbacks ─────────────────────────────────────────────────
+  // ── ScheduleDrawer callbacks ────────
 
   describe("schedule drawer callbacks", () => {
     it("should call sched.schedule(false) when Schedule is clicked", async () => {
@@ -769,7 +769,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── handleRescheduleConfirm with skipBreaks ──────────────────────────────────
+  // ── handleRescheduleConfirm with skipBreaks ────
 
   describe("reschedule confirm with skipBreaks true", () => {
     it("should send sessionLength 9999 when skipBreaks is true", async () => {
@@ -800,7 +800,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── CategoryManagerModal onCategoriesChange ──────────────────────────────────
+  // ── CategoryManagerModal onCategoriesChange ────
 
   describe("category manager onCategoriesChange", () => {
     it("should call fetchCategories when onCategoriesChange is triggered", async () => {

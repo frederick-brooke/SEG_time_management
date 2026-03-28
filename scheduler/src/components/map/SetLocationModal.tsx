@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { useGeolocation } from "@/lib/map/useGeolocation";
+import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { updateUserLocation } from "@/app/actions/update-user-location";
 import L from "leaflet";
 
@@ -75,49 +75,18 @@ export default function SetLocationModal({
 }: SetLocationModalProps) {
   const router = useRouter();
   const { userLocation } = useGeolocation();
+  const { searchQuery, suggestions, handleLocationSearch } = useLocationSearch();
   const [location, setLocation] = useState<LatLng>(
     initialLocation ?? (userLocation
       ? { lat: userLocation[0], lng: userLocation[1] }
       : { lat: 51.505, lng: -0.09 })
   );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [hidden, setHidden] = useState(initialHidden);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shouldCenterMap, setShouldCenterMap] = useState(false);
-
-  // Handle location search with debouncing
-  const handleLocationSearch = useCallback(
-    (text: string) => {
-      setSearchQuery(text);
-
-      if (debounceTimer) clearTimeout(debounceTimer);
-
-      if (text.length < 3) {
-        setSuggestions([]);
-        return;
-      }
-
-      const timer = setTimeout(async () => {
-        try {
-          const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
-          if (!res.ok) {
-            setSuggestions([]);
-            return;
-          }
-          const data = await res.json();
-          setSuggestions(Array.isArray(data) ? data : []);
-        } catch (err) {
-          setSuggestions([]);
-        }
-      }, 400);
-
-      setDebounceTimer(timer);
-    },
-    [debounceTimer]
-  );
+  const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; width: number } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Handle selecting a suggestion
   const handleSelectSuggestion = (feature: any) => {
@@ -127,8 +96,10 @@ export default function SetLocationModal({
     const lat = parseFloat(feature.geometry.coordinates[1]);
 
     setLocation({ lat, lng });
-    setSearchQuery("");
-    setSuggestions([]);
+    setShouldCenterMap(true);
+    setTimeout(() => setShouldCenterMap(false), 100);
+    // Note: search is cleared by re-calling handleLocationSearch with empty string
+    handleLocationSearch("");
   };
 
   // Handle "Use My Location" button
@@ -139,6 +110,18 @@ export default function SetLocationModal({
       setTimeout(() => setShouldCenterMap(false), 100);
     }
   };
+
+  // Calculate dropdown position when suggestions appear
+  useEffect(() => {
+    if (suggestions.length > 0 && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [suggestions]);
 
   // Handle save
   const handleSave = async () => {
@@ -196,6 +179,7 @@ export default function SetLocationModal({
             </label>
             <div className="relative">
               <input
+                ref={inputRef}
                 type="text"
                 placeholder="Search for a location..."
                 value={searchQuery}
@@ -214,8 +198,11 @@ export default function SetLocationModal({
             </div>
 
             {/* Suggestions Dropdown */}
-            {suggestions.length > 0 && (
-              <div className="absolute z-[100] w-full max-w-[calc(100%-3rem)] bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl max-h-48 overflow-auto">
+            {suggestions.length > 0 && dropdownStyle && (
+              <div
+                className="fixed z-[9999] bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl max-h-48 overflow-auto"
+                style={{ top: dropdownStyle.top, left: dropdownStyle.left, width: dropdownStyle.width }}
+              >
                 {suggestions.map((s: any, i: number) => (
                   <button
                     key={i}

@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import EventForm from "../EventForm";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("../TravelSection", () => ({
   __esModule: true,
@@ -22,7 +22,7 @@ jest.mock("../EventFormParts", () => ({
   ),
 }));
 
-// ── Hook mock ─────────────────────────────────────────────────────────────────
+// ── Hook mock ──────
 
 const mockHandleSubmit = jest.fn((e: any, _onSuccess: any) => {
   e.preventDefault();
@@ -99,7 +99,7 @@ jest.mock("@/hooks/Events/useEventForm", () => ({
   useEventForm: jest.fn(() => mockHookReturn),
 }));
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Helpers ────────
 
 function renderForm(props: Record<string, any> = {}) {
   return render(
@@ -114,7 +114,7 @@ function renderForm(props: Record<string, any> = {}) {
   );
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("EventForm", () => {
   beforeEach(() => {
@@ -131,7 +131,7 @@ describe("EventForm", () => {
     mockHandleSubmit.mockImplementation((e: any) => e.preventDefault());
   });
 
-  // ── Task prompt view ────────────────────────────────────────────────────────
+  // ── Task prompt view ─────
 
   describe("task prompt view", () => {
     it("should render TaskPromptSection when showTaskPrompt and createdEventId are set", () => {
@@ -168,7 +168,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Conflict view ───────────────────────────────────────────────────────────
+  // ── Conflict view 
 
   describe("conflict view", () => {
     it("should render the conflict warning when showConflict is true", () => {
@@ -211,7 +211,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Normal form ─────────────────────────────────────────────────────────────
+  // ── Normal form ──
 
   describe("normal form", () => {
     it("should render the title input with the current title", () => {
@@ -258,7 +258,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Google event locking ──────────────────────────────────────────────────
+  // ── Google event locking ─────────
 
   describe("google event locking", () => {
     it("should show the Google locked banner when isGoogle is true", () => {
@@ -291,7 +291,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Recurring event mode toggle ─────────────────────────────────────────────
+  // ── Recurring event mode toggle ────
 
   describe("recurring event mode toggle", () => {
     it("should show mode toggle buttons for recurring non-Google events in edit mode", () => {
@@ -336,7 +336,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Recurrence section ──────────────────────────────────────────────────────
+  // ── Recurrence section ───
 
   describe("recurrence section", () => {
     it("should show the repeat select in series edit mode for non-Google events", () => {
@@ -410,7 +410,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Submit button ───────────────────────────────────────────────────────────
+  // ── Submit button 
 
   describe("submit button", () => {
     it("should show 'Create Event' for a new event", () => {
@@ -444,7 +444,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Delete button ───────────────────────────────────────────────────────────
+  // ── Delete button 
 
   describe("delete button", () => {
     it("should show 'Delete Entire Event' for an existing non-Google event in series mode", () => {
@@ -477,7 +477,7 @@ describe("EventForm", () => {
     });
   });
 
-    // ── submitBtnClass branch coverage ──────────────────────────────────────────
+    // ── submitBtnClass branch coverage ─
   describe("submit button class", () => {
     it("applies indigo class for series edit mode non-Google non-calculating", () => {
       mockHookReturn = { ...defaultHookReturn, editMode: "series", isGoogle: false, isCalculating: false };
@@ -508,7 +508,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Date/time input onChange handlers ───────────────────────────────────────
+  // ── Date/time input onChange handlers ─────────
   describe("date and time inputs", () => {
     it("should call setStartDate when start date changes", () => {
       renderForm();
@@ -539,7 +539,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Recurrence checkbox and until input ─────────────────────────────────────
+  // ── Recurrence checkbox and until input ───────
   describe("recurrence inputs", () => {
     it("should call setRecurrenceUntil when the until date changes", () => {
       mockHookReturn = {
@@ -558,7 +558,7 @@ describe("EventForm", () => {
     });
   });
 
-  // ── Category buttons disabled when isGoogle ──────────────────────────────────
+  // ── Category buttons disabled when isGoogle ────
   describe("category buttons when google locked", () => {
     it("should disable all category buttons when isGoogle is true", () => {
       mockHookReturn = { ...defaultHookReturn, isGoogle: true };

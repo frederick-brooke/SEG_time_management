@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import EventDetailModal from "../EventDetailModal";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Mocks ─────────
 
 jest.mock("date-fns", () => ({
   format: jest.fn(() => "Monday, June 3rd · 10:00 AM"),
@@ -32,7 +32,7 @@ jest.mock("@/components/calendar/EventForm", () => ({
   ),
 }));
 
-// ── Factory helpers ───────────────────────────────────────────────────────────
+// ── Factory helpers 
 
 /**
  * Creates a mock calendar event.
@@ -99,12 +99,12 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
+// ── Tests 
 
 describe("EventDetailModal", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // ── Modal behaviour ─────────────────────────────────────────────────────────
+  // ── Modal behaviour ──────
 
   describe("modal behaviour", () => {
     it("should call onClose when the backdrop is clicked", () => {
@@ -131,7 +131,7 @@ describe("EventDetailModal", () => {
     });
   });
 
-  // ── Calendar event detail view ──────────────────────────────────────────────
+  // ── Calendar event detail view ─────
 
   describe("calendar event detail view", () => {
     it("should render the event title", () => {
@@ -224,7 +224,7 @@ describe("EventDetailModal", () => {
     });
   });
 
-  // ── Task detail view ────────────────────────────────────────────────────────
+  // ── Task detail view ─────
 
   describe("task detail view", () => {
     it("should render the TASK badge for task events", () => {
@@ -368,7 +368,7 @@ describe("EventDetailModal", () => {
     });
   });
 
-  // ── Task edit form ──────────────────────────────────────────────────────────
+  // ── Task edit form ───────
 
   describe("task edit form", () => {
     it("should render the TaskForm when isTaskEditOpen is true", () => {
@@ -415,7 +415,7 @@ describe("EventDetailModal", () => {
     });
   });
 
-  // ── New event form ──────────────────────────────────────────────────────────
+  // ── New event form ───────
 
   describe("new event form", () => {
     it("should render EventForm in new-mode when selectedEvent is null", () => {
@@ -440,7 +440,7 @@ describe("EventDetailModal", () => {
     });
   });
 
-  // ── Edit event form ─────────────────────────────────────────────────────────
+  // ── Edit event form ──────
 
   describe("edit event form", () => {
     it("should render EventForm in edit-mode when isEditing is true", () => {

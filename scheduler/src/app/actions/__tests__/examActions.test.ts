@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { checkUpcomingDeadlines, saveTopicAsTask } from "../examNotifications";
 import { examPlannerLogic } from "@/lib/examPlannerLogic";
 import { getServers } from "node:dns";
+import { mock } from "node:test";
 
 jest.mock("next-auth", () => ({
     __esModule: true,
@@ -29,16 +30,14 @@ jest.mock("@/lib/prisma", () => ({
             update: jest.fn(),
             delete: jest.fn(),
         },
-        $transaction: jest.fn(async (cb) => {
-            const txMock = {
-                category: { create: jest.fn().mockResolvedValue({ name: "MockCat" })},
-                exam: { create: jest.fn().mockResolvedValue({ id: "exam-123" })},
-                event: { create: jest.fn().mockResolvedValue({})},
-            };
-            return await cb(txMock);
-        }),
+        $transaction: jest.fn(),
         category: { create: jest.fn() },
-        event: { create: jest.fn() },
+        event: { 
+            deleteMany: jest.fn(),
+        },
+        task: { 
+            deleteMany: jest.fn(),
+        },
     },
 }));
 
@@ -146,9 +145,19 @@ describe("examActions", () => {
 
     describe("deleteExam", () => {
         it("deletes exam successfully", async () => {
-            (prisma.exam.delete as jest.Mock).mockResolvedValueOnce({});
+            (getServerSession as jest.Mock).mockResolvedValue({ user: mockUser });
+
+            (prisma.exam.findUnique as jest.Mock).mockResolvedValueOnce({
+                id: "exam-1",
+                title: "Test Exam"
+            });
+
+            (prisma.$transaction as jest.Mock).mockResolvedValueOnce([{}, {}, {}]);
+
             const result = await deleteExam("exam-1");
+
             expect(result.success).toBe(true);
+            expect(prisma.$transaction).toHaveBeenCalled();
         });
 
         it("returns error on failure", async () => {

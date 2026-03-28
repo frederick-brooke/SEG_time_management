@@ -1,3 +1,7 @@
+/**
+ * Displays the messages page.
+ */
+
 export default function MessagesPage() {
   return (
     <div className="flex-1 flex items-center justify-center text-center">

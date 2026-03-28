@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
 import { act } from "@testing-library/react";
 
-// ─── Mock ALL external components/hooks before any imports ───────────────────
+// ─── Mock ALL external components/hooks before any imports ─────────
 // This is the fix for "Element type is invalid: got undefined" —
 // every component used inside ReminderContainer must be mocked here.
 
@@ -52,13 +52,13 @@ jest.mock("@tabler/icons-react", () => ({
   IconClock: () => <svg data-testid="icon-clock" />,
 }));
 
-// ─── Now import the component under test ─────────────────────────────────────
+// ─── Now import the component under test ───────
 
 import ReminderContainer from "@/components/wellbeing/reminder_display";
 import { useUI } from "@/context/UIContext";
 import { useReminders } from "hooks/useReminders";
 
-// ─── Shared test helpers ──────────────────────────────────────────────────────
+// ─── Shared test helpers ───
 
 const mockSetWellbeingOpen = jest.fn();
 const mockHandleToggleClick = jest.fn();
@@ -84,7 +84,7 @@ const DEFAULT_PROPS = {
   firedText: "Fired Text",
 };
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
+// ─── Setup ─────────
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -99,11 +99,11 @@ beforeEach(() => {
   (useReminders as jest.Mock).mockReturnValue({ ...DEFAULT_REMINDER });
 });
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ─── Tests ─────────
 
 describe("ReminderContainer", () => {
 
-  // ── Rendering ──────────────────────────────────────────────────────────────
+  // ── Rendering ───
 
   describe("basic rendering", () => {
     test("renders without crashing", () => {
@@ -133,7 +133,7 @@ describe("ReminderContainer", () => {
     });
   });
 
-  // ── Enabled state ──────────────────────────────────────────────────────────
+  // ── Enabled state ───────
 
   describe("enabled state", () => {
     test("shows iconOn when enabled", () => {
@@ -176,7 +176,7 @@ describe("ReminderContainer", () => {
     });
   });
 
-  // ── formatMs ───────────────────────────────────────────────────────────────
+  // ── formatMs ────
 
   describe("formatMs display", () => {
     function renderWithMs(remainingMs: number) {
@@ -229,7 +229,7 @@ describe("ReminderContainer", () => {
     });
   });
 
-  // ── Toggle click behaviour ─────────────────────────────────────────────────
+  // ── Toggle click behaviour ────────
 
   describe("toggle click", () => {
     test("opens settings modal when durationMs is null", () => {
@@ -264,7 +264,7 @@ describe("ReminderContainer", () => {
     });
   });
 
-  // ── Settings modal ─────────────────────────────────────────────────────────
+  // ── Settings modal ──────
 
   describe("settings modal", () => {
     test("opens settings modal when settings button is clicked", () => {
@@ -327,7 +327,7 @@ describe("ReminderContainer", () => {
     });
   });
 
-  // ── Fired modal ────────────────────────────────────────────────────────────
+  // ── Fired modal ─
 
   describe("fired modal", () => {
     test("fired modal is not shown by default", () => {
@@ -400,7 +400,7 @@ describe("ReminderContainer", () => {
     });
   });
 
-  // ── useReminders hook wiring ───────────────────────────────────────────────
+  // ── useReminders hook wiring ──────
 
   describe("useReminders hook wiring", () => {
     test("passes correct id to useReminders", () => {

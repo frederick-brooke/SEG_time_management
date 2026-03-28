@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { awardTaskPoints, revokeTaskPoints } from "@/lib/points";
 
-// ── DELETE ────────────────────────────────────────────────────────────────────
+// ── DELETE ─────────
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -20,7 +20,7 @@ export async function DELETE(
   }
 }
 
-// ── PATCH ─────────────────────────────────────────────────────────────────────
+// ── PATCH 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -71,7 +71,7 @@ export async function PATCH(
         ? new Date(body.scheduledTime)
         : null;
 
-    // ── progress field (from check-in partial completion) ────────────────────
+    // ── progress field (from check-in partial completion) 
     if (body.progress !== undefined) d.progress = body.progress ?? null;
 
     if (body.status !== undefined) {

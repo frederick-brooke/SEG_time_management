@@ -1,3 +1,9 @@
+/**
+ * Server-side Module Detail page.
+ * Validates session, loads module data, and fetches role-based
+ * events and tasks before passing everything to the client component.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";

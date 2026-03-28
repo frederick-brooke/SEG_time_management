@@ -130,11 +130,33 @@ export async function deleteExam(examId: string) {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) return { success: false, error: "Unauthorised" };
 
-        await prisma.exam.delete({
-            where: { id: examId, userId: session.user.id }
+        const exam = await prisma.exam.findUnique({
+            where: { id: examId, userId: session.user.id },
+            select: { title: true }
         });
 
-        revalidatePath("/exam-planner")
+        if (!exam) return { success: false, error: "Exam not found"};
+
+        await prisma.$transaction([
+            prisma.event.deleteMany({
+                where: {
+                    userId: session.user.id,
+                    title: `Exam: ${exam.title}`
+                },
+            }),
+
+            prisma.task.deleteMany({
+                where: { examId: examId }
+            }),
+
+            prisma.exam.delete({
+                where: { id: examId, userId: session.user.id }
+            }),
+        ]);
+
+        revalidatePath("/exam-planner");
+        revalidatePath("/calendar");
+        revalidatePath("/exam-hub");
         return { success: true };
     } catch (error) {
         return { success: false, error: "Failed to delete exam" };
