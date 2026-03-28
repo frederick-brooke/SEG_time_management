@@ -1,7 +1,11 @@
+/**
+ * Testing for Settings Client.
+ */
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { SettingsClient } from './SettingsClient';
+import { SettingsClient } from '../SettingsClient';
 
 jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),
@@ -16,7 +20,6 @@ jest.mock('@/app/actions/settings', () => ({
   deleteAccount: jest.fn().mockResolvedValue({}),
 }));
 
-// ✅ NEW: Mock the location action to prevent deep server-side imports
 jest.mock('@/app/actions/update-user-location', () => ({
   updateLocationHidden: jest.fn().mockResolvedValue({ success: true }),
 }));
@@ -36,7 +39,7 @@ const defaultUser = {
   email: 'test@test.com',
   hasPassword: true,
   hasGoogleConnected: false,
-  location: { lat: 40.7128, lng: -74.0060 }, // Example: New York City
+  location: { lat: 40.7128, lng: -74.0060 }, // E.g., New York City
   city: 'New York',
   country: 'United States',
   locationHidden: false,
@@ -105,7 +108,7 @@ describe('SettingsClient', () => {
         updateLocationHidden.mockResolvedValueOnce({ success: true });
         render(<SettingsClient user={defaultUser} />);
         fireEvent.click(screen.getByText('Privacy'));
-        fireEvent.click(screen.getByRole('button', { name: '' })); // the toggle button
+        fireEvent.click(screen.getByRole('button', { name: '' }));
         await waitFor(() => expect(screen.getByText('Location visibility updated.')).toBeInTheDocument());
       });
 

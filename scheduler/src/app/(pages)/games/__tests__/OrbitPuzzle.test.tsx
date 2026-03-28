@@ -1,8 +1,13 @@
+/**
+ * Testing for Orbit Puzzle page.
+ */
+
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import OrbitPuzzle from "./OrbitPuzzle"; // Adjust path as needed
+import OrbitPuzzle from "../OrbitPuzzle";
 import { payGameEntry } from "@/app/actions/games";
 
-// 1. Mock External Dependencies
+// Mocks
+
 jest.mock("@/app/actions/games", () => ({
   payGameEntry: jest.fn(),
 }));
@@ -11,7 +16,6 @@ jest.mock("@/components/ui/gold-coin", () => ({
   GoldCoin: () => <span data-testid="gold-coin">🪙</span>,
 }));
 
-// Mock the config to make tests completely predictable
 jest.mock("@/lib/games-config", () => ({
   DIFFICULTY_CONFIG: {
     easy: { label: "Easy", pairs: 2, timeLimit: 30, cost: 100 }, 
@@ -31,7 +35,7 @@ describe("Orbit Puzzle Game", () => {
       jest.runOnlyPendingTimers();
     });
     jest.useRealTimers();
-    jest.restoreAllMocks(); // Restores Math.random if we mocked it
+    jest.restoreAllMocks();
   });
 
   const flushPromises = async () => {
@@ -40,7 +44,8 @@ describe("Orbit Puzzle Game", () => {
     });
   };
 
-  // --- LOBBY & SETUP TESTS ---
+
+  // Lobby and setup tests
 
   it("renders the lobby with initial balance", () => {
     render(<OrbitPuzzle initialBalance={1000} />);
@@ -54,7 +59,6 @@ describe("Orbit Puzzle Game", () => {
     const mediumBtn = screen.getByText("Medium").closest("button");
     fireEvent.click(mediumBtn!);
     
-    // The launch button should update to reflect the medium cost
     expect(screen.getByRole("button", { name: /Launch — 250 coins/i })).toBeInTheDocument();
   });
 
@@ -74,7 +78,8 @@ describe("Orbit Puzzle Game", () => {
     expect(screen.getByText("Insufficient funds API error")).toBeInTheDocument();
   });
 
-  // --- COUNTDOWN & TRANSITION TESTS ---
+
+  // Countdown and transition tests
 
   it("starts the countdown after a successful payment and transitions to playing", async () => {
     (payGameEntry as jest.Mock).mockResolvedValue({ newBalance: 900 });
@@ -91,16 +96,14 @@ describe("Orbit Puzzle Game", () => {
     });
 
     const cards = screen.getAllByRole("button", { name: "🌑" });
-    expect(cards.length).toBe(4); // Easy mode = 2 pairs = 4 cards
+    expect(cards.length).toBe(4);
     expect(screen.getByText(/⏱ 30s/i)).toBeInTheDocument();
   });
 
-  // --- GAMEPLAY TESTS ---
+
+  // Gameplay tests
 
   it("flips cards and handles a MISMATCH correctly", async () => {
-    // Mock Math.random to always return 0. 
-    // This makes our Fisher-Yates shuffle strictly predictable.
-    // Resulting array will always be: ["⭐", "🪐", "⭐", "🪐"]
     jest.spyOn(Math, 'random').mockReturnValue(0);
     
     (payGameEntry as jest.Mock).mockResolvedValue({ newBalance: 900 });
@@ -108,30 +111,24 @@ describe("Orbit Puzzle Game", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Launch/i }));
     await flushPromises();
-    act(() => { jest.advanceTimersByTime(3000); }); // Skip countdown
+    act(() => { jest.advanceTimersByTime(3000); });
 
     const cards = screen.getAllByRole("button");
     
-    // Click card 0 ("⭐") and card 1 ("🪐")
     fireEvent.click(cards[0]);
     fireEvent.click(cards[1]);
 
     expect(cards[0].textContent).toBe("⭐");
     expect(cards[1].textContent).toBe("🪐");
 
-    // Wait for the mismatch timeout (900ms)
     act(() => { jest.advanceTimersByTime(900); });
 
-    // Cards should be face down again
     expect(cards[0].textContent).toBe("🌑");
     expect(cards[1].textContent).toBe("🌑");
-    
-    // Moves counter should increment
     expect(screen.getByText("👆 1 moves")).toBeInTheDocument();
   });
 
   it("handles a MATCH correctly and triggers Game Won", async () => {
-    // Layout: ["⭐", "🪐", "⭐", "🪐"]
     jest.spyOn(Math, 'random').mockReturnValue(0);
     
     (payGameEntry as jest.Mock).mockResolvedValue({ newBalance: 900 });
@@ -139,29 +136,26 @@ describe("Orbit Puzzle Game", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Launch/i }));
     await flushPromises();
-    act(() => { jest.advanceTimersByTime(3000); }); // Skip countdown
+    act(() => { jest.advanceTimersByTime(3000); });
 
     const cards = screen.getAllByRole("button");
 
-    // Click card 0 and 2 (both "⭐")
     fireEvent.click(cards[0]);
     fireEvent.click(cards[2]);
 
-    // Wait for the match timeout (400ms)
     act(() => { jest.advanceTimersByTime(400); });
 
-    // Click card 1 and 3 (both "🪐")
     fireEvent.click(cards[1]);
     fireEvent.click(cards[3]);
 
     act(() => { jest.advanceTimersByTime(400); });
 
-    // Verify win screen
     expect(screen.getByText("Mission Complete!")).toBeInTheDocument();
     expect(screen.getByText(/Matched all 2 pairs in 2 moves/i)).toBeInTheDocument();
   });
 
-  // --- ENDGAME TESTS ---
+
+  // Endgame tests
 
   it("triggers Game Over when time runs out and allows returning to lobby", async () => {
     (payGameEntry as jest.Mock).mockResolvedValue({ newBalance: 900 });
@@ -169,17 +163,14 @@ describe("Orbit Puzzle Game", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Launch/i }));
     await flushPromises();
-    act(() => { jest.advanceTimersByTime(3000); }); // Skip countdown
 
-    // Fast-forward 30 seconds (mocked Easy time limit)
+    act(() => { jest.advanceTimersByTime(3000); });
     act(() => { jest.advanceTimersByTime(30000); });
 
     expect(screen.getByText("Mission Failed")).toBeInTheDocument();
     
-    // Click the lobby button
     fireEvent.click(screen.getByRole("button", { name: "Lobby" }));
     
-    // Verify we are back
     expect(screen.getByText("Orbit Puzzle")).toBeInTheDocument();
   });
 });

@@ -1,12 +1,15 @@
+/**
+ * Testing for messages/[conversationId]/layout.
+ */
+
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import ConversationPage from "../page";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-// ---------------------------------------------------------------------------
-// Module mocks
-// ---------------------------------------------------------------------------
+
+// Mocks
 
 jest.mock("next/navigation", () => ({
   useParams: jest.fn(),
@@ -80,9 +83,7 @@ jest.mock("@/components/messaging/MessageInput", () => ({
   ),
 }));
 
-// ---------------------------------------------------------------------------
-// Pusher mock
-// ---------------------------------------------------------------------------
+// Pusher Mock
 
 const pusherHandlers: Record<string, Function> = {};
 
@@ -109,9 +110,7 @@ jest.mock("pusher-js", () =>
   }))
 );
 
-// ---------------------------------------------------------------------------
 // Browser API mocks
-// ---------------------------------------------------------------------------
 
 class MockIntersectionObserver {
   callback: IntersectionObserverCallback;
@@ -128,9 +127,7 @@ beforeAll(() => {
   window.HTMLElement.prototype.scrollIntoView = jest.fn();
 });
 
-// ---------------------------------------------------------------------------
-// Shared fixtures
-// ---------------------------------------------------------------------------
+// Shared Fixtures
 
 const SESSION = { user: { id: "user-1", name: "Alice", username: "alice" } };
 
@@ -173,9 +170,7 @@ const GROUP_DETAILS = { ...CONV_DETAILS, isGroup: true, name: "Study Group" };
 
 const mockPush = jest.fn();
 
-// ---------------------------------------------------------------------------
-// Setup helper
-// ---------------------------------------------------------------------------
+//Setup helper
 
 function setupMocks({
   messages = MESSAGES,
@@ -234,9 +229,7 @@ beforeEach(() => {
   Object.keys(pusherHandlers).forEach((k) => delete pusherHandlers[k]);
 });
 
-// ---------------------------------------------------------------------------
 // Rendering
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – rendering", () => {
   it("renders the message input on mount", async () => {
@@ -322,9 +315,7 @@ describe("ConversationPage – rendering", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Data fetching
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – data fetching", () => {
   it("fetches messages on mount", async () => {
@@ -374,9 +365,7 @@ describe("ConversationPage – data fetching", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Group features
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – group features", () => {
   it("shows MembersPanel when Toggle Members is clicked", async () => {
@@ -423,9 +412,7 @@ describe("ConversationPage – group features", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Sending messages
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – sending messages", () => {
   it("sends a message when Send is clicked", async () => {
@@ -471,7 +458,7 @@ describe("ConversationPage – sending messages", () => {
   it("adds an optimistic message immediately before API responds", async () => {
     setupMocks();
     await renderAndSettle();
-    global.fetch = jest.fn().mockReturnValue(new Promise(() => {})); // never resolves
+    global.fetch = jest.fn().mockReturnValue(new Promise(() => {}));
     fireEvent.change(screen.getByTestId("textarea"), { target: { value: "Optimistic" } });
     act(() => { fireEvent.click(screen.getByTestId("send-btn")); });
     expect(screen.getByText("Optimistic")).toBeInTheDocument();
@@ -538,9 +525,7 @@ describe("ConversationPage – sending messages", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Typing indicator
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – typing indicator", () => {
   it("sends isTyping=true POST when user types", async () => {
@@ -603,9 +588,7 @@ describe("ConversationPage – typing indicator", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Pusher real-time messages
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – Pusher", () => {
   it("subscribes to the conversation channel on mount", async () => {
@@ -669,9 +652,7 @@ describe("ConversationPage – Pusher", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Member management
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – member management", () => {
   it("calls DELETE with userId when Remove is confirmed", async () => {
@@ -708,9 +689,7 @@ describe("ConversationPage – member management", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Promote / demote
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – promote/demote", () => {
   it("calls PATCH with role=admin when promoting a member", async () => {
@@ -773,9 +752,7 @@ describe("ConversationPage – promote/demote", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // AddMemberModal
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – AddMemberModal", () => {
   it("shows modal when Add Member is clicked", async () => {
@@ -805,9 +782,7 @@ describe("ConversationPage – AddMemberModal", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Avatar click
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – avatar click", () => {
   it("navigates to the sender's profile when avatar is clicked", async () => {
@@ -825,9 +800,7 @@ describe("ConversationPage – avatar click", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Date dividers
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – date dividers", () => {
   it("renders a date divider for the first message", async () => {
@@ -889,9 +862,7 @@ describe("ConversationPage – date dividers", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // loadMore / pagination
-// ---------------------------------------------------------------------------
 
 describe("ConversationPage – loadMore", () => {
   it("does not attempt loadMore when hasMore is false (< 20 messages returned)", async () => {

@@ -1,7 +1,13 @@
-import { render, screen } from "@testing-library/react";
-import WellbeingPage from "./page";
+/**
+ * Testing for wellbeing page.
+ */
 
-// Mock child components
+import { render, screen } from "@testing-library/react";
+import WellbeingPage from "../page";
+
+
+// Mocks
+
 jest.mock("components/wellbeing/quote_block", () => () => (
   <div data-testid="quote-block">QuoteBlock</div>
 ));
@@ -9,6 +15,9 @@ jest.mock("components/wellbeing/quote_block", () => () => (
 jest.mock("components/wellbeing/timer_controller", () => () => (
   <div data-testid="timer-controller">TimerController</div>
 ));
+
+
+// Tests
 
 describe("WellbeingPage", () => {
   test("renders without crashing", () => {

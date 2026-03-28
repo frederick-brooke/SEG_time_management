@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * Groups page client component.
+ * Handles sorting, pagination, and creation of groups while rendering a paginated list of GroupCard components.
+ * Provides UI controls for sorting, navigating pages, and opening the create group modal.
+ */
+
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { GroupCard } from "@/components/groups/GroupCard";

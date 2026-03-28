@@ -1,10 +1,16 @@
+/**
+ * Server Map page that fetches user events and location data,
+ * then passes serialised props to the client Map UI.
+ */
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// UI components/map
+// UI components/ map
 import MapPageClient from "./MapPageClient";
 import type { Event } from "@prisma/client";
+
 
 // Types 
 
@@ -23,6 +29,7 @@ export type SerialisedEvent = {
   travelDuration: number | null;
   transportMode: string | null;
 };
+
 
 // Data helpers 
 
@@ -74,6 +81,7 @@ function getEventCountLabel(count: number): string {
   return `Showing ${count} event${count !== 1 ? "s" : ""} with locations`;
 }
 
+
 // Page 
 
 export default async function MapPage() {
@@ -99,6 +107,7 @@ export default async function MapPage() {
     </main>
   );
 }
+
 
 // Sub-components
 

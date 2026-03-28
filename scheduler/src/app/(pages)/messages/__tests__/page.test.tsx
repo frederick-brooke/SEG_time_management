@@ -1,3 +1,7 @@
+/**
+ * Testing for messages page.
+ */
+
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import MessagesPage from "../page";

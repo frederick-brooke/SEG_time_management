@@ -1,3 +1,10 @@
+/**
+ * Seeds the database with mock data for development.
+ * Creates users, tasks, events, exams, shop items, and friendships.
+ *
+ * Uses Faker for realistic data generation.
+ */
+
 import { PrismaClient, FriendStatus } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import bcrypt from 'bcryptjs'
@@ -7,7 +14,7 @@ const prisma = new PrismaClient()
 
 // Constants
 
-const SEED_USER_COUNT = 20
+const SEED_USER_COUNT = 200
 const SEED_TASKS_PER_USER = 3
 const SEED_EVENTS_PER_USER = 6
 const SEED_EXAMS_PER_USER = 2
@@ -101,7 +108,6 @@ async function seedTasksForUser(userId: string): Promise<void> {
     const status = faker.helpers.arrayElement(TASK_STATUSES)
     const completedAt = status === 'done' ? faker.date.recent({ days: 7 }) : null
 
-    // subtasks is a String[] on the Task model itself — no separate model
     const subtasks = faker.datatype.boolean(0.5)
       ? Array.from(
           { length: faker.number.int({ min: 1, max: 4 }) },
@@ -119,7 +125,7 @@ async function seedTasksForUser(userId: string): Promise<void> {
         dueDate: randomFutureDate(MAX_DUE_DATE_DAYS),
         status,
         completedAt,
-        durationMins: String(durationMins), // durationMins is String? in schema
+        durationMins: String(durationMins),
         priority: faker.helpers.arrayElement(TASK_PRIORITIES),
         subtasks,
       },

@@ -1,4 +1,10 @@
 "use client";
+
+/**
+ * Admin dashboard for managing users, reports, and appeals.
+ * Includes filtering, pagination, and tabbed views.
+ */
+
 import { useState } from "react";
 import UserFilter from "@/components/admin/user-filter-panel";
 import ReportFilter from "@/components/admin/report-filter-panel";
@@ -11,7 +17,7 @@ import AppealsManagement from "@/components/admin/appealManagement";
 import AdminStatistics from "@/components/admin/admin-statistics";
 import AppealFilter from "@/components/admin/appeal-filter-panel";
 
-//UI components
+// UI components
 import StarField from "@/components/effects/starField";
 import GlowBackground from "@/components/ui/glowBackground";
 import GlassCard from "@/components/ui/glassCard";
@@ -24,7 +30,7 @@ import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
  * @returns {JSX.Element} The admin dashboard page.
  */
 export default function AdminPage() {
-  //User management states
+  // User management states
   const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page:1, limit: 10};  //user search parameters
   const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
   const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
@@ -37,11 +43,12 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState(null);   
   const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  
 
-  //report management
+  // Report management
   const [currentReportPage, setCurrentReportPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
-  //report filter states
+
+  // Report filter states
   const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12 };
   const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
   const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
@@ -67,13 +74,13 @@ export default function AdminPage() {
   const { reports, totalReportPages, totalReports, reportLoading, fetchReports,} = useAdminReports(appliedReportFilters);
   const { appeals, totalAppealPages, totalAppeals, fetchAppeals,} = useAdminAppeals(appliedAppealFilters);
 
-  const [currentTab, setCurrentTab] = useState("reports");  //display the current system, defaults on the reports subsection
+  const [currentTab, setCurrentTab] = useState("reports");  // Display the current system, defaults on the reports subsection
 
   if (loading || reportLoading) {
     return <p className="p-6">Loading...</p>;
   }
   
-  //tabulated access allows for different views to appear on each tab
+  // Tabulated access allows for different views to appear on each tab
   const tabs: Record<string, React.ReactNode> = {
     reports: (
       <ReportManagement
@@ -117,14 +124,14 @@ export default function AdminPage() {
           Admin Dashboard
         </h1>
 
-        {/* background effects */}
+        {/* Background effects */}
         <StarField density={100} />
         <GlowBackground />
 
-        {/* admin statistics */}
+        {/* Admin statistics */}
         <AdminStatistics/>
 
-            {/* Container for the user reporting system*/}
+            {/* Container for the user reporting system */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -151,7 +158,7 @@ export default function AdminPage() {
                 animate={{ opacity: 1, y: 0}}
               >
                 <GlassCard>
-                  {/* tabs header title */}
+                  {/* Tabs header title */}
                   <div className="flex border-b mb-4">
                     <button
                       onClick={() => setCurrentTab("reports")}
@@ -172,7 +179,7 @@ export default function AdminPage() {
                     </button>
                   </div>
 
-                  {/* render the active tab */}
+                  {/* Render the active tab */}
                   {tabs[currentTab]}
                 </GlassCard>
                 
@@ -197,7 +204,7 @@ export default function AdminPage() {
                 resetFilters={() => {
                   setAppliedUserFilters(defaultUserFilters);
                 }} 
-                type={"admin"} /* needed to show admin category sorting etc*/           
+                type={"admin"}      
               />
             )} 
               

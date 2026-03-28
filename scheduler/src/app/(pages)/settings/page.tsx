@@ -1,3 +1,9 @@
+/**
+ * Server-side Settings page.
+ * Authenticates the user, fetches account and profile settings from the database,
+ * and passes normalized data to the Settings client component.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";

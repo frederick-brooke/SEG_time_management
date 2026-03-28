@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * Client-side Profile page container.
+ * Manages profile UI state (editing, friends list, transitions)
+ * and composes all profile-related sections and stats cards.
+ */
+
 import { useState, useTransition } from "react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { removeFriend } from "@/app/actions/profile";

@@ -1,3 +1,10 @@
+/**
+ * Server-side User Profile page.
+ * Authenticates the user, resolves the target username,
+ * prevents self-profile access, and fetches profile data
+ * before rendering the client profile view.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";

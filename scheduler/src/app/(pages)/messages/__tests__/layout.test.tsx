@@ -1,9 +1,15 @@
+/**
+ * Testing for messages/layout.
+ */
+
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MessagesLayout from "../layout";
 import { useParams, useRouter } from "next/navigation";
 
+
 // Module mocks
+
 jest.mock("next/navigation", () => ({
   useParams: jest.fn(),
   useRouter: jest.fn(),
@@ -23,7 +29,9 @@ jest.mock("components/messaging/ConversationList", () => ({
   default: () => <div data-testid="conversation-list" />,
 }));
 
+
 // Helpers
+
 import { useSidebar } from "components/ui/sidebar";
 
 const mockPush = jest.fn();
@@ -43,7 +51,9 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+
 // Tests
+
 describe("MessagesLayout – sidebar content", () => {
   it("renders the Messages heading", () => {
     setupMocks();

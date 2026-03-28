@@ -1,3 +1,9 @@
+/**
+ * Group detail client page.
+ * Manages group tasks, events, and settings with full CRUD actions and modal-based UI.
+ * Handles client-side state and communicates with server actions to update group data.
+ */
+
 'use client';
 
 import { useState } from "react";
@@ -39,8 +45,7 @@ const EMPTY_TASK_FORM = {
  */
 export default function GroupDetailClient({ group, events, tasksWithProgress }: any) {
   const router = useRouter();
-  
-  // Flat hierarchy: You are either the OWNER or a standard member.
+
   const isOwner = group.userRole === "OWNER";
 
   // Modal States
@@ -53,7 +58,8 @@ export default function GroupDetailClient({ group, events, tasksWithProgress }: 
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const [editingEvent, setEditingEvent] = useState<any | null>(null);
 
-  // --- Task Handlers ---
+
+  // Task handlers
 
   /**
    * Submits the task form state to the server to create or update a group task.
@@ -139,7 +145,7 @@ export default function GroupDetailClient({ group, events, tasksWithProgress }: 
     else alert("error" in result ? result.error : "Failed to update task");
   };
 
-  // --- Event Handlers ---
+  // Event handlers
 
   /**
    * Prompts for confirmation and deletes all member copies of a shared event.
@@ -192,7 +198,7 @@ export default function GroupDetailClient({ group, events, tasksWithProgress }: 
         </div>
       </div>
 
-      {/* ── Modals ── */}
+      {/* Modals */}
       
       {showSettings && (
         <GroupSettingsModal 

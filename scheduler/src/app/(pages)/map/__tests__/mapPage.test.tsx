@@ -1,13 +1,23 @@
+/**
+ * Testing for Map page.
+ */
+
 import React, { ReactElement } from "react";
 import { render, screen } from "@testing-library/react";
-import MapPage from "./page";
+import MapPage from "../page";
+
 
 // Mocks 
 
 const mockGetServerSession = jest.fn();
 const mockFindMany = jest.fn();
+const mockFindUnique = jest.fn();
 
 jest.mock("next-auth/next", () => ({
+  getServerSession: (...args: any[]) => mockGetServerSession(...args),
+}));
+
+jest.mock("next-auth", () => ({
   getServerSession: (...args: any[]) => mockGetServerSession(...args),
 }));
 
@@ -16,10 +26,10 @@ jest.mock("@/lib/auth", () => ({ authOptions: {} }));
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     event: { findMany: (...args: any[]) => mockFindMany(...args) },
+    user: { findUnique: (...args: any[]) => mockFindUnique(...args) },
   },
 }));
 
-// Renders a minimal stand-in so tests aren't coupled to map implementation details
 jest.mock("@/components/map/MapView", () => ({
   __esModule: true,
   default: ({ events }: { events: any[] }) => (
@@ -31,9 +41,16 @@ jest.mock("@/components/map/SavedLocationsPanel", () => ({
   SavedLocationsPanel: () => <div data-testid="saved-locations-panel" />,
 }));
 
+
 // Fixtures
 
-const SESSION = { user: { id: "user-1", name: "Test User" } };
+const SESSION = {
+  user: {
+    id: "user-1",
+    email: "test@example.com",
+    name: "Test User",
+  },
+};
 
 function makeDbEvent(id: string, overrides: Partial<any> = {}) {
   return {
@@ -52,11 +69,16 @@ function makeDbEvent(id: string, overrides: Partial<any> = {}) {
   };
 }
 
+
 // Helpers 
 
 function setupSession(events: any[] = []) {
   mockGetServerSession.mockResolvedValue(SESSION);
   mockFindMany.mockResolvedValue(events);
+  mockFindUnique.mockResolvedValue({
+    location: null,
+    locationHidden: false,
+  });
 }
 
 async function renderMapPage(events: any[] = []) {
@@ -64,6 +86,7 @@ async function renderMapPage(events: any[] = []) {
   const tree = (await MapPage()) as ReactElement;
   render(tree);
 }
+
 
 //  Tests 
 

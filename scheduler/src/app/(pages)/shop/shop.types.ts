@@ -1,15 +1,16 @@
+/**
+ * Shop domain types and configuration.
+ * Defines item contracts, rarity system, and UI theme mappings
+ * used across the Cosmic Avatar Shop feature.
+ */
+
 import { ShopItemType } from "@prisma/client";
 
-// 1. Type Definitions 
-/**
- * Defines the strict literal types for item scarcity tiers.
- * Prevents typos and ensures exhaustive type-checking across the UI.
- */
+// Type Definitions 
 export type ItemRarity = "common" | "rare" | "epic" | "legendary";
 
 /**
  * Defines the styling schema applied to item cards based on their rarity.
- * Centralizes Tailwind utility classes to ensure UI consistency and adhere to DRY principles.
  */
 export interface RarityTheme {
   label: string;
@@ -20,7 +21,7 @@ export interface RarityTheme {
   ring: string;
 }
 
-// 2. Data Interfaces (The Contract) 
+// Data Interfaces
 
 /**
  * Represents a single purchasable item in the cosmic shop.
@@ -63,7 +64,8 @@ export interface ShopData {
   equippedAvatar: string | null;
 }
 
-// 3. Configuration Constants
+
+// Configuration Constants
 
 /**
  * The master configuration dictionary for rarity styling.

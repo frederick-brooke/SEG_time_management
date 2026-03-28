@@ -1,5 +1,11 @@
-// src/app/(pages)/tasks/tests/page.test.tsx
+/**
+ * Testing for tasks page.
+ */
+
 import { render, screen, waitFor, act } from "@testing-library/react";
+
+
+// Mocks
 
 let mockHighlightParam: string | null = null;
 
@@ -52,6 +58,9 @@ function setAuth(status = "authenticated", id = "u1") {
   });
 }
 
+
+// Tests
+
 describe("TasksPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -65,7 +74,7 @@ describe("TasksPage", () => {
     jest.useRealTimers();
   });
 
-  // loading state
+  // Loading state
 
   it("renders the loading state while session status is loading", () => {
     useSessionMock.mockReturnValue({ data: null, status: "loading" });
@@ -73,7 +82,7 @@ describe("TasksPage", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
-  // unauthenticated state
+  // Unauthenticated state
 
   it("renders the login prompt when session is null", () => {
     useSessionMock.mockReturnValue({ data: null, status: "unauthenticated" });
@@ -87,7 +96,7 @@ describe("TasksPage", () => {
     expect(screen.getByText("Please log in to view your tasks.")).toBeInTheDocument();
   });
 
-  // authenticated render
+  // Authenticated render
 
   it("renders ToDoList when authenticated", async () => {
     render(<TasksPage />);
@@ -105,7 +114,7 @@ describe("TasksPage", () => {
     expect(await screen.findByTestId("star-field")).toBeInTheDocument();
   });
 
-  // exam fetching
+  // Exam fetching
 
   it("fetches exams and passes them to ToDoList", async () => {
     getMyExamsMock.mockResolvedValue([{ id: "e1" }, { id: "e2" }]);
@@ -130,7 +139,7 @@ describe("TasksPage", () => {
     expect(getMyExamsMock).not.toHaveBeenCalled();
   });
 
-  // highlight param
+  // Highlight param
 
   it("passes highlightId to ToDoList when the highlight search param is set", async () => {
     mockHighlightParam = "task-42";

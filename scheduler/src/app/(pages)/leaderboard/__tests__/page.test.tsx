@@ -1,6 +1,11 @@
+/**
+ * Testing for Leaderboard page.
+ */
+
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+
 
 // Mocks 
 
@@ -25,7 +30,7 @@ jest.mock('@/components/layout/LunarThemeWrapper', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-jest.mock('./LeaderboardClient', () => ({
+jest.mock('../LeaderboardClient', () => ({
   __esModule: true,
   default: ({ initialData, currentTimeframe }: { initialData: any[]; currentTimeframe: string }) => (
     <div data-testid="leaderboard-client" data-timeframe={currentTimeframe} data-count={initialData.length} />
@@ -46,7 +51,7 @@ jest.mock('@/components/ui/page-header', () => ({
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { getFriendsLeaderboard } from '@/app/actions/leaderboard';
-import LeaderboardPage from './page';
+import LeaderboardPage from '../page';
 
 
 const mockGetServerSession = getServerSession as jest.Mock;

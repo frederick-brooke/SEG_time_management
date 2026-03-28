@@ -1,3 +1,7 @@
+/**
+ * Testing for groups page.
+ */
+
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -6,7 +10,9 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { getGroupDetails, getGroupEvents, getGroupTasksWithProgress, getMyGroups } from "@/app/actions/groups";
 
-//Mock Next.js Navigation
+
+// Mocks
+
 jest.mock("next/navigation", () => ({
   redirect: jest.fn(),
   useRouter: jest.fn(() => ({
@@ -16,15 +22,14 @@ jest.mock("next/navigation", () => ({
   })),
 }));
 
-//Mock NextAuth
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
+
 jest.mock("lib/auth", () => ({
   authOptions: {},
 }));
 
-//Mock Server Actions
 jest.mock("@/app/actions/groups", () => ({
   getGroupDetails: jest.fn(),
   getGroupEvents: jest.fn(),
@@ -40,11 +45,13 @@ jest.mock("../GroupsPageClient", () => ({
     </div>,
 }))
 
-//Mock the Client Component to prevent deep rendering
 jest.mock("@/app/(pages)/groups/[groupId]/GroupDetailClient", () => ({
   __esModule: true,
   default: ({ group }: any) => <div data-testid="client-wrapper">{group.name}</div>,
 }));
+
+
+// Tests
 
 describe("GroupDetailPage Server Component", () => {
   const mockParams = Promise.resolve({ groupId: "grp_123" });
@@ -58,7 +65,7 @@ describe("GroupDetailPage Server Component", () => {
   it("redirects to login if user is not authenticated", async () => {
     (getServerSession as jest.Mock).mockResolvedValueOnce(null);
 
-    // For Async Server Components, we must await the component function call
+    // For Async Server Components, wait for the component function call
     const props = {
       params: Promise.resolve({ groupId: "grp-123" })
     } as any;

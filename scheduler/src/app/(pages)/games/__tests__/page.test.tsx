@@ -1,16 +1,15 @@
 /**
- * @jest-environment node
+ * Testing for Games page
  */
 
-import GamesPage from "./page";
+import GamesPage from "../page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getGameBalance } from "@/app/actions/games";
-import GamesPageClient from "./GamesPageClient";
+import GamesPageClient from "../GamesPageClient";
 
-// 
-// MOCKS
-// 
+// Mocks
+
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
@@ -23,7 +22,7 @@ jest.mock("@/app/actions/games", () => ({
   getGameBalance: jest.fn(),
 }));
 
-jest.mock("./GamesPageClient", () => ({
+jest.mock("../GamesPageClient", () => ({
   __esModule: true,
   default: jest.fn(({ initialBalance }) => (
     <div data-testid="games-client">
@@ -32,15 +31,14 @@ jest.mock("./GamesPageClient", () => ({
   )),
 }));
 
-// 
-// TESTS
-// 
+
+// Tests
+
 describe("GamesPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // ❌ No session → redirect
   it("redirects to /login if no session", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
@@ -49,7 +47,6 @@ describe("GamesPage", () => {
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
-  // ❌ No email → redirect
   it("redirects to /login if session has no email", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
       user: {},
@@ -60,7 +57,6 @@ describe("GamesPage", () => {
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
-  // ✅ Fetch balance + render
   it("fetches balance and renders client component", async () => {
     const mockBalance = 500;
 
@@ -78,7 +74,6 @@ describe("GamesPage", () => {
     expect(result.props.initialBalance).toBe(mockBalance);
   });
 
-  // ✅ Client component receives correct props
   it("passes balance to GamesPageClient", async () => {
     const mockBalance = 999;
 

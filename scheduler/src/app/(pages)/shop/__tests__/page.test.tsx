@@ -1,9 +1,15 @@
+/**
+ * Testing for shop page.
+ */
+
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getShopData } from "@/app/actions/shop";
-import ShopPage from "./page";
+import ShopPage from "../page";
 
-// 1. Update the next/navigation mock to THROW an error, halting execution
+
+// Mocks
+
 jest.mock("next/navigation", () => ({
   redirect: jest.fn(() => {
     throw new Error("NEXT_REDIRECT");
@@ -18,7 +24,7 @@ jest.mock("@/app/actions/shop", () => ({
   getShopData: jest.fn(),
 }));
 
-jest.mock("./ShopPageClient", () => {
+jest.mock("../ShopPageClient", () => {
   return function MockShopPageClient({ initialData }: any) {
     return <div data-testid="client-boundary">{JSON.stringify(initialData)}</div>;
   };
@@ -32,7 +38,6 @@ describe("ShopPage Server Component", () => {
   it("redirects to login if user is not authenticated", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
-    // 2. Expect the component to reject/throw when redirect is called
     await expect(ShopPage()).rejects.toThrow("NEXT_REDIRECT");
 
     expect(getServerSession).toHaveBeenCalled();
@@ -43,7 +48,6 @@ describe("ShopPage Server Component", () => {
     (getServerSession as jest.Mock).mockResolvedValue({ user: { email: "test@test.com" } });
     (getShopData as jest.Mock).mockResolvedValue(null);
 
-    // 2. Expect the component to reject/throw here as well
     await expect(ShopPage()).rejects.toThrow("NEXT_REDIRECT");
 
     expect(getShopData).toHaveBeenCalled();

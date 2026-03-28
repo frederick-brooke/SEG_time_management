@@ -1,3 +1,10 @@
+/**
+ * Group detail server page.
+ * Authenticates the user, fetches group data (details, events, and tasks),
+ * and renders the client-side GroupDetail view.
+ * Returns a fallback UI if the group does not exist or access is denied.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";

@@ -1,13 +1,22 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { AvatarCard } from "./ShopCards";
-import type { ShopItem } from "./shop.types";
+/**
+ * Testing for shop cards.
+ */
 
-// Mock the image catalogue to prevent actual image requests
+import { render, screen, fireEvent } from "@testing-library/react";
+import { AvatarCard } from "../ShopCards";
+import type { ShopItem } from "../shop.types";
+
+
+// Mocks
+
 jest.mock("@/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {
     avatar1: "/mock-avatar-1.png",
   },
 }));
+
+
+// Tests
 
 describe("AvatarCard Component", () => {
   const mockItem: ShopItem = {
@@ -40,8 +49,8 @@ describe("AvatarCard Component", () => {
     
     expect(screen.getByText("Cosmic Voyager")).toBeInTheDocument();
     expect(screen.getByText("A traveler of the stars.")).toBeInTheDocument();
-    expect(screen.getByText("500")).toBeInTheDocument(); // Price
-    expect(screen.getByText("Legendary")).toBeInTheDocument(); // Rarity badge
+    expect(screen.getByText("500")).toBeInTheDocument();
+    expect(screen.getByText("Legendary")).toBeInTheDocument();
   });
 
   it("renders 'Buy' button when item is not owned and affordable", () => {
@@ -65,7 +74,7 @@ describe("AvatarCard Component", () => {
     render(<AvatarCard item={{ ...mockItem, owned: true }} {...mockProps} />);
     
     const equipButton = screen.getByRole("button", { name: /equip/i });
-    expect(screen.getByText("Owned")).toBeInTheDocument(); // Badge
+    expect(screen.getByText("Owned")).toBeInTheDocument();
     
     fireEvent.click(equipButton);
     expect(mockProps.onEquip).toHaveBeenCalledWith(mockItem.id);
@@ -75,7 +84,7 @@ describe("AvatarCard Component", () => {
     render(<AvatarCard item={{ ...mockItem, owned: true }} {...mockProps} equippedAvatar="avatar1" />);
     
     const unequipButton = screen.getByRole("button", { name: /unequip/i });
-    expect(screen.getByText(/equipped/i)).toBeInTheDocument(); // Badge
+    expect(screen.getByText(/equipped/i)).toBeInTheDocument();
     
     fireEvent.click(unequipButton);
     expect(mockProps.onUnequip).toHaveBeenCalled();

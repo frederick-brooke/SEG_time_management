@@ -1,5 +1,10 @@
 "use client";
 
+ /**
+  * Client-side Tasks page.
+  * Loads and renders user exams/tasks with session-based fetching,
+  */
+
 import { Suspense, useEffect, useState } from "react";
 import { ToDoList } from "@/components/to-do-list";
 import { useSession } from "next-auth/react";

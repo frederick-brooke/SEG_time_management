@@ -42,7 +42,7 @@ export default async function CalendarPage() {
 
         {/*
          * CalendarView receives empty arrays as initial props.
-         * All data is fetched client-side on mount — see JSDoc above for reasoning.
+         * All data is fetched client-side on mount.
          */}
         <CalendarView
           events={[]}

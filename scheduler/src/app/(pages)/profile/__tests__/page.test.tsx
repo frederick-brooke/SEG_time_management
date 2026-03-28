@@ -1,3 +1,7 @@
+/**
+ * Testing for profile page.
+ */
+
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { getServerSession } from "next-auth";
@@ -5,7 +9,8 @@ import { redirect } from "next/navigation";
 import { getMyProfile } from "@/app/actions/profile";
 import ProfilePage from "../page";
 
-// --- Mocks ---
+// Mocks
+
 jest.mock("next-auth", () => ({ getServerSession: jest.fn() }));
 jest.mock("next/navigation", () => ({ redirect: jest.fn() }));
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
@@ -24,6 +29,9 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockGetMyProfile = getMyProfile as jest.Mock;
 const mockRedirect = redirect as jest.Mock;
+
+
+// Tests
 
 describe("ProfilePage (Server Component)", () => {
   beforeEach(() => jest.clearAllMocks());

@@ -1,3 +1,7 @@
+/**
+ * Testing for app/(pages)/layout.tsx
+ */
+
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PagesLayout from "../layout";

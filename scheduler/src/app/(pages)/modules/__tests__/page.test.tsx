@@ -1,10 +1,15 @@
+/**
+ * Testing for Modules Page.
+ */
+
 import { render, screen } from "@testing-library/react";
 import ModulesPage from "../page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getMyModules } from "@/app/actions/module";
 
-// ── 1. Mock External Dependencies ───────────────────────────────────────────
+
+// Mocks
 
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
@@ -22,8 +27,6 @@ jest.mock("@/app/actions/module", () => ({
   getMyModules: jest.fn(),
 }));
 
-// ── 2. Mock Child Component ─────────────────────────────────────────────────
-
 jest.mock("../ModulesPageClient", () => ({
   __esModule: true,
   default: ({ modules }: any) => (
@@ -33,7 +36,8 @@ jest.mock("../ModulesPageClient", () => ({
   ),
 }));
 
-// ── 3. Test Suite ───────────────────────────────────────────────────────────
+
+// Tests
 
 describe("ModulesPage (Server Component)", () => {
   beforeEach(() => {
