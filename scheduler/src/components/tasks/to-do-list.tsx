@@ -16,8 +16,8 @@ import { TaskForm } from "../tasks/TaskForm";
 import { TaskViewDialog } from "../tasks/TaskViewDialog";
 import { DeleteTaskDialog } from "../tasks/DeleteTaskDialog";
 import { useTasks } from "@/hooks/useTasks";
-import { useTaskFilters } from "@/hooks/useTaskFilters";
-import { getPriorityStyle } from "@/lib/priority";
+import { useTaskFilters } from "../../hooks/useTaskFilters";
+import { getPriorityStyle } from "../../lib/priority";
 
 interface ToDoListProps {
   userId: string;

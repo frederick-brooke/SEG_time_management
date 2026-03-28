@@ -11,6 +11,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => {
   };
 });
 
+// Mock the complex game logic so we only test the prop delegation in this suite
 jest.mock("../OrbitPuzzle", () => {
   return function MockOrbitPuzzle({ initialBalance }: { initialBalance: number }) {
     return <div data-testid="orbit-puzzle" data-balance={initialBalance} />;

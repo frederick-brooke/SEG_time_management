@@ -52,11 +52,11 @@ jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: (_: any, name: string) => function MockIcon() { return null; } })
 );
 
-jest.mock("components/upcoming-exams", () => ({
+jest.mock("components/dashboard/upcoming-exams", () => ({
   UpcomingExams: () => <div>UpcomingExams</div>,
 }));
 
-jest.mock("@/components/coming-up-soon", () => ({
+jest.mock("@/components/dashboard/coming-up-soon", () => ({
   ComingUpSoon: () => <div>ComingUpSoon</div>,
 }));
 
