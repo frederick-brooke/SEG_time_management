@@ -1,3 +1,7 @@
+/**
+ * Testing for exam-planner/[id] page
+ */
+
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import ExamIdPage from "@/app/(pages)/exam-planner/[id]/page";
 import { useSession } from "next-auth/react";

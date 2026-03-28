@@ -1,11 +1,16 @@
 'use client';
 
+/**
+ * Orbit Puzzle game component.
+ * Implements a memory matching game with multiple difficulty levels, timers, scoring, and coin-based entry system.
+ * Contains full game state management, UI views, and gameplay logic in a single client-side module.
+ */
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { payGameEntry } from "@/app/actions/games";
 import { DIFFICULTY_CONFIG, Difficulty } from "@/lib/games-config";
 import { GoldCoin } from "@/components/ui/gold-coin";
 
-// 1. Types & Pure Helpers 
 
 const ALL_SYMBOLS = ["🪐", "⭐", "🌙", "☄️", "🚀", "👾", "🌌", "💫", "🛸", "🔭", "🌠", "🪨"];
 
@@ -27,10 +32,8 @@ function generateDeck(pairs: number): CardState[] {
   return deck.map((symbol, id) => ({ id, symbol, flipped: false, matched: false }));
 }
 
-// 2. State Controller 
-
 /**
- * Orchestrates the entire lifecycle of the Orbit Puzzle game.
+ * Orchestrates the Orbit Puzzle game.
  * Encapsulates all timers, refs, and API mutations to keep the UI strictly declarative.
  * @param {number} initialBalance - The user's starting coin balance.
  * @returns {Object} Reactive state and bound interaction handlers for the view.
@@ -46,7 +49,7 @@ function useGameController(initialBalance: number) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Mutable refs to bypass stale closures in timeouts/intervals
+  // Mutable refs to bypass stale closures in timeouts/ intervals
   const stateRef = useRef({ phase: "lobby", cards: [] as CardState[], firstPick: null as number | null, locked: false });
 
   const syncCards = (newCards: CardState[]) => {
@@ -80,7 +83,6 @@ function useGameController(initialBalance: number) {
     }, 900);
   };
 
-  // Flattened nesting depth (V.3.2)
   const onCardClick = useCallback((idx: number) => {
     if (stateRef.current.phase !== "playing" || stateRef.current.locked) return;
     
@@ -167,8 +169,6 @@ function useGameController(initialBalance: number) {
   };
 }
 
-// 3. Focused UI Sub-Components 
-
 /**
  * Renders the initial configuration screen.
  */
@@ -233,7 +233,7 @@ const PlayingView = ({ ctrl }: { ctrl: ReturnType<typeof useGameController> }) =
 };
 
 /**
- * unified component for rendering both victory and defeat states.
+ * Unified component for rendering both victory and defeat states.
  */
 const ResultView = ({ ctrl }: { ctrl: ReturnType<typeof useGameController> }) => {
   const isWin = ctrl.phase === "won";
@@ -260,11 +260,9 @@ const ResultView = ({ ctrl }: { ctrl: ReturnType<typeof useGameController> }) =>
   );
 };
 
-// 4. Main Facade Component 
-
 /**
- * Main Orbit Puzzle view. Delegates all logic to `useGameController`.
- * Ensures pure component rendering based strictly on the `phase` state.
+ * Main Orbit Puzzle view. Delegates all logic to 'useGameController'.
+ * Ensures pure component rendering based strictly on the 'phase' state.
  * @param {number} initialBalance - Server-provided starting balance.
  */
 export default function OrbitPuzzle({ initialBalance }: { initialBalance: number }) {

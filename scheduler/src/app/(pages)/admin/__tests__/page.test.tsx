@@ -1,18 +1,17 @@
+/**
+ * Testing for admin page
+ */
+
 import { render, screen, fireEvent } from "@testing-library/react";
 
-//  mocks 
-/**
- * Mock framer-motion to avoid animation-related issues in tests.
- */
+// Mocks 
+
 jest.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
   },
 }));
 
-/**
- * Mock icon library to prevent rendering overhead.
- */
 jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: () => () => null })
 );
@@ -42,11 +41,6 @@ jest.mock("@/components/admin/admin-statistics", () => ({
   default: () => <div>AdminStatistics</div>,
 }));
 
-// Management component mocks expose buttons to trigger every callback prop
-/**
- * Mock UserManagement component.
- * Exposes buttons to trigger all callback props.
- */
 jest.mock("@/components/admin/userManagement", () => ({
   __esModule: true,
   default: ({ setIsUserFilterOpen, resetFilters, setFilters }: any) => (
@@ -59,9 +53,6 @@ jest.mock("@/components/admin/userManagement", () => ({
   ),
 }));
 
-/**
- * Mock ReportManagement component.
- */
 jest.mock("@/components/admin/reportManagement", () => ({
   __esModule: true,
   default: ({ setIsReportFilterOpen, resetFilters, setFilters }: any) => (
@@ -74,9 +65,6 @@ jest.mock("@/components/admin/reportManagement", () => ({
   ),
 }));
 
-/**
- * Mock AppealsManagement component.
- */
 jest.mock("@/components/admin/appealManagement", () => ({
   __esModule: true,
   default: ({ setIsAppealFilterOpen, resetFilters, setFilters }: any) => (
@@ -89,7 +77,6 @@ jest.mock("@/components/admin/appealManagement", () => ({
   ),
 }));
 
-// Filter panel mocks expose buttons for every callback
 jest.mock("@/components/admin/user-filter-panel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
@@ -139,7 +126,7 @@ jest.mock("@/hooks/useAdminAppeals", () => ({ useAdminAppeals: (...a: any[]) => 
 
 import AdminPage from "../page";
 
-//  helpers 
+// Helpers 
 function setupHooks({ loading = false, reportLoading = false } = {}) {
   useUsersMock.mockReturnValue({
     users: [],
@@ -162,14 +149,12 @@ function setupHooks({ loading = false, reportLoading = false } = {}) {
   });
 }
 
-//  tests 
+// Tests
 describe("AdminPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setupHooks();
   });
-
-  //  loading states 
 
   it("shows loading when users are loading", () => {
     setupHooks({ loading: true });
@@ -183,7 +168,6 @@ describe("AdminPage", () => {
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
-  // base render 
   it("renders the Admin Dashboard heading", () => {
     render(<AdminPage />);
     expect(screen.getByText("Admin Dashboard")).toBeInTheDocument();
@@ -198,8 +182,6 @@ describe("AdminPage", () => {
     render(<AdminPage />);
     expect(screen.getByText("UserManagement")).toBeInTheDocument();
   });
-
-  // tabs
 
   it("shows ReportManagement by default", () => {
     render(<AdminPage />);
@@ -221,8 +203,7 @@ describe("AdminPage", () => {
     expect(screen.getByText("ReportManagement")).toBeInTheDocument();
     expect(screen.queryByText("AppealsManagement")).not.toBeInTheDocument();
   });
-
-  // user filter panel 
+ 
   it("opens UserFilter when triggered from UserManagement", () => {
     render(<AdminPage />);
     fireEvent.click(screen.getByText("Open User Filter"));
@@ -268,8 +249,7 @@ describe("AdminPage", () => {
     fireEvent.click(screen.getByText("Set User Filters"));
     expect(screen.getByText("UserManagement")).toBeInTheDocument();
   });
-
-  // report filter panel 
+ 
   it("opens ReportFilter when triggered from ReportManagement", () => {
     render(<AdminPage />);
     fireEvent.click(screen.getByText("Open Report Filter"));
@@ -315,8 +295,6 @@ describe("AdminPage", () => {
     fireEvent.click(screen.getByText("Set Report Filters"));
     expect(screen.getByText("ReportManagement")).toBeInTheDocument();
   });
-
-  // appeal filter panel 
 
   it("opens AppealFilter when triggered from AppealsManagement", () => {
     render(<AdminPage />);

@@ -1,10 +1,14 @@
+/**
+ * Groups page server component.
+ * Authenticates the user, fetches their groups from the server, and renders the client-side groups UI.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";
 import GroupsPageClient from "./GroupsPageClient";
 import { getMyGroups } from "@/app/actions/groups";
 
-//section component
 
 /**
  * Server component that fetches the current user's groups

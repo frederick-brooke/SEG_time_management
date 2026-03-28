@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * User dashboard page displaying exams, tasks, leaderboard, and wellbeing tools.
+ * Handles authentication, data fetching, and core dashboard layout.
+ */
+
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";

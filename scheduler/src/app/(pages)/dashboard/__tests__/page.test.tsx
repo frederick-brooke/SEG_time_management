@@ -1,3 +1,7 @@
+/**
+ * Testing for dashboard page.
+ */
+
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 let mockErrorParam: string | null = null;
@@ -7,7 +11,8 @@ const pushMock       = jest.fn();
 const replaceMock    = jest.fn();
 const setWellbeingOpenMock = jest.fn();
 
-//mocks
+// Mocks
+
 jest.mock("next/navigation", () => ({
   useRouter:       () => ({ push: pushMock, replace: replaceMock }),
   useSearchParams: () => ({ get: (key: string) => key === "error" ? mockErrorParam : null }),
@@ -59,7 +64,6 @@ jest.mock("@/components/profile/StatModules", () => ({
   ProfileStats: () => <div>ProfileStats</div>,
 }));
 
-// virtual so that true — file doesn't need to exist on disk
 jest.mock("../wellbeing/page", () => () => <div>WellbeingPage</div>, { virtual: true });
 
 jest.mock("@/components/wellbeing/wellbeing_panel", () => ({
@@ -82,7 +86,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-// Page import — must come after all jest.mock calls
+
 import Page from "../page";
 import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
 
@@ -95,8 +99,6 @@ function setAuth(status = "authenticated", name: string | null = "Test User", id
   });
 }
 
-
-
 describe("Dashboard Page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -108,7 +110,7 @@ describe("Dashboard Page", () => {
     setAuth();
   });
 
-  // greeting 
+  // Greeting 
   it("shows fname from profile when available", async () => {
     getMyProfileMock.mockResolvedValue({ fname: "Ada", accounts: [] });
     render(<Page />);
@@ -157,7 +159,7 @@ describe("Dashboard Page", () => {
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 100%");
   });
 
-  //  Core components 
+  // Core components 
   it("renders UpcomingExams and ComingUpSoon", async () => {
     render(<Page />);
     expect(await screen.findByText("UpcomingExams")).toBeInTheDocument();
@@ -169,8 +171,7 @@ describe("Dashboard Page", () => {
     expect(await screen.findByText("ProfileStats")).toBeInTheDocument();
   });
 
-  // ── Google calendar ────
-
+  // Google Calendar
   it("shows Connect Google Calendar when google is not linked", async () => {
     render(<Page />);
     expect(await screen.findByText("Connect Google Calendar")).toBeInTheDocument();
@@ -196,14 +197,14 @@ describe("Dashboard Page", () => {
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
 
-  //  Auth redirects 
+  // Auth redirects 
   it("redirects to /login when unauthenticated", async () => {
     setAuth("unauthenticated");
     render(<Page />);
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/login"));
   });
 
-  //  Error query param 
+  // Error query param 
   it("replaces URL for GoogleAccountTaken error", async () => {
     mockErrorParam = "GoogleAccountTaken";
     render(<Page />);
@@ -222,7 +223,7 @@ describe("Dashboard Page", () => {
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  //  Wellbeing panel 
+  // Wellbeing panel 
   it("renders the wellbeing button", async () => {
     render(<Page />);
     expect(await screen.findByLabelText("Open wellbeing panel")).toBeInTheDocument();
@@ -250,7 +251,7 @@ describe("Dashboard Page", () => {
     expect(await screen.findByTestId("panel-open")).toBeInTheDocument();
   });
 
-  //  Data fetching guards 
+  // Data fetching guards 
   it("fetches exams and profile when authenticated", async () => {
     render(<Page />);
     await waitFor(() => {
