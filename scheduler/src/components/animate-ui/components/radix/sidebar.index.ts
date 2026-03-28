@@ -1,4 +1,5 @@
-'use client';
+export { useSidebar, SidebarProvider } from "./sidebar.context";
+
 export {
   Sidebar,
   SidebarContent,
@@ -10,6 +11,12 @@ export {
   SidebarHeader,
   SidebarInput,
   SidebarInset,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+} from "./sidebar.components";
+
+export {
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuBadge,
@@ -19,9 +26,4 @@ export {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarSeparator,
-  SidebarTrigger,
-  useSidebar,
-} from 'components/animate-ui/components/radix/sidebar.index';
+} from "./sidebar.menu";
