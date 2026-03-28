@@ -1,0 +1,224 @@
+"use client";
+import * as React from "react";
+import { Slot } from "radix-ui";
+
+import { cn } from "lib/utils";
+import { Skeleton } from "components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/animate-ui/components/animate/tooltip";
+import {
+  Highlight,
+  HighlightItem,
+} from "components/animate-ui/primitives/effects/highlight";
+import { sidebarMenuButtonVariants } from "./sidebar.constants";
+import { useSidebar } from "./sidebar.context";
+import type {
+  SidebarMenuActionProps,
+  SidebarMenuBadgeProps,
+  SidebarMenuButtonProps,
+  SidebarMenuItemProps,
+  SidebarMenuProps,
+  SidebarMenuSkeletonProps,
+  SidebarMenuSubButtonProps,
+  SidebarMenuSubItemProps,
+  SidebarMenuSubProps,
+} from "./sidebar.types";
+
+const HighlightItemAny = HighlightItem as React.ComponentType<any>;
+
+export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
+  return (
+    <ul
+      data-slot="sidebar-menu"
+      data-sidebar="menu"
+      className={cn("flex w-full min-w-0 flex-col gap-1", className)}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuItem({ className, ...props }: SidebarMenuItemProps) {
+  return (
+    <li
+      data-slot="sidebar-menu-item"
+      data-sidebar="menu-item"
+      className={cn("group/menu-item relative", className)}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuButton({
+  asChild = false,
+  isActive = false,
+  variant = "default",
+  size = "default",
+  tooltip,
+  className,
+  ...props
+}: SidebarMenuButtonProps) {
+  const Comp = asChild ? Slot.Root : "button";
+  const { isMobile, state } = useSidebar();
+
+  const button = (
+    <HighlightItemAny enabled={false} suppressHydrationWarning activeClassName="">
+      <Comp
+        suppressHydrationWarning
+        data-slot="sidebar-menu-button"
+        data-sidebar="menu-button"
+        data-size={size}
+        data-active={isActive}
+        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        {...props}
+      />
+    </HighlightItemAny>
+  );
+
+  if (!tooltip) {
+    return button;
+  }
+
+  if (typeof tooltip === "string") {
+    tooltip = { children: tooltip };
+  }
+
+  return (
+    <Tooltip side="right" align="center">
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent
+        hidden={state !== "collapsed" || isMobile}
+        className={(tooltip as Record<string, any>).className ?? ""}
+        children={(tooltip as Record<string, any>).children ?? null}
+        {...(tooltip as Record<string, any>)}
+      />
+    </Tooltip>
+  );
+}
+
+export function SidebarMenuAction({
+  className,
+  asChild = false,
+  showOnHover = false,
+  ...props
+}: SidebarMenuActionProps) {
+  const Comp = asChild ? Slot.Root : "button";
+
+  return (
+    <Comp
+      data-slot="sidebar-menu-action"
+      data-sidebar="menu-action"
+      className={cn(
+        "z-[1] text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer-hover/menu-button:text-sidebar-accent-foreground absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "after:absolute after:-inset-2 md:after:hidden",
+        "peer-data-[size=sm]/menu-button:top-1",
+        "peer-data-[size=default]/menu-button:top-1.5",
+        "peer-data-[size=lg]/menu-button:top-2.5",
+        "group-data-[collapsible=icon]:hidden",
+        showOnHover &&
+          "peer-data-[active=true]/menu-button:text-sidebar-accent-foreground group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 md:opacity-0",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuBadge({ className, ...props }: SidebarMenuBadgeProps) {
+  return (
+    <div
+      data-slot="sidebar-menu-badge"
+      data-sidebar="menu-badge"
+      className={cn(
+        "text-sidebar-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none",
+        "peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground",
+        "peer-data-[size=sm]/menu-button:top-1",
+        "peer-data-[size=default]/menu-button:top-1.5",
+        "peer-data-[size=lg]/menu-button:top-2.5",
+        "group-data-[collapsible=icon]:hidden",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuSkeleton({ className, showIcon = false, ...props }: SidebarMenuSkeletonProps) {
+  const width = React.useMemo(() => `${Math.floor(Math.random() * 40) + 50}%`, []);
+
+  return (
+    <div
+      data-slot="sidebar-menu-skeleton"
+      data-sidebar="menu-skeleton"
+      className={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
+      {...props}
+    >
+      {showIcon && (
+        <Skeleton className="size-4 rounded-md" data-sidebar="menu-skeleton-icon" />
+      )}
+      <Skeleton
+        className="h-4 max-w-(--skeleton-width) flex-1"
+        data-sidebar="menu-skeleton-text"
+        style={{ "--skeleton-width": width } as React.CSSProperties}
+      />
+    </div>
+  );
+}
+
+export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
+  return (
+    <ul
+      data-slot="sidebar-menu-sub"
+      data-sidebar="menu-sub"
+      className={cn(
+        "border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5",
+        "group-data-[collapsible=icon]:hidden",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuSubItem({ className, ...props }: SidebarMenuSubItemProps) {
+  return (
+    <li
+      data-slot="sidebar-menu-sub-item"
+      data-sidebar="menu-sub-item"
+      className={cn("group/menu-sub-item relative", className)}
+      {...props}
+    />
+  );
+}
+
+export function SidebarMenuSubButton({
+  asChild = false,
+  size = "md",
+  isActive = false,
+  className,
+  ...props
+}: SidebarMenuSubButtonProps) {
+  const Comp = asChild ? Slot.Root : "a";
+
+  return (
+    <HighlightItemAny activeClassName="bg-sidebar-accent text-sidebar-accent-foreground rounded-md">
+      <Comp
+        data-slot="sidebar-menu-sub-button"
+        data-sidebar="menu-sub-button"
+        data-size={size}
+        data-active={isActive}
+        className={cn(
+          "text-sidebar-foreground ring-sidebar-ring [&:not([data-highlight])]:hover:bg-sidebar-accent [&:not([data-highlight])]:hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
+          "data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground",
+          size === "sm" && "text-xs",
+          size === "md" && "text-sm",
+          "group-data-[collapsible=icon]:hidden",
+          className,
+        )}
+        {...props}
+      />
+    </HighlightItemAny>
+  );
+}
