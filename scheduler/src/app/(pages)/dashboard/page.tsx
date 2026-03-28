@@ -13,7 +13,7 @@ import { UpcomingExams } from "@/components/dashboard/upcoming-exams";
 import { useUI } from "@/context/UIContext";  
 import { ProfileStats } from "@/components/profile/StatModules";
 import { getMyProfile } from "@/app/actions/profile";
-import { ComingUpSoon } from "@/components/coming-up-soon";
+import { ComingUpSoon } from "@/components/dashboard/coming-up-soon";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import LeaderboardClient from "../leaderboard/LeaderboardClient";
 import { getFriendsLeaderboard } from "../../actions/leaderboard";

@@ -3,7 +3,7 @@ import { Button } from "components/ui/button";
 
 export function TaskActions({ onView, onEdit, onDelete, canDelete=true, canEdit=true, className="", strokeWidth=2 }) {
     return (
-        <div className="flex items-center gap-0.5 shrink-0">
+      <div className={`flex items-center gap-0.5 shrink-0 ${className}`}>
                 <Button
                   variant="ghost"
                   size="icon"
