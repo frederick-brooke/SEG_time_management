@@ -1,5 +1,5 @@
 import { nextWednesday } from "date-fns";
-import { examPlannerLogic  } from "./examPlannerLogic";
+import { examPlannerLogic  } from "../examPlannerLogic";
 
 describe('Exam Planner Suite', () => {
     test('Should filter out unavailable dates correctly', () => {

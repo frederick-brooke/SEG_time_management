@@ -3,103 +3,82 @@ import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import FeaturesSection from "../FeaturesSection";
 
-// ─── Mock framer-motion ─────
-// Replaces animated wrappers with plain divs/spans so tests stay synchronous
-// and don't depend on animation state.
 jest.mock("framer-motion", () => {
-  const actual = jest.requireActual<typeof import("framer-motion")>("framer-motion");
-
-  // Framer-specific props that must be stripped before passing to React DOM elements
   const FRAMER_PROPS = new Set([
     "initial", "animate", "exit", "whileInView", "whileHover",
-    "whileTap", "whileFocus", "whileDrag", "viewport", "transition", "variants",
-    "drag", "dragConstraints", "dragElastic", "dragMomentum", "layout",
-    "layoutId", "onAnimationStart", "onAnimationComplete",
+    "whileTap", "whileFocus", "whileDrag", "viewport", "transition",
+    "variants", "drag", "dragConstraints", "dragElastic", "dragMomentum",
+    "layout", "layoutId", "onAnimationStart", "onAnimationComplete",
   ]);
 
-  const motionProxy = new Proxy(
-    {},
-    {
-      get(_target, key) {
-        // key is string | symbol — coerce to string for createElement
-        const tag = String(key);
-        const MotionComponent = (
-          { children, ...rest }: React.HTMLAttributes<HTMLElement> & { children?: React.ReactNode }
-        ) => {
-          const domProps = Object.fromEntries(
-            Object.entries(rest).filter(([k]) => !FRAMER_PROPS.has(k))
-          );
-          return React.createElement(tag, domProps, children);
-        };
-        MotionComponent.displayName = `motion.${tag}`;
-        return MotionComponent;
-      },
-    }
-  );
+  const motionProxy = new Proxy({}, {
+    get(_target, key) {
+      const tag = String(key);
+      const MotionComponent = ({ children, ...rest }: any) => {
+        const domProps = Object.fromEntries(
+          Object.entries(rest).filter(([k]) => !FRAMER_PROPS.has(k))
+        );
+        return React.createElement(tag, domProps, children);
+      };
+      MotionComponent.displayName = `motion.${tag}`;
+      return MotionComponent;
+    },
+  });
 
-  return { ...actual, motion: motionProxy };
+  return { motion: motionProxy };
 });
 
-// ─── Mock lucide-react ──────
-// Renders each icon as a labelled <svg> so we can assert their presence without
-// depending on the actual SVG paths.
+// Must mock every icon the component actually imports
 jest.mock("lucide-react", () => ({
-  Calendar:   (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-calendar"   {...props} />,
-  Clock:      (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-clock"      {...props} />,
-  Users:      (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-users"      {...props} />,
-  Zap:        (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-zap"        {...props} />,
-  Shield:     (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-shield"     {...props} />,
-  BarChart3:  (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="icon-barchart3"  {...props} />,
+  Calendar:  (props: any) => <svg data-testid="icon-calendar"  {...props} />,
+  Clock:     (props: any) => <svg data-testid="icon-clock"     {...props} />,
+  Users:     (props: any) => <svg data-testid="icon-users"     {...props} />,
+  Map:       (props: any) => <svg data-testid="icon-map"       {...props} />,
+  Settings2: (props: any) => <svg data-testid="icon-settings2" {...props} />,
+  BarChart3: (props: any) => <svg data-testid="icon-barchart3" {...props} />,
 }));
-
-// ─── Expected feature data ──
 
 const FEATURES = [
   {
     testId: "icon-calendar",
-    title: "Lunar Calendar",
-    description: "An intuitive calendar that adapts to your rhythm. Drag, drop, and flow.",
-  },
-  {
-    testId: "icon-zap",
-    title: "Instant Sync",
-    description: "Real-time sync across every device. Your schedule follows you like moonlight.",
-  },
-  {
-    testId: "icon-users",
-    title: "Team Orbits",
-    description: "See everyone's availability in one shared orbit. Coordination, simplified.",
+    title: "Task Scheduling",
+    description: "Auto-schedules tasks into your calendar around your work hours and rest days.",
   },
   {
     testId: "icon-clock",
-    title: "Smart Blocks",
-    description: "AI-powered time blocking that learns your patterns and guards your focus.",
+    title: "Smart Time Blocking",
+    description: "Focus sessions, breaks, and task limits shaped around how you work.",
   },
   {
-    testId: "icon-shield",
-    title: "Privacy First",
-    description: "End-to-end encryption. Your schedule is invisible to everyone but you.",
+    testId: "icon-users",
+    title: "Friend Map",
+    description: "See where your friends are in real time. Coordinate without the back-and-forth.",
+  },
+  {
+    testId: "icon-map",
+    title: "Module Planner",
+    description: "Track deadlines across all your modules in one place.",
+  },
+  {
+    testId: "icon-settings2",
+    title: "Preferences",
+    description: "Set your hours, rest days, and session lengths to make Lunar yours.",
   },
   {
     testId: "icon-barchart3",
-    title: "Time Analytics",
-    description: "Beautiful insights into where your hours go. Understand. Optimize. Grow.",
+    title: "Profiles",
+    description: "View completed tasks, current workload, and how your week is shaping up.",
   },
 ];
-
-// ─── Helpers ────────
 
 function renderSection() {
   return render(<FeaturesSection />);
 }
 
-// ─── Section structure ──────
-
 describe("FeaturesSection – section structure", () => {
   it("renders the section element with id='features'", () => {
     const { container } = renderSection();
-    const section = container.querySelector("section#features");
-    expect(section).toBeInTheDocument();
+    expect(container.querySelector("section#features")).toBeInTheDocument();
   });
 
   it("renders the 'Features' eyebrow label", () => {
@@ -118,14 +97,10 @@ describe("FeaturesSection – section structure", () => {
   });
 });
 
-// ─── Feature cards – presence ────────
-
 describe("FeaturesSection – feature cards presence", () => {
   it("renders exactly six feature cards", () => {
     const { container } = renderSection();
-    // Each card contains an h3 — count those
-    const headings = container.querySelectorAll("h3");
-    expect(headings).toHaveLength(6);
+    expect(container.querySelectorAll("h3")).toHaveLength(6);
   });
 
   it.each(FEATURES)("renders the '$title' title", ({ title }) => {
@@ -139,8 +114,6 @@ describe("FeaturesSection – feature cards presence", () => {
   });
 });
 
-// ─── Feature cards – icons ─
-
 describe("FeaturesSection – feature icons", () => {
   it.each(FEATURES)("renders the icon for '$title'", ({ testId }) => {
     renderSection();
@@ -149,33 +122,19 @@ describe("FeaturesSection – feature icons", () => {
 
   it("renders exactly six icons in total", () => {
     renderSection();
-    const icons = [
-      "icon-calendar",
-      "icon-zap",
-      "icon-users",
-      "icon-clock",
-      "icon-shield",
-      "icon-barchart3",
-    ];
-    icons.forEach((id) => {
-      expect(screen.getByTestId(id)).toBeInTheDocument();
-    });
+    ["icon-calendar", "icon-clock", "icon-users", "icon-map", "icon-settings2", "icon-barchart3"]
+      .forEach((id) => expect(screen.getByTestId(id)).toBeInTheDocument());
   });
 });
-
-// ─── Feature cards – styling ─────────
 
 describe("FeaturesSection – card styling", () => {
   it("every card has the rounded-2xl class", () => {
     const { container } = renderSection();
-    // Cards are the direct wrappers of the h3 elements
     const cards = Array.from(container.querySelectorAll("h3")).map(
       (h3) => h3.closest("[class*='rounded-2xl']") as HTMLElement
     );
     expect(cards).toHaveLength(6);
-    cards.forEach((card) => {
-      expect(card.className).toMatch(/rounded-2xl/);
-    });
+    cards.forEach((card) => expect(card.className).toMatch(/rounded-2xl/));
   });
 
   it("every card has the border class", () => {
@@ -183,13 +142,9 @@ describe("FeaturesSection – card styling", () => {
     const cards = Array.from(container.querySelectorAll("h3")).map(
       (h3) => h3.closest("[class*='rounded-2xl']") as HTMLElement
     );
-    cards.forEach((card) => {
-      expect(card.className).toMatch(/border/);
-    });
+    cards.forEach((card) => expect(card.className).toMatch(/border/));
   });
 });
-
-// ─── Heading hierarchy ─────
 
 describe("FeaturesSection – heading hierarchy", () => {
   it("renders one h2 for the section headline", () => {
@@ -204,19 +159,13 @@ describe("FeaturesSection – heading hierarchy", () => {
 
   it("h2 contains the headline text", () => {
     const { container } = renderSection();
-    const h2 = container.querySelector("h2") as HTMLElement;
-    expect(h2.textContent).toMatch(/Built for the way/i);
+    expect((container.querySelector("h2") as HTMLElement).textContent).toMatch(/Built for the way/i);
   });
 });
-
-// ─── Ambient decorative elements ─────
 
 describe("FeaturesSection – decorative elements", () => {
   it("renders the ambient gradient line div", () => {
     const { container } = renderSection();
-    const gradientLine = container.querySelector(
-      "[class*='bg-gradient-to-r']"
-    );
-    expect(gradientLine).toBeInTheDocument();
+    expect(container.querySelector("[class*='bg-gradient-to-r']")).toBeInTheDocument();
   });
 });

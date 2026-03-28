@@ -5,7 +5,7 @@ import {
   type AvatarKey,
   type Rarity,
   type ShopItem,
-} from "./shop-catalogue";
+} from "../shop-catalogue";
 
 // ── Helpers ────────
 

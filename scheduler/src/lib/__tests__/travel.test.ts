@@ -3,7 +3,7 @@
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-import { calculateTravelTime } from "./travel";
+import { calculateTravelTime } from "../travel";
 
 
 const START = { lat: 51.5, lng: -0.1 };
