@@ -1,13 +1,9 @@
 
 
 import GamesPage from "../page";
-import GamesPage from "../page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getGameBalance } from "@/app/actions/games";
-import GamesPageClient from "../GamesPageClient";
-
-// Mocks
 import GamesPageClient from "../GamesPageClient";
 
 // MOCKS
@@ -23,7 +19,6 @@ jest.mock("@/app/actions/games", () => ({
   getGameBalance: jest.fn(),
 }));
 
-jest.mock("../GamesPageClient", () => ({
 jest.mock("../GamesPageClient", () => ({
   __esModule: true,
   default: jest.fn(({ initialBalance }) => (

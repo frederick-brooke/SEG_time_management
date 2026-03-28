@@ -4,7 +4,6 @@
 
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ShopPageClient from "../ShopPageClient";
-import ShopPageClient from "../ShopPageClient";
 import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
 import { ShopData } from "../shop.types";
 
