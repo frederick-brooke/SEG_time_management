@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import CalendarView from "@/components/calendar/CalendarView";
-import GoogleLinkButton from "@/components/googleLinkButton";
+import GoogleLinkButton from "@/components/shared/googleLinkButton";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";
 

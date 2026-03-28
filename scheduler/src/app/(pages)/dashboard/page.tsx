@@ -9,7 +9,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense } from "react";
 import { getMyExams } from "@/app/actions/examActions";
-import { UpcomingExams } from "components/upcoming-exams";
+import { UpcomingExams } from "@/components/dashboard/upcoming-exams";
 import { useUI } from "@/context/UIContext";  
 import { ProfileStats } from "@/components/profile/StatModules";
 import { getMyProfile } from "@/app/actions/profile";
