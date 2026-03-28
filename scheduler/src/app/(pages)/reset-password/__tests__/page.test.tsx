@@ -1,5 +1,9 @@
+/**
+ * Testing for reset-password page.
+ */
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { ResetPasswordContent } from "./page";
+import { ResetPasswordContent } from "../page";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { validatePassword } from "@/lib/password";

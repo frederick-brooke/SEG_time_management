@@ -1,4 +1,10 @@
-"use client";
+ /**
+  * Client-side Reset Password page.
+  * Handles token validation, password reset form submission,
+  * and success/error state management for secure password updates.
+  */
+ 
+ "use client";
 
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
@@ -6,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { validatePassword } from "@/lib/password";
 import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
 
-// ── DRY UI Sub-Components ──────────────────────────────────────────────────────
+
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
@@ -27,7 +33,7 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
   );
 }
 
-// ── Client Component 
+// Client Component 
 export function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -129,7 +135,7 @@ export function ResetPasswordContent() {
   );
 }
 
-// ── Wrapper with Suspense ──────────────────────────────────────────────────────
+// Wrapper with suspense
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
