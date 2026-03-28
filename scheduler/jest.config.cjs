@@ -7,7 +7,8 @@ collectCoverage: true,
 collectCoverageFrom: [
   "src/**/*.{js,jsx,ts,tsx}",
   "!src/**/*.d.ts",
-  "!src/**/types.ts"
+  "!src/**/types.ts",
+  "!index.ts"
 ],
 setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 forceExit: true,
