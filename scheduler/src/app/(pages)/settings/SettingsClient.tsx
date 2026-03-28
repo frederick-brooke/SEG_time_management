@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Client-side Settings page.
+ * Provides a tabbed settings interface for account, preferences,
+ * privacy, security, and integrations, including forms and modals
+ * for updating user configuration and account management actions.
+ */
+
 import { useState, useTransition } from "react";
 import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/app/actions/settings";
 import { updateLocationHidden } from "@/app/actions/update-user-location";
@@ -23,7 +30,7 @@ interface SettingsClientProps {
   }
 }
 
-// DRY UI Sub-Components 
+// UI Sub-Components 
 function FormInput({ label, type = "text", name, defaultValue, required, pattern, minLength, options }: any) {
   const inputCls = "w-full bg-[#0a0f1d] border border-white/10 text-white placeholder-white/25 p-3 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-colors appearance-none";
   return (
@@ -101,7 +108,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
     <LunarThemeWrapper>
       <div className="flex flex-col md:flex-row gap-6 relative">
 
-        {/* ── Sidebar (Responsive) ── */}
+        {/* Sidebar */}
         <div className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button 
@@ -118,12 +125,12 @@ export function SettingsClient({ user }: SettingsClientProps) {
           ))}
         </div>
 
-        {/* ── Content Panel ── */}
+        {/* Content Panel */}
         <div className="flex-1 lunar-card p-6 md:p-10 min-h-[400px] relative overflow-hidden">
           <div className="relative z-10">
             <StatusMessage error={error} success={success} />
 
-            {/* ACCOUNT TAB */}
+            {/* Account Tab */}
             {activeTab === 'account' && (
               <div className="animate-in fade-in duration-300">
                 <h2 className="lunar-header mb-2">Account Details</h2>
@@ -136,7 +143,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               </div>
             )}
 
-            {/* PREFERENCES TAB */}
+            {/* Preferences tab */}
             {activeTab === 'preferences' && (
               <div className="animate-in fade-in duration-300">
                 <h2 className="lunar-header mb-2">Workflow Configuration</h2>
@@ -176,7 +183,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               </div>
             )}
 
-            {/* PRIVACY TAB */}
+            {/* Privacy tab */}
             {activeTab === 'privacy' && (
               <div className="animate-in fade-in duration-300">
                 <h2 className="lunar-header mb-2">Location & Privacy</h2>
@@ -216,13 +223,13 @@ export function SettingsClient({ user }: SettingsClientProps) {
                             const result = await updateLocationHidden(!locationHidden);
                             if (!result.success) {
                               setError(result.error || "Failed to update location visibility");
-                              setLocationHidden(locationHidden); // revert
+                              setLocationHidden(locationHidden);
                             } else {
                               setSuccess("Location visibility updated.");
                             }
                           } catch (err: any) {
                             setError(err.message);
-                            setLocationHidden(locationHidden); // revert
+                            setLocationHidden(locationHidden);
                           }
                         });
                       }}
@@ -242,7 +249,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               </div>
             )}
 
-            {/* SECURITY TAB */}
+            {/* Security tab */}
             {activeTab === 'security' && (
               <div className="animate-in fade-in duration-300">
                 <h2 className="lunar-header mb-2">Security</h2>
@@ -267,7 +274,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               </div>
             )}
 
-            {/* INTEGRATIONS TAB */}
+            {/* Integrations tab */}
             {activeTab === 'integrations' && (
               <div className="animate-in fade-in duration-300">
                 <h2 className="lunar-header mb-2">Integrations</h2>
@@ -288,7 +295,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
           </div>
         </div>
 
-        {/* ── DELETE MODAL ── */}
+        {/* Delete modal */}
         {showDeleteModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0a0f]/80 backdrop-blur-md animate-in fade-in duration-200">
             <div className="lunar-card w-full max-w-md p-8 animate-in zoom-in-95 duration-200 relative overflow-hidden">
@@ -320,7 +327,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
           </div>
         )}
 
-        {/* ── LOCATION MODAL ── */}
+        {/* Location Modal */}
         <SetLocationModal
           isOpen={isLocationModalOpen}
           onClose={() => setIsLocationModalOpen(false)}

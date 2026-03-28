@@ -1,9 +1,15 @@
+/**
+ * Testing for Profile Page Client.
+ */
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProfilePageClient from "../ProfilePageClient";
 import { removeFriend } from "@/app/actions/profile";
 import { calculateLevelProgress } from "@/app/actions/profile/xpUtils";
 
-// ── 1. Mock Actions ────────────────────────────────────────────────────────
+
+// Mocks
+
 jest.mock("@/app/actions/profile", () => ({
   removeFriend: jest.fn(),
 }));
@@ -16,36 +22,46 @@ jest.mock("@/app/actions/profile/xpUtils", () => ({
   }),
 }));
 
-// ── 2. Mock Child Components ───────────────────────────────────────────────
 jest.mock("@/components/profile/ProfileHeader", () => ({ onEditToggle }: any) => (
   <div data-testid="profile-header">
     <button onClick={onEditToggle}>Toggle Edit</button>
   </div>
 ));
+
 jest.mock("@/components/profile/EditProfileForm", () => ({ onClose }: any) => (
   <div data-testid="edit-profile-form">
     <button onClick={onClose}>Close Edit</button>
   </div>
 ));
+
 jest.mock("@/components/profile/ProfileBio", () => () => <div data-testid="profile-bio" />);
+
 jest.mock("@/components/profile/StreakCard", () => () => <div data-testid="streak-card" />);
+
 jest.mock("@/components/profile/FriendStatCard", () => ({ onToggle }: any) => (
   <div data-testid="friend-stat-card">
     <button onClick={onToggle}>Toggle Friends</button>
   </div>
 ));
+
 jest.mock("@/components/profile/TaskStatsCard", () => () => <div data-testid="task-stats-card" />);
+
 jest.mock("@/components/profile/FriendsList", () => ({ onClose, onRemoveFriend }: any) => (
   <div data-testid="friends-list">
     <button onClick={onClose}>Close Friends</button>
     <button onClick={(e) => onRemoveFriend("friend-123", e)}>Remove Friend</button>
   </div>
 ));
+
 jest.mock("@/components/profile/PendingRequests", () => () => <div data-testid="pending-requests" />);
+
 jest.mock("@/components/profile/PointsCard", () => () => <div data-testid="points-card" />);
+
 jest.mock("@/components/layout/LunarThemeWrapper", () => ({ children }: any) => <div data-testid="lunar-wrapper">{children}</div>);
 
-// ── 3. Test Suite ──────────────────────────────────────────────────────────
+
+// Tests
+
 describe("ProfilePageClient", () => {
   const defaultProfile = {
     progress: { experience: 500, coins: 50 },

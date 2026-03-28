@@ -1,11 +1,14 @@
+/**
+ * Tests for profile/[username] page
+ */
 import { render, screen } from "@testing-library/react";
-import UserProfilePage from "./page";
+import UserProfilePage from "../page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getProfile } from "@/app/actions/profile";
 import { fetchUsernameByEmail } from "lib/profile-queries";
 
-// ── 1. Mock External Dependencies ───────────────────────────────────────────
+// Mocks
 
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
@@ -31,9 +34,7 @@ jest.mock("next/navigation", () => ({
   redirect: jest.fn(() => { throw new Error("NEXT_REDIRECT"); }),
 }));
 
-// ── 2. Mock Child Components ────────────────────────────────────────────────
-
-jest.mock("../ProfilePageClient", () => ({
+jest.mock("../../ProfilePageClient", () => ({
   __esModule: true,
   default: ({ profile, isOwnProfile }: any) => (
     <div data-testid="profile-client">
@@ -47,7 +48,8 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   default: ({ children }: any) => <div data-testid="theme-wrapper">{children}</div>,
 }));
 
-// ── 3. Test Suite ───────────────────────────────────────────────────────────
+
+// Tests
 
 describe("UserProfilePage (Server Component)", () => {
   beforeEach(() => {

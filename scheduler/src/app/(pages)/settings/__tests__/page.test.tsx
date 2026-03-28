@@ -1,15 +1,20 @@
+/**
+ * Testing for settings page.
+ */
+
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 
-// ─── Mocks ─────────
+
+// Mocks
 
 jest.mock("next-auth", () => ({ getServerSession: jest.fn() }));
 jest.mock("next/navigation", () => ({ redirect: jest.fn() }));
 jest.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: jest.fn() } } }));
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
 
-jest.mock("./SettingsClient", () => ({
+jest.mock("../SettingsClient", () => ({
   SettingsClient: ({ user }: { user: Record<string, unknown> }) => (
     <div data-testid="settings-client" data-props={JSON.stringify(user)} />
   ),
@@ -39,11 +44,12 @@ jest.mock("lucide-react", () => ({
   ),
 }));
 
-// ─── Helpers ───────
+
+// Helpers
 
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import SettingsPage from "./page";
+import SettingsPage from "../page";
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockRedirect = redirect as jest.MockedFunction<typeof redirect>;
@@ -51,7 +57,6 @@ const mockFindUnique = prisma.user.findUnique as jest.MockedFunction<
   typeof prisma.user.findUnique
 >;
 
-/** A fully-populated user row returned by prisma */
 const buildUser = (overrides: Partial<ReturnType<typeof buildUser>> = {}) => ({
   email: "alice@example.com",
   username: "alice",
@@ -71,18 +76,18 @@ async function renderPage() {
   return render(jsx as React.ReactElement);
 }
 
-// ─── Tests ─────────
+
+// Tests
 
 describe("SettingsPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mirror Next.js behaviour: redirect() throws internally to halt execution
     mockRedirect.mockImplementation(() => {
       throw new Error("NEXT_REDIRECT");
     });
   });
 
-  // ── Auth guard ───
+  // Auth guard
 
   describe("when there is no session", () => {
     it("redirects to /login", async () => {
@@ -111,7 +116,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── Prisma query ─
+  // Prisma query
 
   describe("prisma query", () => {
     it("queries the correct user id from the session", async () => {
@@ -152,7 +157,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── Layout & static content ────────
+  // Layout & static content
 
   describe("rendered layout", () => {
     beforeEach(() => {
@@ -199,7 +204,7 @@ describe("SettingsPage", () => {
     });
   });
 
-  // ── SettingsClient props ─
+  // SettingsClient props
 
   describe("props forwarded to SettingsClient", () => {
     const setup = async (userOverrides = {}) => {

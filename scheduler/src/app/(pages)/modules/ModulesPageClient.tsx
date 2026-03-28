@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * Client-side Modules page.
+ * Handles sorting, pagination, and UI state for creating/joining modules,
+ * and renders the paginated list of ModuleCard components.
+ */
+
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ModuleCard } from "@/components/modules/ModuleCard";
@@ -8,15 +14,12 @@ import JoinModule from "@/components/modules/JoinModule";
 import { Plus, LogIn, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
-/**
- * Global constants for pagination sizing and sorting keys.
- */
+
+// Global constants for pagination sizing and sorting keys.
 const PAGE_SIZE = 8;
 type SortKey = 'name-asc' | 'name-desc' | 'members-asc' | 'members-desc' | 'newest' | 'oldest';
 
-/**
- * Configuration for the sorting dropdown labels and values.
- */
+// Configuration for the sorting dropdown labels and values.
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'newest',       label: 'Newest first'   },
   { value: 'oldest',       label: 'Oldest first'   },

@@ -1,8 +1,13 @@
+/**
+ * Testing for Map Page Client.
+ */
+
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import MapPageClient from "./MapPageClient";
+import MapPageClient from "../MapPageClient";
 
-// --- Mocks ---
+
+// Mocks
 
 jest.mock("@/components/map/MapView", () => ({
   __esModule: true,
@@ -47,7 +52,8 @@ jest.mock("@/components/map/SetLocationModal", () => ({
   ),
 }));
 
-// --- Fixtures ---
+
+// Fixtures
 
 const mockEvents = [
   {
@@ -80,7 +86,8 @@ const mockEvents = [
 
 const mockUserLocation = { lat: 51.5074, lng: -0.1278 };
 
-//Test Helper
+
+// Test Helper
 
 const defaultProps = {
   events: mockEvents,
@@ -92,7 +99,8 @@ const renderMapPage = (overrideProps = {}) => {
   return render(<MapPageClient {...defaultProps} {...overrideProps} />);
 };
 
-//  Tests 
+
+// Tests 
 
 describe("MapPageClient", () => {
   describe("Rendering", () => {

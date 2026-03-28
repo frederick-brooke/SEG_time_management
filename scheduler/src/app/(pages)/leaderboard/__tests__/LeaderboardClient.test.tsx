@@ -1,14 +1,19 @@
+/**
+ * Testing for Leaderboard Client page.
+ */
+
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import LeaderboardClient from './LeaderboardClient';
+import LeaderboardClient from '../LeaderboardClient';
 import { useRouter } from 'next/navigation';
 
-// 1. Mock Next.js Router
+
+// Mocks
+
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-// 2. Mock React's useTransition so it executes immediately
 jest.mock('react', () => {
   const original = jest.requireActual('react');
   return {
@@ -16,6 +21,9 @@ jest.mock('react', () => {
     useTransition: () => [false, (cb: any) => cb()],
   };
 });
+
+
+// Tests
 
 describe('LeaderboardClient', () => {
   const mockPush = jest.fn();
@@ -43,7 +51,6 @@ describe('LeaderboardClient', () => {
     const rows = screen.getAllByRole('link');
     expect(rows).toHaveLength(4);
     
-    // Check for "You" badge on current user
     expect(screen.getByText('You')).toBeInTheDocument();
     
     // Rank 4 should be plain text (no medal)
@@ -53,21 +60,19 @@ describe('LeaderboardClient', () => {
   it('handles timeframe changes via native select', () => {
     render(<LeaderboardClient initialData={baseUsers} currentTimeframe="all" />);
     
-    // Timeframe is the first select element
     const selects = screen.getAllByRole('combobox');
     const timeframeSelect = selects[0];
 
     fireEvent.change(timeframeSelect, { target: { value: 'week' } });
     
-    // Verifies startTransition and router.push were fired (Lines 42-45)
     expect(mockPush).toHaveBeenCalledWith('?timeframe=week');
   });
 
   describe('Sorting & Tie-Breakers (Coverage Hits)', () => {
     const tieData: any[] = [
       { id: 'a', username: 'a', name: 'A', streak: 5, focusTimeRaw: 100, completionRate: 80 },
-      { id: 'b', username: 'b', name: 'B', streak: 5, focusTimeRaw: 200, completionRate: 80 }, // Higher focusTime
-      { id: 'c', username: 'c', name: 'C', streak: 5, focusTimeRaw: 100, completionRate: 80 }, // Absolute tie with A
+      { id: 'b', username: 'b', name: 'B', streak: 5, focusTimeRaw: 200, completionRate: 80 },
+      { id: 'c', username: 'c', name: 'C', streak: 5, focusTimeRaw: 100, completionRate: 80 },
     ];
 
     it('sorts by Focus Time and handles ties', () => {

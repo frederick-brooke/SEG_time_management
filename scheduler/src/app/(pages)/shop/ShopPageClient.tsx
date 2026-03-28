@@ -1,5 +1,11 @@
 "use client";
 
+ /**
+  * Client-side Shop page controller.
+  * Manages shop state, purchases, equipment actions, and UI composition
+  * for the Cosmic Avatar Shop feature.
+  */
+
 import { useState, useTransition, useCallback } from "react";
 import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
 import { Package } from "lucide-react";
@@ -9,11 +15,8 @@ import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { AvatarCard } from "./ShopCards";
 import { ShopData } from "./shop.types";
 
-// 1. State & Logic Management
-
 /**
  * Custom hook to manage shop state and API interactions.
- * Abstracts away transition, error handling, and toast boilerplate to stay strictly DRY.
  * @param {ShopData} initialData - The initial server-provided shop data.
  * @returns {Object} Bound action handlers and reactive state for the view.
  */
@@ -63,8 +66,6 @@ function useShopManager(initialData: ShopData) {
 
   return { data, isPending, toast, buy, equip, unequip };
 }
-
-// 2. Highly Focused UI Sub-Components
 
 /**
  * Renders the page header and user's current coin balance.
@@ -117,11 +118,8 @@ const AvatarThumbnail = ({ item, isEquipped, onClick }: { item: any, isEquipped:
   </div>
 );
 
-// 3. Facade / Orchestrator Component
-
 /**
- * Main Shop View. Composed entirely of Band V compliant sub-components.
- * Delegates all logic to `useShopManager` to maintain strict single responsibility.
+ * Main Shop View.
  * @param {ShopData} initialData - Prefetched server data.
  */
 export default function ShopPageClient({ initialData }: { initialData: ShopData }) {

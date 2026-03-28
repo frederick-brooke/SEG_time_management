@@ -1,3 +1,9 @@
+/**
+ * Server-side Modules page.
+ * Validates user session, fetches the user's modules,
+ * and renders the client-side modules list.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { redirect } from "next/navigation";

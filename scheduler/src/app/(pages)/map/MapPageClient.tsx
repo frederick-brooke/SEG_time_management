@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Client-side Map page layout component.
+ * Renders the interactive MapView, saved locations panel, and location controls.
+ * Manages UI state for opening/closing the location setting modal and displays
+ * the user's location visibility status (visible or hidden to friends).
+ */
+
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import MapView from "@/components/map/MapView";

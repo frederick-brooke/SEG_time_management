@@ -1,3 +1,7 @@
+/**
+ * Testing for modules/[moduleId] page.
+ */
+
 import { render, screen } from "@testing-library/react";
 import ModuleDetailPage from "../page";
 import { getServerSession } from "next-auth";
@@ -9,7 +13,8 @@ import {
   getModuleTasksWithProgress 
 } from "@/app/actions/module";
 
-// ── 1. Mock External Dependencies ───────────────────────────────────────────
+
+// Mocks
 
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
@@ -30,8 +35,6 @@ jest.mock("@/app/actions/module", () => ({
   getModuleTasksWithProgress: jest.fn(),
 }));
 
-// ── 2. Mock Child Component ─────────────────────────────────────────────────
-
 jest.mock("../ModuleDetailClient", () => ({
   __esModule: true,
   default: ({ events, tasks, tasksWithProgress }: any) => (
@@ -43,7 +46,8 @@ jest.mock("../ModuleDetailClient", () => ({
   ),
 }));
 
-// ── 3. Test Suite ───────────────────────────────────────────────────────────
+
+// Tests
 
 describe("ModuleDetailPage (Server Component)", () => {
   beforeEach(() => {

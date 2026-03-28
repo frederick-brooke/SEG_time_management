@@ -1,9 +1,14 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ShopPageClient from "./ShopPageClient";
-import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
-import { ShopData } from "./shop.types";
+/**
+ * Testing for Shop Page Client.
+ */
 
-// ── Mocks ──────
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import ShopPageClient from "../ShopPageClient";
+import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
+import { ShopData } from "../shop.types";
+
+
+// Mocks
 
 jest.mock("@/app/actions/shop", () => ({
   purchaseItem: jest.fn(),
@@ -26,7 +31,8 @@ jest.mock("@/lib/shop-catalogue", () => ({
   AVATAR_IMAGES: {},
 }));
 
-// ── Mock Data ──
+
+// Mock Data
 
 const mockData: ShopData = {
   points: 1000,
@@ -47,7 +53,8 @@ const mockData: ShopData = {
   ],
 };
 
-// ── Tests ──────
+
+// Tests
 
 describe("ShopPageClient", () => {
   beforeEach(() => {
@@ -107,8 +114,6 @@ describe("ShopPageClient", () => {
 
     render(<ShopPageClient initialData={equippedData} />);
 
-    // In the refactored UI, unequipping happens by clicking the active avatar thumbnail
-    // Adjusting this to look for the thumbnail or an unequip button depending on your ShopCards implementation
     fireEvent.click(screen.getAllByTitle("Cool Avatar")[0]);
 
     await waitFor(() => {

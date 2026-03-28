@@ -1,3 +1,9 @@
+/**
+ * Server-side Profile page.
+ * Validates authentication, fetches the current user's profile,
+ * and renders the client profile view or an error state.
+ */
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";

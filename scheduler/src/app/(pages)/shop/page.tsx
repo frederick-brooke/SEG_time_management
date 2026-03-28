@@ -1,9 +1,15 @@
+/**
+ * Server-side Shop page.
+ * Authenticates the user, fetches shop data, sanitizes and formats
+ * avatar items, and passes the prepared data to the client shop UI.
+ */
+
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { getShopData } from "@/app/actions/shop";
 import ShopPageClient from "./ShopPageClient";
-import type { ShopData, ItemRarity } from "./shop.types"; // <-- Added ItemRarity import
+import type { ShopData, ItemRarity } from "./shop.types";
 
 /**
  * Server Component orchestrating the Cosmic Avatar Shop.
@@ -13,19 +19,16 @@ import type { ShopData, ItemRarity } from "./shop.types"; // <-- Added ItemRarit
  * @returns {Promise<JSX.Element>} The fully populated client view or a redirect to login.
  */
 export default async function ShopPage() {
-  // 1. Authenticate the request
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     redirect("/login");
   }
 
-  // 2. Fetch raw data from the database actions
   const data = await getShopData();
   if (!data) {
     redirect("/login");
   }
 
-  // 3. Sanitize and Filter Payload
   const formattedData: ShopData = {
     points: data.points,
     equippedAvatar: data.equippedAvatar,
@@ -34,11 +37,9 @@ export default async function ShopPage() {
       .map((item) => ({
         ...item,
         type: "AVATAR", 
-        // Cast the Prisma string to our strict literal type
         rarity: item.rarity as ItemRarity, 
       })),
   };
 
-  // 4. Render the client boundary
   return <ShopPageClient initialData={formattedData} />;
 }

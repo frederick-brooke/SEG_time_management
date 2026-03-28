@@ -1,4 +1,8 @@
-import { RARITY_CONFIG, ItemRarity } from "./shop.types";
+/**
+ * Testing for shop types.
+ */
+
+import { RARITY_CONFIG, ItemRarity } from "../shop.types";
 
 describe("Shop Types & Configuration", () => {
   it("contains styling configurations for all rarity tiers", () => {
