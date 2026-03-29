@@ -13,8 +13,7 @@ global.fetch = jest.fn();
 import { SavedLocationsPanel } from "../SavedLocationsPanel";
 import type { SavedLocation } from "hooks/useSavedLocations";
 
-const flushPromises = () =>
-  new Promise<void>((resolve) => setTimeout(resolve, 0));
+const flushPromises = () => act(async () => { await Promise.resolve(); });
 
 async function pickSuggestion(display = "London", name = "London, UK") {
   (global.fetch as jest.Mock).mockResolvedValueOnce({
