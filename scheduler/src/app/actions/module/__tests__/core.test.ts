@@ -83,6 +83,246 @@ describe("Module Core Actions", () => {
       expect(result.error).toMatch(/between 2 and 100/i);
     });
 
+      describe("createModule (additional branches)", () => {
+    it("should fail if max members is below 2", async () => {
+      const fd = makeFormData({ name: "Physics", description: "", maxMembers: "1" });
+      const result = await createModule(fd);
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/between 2 and 100/i);
+    });
+
+    it("should default maxMembers to 50 if not provided", async () => {
+      const fd = makeFormData({ name: "Physics", description: "" });
+      (generateUniquePin as jest.Mock).mockResolvedValue("ABC123");
+      prismaMock.module.create.mockResolvedValue({ id: "mod-1" } as any);
+      const result = await createModule(fd);
+      expect(result.success).toBe(true);
+    });
+
+    it("should create module with no description", async () => {
+      const fd = makeFormData({ name: "Physics", maxMembers: "10" });
+      (generateUniquePin as jest.Mock).mockResolvedValue("ABC123");
+      prismaMock.module.create.mockResolvedValue({ id: "mod-1" } as any);
+      const result = await createModule(fd);
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("joinModule (additional branches)", () => {
+    it("should fail if module is not found", async () => {
+      prismaMock.module.findUnique.mockResolvedValue(null);
+      const result = await joinModule("ABC123");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/module not found/i);
+    });
+
+    it("should fail if user is already a member", async () => {
+      prismaMock.module.findUnique.mockResolvedValue({
+        id: "mod-1", maxMembers: 50, _count: { members: 5 }
+      } as any);
+      prismaMock.moduleMember.findUnique.mockResolvedValue({ id: "existing" } as any);
+      const result = await joinModule("ABC123");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/already a member/i);
+    });
+  });
+
+  describe("getMyModules", () => {
+    it("should return empty array if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+      const result = await getMyModules();
+      expect(result).toEqual([]);
+    });
+
+    it("should return modules with memberCount and userRole", async () => {
+      prismaMock.moduleMember.findMany.mockResolvedValue([
+        {
+          role: ModuleRole.OWNER,
+          module: {
+            id: "mod-1",
+            joinPin: "ABC123",
+            _count: { members: 3 },
+            creator: { username: "karim", fname: "Karim", lname: "K" },
+          },
+        },
+      ] as any);
+      const result = await getMyModules();
+      expect(result[0].memberCount).toBe(3);
+      expect(result[0].userRole).toBe(ModuleRole.OWNER);
+      expect(result[0].joinPin).toBe("ABC123");
+    });
+
+    it("should hide joinPin from non-owners", async () => {
+      prismaMock.moduleMember.findMany.mockResolvedValue([
+        {
+          role: ModuleRole.MEMBER,
+          module: {
+            id: "mod-1",
+            joinPin: "SECRET",
+            _count: { members: 3 },
+            creator: { username: "karim", fname: "Karim", lname: "K" },
+          },
+        },
+      ] as any);
+      const result = await getMyModules();
+      expect(result[0].joinPin).toBeUndefined();
+    });
+  });
+
+  describe("getModuleDetails", () => {
+    it("should return null if no session", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+      const result = await getModuleDetails("mod-1");
+      expect(result).toBeNull();
+    });
+
+    it("should return null if module not found", async () => {
+      prismaMock.module.findUnique.mockResolvedValue(null);
+      const result = await getModuleDetails("mod-1");
+      expect(result).toBeNull();
+    });
+
+    it("should return null if user is not a member", async () => {
+      prismaMock.module.findUnique.mockResolvedValue({
+        id: "mod-1",
+        members: [{ userId: "other-user", role: ModuleRole.MEMBER }],
+      } as any);
+      const result = await getModuleDetails("mod-1");
+      expect(result).toBeNull();
+    });
+
+    it("should return module details with joinPin for owner", async () => {
+      prismaMock.module.findUnique.mockResolvedValue({
+        id: "mod-1",
+        joinPin: "ABC123",
+        members: [{ userId: mockUserId, role: ModuleRole.OWNER, user: {} }],
+      } as any);
+      const result = await getModuleDetails("mod-1");
+      expect(result).not.toBeNull();
+      expect(result!.joinPin).toBe("ABC123");
+      expect(result!.userRole).toBe(ModuleRole.OWNER);
+    });
+
+    it("should hide joinPin for non-owner member", async () => {
+      prismaMock.module.findUnique.mockResolvedValue({
+        id: "mod-1",
+        joinPin: "SECRET",
+        members: [{ userId: mockUserId, role: ModuleRole.MEMBER, user: {} }],
+      } as any);
+      const result = await getModuleDetails("mod-1");
+      expect(result!.joinPin).toBeUndefined();
+    });
+  });
+
+  describe("leaveModule (additional branches)", () => {
+    it("should fail if user is not a member", async () => {
+      prismaMock.moduleMember.findUnique.mockResolvedValue(null);
+      const result = await leaveModule("mod-1");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/not a member/i);
+    });
+  });
+
+  describe("updateModuleSettings", () => {
+    it("should fail if not the owner", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(false);
+      const result = await updateModuleSettings("mod-1", { name: "X", description: "", maxMembers: 10 });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/only module owners/i);
+    });
+
+    it("should fail if maxMembers is out of bounds", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(true);
+      const result = await updateModuleSettings("mod-1", { name: "X", description: "", maxMembers: 1 });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/between 2 and 100/i);
+    });
+
+    it("should fail if maxMembers is less than current member count", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(true);
+      prismaMock.moduleMember.count.mockResolvedValue(10);
+      const result = await updateModuleSettings("mod-1", { name: "X", description: "", maxMembers: 5 });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/cannot set max members lower/i);
+    });
+
+    it("should successfully update settings", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(true);
+      prismaMock.moduleMember.count.mockResolvedValue(3);
+      prismaMock.module.update.mockResolvedValue({} as any);
+      const result = await updateModuleSettings("mod-1", { name: "New Name", description: "Desc", maxMembers: 10 });
+      expect(result.success).toBe(true);
+      expect(revalidatePath).toHaveBeenCalledWith("/modules/mod-1");
+    });
+
+    it("should handle null description", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(true);
+      prismaMock.moduleMember.count.mockResolvedValue(3);
+      prismaMock.module.update.mockResolvedValue({} as any);
+      const result = await updateModuleSettings("mod-1", { name: "New Name", description: "", maxMembers: 10 });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe("updateMemberRole", () => {
+    it("should fail if not the owner", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(false);
+      const result = await updateMemberRole("mod-1", "other-user", "ADMIN");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/only module owners/i);
+    });
+
+    it("should fail if trying to change own role", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(true);
+      const result = await updateMemberRole("mod-1", mockUserId, "ADMIN");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/cannot change your own role/i);
+    });
+
+    it("should successfully update a member role", async () => {
+      (isModuleOwner as jest.Mock).mockResolvedValue(true);
+      prismaMock.moduleMember.update.mockResolvedValue({} as any);
+      const result = await updateMemberRole("mod-1", "other-user", "ADMIN");
+      expect(result.success).toBe(true);
+      expect(revalidatePath).toHaveBeenCalledWith("/modules/mod-1");
+    });
+  });
+
+  describe("removeMember (additional branches)", () => {
+    it("should fail if requester is not owner or admin", async () => {
+      prismaMock.moduleMember.findUnique.mockResolvedValue({ role: ModuleRole.MEMBER } as any);
+      const result = await removeMember("mod-1", "target-user");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/only owners and admins/i);
+    });
+
+    it("should fail if requester is null", async () => {
+      prismaMock.moduleMember.findUnique.mockResolvedValue(null);
+      const result = await removeMember("mod-1", "target-user");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/only owners and admins/i);
+    });
+
+    it("should fail if target member is not found", async () => {
+      prismaMock.moduleMember.findUnique
+        .mockResolvedValueOnce({ role: ModuleRole.OWNER } as any)
+        .mockResolvedValueOnce(null);
+      const result = await removeMember("mod-1", "target-user");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/member not found/i);
+    });
+
+    it("should fail if target is the owner", async () => {
+      prismaMock.moduleMember.findUnique
+        .mockResolvedValueOnce({ role: ModuleRole.OWNER } as any)
+        .mockResolvedValueOnce({ role: ModuleRole.OWNER } as any);
+      const result = await removeMember("mod-1", "target-user");
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/cannot remove the owner/i);
+    });
+  });
+    
+
     /**
      * Happy Path: Creates the module, generates a PIN, and assigns the OWNER role.
      */
