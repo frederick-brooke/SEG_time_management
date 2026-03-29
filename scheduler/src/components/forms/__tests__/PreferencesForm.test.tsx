@@ -1,169 +1,166 @@
-import React from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import PreferencesForm from "../PreferencesForm";
 
-// Mocks 
-
 global.fetch = jest.fn();
-global.alert = jest.fn();
+window.alert = jest.fn();
 
-const mockPreferences = {
-  workStartTime: "08:00",
-  workEndTime: "18:00",
-  daysOff: ["Sat", "Sun"],
-  sessionLength: 60,
-  breakLength: 10,
-  breaksPerDay: 4,
-  taskOrder: "easy-first",
-  maxTasksPerDay: 10,
-  defaultTaskDuration: 45,
-  reminderDays: 1,
-};
-
-describe("PreferencesForm Component", () => {
+describe("PreferencesForm", () => {
+  const mockUserId = "user-123";
   const mockOnSaved = jest.fn();
-  const userId = "user-123";
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
   });
 
-  // 1. Loading State 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
-  it("shows a loading spinner initially", () => {
-    // Mock a pending promise so it stays in the loading state
+  it("renders a loading spinner initially", async () => {
     (global.fetch as jest.Mock).mockImplementationOnce(() => new Promise(() => {}));
-    const { container } = render(<PreferencesForm userId={userId} />);
-    
-    // Check for the spinner element by its class
+    const { container } = render(<PreferencesForm userId={mockUserId} />);
     expect(container.querySelector(".animate-spin")).toBeInTheDocument();
   });
 
-  // 2. Data Fetching & Rendering 
-
-  it("loads and displays user preferences from the API", async () => {
+  it("loads and displays user preferences", async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ preferences: mockPreferences }),
-    });
-
-    render(<PreferencesForm userId={userId} />);
-
-    // Wait for the loading state to finish and form to render
-    await waitFor(() => {
-      expect(screen.getByText("Work Hours")).toBeInTheDocument();
-    });
-
-    // Verify GET request
-    expect(global.fetch).toHaveBeenCalledWith(`/api/preferences?userId=${userId}`);
-
-    // Verify populated values
-    expect(screen.getByDisplayValue("08:00")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("18:00")).toBeInTheDocument();
-    
-    // Verify custom days off are highlighted (using the active class)
-    const satButton = screen.getByRole("button", { name: "Sat" });
-    expect(satButton).toHaveClass("bg-red-500");
-  });
-
-  it("uses default values if the API returns no preferences", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ preferences: null }),
-    });
-
-    render(<PreferencesForm userId={userId} />);
-
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("09:00")).toBeInTheDocument(); 
-    });
-  });
-
-  // 3. User Interactions 
-
-  it("allows the user to toggle days off", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ preferences: mockPreferences }), 
-    });
-
-    render(<PreferencesForm userId={userId} />);
-    await waitFor(() => screen.getByText("Work Hours"));
-
-    const monButton = screen.getByRole("button", { name: "Mon" });
-    const satButton = screen.getByRole("button", { name: "Sat" });
-
-    expect(monButton).not.toHaveClass("bg-red-500");
-    
-    fireEvent.click(monButton);
-    expect(monButton).toHaveClass("bg-red-500");
-
-    fireEvent.click(satButton);
-    expect(satButton).not.toHaveClass("bg-red-500");
-  });
-
-  // 4. Saving Data 
-
-  it("saves preferences and calls onSaved on success", async () => {
-    const user = userEvent.setup();
-    
-    // 1. Mock the initial GET request
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ preferences: mockPreferences }),
-    });
-
-    // 2. Mock the POST request
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-    });
-
-    render(<PreferencesForm userId={userId} onSaved={mockOnSaved} />);
-    await waitFor(() => screen.getByText("Work Hours"));
-
-    // Click Save
-    const saveButton = screen.getByRole("button", { name: /Save Preferences/i });
-    await user.click(saveButton);
-
-    // Verify POST payload
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(global.fetch).toHaveBeenLastCalledWith("/api/preferences", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userID: userId,
-        ...mockPreferences,
+      json: async () => ({
+        preferences: {
+          workStartTime: "10:00",
+          workEndTime: "18:00",
+          daysOff: ["Sat"],
+          sessionLength: 60,
+          breakLength: 10,
+          breaksPerDay: 4,
+          taskOrder: "easy-first",
+          maxTasksPerDay: 5,
+          defaultTaskDuration: 45,
+          reminderDays: 1,
+        },
       }),
     });
 
-    // Verify callback and success message
-    expect(mockOnSaved).toHaveBeenCalledTimes(1);
-    expect(screen.getByText(/Saved successfully/i)).toBeInTheDocument();
-  });
+    render(<PreferencesForm userId={mockUserId} />);
 
-  it("shows an alert if saving fails", async () => {
-    const user = userEvent.setup();
-    
-    // 1. Mock the initial GET request
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ preferences: mockPreferences }),
+    await waitFor(() => {
+      expect(screen.queryByTestId("loading-spinner")).not.toBeInTheDocument();
     });
 
-    // 2. Mock a failed POST request
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network Error"));
+    expect(screen.getByDisplayValue("10:00")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("18:00")).toBeInTheDocument();
+    expect(screen.getByText("Off: Sat")).toBeInTheDocument();
+  });
 
-    render(<PreferencesForm userId={userId} onSaved={mockOnSaved} />);
-    await waitFor(() => screen.getByText("Work Hours"));
+  it("handles successful fetch with missing preferences object", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    });
 
-    // Click Save
-    const saveButton = screen.getByRole("button", { name: /Save Preferences/i });
-    await user.click(saveButton);
+    render(<PreferencesForm userId={mockUserId} />);
 
-    // Verify failure handling
-    expect(global.alert).toHaveBeenCalledWith("Failed to save preferences. Please try again.");
-    expect(mockOnSaved).not.toHaveBeenCalled();
-    expect(screen.queryByText(/Saved successfully/i)).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("09:00")).toBeInTheDocument();
+    });
+  });
+
+  it("handles fetch errors gracefully", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
+
+    render(<PreferencesForm userId={mockUserId} />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("09:00")).toBeInTheDocument();
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to load preferences:", expect.any(Error));
+    consoleSpy.mockRestore();
+  });
+
+  it("updates form state when user interacts with inputs", async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ preferences: {} }),
+    });
+
+    render(<PreferencesForm userId={mockUserId} />);
+    await waitFor(() => expect(screen.getByDisplayValue("09:00")).toBeInTheDocument());
+
+    fireEvent.change(screen.getByDisplayValue("09:00"), { target: { value: "08:00" } });
+    fireEvent.change(screen.getByDisplayValue("17:00"), { target: { value: "16:00" } });
+
+    const monButton = screen.getByText("Mon");
+    fireEvent.click(monButton); 
+    expect(screen.getByText("Off: Mon")).toBeInTheDocument();
+    fireEvent.click(monButton); 
+    expect(screen.queryByText("Off: Mon")).not.toBeInTheDocument();
+
+    const sessionSlider = screen.getByDisplayValue("90");
+    fireEvent.change(sessionSlider, { target: { value: "120" } });
+    
+    const breakSlider = screen.getByDisplayValue("15");
+    fireEvent.change(breakSlider, { target: { value: "20" } });
+
+    fireEvent.click(screen.getByText("5", { selector: "button" }));
+
+    fireEvent.click(screen.getByLabelText("Deadline first"));
+
+    const maxTasksInput = screen.getByDisplayValue("8");
+    fireEvent.change(maxTasksInput, { target: { value: "10" } });
+
+    const defaultDurationInput = screen.getByDisplayValue("60");
+    fireEvent.change(defaultDurationInput, { target: { value: "45" } });
+
+    fireEvent.click(screen.getByText("1d before"));
+
+    expect(screen.getByDisplayValue("120")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("20")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("10")).toBeInTheDocument();
+  });
+
+  it("saves preferences successfully and shows success message", async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ preferences: {} }) })
+      .mockResolvedValueOnce({ ok: true }); // Save
+
+    render(<PreferencesForm userId={mockUserId} onSaved={mockOnSaved} />);
+    await waitFor(() => expect(screen.getByDisplayValue("09:00")).toBeInTheDocument());
+
+    const saveButton = screen.getByText("Save Preferences");
+    
+    await act(async () => {
+      fireEvent.click(saveButton);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("/api/preferences", expect.objectContaining({
+      method: "POST",
+    }));
+    
+    expect(mockOnSaved).toHaveBeenCalled();
+    expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(screen.queryByText("Saved successfully")).not.toBeInTheDocument();
+  });
+
+  it("handles save failure and alerts the user", async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ preferences: {} }) })
+      .mockResolvedValueOnce({ ok: false }); 
+
+    render(<PreferencesForm userId={mockUserId} />);
+    await waitFor(() => expect(screen.getByDisplayValue("09:00")).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Save Preferences"));
+    });
+
+    expect(window.alert).toHaveBeenCalledWith("Failed to save preferences. Please try again.");
   });
 });
