@@ -74,7 +74,28 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
     try {
       setIsLoading(true);
       const res = await fetch(`/api/tasks?userId=${userId}`);
-      const data = await res.json();
+
+      // Check response status
+      if (!res.ok) {
+        console.warn(`API /api/tasks responded with status ${res.status}`);
+        return;
+      }
+
+      // Get response text first to avoid JSON parse errors
+      const text = await res.text();
+      if (!text) {
+        console.warn("Empty response body from /api/tasks");
+        return;
+      }
+
+      // Parse JSON safely
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("Failed to parse JSON response from /api/tasks", parseError);
+        return;
+      }
 
       if (data.tasks) {
         const tasksArray = data.tasks;

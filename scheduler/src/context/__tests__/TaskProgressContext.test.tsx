@@ -20,7 +20,8 @@ function TestComponent() {
 function mockFetch(response: any, ok = true) {
   return jest.fn().mockResolvedValue({
     ok,
-    json: jest.fn().mockResolvedValue(response),
+    status: ok ? 200 : 400,
+    text: jest.fn().mockResolvedValue(JSON.stringify(response)),
   });
 }
 
@@ -161,6 +162,7 @@ describe("TaskProgressContext", () => {
 
     it("handles fetch errors gracefully", async () => {
       const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
       global.fetch = jest.fn().mockRejectedValue(new Error("Network error"));
 
       const { getByRole } = render(
@@ -178,6 +180,85 @@ describe("TaskProgressContext", () => {
       });
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to refresh progress"), expect.any(Error));
+      consoleErrorSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("handles non-ok response status gracefully", async () => {
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: jest.fn().mockResolvedValue("")
+      });
+
+      const { getByRole } = render(
+        <TaskProgressProvider>
+          <TestComponent />
+        </TaskProgressProvider>
+      );
+
+      const refreshBtn = getByRole("button", { name: /Refresh/i });
+      await act(async () => {
+        refreshBtn.click();
+        await waitFor(() => {
+          expect(screen.getByTestId("loading")).toHaveTextContent("done");
+        });
+      });
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("status 500"));
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("handles empty response body gracefully", async () => {
+      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: jest.fn().mockResolvedValue("")
+      });
+
+      const { getByRole } = render(
+        <TaskProgressProvider>
+          <TestComponent />
+        </TaskProgressProvider>
+      );
+
+      const refreshBtn = getByRole("button", { name: /Refresh/i });
+      await act(async () => {
+        refreshBtn.click();
+        await waitFor(() => {
+          expect(screen.getByTestId("loading")).toHaveTextContent("done");
+        });
+      });
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Empty response body"));
+      consoleWarnSpy.mockRestore();
+    });
+
+    it("handles malformed JSON response gracefully", async () => {
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        text: jest.fn().mockResolvedValue("invalid json {")
+      });
+
+      const { getByRole } = render(
+        <TaskProgressProvider>
+          <TestComponent />
+        </TaskProgressProvider>
+      );
+
+      const refreshBtn = getByRole("button", { name: /Refresh/i });
+      await act(async () => {
+        refreshBtn.click();
+        await waitFor(() => {
+          expect(screen.getByTestId("loading")).toHaveTextContent("done");
+        });
+      });
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to parse JSON"), expect.any(SyntaxError));
       consoleErrorSpy.mockRestore();
     });
 
