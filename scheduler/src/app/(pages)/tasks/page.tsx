@@ -6,7 +6,7 @@
   */
 
 import { Suspense, useEffect, useState } from "react";
-import { ToDoList } from "@/components/to-do-list";
+import { ToDoList } from "@/components/tasks/to-do-list";
 import { useSession } from "next-auth/react";
 import { getMyExams } from "@/app/actions/examActions";
 import { useSearchParams } from "next/navigation";

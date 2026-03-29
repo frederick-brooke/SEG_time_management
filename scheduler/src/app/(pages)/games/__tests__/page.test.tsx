@@ -1,6 +1,4 @@
-/**
- * Testing for Games page
- */
+
 
 import GamesPage from "../page";
 import { getServerSession } from "next-auth";
@@ -8,8 +6,7 @@ import { redirect } from "next/navigation";
 import { getGameBalance } from "@/app/actions/games";
 import GamesPageClient from "../GamesPageClient";
 
-// Mocks
-
+// MOCKS
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
@@ -31,9 +28,7 @@ jest.mock("../GamesPageClient", () => ({
   )),
 }));
 
-
-// Tests
-
+// TESTS
 describe("GamesPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();

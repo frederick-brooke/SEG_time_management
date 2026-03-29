@@ -1,128 +1,158 @@
-import { awardTaskPoints, revokeTaskPoints } from "./points";
+import { awardTaskPoints, revokeTaskPoints } from "../points";
+import { prisma } from "@/lib/prisma";
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
-    userProgress:    { findUnique: jest.fn(), update: jest.fn() },
-    pointTransaction: { create: jest.fn() },
+    userProgress: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    pointTransaction: {
+      create: jest.fn(),
+    },
   },
 }));
 
-import { prisma } from "@/lib/prisma";
+describe("Points System Library", () => {
+  const mockUserId = "user-123";
+  const mockTaskId = "task-456";
+  const mockProgressId = "prog-789";
 
-const mockFindUnique = prisma.userProgress.findUnique    as jest.Mock;
-const mockUpdate     = prisma.userProgress.update        as jest.Mock;
-const mockCreate     = prisma.pointTransaction.create    as jest.Mock;
-
-function makeProgress(overrides: Record<string, unknown> = {}) {
-  return { id: "prog-1", userId: "user-1", experience: 0, coins: 0, level: 1, ...overrides };
-}
-
-beforeEach(() => {
-  jest.clearAllMocks();
-  mockUpdate.mockResolvedValue({});
-  mockCreate.mockResolvedValue({});
-});
-
-// ---------------------------------------------------------------------------
-// awardTaskPoints
-// ---------------------------------------------------------------------------
-describe("awardTaskPoints", () => {
-  it("does nothing when progress is not found", async () => {
-    mockFindUnique.mockResolvedValue(null);
-    await awardTaskPoints("user-1", "task-1", "High");
-    expect(mockUpdate).not.toHaveBeenCalled();
-    expect(mockCreate).not.toHaveBeenCalled();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it.each([
-    ["Low",    10,  5],
-    ["Medium", 20, 10],
-    ["High",   30, 15],
-  ])("awards correct XP and coins for %s priority", async (priority, xp, coins) => {
-    mockFindUnique.mockResolvedValue(makeProgress());
-    await awardTaskPoints("user-1", "task-1", priority);
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ experience: { increment: xp }, coins }),
-    }));
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ amount: coins, taskId: "task-1",
-        reason: expect.stringContaining(`+${xp} XP`) }),
-    }));
+  describe("awardTaskPoints", () => {
+    it("returns early if no user progress is found", async () => {
+      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await awardTaskPoints(mockUserId, mockTaskId, "High");
+
+      expect(prisma.userProgress.update).not.toHaveBeenCalled();
+      expect(prisma.pointTransaction.create).not.toHaveBeenCalled();
+    });
+
+    it("awards points correctly for High priority and triggers level up", async () => {
+      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
+        id: mockProgressId,
+        experience: 90,
+        coins: 10,
+      });
+
+      await awardTaskPoints(mockUserId, mockTaskId, "High");
+
+      expect(prisma.userProgress.update).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        data: {
+          experience: { increment: 30 },
+          coins: 25,
+          level: 2, 
+        },
+      });
+
+      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
+        data: {
+          progressId: mockProgressId,
+          taskId: mockTaskId,
+          amount: 15,
+          reason: "Task completed (High) — +30 XP, +15 coins",
+        },
+      });
+    });
+
+    it("defaults to Low reward for unknown priorities and handles null coins", async () => {
+      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
+        id: mockProgressId,
+        experience: 50,
+        coins: null,
+      });
+
+      await awardTaskPoints(mockUserId, mockTaskId, "UnknownPriority");
+
+      expect(prisma.userProgress.update).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        data: {
+          experience: { increment: 10 },
+          coins: 5, 
+          level: 1,
+        },
+      });
+
+      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
+        data: {
+          progressId: mockProgressId,
+          taskId: mockTaskId,
+          amount: 5,
+          reason: "Task completed (UnknownPriority) — +10 XP, +5 coins",
+        },
+      });
+    });
   });
 
-  it("falls back to Low rewards for an unknown priority", async () => {
-    mockFindUnique.mockResolvedValue(makeProgress());
-    await awardTaskPoints("user-1", "task-1", "Critical");
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ experience: { increment: 10 }, coins: 5 }),
-    }));
-  });
+  describe("revokeTaskPoints", () => {
+    it("returns early if no user progress is found", async () => {
+      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue(null);
 
-  it("levels up when XP crosses a threshold", async () => {
-    mockFindUnique.mockResolvedValue(makeProgress({ experience: 90 }));
-    await awardTaskPoints("user-1", "task-1", "High"); // 90 + 30 = 120 → level 2
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ level: 2 }),
-    }));
-  });
+      await revokeTaskPoints(mockUserId, mockTaskId, "Medium");
 
-  it("adds coins on top of an existing balance", async () => {
-    mockFindUnique.mockResolvedValue(makeProgress({ coins: 50 }));
-    await awardTaskPoints("user-1", "task-1", "Medium"); // 50 + 10 = 60
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ coins: 60 }),
-    }));
-  });
-});
+      expect(prisma.userProgress.update).not.toHaveBeenCalled();
+      expect(prisma.pointTransaction.create).not.toHaveBeenCalled();
+    });
 
-// ---------------------------------------------------------------------------
-// revokeTaskPoints
-// ---------------------------------------------------------------------------
-describe("revokeTaskPoints", () => {
-  it("does nothing when progress is not found", async () => {
-    mockFindUnique.mockResolvedValue(null);
-    await revokeTaskPoints("user-1", "task-1", "High");
-    expect(mockUpdate).not.toHaveBeenCalled();
-    expect(mockCreate).not.toHaveBeenCalled();
-  });
+    it("revokes points correctly for Medium priority", async () => {
+      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
+        id: mockProgressId,
+        experience: 150,
+        coins: 50,
+      });
 
-  it.each([
-    ["Low",    10,  5],
-    ["Medium", 20, 10],
-    ["High",   30, 15],
-  ])("deducts correct XP and coins for %s priority", async (priority, xp, coins) => {
-    mockFindUnique.mockResolvedValue(makeProgress({ experience: 100, coins: 50 }));
-    await revokeTaskPoints("user-1", "task-1", priority);
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ experience: { decrement: xp }, coins: 50 - coins }),
-    }));
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ amount: -coins,
-        reason: expect.stringContaining(`-${xp} XP`) }),
-    }));
-  });
+      await revokeTaskPoints(mockUserId, mockTaskId, "Medium");
 
-  it("floors coins at 0 when balance is insufficient", async () => {
-    mockFindUnique.mockResolvedValue(makeProgress({ coins: 3 }));
-    await revokeTaskPoints("user-1", "task-1", "High"); // would deduct 15
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ coins: 0 }),
-    }));
-  });
+      expect(prisma.userProgress.update).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        data: {
+          experience: { decrement: 20 },
+          coins: 40, 
+          level: 2, 
+        },
+      });
 
-  it("floors level at 1 when XP would go negative", async () => {
-    mockFindUnique.mockResolvedValue(makeProgress({ experience: 5 }));
-    await revokeTaskPoints("user-1", "task-1", "High"); // 5 - 30 clamped to 0 → level 1
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ level: 1 }),
-    }));
-  });
+      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
+        data: {
+          progressId: mockProgressId,
+          taskId: mockTaskId,
+          amount: -10,
+          reason: "Task un-completed (Medium) — -20 XP, -10 coins",
+        },
+      });
+    });
 
-  it("levels down when XP crosses a threshold", async () => {
-    mockFindUnique.mockResolvedValue(makeProgress({ experience: 110, level: 2 }));
-    await revokeTaskPoints("user-1", "task-1", "High"); // 110 - 30 = 80 → level 1
-    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ level: 1 }),
-    }));
+    it("prevents coins and XP from going below zero during revocation", async () => {
+      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
+        id: mockProgressId,
+        experience: 10,
+        coins: 5,
+      });
+
+      await revokeTaskPoints(mockUserId, mockTaskId, "High");
+
+      expect(prisma.userProgress.update).toHaveBeenCalledWith({
+        where: { userId: mockUserId },
+        data: {
+          experience: { decrement: 30 },
+          coins: 0, 
+          level: 1, 
+        },
+      });
+
+      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
+        data: {
+          progressId: mockProgressId,
+          taskId: mockTaskId,
+          amount: -15,
+          reason: "Task un-completed (High) — -30 XP, -15 coins",
+        },
+      });
+    });
   });
 });

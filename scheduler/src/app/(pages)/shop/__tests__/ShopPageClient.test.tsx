@@ -7,7 +7,6 @@ import ShopPageClient from "../ShopPageClient";
 import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
 import { ShopData } from "../shop.types";
 
-
 // Mocks
 
 jest.mock("@/app/actions/shop", () => ({

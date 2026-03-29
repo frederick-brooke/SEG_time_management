@@ -14,19 +14,8 @@ const geistMono = GeistMono({
   subsets: ["latin"],
 });
 
-// export const metadata = {
-//   title: "Scheduler",
-//   description: "Time management app",
-//   title: "Scheduler",
-//   description: "Time management app",
-// };
-
 export default function RootLayout({ children }) {
-  // const [notiShowModal, setShowModal] = useState(false);
 
-  // const handleShowModal = () => {
-  //   setShowModal(!notiShowModal);
-  // };
 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
