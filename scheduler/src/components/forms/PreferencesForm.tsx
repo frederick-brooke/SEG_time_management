@@ -92,12 +92,14 @@ export default function PreferencesForm({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div
+          data-testid="loading-spinner"
+          className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"
+        />
       </div>
     );
   }
 
-  // Compute working window in hours
   const workingMins = (() => {
     const [sh, sm] = formData.workStartTime.split(":").map(Number);
     const [eh, em] = formData.workEndTime.split(":").map(Number);
@@ -309,6 +311,7 @@ export default function PreferencesForm({
                   value={value}
                   checked={formData.taskOrder === value}
                   onChange={(e) => handleChange("taskOrder", e.target.value)}
+                  aria-label={label}
                 />
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{label}</p>
