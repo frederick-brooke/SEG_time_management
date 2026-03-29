@@ -1,24 +1,23 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 
-// Mock toggleVariants so we can see what variant/size it was called with
-const toggleVariantsMock = jest.fn(() => "toggle-variants-class");
+const toggleVariantsMock = jest.fn((_args: { variant?: string; size?: string }) => "toggle-variants-class");
+
 jest.mock("components/ui/toggle", () => ({
   __esModule: true,
-  toggleVariants: (args) => toggleVariantsMock(args),
+  toggleVariants: (args: { variant?: string; size?: string }) => toggleVariantsMock(args),
 }));
 
-// Mock Radix ToggleGroup primitives
 jest.mock("@radix-ui/react-toggle-group", () => {
   const React = require("react");
 
-  const Root = ({ children, ...props }) => (
+  const Root = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
     <div data-testid="radix-root" {...props}>
       {children}
     </div>
   );
 
-  const Item = ({ children, ...props }) => (
+  const Item = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button data-testid="radix-item" type="button" {...props}>
       {children}
     </button>
@@ -31,7 +30,6 @@ jest.mock("@radix-ui/react-toggle-group", () => {
   };
 });
 
-// Import AFTER mocks
 import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group";
 
 describe("components/ui/toggle-group", () => {
@@ -55,7 +53,6 @@ describe("components/ui/toggle-group", () => {
     expect(root).toHaveAttribute("data-spacing", "2");
     expect(root.className).toMatch(/my-group/);
 
-    // ToggleGroupItem should call toggleVariants using CONTEXT values
     expect(toggleVariantsMock).toHaveBeenCalledWith({
       variant: "outline",
       size: "sm",
@@ -71,8 +68,6 @@ describe("components/ui/toggle-group", () => {
   });
 
   it("falls back to item props when context variant/size are missing (covers lines 55,59)", () => {
-    // IMPORTANT: ToggleGroup provides context but variant/size are undefined,
-    // so ToggleGroupItem must fall back to its own `variant` and `size` props.
     render(
       <ToggleGroup>
         <ToggleGroupItem value="b" variant="default" size="lg">
@@ -81,9 +76,6 @@ describe("components/ui/toggle-group", () => {
       </ToggleGroup>,
     );
 
-    // These are the two uncovered fallbacks:
-    // context.variant || variant  -> should use "default"
-    // context.size || size        -> should use "lg"
     expect(toggleVariantsMock).toHaveBeenCalledWith({
       variant: "default",
       size: "lg",
