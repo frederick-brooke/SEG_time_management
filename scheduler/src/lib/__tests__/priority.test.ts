@@ -1,156 +1,43 @@
-import { awardTaskPoints, revokeTaskPoints } from "../points";
-import { prisma } from "@/lib/prisma";
+import { getPriorityStyle } from "../priority";
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    userProgress: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
-    },
-    pointTransaction: {
-      create: jest.fn(),
-    },
-  },
-}));
-
-describe("Points System Library", () => {
-  const mockUserId = "user-123";
-  const mockTaskId = "task-456";
-  const mockProgressId = "prog-789";
-
-  beforeEach(() => {
-    jest.clearAllMocks();
+describe("getPriorityStyle", () => {
+  /**
+   * Validates the styling string returned for the "High" priority level.
+   */
+  it("returns the correct style for High priority", () => {
+    const result = getPriorityStyle("High");
+    expect(result).toBe("bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200");
   });
 
-  describe("awardTaskPoints", () => {
-    it("returns early if no user progress is found", async () => {
-      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await awardTaskPoints(mockUserId, mockTaskId, "High");
-
-      expect(prisma.userProgress.update).not.toHaveBeenCalled();
-      expect(prisma.pointTransaction.create).not.toHaveBeenCalled();
-    });
-
-    it("awards points correctly for High priority and triggers level up", async () => {
-      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
-        id: mockProgressId,
-        experience: 90,
-        coins: 10,
-      });
-
-      await awardTaskPoints(mockUserId, mockTaskId, "High");
-
-      expect(prisma.userProgress.update).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        data: {
-          experience: { increment: 30 },
-          coins: 25,
-          level: 2, 
-        },
-      });
-
-      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
-        data: {
-          progressId: mockProgressId,
-          taskId: mockTaskId,
-          amount: 15,
-          reason: "Task completed (High) — +30 XP, +15 coins",
-        },
-      });
-    });
-
-    it("defaults to Low reward for unknown priorities and handles null coins", async () => {
-      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
-        id: mockProgressId,
-        experience: 50,
-        coins: null,
-      });
-
-      await awardTaskPoints(mockUserId, mockTaskId, "UnknownPriority");
-
-      expect(prisma.userProgress.update).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        data: {
-          experience: { increment: 10 },
-          coins: 5, 
-          level: 1,
-        },
-      });
-
-      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
-        data: {
-          progressId: mockProgressId,
-          taskId: mockTaskId,
-          amount: 5,
-          reason: "Task completed (UnknownPriority) — +10 XP, +5 coins",
-        },
-      });
-    });
+  /**
+   * Validates the styling string returned for the "Medium" priority level.
+   */
+  it("returns the correct style for Medium priority", () => {
+    const result = getPriorityStyle("Medium");
+    expect(result).toBe("bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200");
   });
 
-  describe("revokeTaskPoints", () => {
-    it("returns early if no user progress is found", async () => {
-      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue(null);
+  /**
+   * Validates the styling string returned for the "Low" priority level.
+   */
+  it("returns the correct style for Low priority", () => {
+    const result = getPriorityStyle("Low");
+    expect(result).toBe("bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200");
+  });
 
-      await revokeTaskPoints(mockUserId, mockTaskId, "Medium");
+  /**
+   * Ensures that any unrecognized priority falls back to the default slate styling.
+   */
+  it("returns the default style for an unknown priority", () => {
+    const result = getPriorityStyle("Urgent");
+    expect(result).toBe("bg-slate-100 text-slate-700 border-slate-200");
+  });
 
-      expect(prisma.userProgress.update).not.toHaveBeenCalled();
-      expect(prisma.pointTransaction.create).not.toHaveBeenCalled();
-    });
-
-    it("revokes points correctly for Medium priority", async () => {
-      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
-        id: mockProgressId,
-        experience: 150,
-        coins: 50,
-      });
-
-      await revokeTaskPoints(mockUserId, mockTaskId, "Medium");
-
-      expect(prisma.userProgress.update).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        data: {
-          experience: { decrement: 20 },
-          coins: 40, 
-          level: 2, 
-      });
-
-      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
-        data: {
-          progressId: mockProgressId,
-          taskId: mockTaskId,
-          amount: -10,
-          reason: "Task un-completed (Medium) — -20 XP, -10 coins",
-        },
-      });
-    });
-
-    it("prevents coins and XP from going below zero during revocation", async () => {
-      (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({
-        id: mockProgressId,
-        experience: 10,
-        coins: 5,
-      });
-
-      await revokeTaskPoints(mockUserId, mockTaskId, "High");
-
-      expect(prisma.userProgress.update).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        data: {
-          experience: { decrement: 30 },
-          coins: 0, 
-          level: 1, 
-      });
-
-      expect(prisma.pointTransaction.create).toHaveBeenCalledWith({
-        data: {
-          progressId: mockProgressId,
-          taskId: mockTaskId,
-          amount: -15,
-          reason: "Task un-completed (High) — -30 XP, -15 coins",
-        },
-      });
-    });
+  /**
+   * Ensures that an empty string also triggers the default fallback.
+   */
+  it("returns the default style for an empty string", () => {
+    const result = getPriorityStyle("");
+    expect(result).toBe("bg-slate-100 text-slate-700 border-slate-200");
   });
 });
