@@ -118,12 +118,10 @@ describe("getFriendsLeaderboard", () => {
     expect(result).not.toBeNull();
     expect(result!.length).toBe(3);
 
-    // sorted structure check
     expect(result![0]).toHaveProperty("streak");
     expect(result![0]).toHaveProperty("focusTime");
     expect(result![0]).toHaveProperty("completionRate");
 
-    // ensure current user flag exists
     expect(result!.find(u => u.isCurrentUser)).toBeDefined();
   });
 
@@ -163,6 +161,135 @@ describe("getFriendsLeaderboard", () => {
 
     const result = await getFriendsLeaderboard();
 
-    expect(result![0].id).toBe("user-2"); // higher streak wins
+    expect(result![0].id).toBe("user-2");
+  });
+
+  it("returns null if session has no email", async () => {
+    mockedSession.mockResolvedValue({ user: {} });
+    const result = await getFriendsLeaderboard();
+    expect(result).toBeNull();
+  });
+
+  it("filters tasks by day timeframe using completedAt", async () => {
+    mockedSession.mockResolvedValue({ user: { email: "test@test.com" } });
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: "user-1" } as any);
+    mockedPrisma.friendRequest.findMany.mockResolvedValue([]);
+    mockedPrisma.user.findMany.mockResolvedValue([
+      {
+        id: "user-1",
+        username: "me",
+        fname: "Me",
+        lname: "",
+        pfp: null,
+        tasks: [
+          { completed: true, duration: 30, completedAt: new Date(), createdAt: new Date() },
+          { completed: true, duration: 60, completedAt: new Date("2000-01-01"), createdAt: new Date("2000-01-01") },
+        ],
+      },
+    ] as any);
+    mockedStreak.mockResolvedValue(1);
+
+    const result = await getFriendsLeaderboard("day");
+
+    expect(result).not.toBeNull();
+    expect(result![0].focusTimeRaw).toBe(30);
+  });
+
+  it("filters tasks by week timeframe", async () => {
+    mockedSession.mockResolvedValue({ user: { email: "test@test.com" } });
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: "user-1" } as any);
+    mockedPrisma.friendRequest.findMany.mockResolvedValue([]);
+    mockedPrisma.user.findMany.mockResolvedValue([
+      {
+        id: "user-1",
+        username: "me",
+        fname: "Me",
+        lname: "",
+        pfp: null,
+        tasks: [
+          { completed: true, duration: 45, completedAt: new Date(), createdAt: new Date() },
+          { completed: true, duration: 999, completedAt: new Date("2000-01-01"), createdAt: new Date("2000-01-01") },
+        ],
+      },
+    ] as any);
+    mockedStreak.mockResolvedValue(0);
+
+    const result = await getFriendsLeaderboard("week");
+
+    expect(result).not.toBeNull();
+    expect(result![0].focusTimeRaw).toBe(45);
+  });
+
+  it("filters tasks by month timeframe", async () => {
+    mockedSession.mockResolvedValue({ user: { email: "test@test.com" } });
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: "user-1" } as any);
+    mockedPrisma.friendRequest.findMany.mockResolvedValue([]);
+    mockedPrisma.user.findMany.mockResolvedValue([
+      {
+        id: "user-1",
+        username: "me",
+        fname: "Me",
+        lname: "",
+        pfp: null,
+        tasks: [
+          { completed: true, duration: 90, completedAt: new Date(), createdAt: new Date() },
+          { completed: true, duration: 999, completedAt: new Date("2000-01-01"), createdAt: new Date("2000-01-01") },
+        ],
+      },
+    ] as any);
+    mockedStreak.mockResolvedValue(0);
+
+    const result = await getFriendsLeaderboard("month");
+
+    expect(result).not.toBeNull();
+    expect(result![0].focusTimeRaw).toBe(90);
+  });
+
+  it("filters incomplete tasks by createdAt when dateThreshold is set", async () => {
+    mockedSession.mockResolvedValue({ user: { email: "test@test.com" } });
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: "user-1" } as any);
+    mockedPrisma.friendRequest.findMany.mockResolvedValue([]);
+    mockedPrisma.user.findMany.mockResolvedValue([
+      {
+        id: "user-1",
+        username: "me",
+        fname: "Me",
+        lname: "",
+        pfp: null,
+        tasks: [
+          { completed: false, duration: 0, completedAt: null, createdAt: new Date() },
+          { completed: false, duration: 0, completedAt: null, createdAt: new Date("2000-01-01") },
+        ],
+      },
+    ] as any);
+    mockedStreak.mockResolvedValue(0);
+
+    const result = await getFriendsLeaderboard("day");
+
+    expect(result).not.toBeNull();
+    expect(result![0].completionRate).toBe(0);
+  });
+
+  it("formats focus time as hours and minutes when over 60 minutes", async () => {
+    mockedSession.mockResolvedValue({ user: { email: "test@test.com" } });
+    mockedPrisma.user.findUnique.mockResolvedValue({ id: "user-1" } as any);
+    mockedPrisma.friendRequest.findMany.mockResolvedValue([]);
+    mockedPrisma.user.findMany.mockResolvedValue([
+      {
+        id: "user-1",
+        username: "me",
+        fname: "Me",
+        lname: "",
+        pfp: null,
+        tasks: [
+          { completed: true, duration: 90, completedAt: new Date(), createdAt: new Date() },
+        ],
+      },
+    ] as any);
+    mockedStreak.mockResolvedValue(0);
+
+    const result = await getFriendsLeaderboard();
+
+    expect(result![0].focusTime).toBe("1h 30m");
   });
 });

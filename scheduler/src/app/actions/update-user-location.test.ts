@@ -141,4 +141,53 @@ import {
       expect(res.success).toBe(false);
       expect(res.error).toBe("DB failure");
     });
+
+    it("returns error if latitude is not a number", async () => {
+      const res = await updateUserLocation({
+        latitude: "not-a-number" as any,
+        longitude: 20,
+        city: null,
+        country: null,
+        locationHidden: false,
+      });
+      expect(res.success).toBe(false);
+      expect(res.error).toMatch(/Invalid coordinates/);
+    });
+
+    it("uses null for city and country when empty strings provided", async () => {
+      (prisma.user.update as jest.Mock).mockResolvedValue({});
+      const res = await updateUserLocation({
+        latitude: 10,
+        longitude: 20,
+        city: "",
+        country: "",
+        locationHidden: false,
+      });
+      expect(res).toEqual({ success: true });
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ city: null, country: null }),
+        })
+      );
+    });
+
+    it("returns generic fallback error when a non-Error is thrown in updateUserLocation", async () => {
+      (prisma.user.update as jest.Mock).mockRejectedValue("raw string error");
+      const res = await updateUserLocation({
+        latitude: 10,
+        longitude: 20,
+        city: null,
+        country: null,
+        locationHidden: false,
+      });
+      expect(res.success).toBe(false);
+      expect(res.error).toBe("Failed to update location");
+    });
+
+    it("returns generic fallback error when a non-Error is thrown in updateLocationHidden", async () => {
+      (prisma.user.update as jest.Mock).mockRejectedValue("raw string error");
+      const res = await updateLocationHidden(true);
+      expect(res.success).toBe(false);
+      expect(res.error).toBe("Failed to update location visibility");
+    });
   });

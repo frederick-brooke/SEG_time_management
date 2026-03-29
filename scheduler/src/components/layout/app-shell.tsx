@@ -2,7 +2,7 @@
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { SiteHeader } from "@/components/navigation/site-header";
-import {SidebarProvider,SidebarInset} from "@/components/animate-ui/components/radix/sidebar";
+import { SidebarProvider, SidebarInset } from "../animate-ui/components/radix/sidebar.index"
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";                          
 import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";

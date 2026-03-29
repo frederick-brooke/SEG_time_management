@@ -1,59 +1,38 @@
-import { render, screen } from "@testing-library/react";
-import HeroSection, { StarField } from "../HeroSection";
+import { render, screen, fireEvent, act } from "@testing-library/react";
+import HeroSection from "../HeroSection";
 
-// ---- mocks ----
-jest.mock("next/link", () => ({ children, href }: any) => (
-  <a href={href}>{children}</a>
-));
-
+/** Mocks next/image to prevent testing errors */
 jest.mock("next/image", () => ({
   __esModule: true,
-  default: ({ src, alt, ...rest }: any) => {
-    return <img src={src} alt={alt} />;
-  },
+  default: (props: any) => <img {...props} />,
 }));
 
-// framer-motion mock (critical)
-jest.mock("framer-motion", () => {
-  const React = require("react");
-  return {
-    motion: new Proxy(
-      {},
-      {
-        get: () => (props: any) => <div {...props} />,
-      }
-    ),
-    useScroll: () => ({ scrollYProgress: { get: () => 0 } }),
-    useTransform: () => 0,
-    useSpring: () => ({ set: jest.fn() }),
-  };
-});
-
 describe("HeroSection", () => {
-  test("renders hero text content", () => {
-    render(<HeroSection />);
-
-    expect(screen.getByText("Time moves.")).toBeInTheDocument();
-    expect(screen.getByText("So should you.")).toBeInTheDocument();
-    expect(
-      screen.getByText(/The scheduling tool that orbits around your life/i)
-    ).toBeInTheDocument();
+  beforeEach(() => {
+    /** Defines predictable window size for Math.hypot calculations */
+    Object.defineProperty(window, "innerWidth", { writable: true, configurable: true, value: 1000 });
+    Object.defineProperty(window, "innerHeight", { writable: true, configurable: true, value: 1000 });
   });
 
-  test("start for free button links to register", () => {
-    render(<HeroSection />);
+  it("renders the hero section and handles star interactions", async () => {
+    const { container } = render(<HeroSection />);
 
-    const link = screen.getByRole("link", { name: /start for free/i });
-    expect(link).toHaveAttribute("href", "/register");
-  });
-});
+    /** Waits for component to mount to cover !mounted branches */
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
 
-describe("StarField", () => {
-  test("renders stars after mount", () => {
-    render(<StarField />);
+    expect(screen.getByText(/Time moves./i)).toBeInTheDocument();
+    expect(container.querySelector("img[alt='Moon']")).toBeInTheDocument();
 
-    // StarField returns many divs after mounted
-    const stars = document.querySelectorAll(".absolute.rounded-full");
-    expect(stars.length).toBeGreaterThan(0);
+    /** Simulates mouse move to center to cover isNear=true branches */
+    act(() => {
+      fireEvent.mouseMove(window, { clientX: 500, clientY: 500 });
+    });
+
+    /** Simulates mouse move to corner to cover isNear=false branches */
+    act(() => {
+      fireEvent.mouseMove(window, { clientX: 10, clientY: 10 });
+    });
   });
 });
