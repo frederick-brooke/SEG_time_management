@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { notifyTaskSaved } from "../lib/taskNotifications";
 
+// Progress sync event - dispatched when task progress updates
+const PROGRESS_SYNC_EVENT = "task-progress-updated";
+
 export function useTasks(userId: string | undefined) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,23 +86,27 @@ export function useTasks(userId: string | undefined) {
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return null;
-  
+
     let nextStatus = forcedStatus;
     if (!nextStatus) {
       if (task.status === "todo") nextStatus = "in-progress";
       else if (task.status === "in-progress") nextStatus = "todo";
       else if (task.status === "completed") nextStatus = "in-progress";
     }
-  
+
     const res = await fetch(`/api/tasks/${taskId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: nextStatus }),
     });
-  
+
     const data = await res.json();
-  
+
     setTasks(prev => prev.map((t) => t.id === taskId ? { ...t, status: nextStatus, completed: nextStatus === "completed" } : t));
+
+    // Trigger progress update when task status changes
+    window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+
     return data.rewards ?? null;
   };
 

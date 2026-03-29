@@ -106,7 +106,7 @@ describe("RocketProgress — progress clamping", () => {
   });
 });
 
-// Animation cycle 
+// Animation cycle
 
 describe("RocketProgress — animation cycle", () => {
   it("stays at 0 before the 400 ms ignition delay", () => {
@@ -118,8 +118,8 @@ describe("RocketProgress — animation cycle", () => {
 
   it("reaches the target progress after animation completes", () => {
     render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); }); 
-    act(() => { jest.advanceTimersByTime(100); }); 
+    act(() => { jest.advanceTimersByTime(400); });
+    act(() => { jest.advanceTimersByTime(100); });
     expect(screen.getByText("50")).toBeInTheDocument();
   });
 
@@ -133,13 +133,47 @@ describe("RocketProgress — animation cycle", () => {
     expect(screen.getByText(/ALL TASKS ACHIEVED/)).toBeInTheDocument();
   });
 
-  it("resets to 0 after burst hold (8 s) + idle (2 s)", () => {
+  it("does not reset animation when component re-renders with same progress", () => {
+    const { rerender } = render(<RocketProgress progress={50} />);
+    act(() => { jest.advanceTimersByTime(400); });
+    act(() => { jest.advanceTimersByTime(100); });
+    expect(screen.getByText("50")).toBeInTheDocument();
+
+    // Re-render with same progress should NOT restart animation
+    rerender(<RocketProgress progress={50} />);
+    expect(screen.getByText("50")).toBeInTheDocument();
+
+    // Advance time past burst hold - should NOT cycle back to 0
+    act(() => { jest.advanceTimersByTime(8000); });
+    expect(screen.getByText("50")).toBeInTheDocument(); // Should stay at 50, not reset
+  });
+
+  it("only animates when progress value actually changes (dependency on safeProgress)", () => {
+    const { rerender } = render(<RocketProgress progress={30} />);
+    act(() => { jest.advanceTimersByTime(400); });
+    act(() => { jest.advanceTimersByTime(100); });
+    expect(screen.getByText("30")).toBeInTheDocument();
+
+    // Update to different progress - should trigger new animation
+    rerender(<RocketProgress progress={60} />);
+    act(() => { jest.advanceTimersByTime(400); });
+    act(() => { jest.advanceTimersByTime(100); });
+    expect(screen.getByText("60")).toBeInTheDocument();
+  });
+
+  it("completes animation and holds at burst state without rescheduling", () => {
     render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); }); 
-    act(() => { jest.advanceTimersByTime(100); }); 
-    act(() => { jest.advanceTimersByTime(8000); }); 
-    act(() => { jest.advanceTimersByTime(2000); }); 
-    expect(screen.getByText("0")).toBeInTheDocument();
+    act(() => { jest.advanceTimersByTime(400); });
+    act(() => { jest.advanceTimersByTime(100); });
+    expect(screen.getByText("50")).toBeInTheDocument();
+
+    // Burst phase - animation holds for 8 seconds
+    act(() => { jest.advanceTimersByTime(8000); });
+    expect(screen.getByText("50")).toBeInTheDocument(); // Still shows 50, not reset
+
+    // Unlike old behavior, it should never reset to 0 automatically
+    act(() => { jest.advanceTimersByTime(10000); });
+    expect(screen.getByText("50")).toBeInTheDocument(); // Still 50
   });
 });
 

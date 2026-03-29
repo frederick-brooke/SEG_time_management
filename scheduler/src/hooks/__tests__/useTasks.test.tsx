@@ -202,6 +202,16 @@ describe("useTasks", () => {
     expect(rewards).toBeNull();
   });
 
+  it("toggleTaskStatus dispatches PROGRESS_SYNC_EVENT after status change", async () => {
+    const dispatchEventSpy = jest.spyOn(window, "dispatchEvent");
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: null });
+    await act(async () => { await result.current.toggleTaskStatus("t1"); });
+    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
+    dispatchEventSpy.mockRestore();
+  });
+
   it("toggleTaskStatus returns null and does nothing when task is not found", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -210,6 +220,15 @@ describe("useTasks", () => {
     await act(async () => { rewards = await result.current.toggleTaskStatus("nonexistent"); });
     expect(rewards).toBeNull();
     expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("nonexistent"), expect.anything());
+  });
+
+  it("toggleTaskStatus does not dispatch event when task is not found", async () => {
+    const dispatchEventSpy = jest.spyOn(window, "dispatchEvent");
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => { await result.current.toggleTaskStatus("nonexistent"); });
+    expect(dispatchEventSpy).not.toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
+    dispatchEventSpy.mockRestore();
   });
 
   it("sortTasks orders tasks by priority High > Medium > Low", async () => {
