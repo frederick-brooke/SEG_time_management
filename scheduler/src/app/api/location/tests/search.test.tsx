@@ -7,12 +7,9 @@
  * - deduplication and ordering
  * - fallback property mapping
  * - upstream fetch failures and JSON parse errors
+ * - non-ok upstream responses
  */
 
-// Mocks
-
-// NextResponse.json is broken in Jest/JSDOM — replace with a plain Response.
-// This must be mocked before the route is imported.
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: unknown, init?: ResponseInit) =>
@@ -39,8 +36,6 @@ global.Response = class {
 
 import { GET } from "@/app/api/location/search/route";
 
-// Fixtures
-
 function makeRequest(query?: string): Request {
   const url = query
     ? `https://example.com/api/geocode?q=${encodeURIComponent(query)}`
@@ -65,8 +60,6 @@ function makeFetchResponse(features: unknown[]) {
   return { ok: true, json: async () => ({ features }) };
 }
 
-// Helpers 
-
 function stubUkOnly(feature: unknown) {
   global.fetch = jest.fn()
     .mockResolvedValueOnce(makeFetchResponse([feature]))
@@ -79,28 +72,31 @@ function stubBothSearches(ukFeatures: unknown[], globalFeatures: unknown[]) {
     .mockResolvedValueOnce(makeFetchResponse(globalFeatures));
 }
 
-// Tests 
-
 describe("GET /api/geocode", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.OPENROUTE_API_KEY = "test-api-key";
   });
 
-  // Missing query
-
+  /**
+   * Returns an empty array when the q param is completely absent from the URL.
+   */
   it("returns empty array when q param is not provided", async () => {
     const res = await GET(makeRequest());
     expect(await res.json()).toEqual([]);
   });
 
+  /**
+   * Returns an empty array when the q param is present but contains only whitespace.
+   */
   it("returns empty array when q param is blank", async () => {
     const res = await GET(makeRequest("   "));
     expect(await res.json()).toEqual([]);
   });
 
-  // API call structure
-
+  /**
+   * Verifies the route always fires two fetches: one scoped to GBR and one global.
+   */
   it("calls fetch twice — once UK-bounded, once global", async () => {
     stubBothSearches([], []);
 
@@ -112,6 +108,9 @@ describe("GET /api/geocode", () => {
     expect(calls[1][0]).not.toContain("boundary.country");
   });
 
+  /**
+   * Verifies the API key is forwarded in both upstream fetch calls.
+   */
   it("includes the API key in both fetch calls", async () => {
     stubBothSearches([], []);
 
@@ -122,8 +121,10 @@ describe("GET /api/geocode", () => {
     expect(calls[1][0]).toContain("test-api-key");
   });
 
-  // Result mapping
-
+  /**
+   * Verifies that a standard feature is mapped to the expected shape with
+   * correct name, city, and display fields.
+   */
   it("maps UK results to the expected shape", async () => {
     stubUkOnly(makeFeature());
 
@@ -135,6 +136,9 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.display).toBe("Test Place, Coventry, UK");
   });
 
+  /**
+   * Covers the name fallback branch: when name is missing, label is used instead.
+   */
   it("falls back to label when name is missing", async () => {
     stubUkOnly(makeFeature({ name: undefined }));
 
@@ -143,6 +147,21 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.name).toBe("Test Place, Coventry, UK");
   });
 
+  /**
+   * Covers the final fallback branch in mapFeature: when both name and label
+   * are missing, the name should default to "Unknown".
+   */
+  it("falls back to Unknown when both name and label are missing", async () => {
+    stubUkOnly(makeFeature({ name: undefined, label: undefined }));
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body[0].properties.name).toBe("Unknown");
+  });
+
+  /**
+   * Covers the city fallback branch: when locality is absent, county is used.
+   */
   it("uses county as city when locality is missing", async () => {
     stubUkOnly(makeFeature({ locality: undefined, county: "West Midlands" }));
 
@@ -151,6 +170,10 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.city).toBe("West Midlands");
   });
 
+  /**
+   * Covers the empty-string city branch: when both locality and county are
+   * absent, city defaults to an empty string.
+   */
   it("returns empty string for city when both locality and county are missing", async () => {
     stubUkOnly(makeFeature({ locality: undefined, county: undefined }));
 
@@ -159,8 +182,9 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.city).toBe("");
   });
 
-  // Ordering and deduplication
-
+  /**
+   * Verifies UK results appear before global results in the final array.
+   */
   it("places UK results before global results", async () => {
     const ukFeature = makeFeature({ label: "UK Place" });
     const globalFeature = makeFeature({ label: "Global Place", name: "Global Place" });
@@ -172,6 +196,10 @@ describe("GET /api/geocode", () => {
     expect(body[1].properties.display).toBe("Global Place");
   });
 
+  /**
+   * Verifies that a result appearing in both UK and global responses is only
+   * included once, with the UK copy taking priority.
+   */
   it("deduplicates results that share the same display label", async () => {
     const feature = makeFeature();
     stubBothSearches([feature], [feature]);
@@ -181,8 +209,10 @@ describe("GET /api/geocode", () => {
     expect(body).toHaveLength(1);
   });
 
-  // Upstream failures
-
+  /**
+   * Verifies the outer catch block returns an empty array when fetch rejects
+   * entirely due to a network-level error.
+   */
   it("returns empty array when fetch throws a network error", async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error("Network error"));
 
@@ -191,11 +221,43 @@ describe("GET /api/geocode", () => {
     expect(body).toEqual([]);
   });
 
+  /**
+   * Verifies the safeJson try/catch returns empty features when the upstream
+   * response body cannot be parsed as JSON.
+   */
   it("returns empty array when response JSON parsing fails", async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => { throw new Error("JSON parse error"); },
     });
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body).toEqual([]);
+  });
+
+  /**
+   * Covers the safeJson early-return branch: when the upstream response has
+   * ok: false, safeJson returns empty features without attempting to parse.
+   */
+  it("returns empty array when upstream responds with non-ok status", async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({}) });
+
+    const body = await (await GET(makeRequest("test"))).json();
+
+    expect(body).toEqual([]);
+  });
+
+  /**
+   * Covers the mapFeatures default parameter branch: when the upstream response
+   * omits the features array entirely, it defaults to empty rather than throwing.
+   */
+  it("handles undefined features array gracefully", async () => {
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
     const body = await (await GET(makeRequest("test"))).json();
 

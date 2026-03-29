@@ -1,4 +1,3 @@
-// src/__tests__/lib/userQueries.test.ts
 
 import {
   fetchUserByEmail,
@@ -9,7 +8,7 @@ import {
   fetchFriendStatus,
   computeTaskStats,
   FriendUser,
-} from 'lib/profile-queries'; 
+} from 'lib/profile-queries';
 
 // Mocks 
 
@@ -37,9 +36,9 @@ jest.mock('@prisma/client', () => ({
 import { prisma } from 'lib/prisma';
 
 const mockFindUnique = prisma.user.findUnique as jest.Mock;
-const mockCount = prisma.friendRequest.count as jest.Mock;
-const mockFindMany = prisma.friendRequest.findMany as jest.Mock;
-const mockFindFirst = prisma.friendRequest.findFirst as jest.Mock;
+const mockCount      = prisma.friendRequest.count as jest.Mock;
+const mockFindMany   = prisma.friendRequest.findMany as jest.Mock;
+const mockFindFirst  = prisma.friendRequest.findFirst as jest.Mock;
 
 // Fixtures 
 
@@ -49,6 +48,25 @@ const baseFriendUser: FriendUser = {
   fname: 'Alice',
   lname: 'Smith',
   pfp: null,
+  location: null,
+  locationHidden: false,
+  city: null,
+  country: null,
+  equippedAvatar: null,
+};
+
+// Raw DB shape returned by FRIEND_USER_SELECT (progress is nested)
+const baseFriendUserRaw = {
+  id: 'user-1',
+  username: 'alice',
+  fname: 'Alice',
+  lname: 'Smith',
+  pfp: null,
+  location: null,
+  locationHidden: false,
+  city: null,
+  country: null,
+  progress: { equippedAvatar: null },
 };
 
 const fullUser = {
@@ -62,7 +80,7 @@ const fullUser = {
   createdAt: new Date('2024-01-01'),
   progress: { points: 100, level: 2, experience: 50 },
   tasks: [
-    { completed: true, completedAt: new Date() },
+    { completed: true,  completedAt: new Date() },
     { completed: false, completedAt: null },
   ],
   receivedRequests: [
@@ -73,7 +91,7 @@ const fullUser = {
   ],
 };
 
-// Tests 
+// Setup 
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -122,9 +140,19 @@ describe('fetchUserByEmail', () => {
 
 describe('fetchUserByUsername', () => {
   const publicUser = {
-    ...fullUser,
-    receivedRequests: undefined,
-    sentRequests: undefined,
+    id: 'user-1',
+    username: 'alice',
+    fname: 'Alice',
+    lname: 'Smith',
+    email: 'alice@example.com',
+    bio: 'Hello!',
+    pfp: null,
+    createdAt: new Date('2024-01-01'),
+    progress: { points: 100, level: 2, experience: 50 },
+    tasks: [
+      { completed: true,  completedAt: new Date() },
+      { completed: false, completedAt: null },
+    ],
   };
 
   it('returns the user object when found', async () => {
@@ -182,7 +210,7 @@ describe('fetchUsernameByEmail', () => {
     await fetchUsernameByEmail('alice@example.com');
 
     expect(mockFindUnique).toHaveBeenCalledWith({
-      where: { email: 'alice@example.com' },
+      where:  { email: 'alice@example.com' },
       select: { username: true },
     });
   });
@@ -221,21 +249,34 @@ describe('fetchFriendCount', () => {
   });
 });
 
-// fetchFriends 
+// fetchFriends
 
 describe('fetchFriends', () => {
-  const bob: FriendUser = { id: 'user-2', username: 'bob', fname: 'Bob', lname: null, pfp: null };
-  const carol: FriendUser = { id: 'user-3', username: 'carol', fname: 'Carol', lname: null, pfp: null };
+  const bobRaw = {
+    id: 'user-2', username: 'bob', fname: 'Bob', lname: null, pfp: null,
+    location: null, locationHidden: false, city: null, country: null,
+    progress: { equippedAvatar: null },
+  };
+  const carolRaw = {
+    id: 'user-3', username: 'carol', fname: 'Carol', lname: null, pfp: null,
+    location: null, locationHidden: false, city: null, country: null,
+    progress: { equippedAvatar: null },
+  };
 
   it('merges friends from both sent and received directions', async () => {
     mockFindMany
-      .mockResolvedValueOnce([{ receiver: bob }])   
-      .mockResolvedValueOnce([{ sender: carol }]);   
+      .mockResolvedValueOnce([{ receiver: bobRaw }])
+      .mockResolvedValueOnce([{ sender: carolRaw }]);
 
     const result = await fetchFriends('user-1');
 
     expect(result).toHaveLength(2);
-    expect(result).toEqual(expect.arrayContaining([bob, carol]));
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'user-2', username: 'bob' }),
+        expect.objectContaining({ id: 'user-3', username: 'carol' }),
+      ])
+    );
   });
 
   it('returns an empty array when the user has no friends', async () => {
@@ -248,22 +289,44 @@ describe('fetchFriends', () => {
 
   it('returns only sent-direction friends when no received requests exist', async () => {
     mockFindMany
-      .mockResolvedValueOnce([{ receiver: bob }])
+      .mockResolvedValueOnce([{ receiver: bobRaw }])
       .mockResolvedValueOnce([]);
 
     const result = await fetchFriends('user-1');
 
-    expect(result).toEqual([bob]);
+    expect(result).toEqual([expect.objectContaining({ id: 'user-2', username: 'bob' })]);
   });
 
   it('returns only received-direction friends when no sent requests exist', async () => {
     mockFindMany
       .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ sender: carol }]);
+      .mockResolvedValueOnce([{ sender: carolRaw }]);
 
     const result = await fetchFriends('user-1');
 
-    expect(result).toEqual([carol]);
+    expect(result).toEqual([expect.objectContaining({ id: 'user-3', username: 'carol' })]);
+  });
+
+  it('flattens equippedAvatar from nested progress field', async () => {
+    const rawWithAvatar = { ...bobRaw, progress: { equippedAvatar: 'avatar-url' } };
+    mockFindMany
+      .mockResolvedValueOnce([{ receiver: rawWithAvatar }])
+      .mockResolvedValueOnce([]);
+
+    const result = await fetchFriends('user-1');
+
+    expect(result[0].equippedAvatar).toBe('avatar-url');
+  });
+
+  it('sets equippedAvatar to null when progress is missing', async () => {
+    const rawNoProgress = { ...bobRaw, progress: null };
+    mockFindMany
+      .mockResolvedValueOnce([{ receiver: rawNoProgress }])
+      .mockResolvedValueOnce([]);
+
+    const result = await fetchFriends('user-1');
+
+    expect(result[0].equippedAvatar).toBeNull();
   });
 
   it('runs both queries in parallel via Promise.all', async () => {
@@ -278,14 +341,14 @@ describe('fetchFriends', () => {
 // fetchFriendStatus 
 
 describe('fetchFriendStatus', () => {
-  const accepted = { id: 'req-1', status: 'ACCEPTED' };
-  const pendingSent = { id: 'req-2', status: 'PENDING' };
-  const pendingReceived = { id: 'req-3', status: 'PENDING' };
+  const accepted        = { id: 'req-1', status: 'ACCEPTED' };
+  const pendingSent     = { id: 'req-2', status: 'PENDING'  };
+  const pendingReceived = { id: 'req-3', status: 'PENDING'  };
 
   it('returns FRIENDS when sent request is ACCEPTED', async () => {
     mockFindFirst
-      .mockResolvedValueOnce(accepted) 
-      .mockResolvedValueOnce(null);   
+      .mockResolvedValueOnce(accepted)
+      .mockResolvedValueOnce(null);
 
     const result = await fetchFriendStatus('viewer', 'target');
 
@@ -294,8 +357,8 @@ describe('fetchFriendStatus', () => {
 
   it('returns FRIENDS when received request is ACCEPTED', async () => {
     mockFindFirst
-      .mockResolvedValueOnce(null)   
-      .mockResolvedValueOnce(accepted); 
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(accepted);
 
     const result = await fetchFriendStatus('viewer', 'target');
 
@@ -305,7 +368,7 @@ describe('fetchFriendStatus', () => {
   it('returns REQUEST_SENT when viewer has a PENDING sent request', async () => {
     mockFindFirst
       .mockResolvedValueOnce(pendingSent)
-      .mockResolvedValueOnce(null);      
+      .mockResolvedValueOnce(null);
 
     const result = await fetchFriendStatus('viewer', 'target');
 
@@ -314,8 +377,8 @@ describe('fetchFriendStatus', () => {
 
   it('returns REQUEST_RECEIVED with requestId when target sent a PENDING request', async () => {
     mockFindFirst
-      .mockResolvedValueOnce(null)           
-      .mockResolvedValueOnce(pendingReceived); 
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(pendingReceived);
 
     const result = await fetchFriendStatus('viewer', 'target');
 
@@ -323,11 +386,33 @@ describe('fetchFriendStatus', () => {
   });
 
   it('returns NONE when no requests exist in either direction', async () => {
-    mockFindFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+    mockFindFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
 
     const result = await fetchFriendStatus('viewer', 'target');
 
     expect(result).toEqual({ status: 'NONE' });
+  });
+
+  it('queries sent direction with correct senderId/receiverId', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    await fetchFriendStatus('viewer', 'target');
+
+    expect(mockFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { senderId: 'viewer', receiverId: 'target' } })
+    );
+  });
+
+  it('queries received direction with correct senderId/receiverId', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    await fetchFriendStatus('viewer', 'target');
+
+    expect(mockFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { senderId: 'target', receiverId: 'viewer' } })
+    );
   });
 
   it('runs both DB queries in parallel', async () => {
@@ -344,10 +429,10 @@ describe('fetchFriendStatus', () => {
 describe('computeTaskStats', () => {
   it('returns correct stats for a mixed task list', () => {
     const tasks = [
-      { completed: true },
+      { completed: true  },
       { completed: false },
-      { completed: true },
-      { completed: true },
+      { completed: true  },
+      { completed: true  },
     ];
 
     expect(computeTaskStats(tasks)).toEqual({
@@ -391,7 +476,7 @@ describe('computeTaskStats', () => {
     expect(computeTaskStats(tasks).completionRate).toBe(33);
   });
 
-  it('rounds 0.5 fractions correctly (2/3 = 66.66 → 67)', () => {
+  it('rounds 2/3 correctly to 67', () => {
     const tasks = [{ completed: true }, { completed: true }, { completed: false }];
 
     expect(computeTaskStats(tasks).completionRate).toBe(67);

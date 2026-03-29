@@ -1,5 +1,5 @@
-import { authOptions, authorizeUser } from './auth';
-import { prisma } from './prisma';
+import { authOptions, authorizeUser } from '../auth';
+import { prisma } from '../prisma';
 import bcrypt from 'bcryptjs';
 
 
@@ -7,7 +7,7 @@ jest.mock('@next-auth/prisma-adapter', () => ({
   PrismaAdapter: jest.fn()
 }));
 
-jest.mock('./prisma', () => ({
+jest.mock('../prisma', () => ({
   prisma: {
     user: { findUnique: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
     account: { findUnique: jest.fn(), upsert: jest.fn(), findFirst: jest.fn() }
@@ -19,11 +19,11 @@ jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('hash')
 }));
 
-jest.mock('./password', () => ({
+jest.mock('../password', () => ({
   verifyPassword: jest.fn()
 }));
 
-import { verifyPassword } from './password';
+import { verifyPassword } from '../password';
 
 const getCallbacks = () => authOptions.callbacks as any;
 

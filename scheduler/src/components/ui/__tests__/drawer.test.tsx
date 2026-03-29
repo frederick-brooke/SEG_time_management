@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Drawer } from './drawer' // adjust path
+import { Drawer } from '../drawer' 
 
 describe('Drawer component', () => {
   test('renders Drawer and opens correctly', async () => {

@@ -11,7 +11,7 @@ import {
   CommandItem,
   CommandShortcut,
   CommandSeparator,
-} from "./command";
+} from "../command";
 
 global.ResizeObserver = class ResizeObserver {
   observe() {}
