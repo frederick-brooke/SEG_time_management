@@ -1,4 +1,6 @@
-// src/__tests__/lib/ui.test.ts
+/**
+ * Testing for lib/ui
+ */
 
 import {
   PRIORITY_BADGE,
@@ -14,7 +16,7 @@ import {
   relativeOffsetLabel,
 } from 'lib/ui';
 
-// Constants 
+// Tests
 
 describe('PRIORITY_BADGE', () => {
   it.each(['High', 'Medium', 'Low'])('has a non-empty string for %s', (level) => {

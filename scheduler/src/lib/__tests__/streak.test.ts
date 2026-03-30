@@ -1,6 +1,10 @@
+/**
+ * Testing for lib/streak
+ */
+
 import { toUniqueDays, daysSinceMostRecent, countStreak } from "lib/streak";
 
-// ─── toUniqueDays ──
+// Tests
 
 describe("toUniqueDays", () => {
   it("returns empty array for empty input", () => {
@@ -35,8 +39,7 @@ describe("toUniqueDays", () => {
   });
 });
 
-// ─── daysSinceMostRecent ───
-
+// daysSinceMostRecent
 describe("daysSinceMostRecent", () => {
   it("returns Infinity for empty array", () => {
     expect(daysSinceMostRecent([], Date.now())).toBe(Infinity);
@@ -66,8 +69,7 @@ describe("daysSinceMostRecent", () => {
   });
 });
 
-// ─── countStreak ──
-
+// countStreak
 describe("countStreak", () => {
   it("returns 0 for empty array", () => {
     const today = new Date();
@@ -98,7 +100,6 @@ describe("countStreak", () => {
   it("stops counting at a gap", () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // today, yesterday, then a gap, then 4 days ago
     const days = [
       today.getTime(),
       today.getTime() - 86_400_000,

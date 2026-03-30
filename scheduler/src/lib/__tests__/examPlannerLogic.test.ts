@@ -1,4 +1,7 @@
-import { nextWednesday } from "date-fns";
+/**
+ * Testing for lib/examPlannerLogic
+ */
+
 import { examPlannerLogic  } from "../examPlannerLogic";
 
 describe('Exam Planner Suite', () => {

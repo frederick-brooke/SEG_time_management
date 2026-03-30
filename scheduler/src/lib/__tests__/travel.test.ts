@@ -1,4 +1,6 @@
-
+/**
+ * Testing for lib/travel
+ */
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -33,6 +35,7 @@ const emptyRoutesResponse = () =>
     text: async () => "",
   });
 
+// Tests
 
 describe("calculateTravelTime", () => {
   const ORIGINAL_ENV = process.env;
@@ -80,7 +83,7 @@ describe("calculateTravelTime", () => {
   });
 
   it("rounds fractional minutes correctly", async () => {
-    mockFetch.mockResolvedValueOnce(okResponse(1530)); // 25.5 mins → 26
+    mockFetch.mockResolvedValueOnce(okResponse(1530)); // 25.5 mins is rounded to 26
     const result = await calculateTravelTime(START, DEST, "walking");
     expect(result).toBe(26);
   });
