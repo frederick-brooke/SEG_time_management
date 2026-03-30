@@ -1,8 +1,19 @@
+/**
+ * RootLayout
+ *
+ * Global application layout wrapper.
+ *
+ * Loads global styles, fonts, and shared providers, including:
+ * including app-level providers and UIContext provider for global UI state.
+ *
+ * Also defines the root HTML structure and modal portal container.
+ */
+
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import Providers from "./providers"; 
 import { Geist, Geist_Mono as GeistMono } from "next/font/google"; 
-import { UIProvider } from "@/context/UIContext";   //all pages share global states using context
+import { UIProvider } from "@/context/UIContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -1,5 +1,12 @@
 'use server'
 
+/**
+ * Exam task utilities
+ *
+ * Handles saving exam study topics as tasks/revision materials
+ * and sending deadline-based notifications for upcoming exams and tasks.
+ */
+
 import { prisma } from "lib/prisma";
 import { createNotification } from "./notifications";
 import { NotificationType } from "@prisma/client";

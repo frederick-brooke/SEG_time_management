@@ -1,3 +1,7 @@
+/**
+ * Testing for profile/core actions.
+ */
+
 import { getMyProfile, getProfile, updateProfile } from "../core"; // Adjust path
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
@@ -13,7 +17,8 @@ import {
 import { requireSession, countFriends } from "../utils";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 
-// 1. Mock External Dependencies
+// Mocks
+
 jest.mock("lib/prisma", () => ({
   prisma: {
     user: { findUnique: jest.fn(), update: jest.fn() },
@@ -52,6 +57,8 @@ jest.mock("../utils", () => ({
 
 // Mock global fetch for geocoding
 global.fetch = jest.fn();
+
+// Tests
 
 describe("Profile Server Actions", () => {
   const mockUserId = "user-123";

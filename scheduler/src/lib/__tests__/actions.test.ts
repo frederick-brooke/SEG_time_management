@@ -1,4 +1,6 @@
-// scheduler/src/__tests__/lib/actions.test.ts
+/**
+ * Testing for lib/actions
+ */
 
 import { addEventAction } from 'lib/actions';
 
@@ -54,8 +56,6 @@ describe('addEventAction', () => {
     mockGetServerSession.mockResolvedValue({ user: { id: 'user-123' } });
     mockPrismaCreate.mockResolvedValue({ id: 'event-abc' });
   });
-
-  // Happy path 
 
   describe('success cases', () => {
     it('creates an event and returns { success: true }', async () => {

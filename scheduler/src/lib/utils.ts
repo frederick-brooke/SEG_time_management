@@ -1,3 +1,7 @@
+/**
+ * Utility for conditionally joining and merging Tailwind CSS class names.
+ */
+
 import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 

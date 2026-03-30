@@ -1,5 +1,10 @@
-import { prisma } from "lib/prisma";
+/**
+ * Utility functions for computing task completion streaks,
+ * including day normalization, gap detection, and streak calculation.
+ * Also provides a Prisma-based helper to compute a user's current streak.
+ */
 
+import { prisma } from "lib/prisma";
 
 /**
  * Converts an array of completedAt timestamps into a sorted descending list
@@ -54,7 +59,8 @@ export function countStreak(uniqueDays: number[], today: number): number {
   return streak;
 }
 
-//streaks
+// Streaks
+
 /**
  * Calculates the current streak for a user, consuming a streak shield if needed
  * @param {string} userId - The database ID of the user

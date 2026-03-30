@@ -1,12 +1,17 @@
+/**
+ * Testing for actions/shop
+ */
+
 import {
   getShopData,
   seedShopItems,
   purchaseItem,
   equipItem,
   unequipItem,
-} from "./shop";
+} from "../shop";
 
 // Mocks
+
 jest.mock("next-auth", () => ({ getServerSession: jest.fn() }));
 jest.mock("next/cache",  () => ({ revalidatePath: jest.fn() }));
 jest.mock("@/lib/auth",  () => ({ authOptions: {} }));
@@ -63,7 +68,8 @@ function makeItem(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => jest.clearAllMocks());
 
-// getShopData
+// Tests
+
 describe("getShopData", () => {
   it("returns null when the user is not authenticated", async () => {
     mockSession.mockResolvedValue(null);
@@ -108,7 +114,6 @@ describe("getShopData", () => {
   });
 });
 
-// seedShopItems
 describe("seedShopItems", () => {
   it("upserts every item in the catalogue", async () => {
     mockItemUpsert.mockResolvedValue({});
@@ -120,7 +125,6 @@ describe("seedShopItems", () => {
   });
 });
 
-// purchaseItem
 describe("purchaseItem", () => {
   it("throws Unauthorized when not logged in", async () => {
     mockSession.mockResolvedValue(null);
@@ -184,7 +188,6 @@ describe("purchaseItem", () => {
   });
 });
 
-// equipItem
 describe("equipItem", () => {
   it("throws Unauthorized when not logged in", async () => {
     mockSession.mockResolvedValue(null);
@@ -239,7 +242,6 @@ describe("equipItem", () => {
   });
 });
 
-// unequipItem
 describe("unequipItem", () => {
   it("throws Unauthorized when not logged in", async () => {
     mockSession.mockResolvedValue(null);

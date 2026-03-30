@@ -1,3 +1,10 @@
+/**
+ * Utility helpers
+ *
+ * Shared authentication and social graph utilities such as session validation
+ * and friendship counting logic.
+ */
+
 import { prisma } from "lib/prisma";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";

@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { notifyTaskSaved } from "../lib/taskNotifications";
 
+// Progress sync event - dispatched when task progress updates
+const PROGRESS_SYNC_EVENT = "task-progress-updated";
+
 export function useTasks(userId: string | undefined) {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +36,29 @@ export function useTasks(userId: string | undefined) {
     try {
       setIsLoading(true);
       const res = await fetch(`/api/tasks?userId=${userId}`);
-      const data = await res.json();
+
+      // Check response status
+      if (!res.ok) {
+        console.warn(`API /api/tasks responded with status ${res.status}`);
+        return;
+      }
+
+      // Get response text first to avoid JSON parse errors
+      const text = await res.text();
+      if (!text) {
+        console.warn("Empty response body from /api/tasks");
+        return;
+      }
+
+      // Parse JSON safely
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("Failed to parse JSON response from /api/tasks", parseError);
+        return;
+      }
+
       if (data.tasks) setTasks(data.tasks);
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
@@ -83,23 +108,27 @@ export function useTasks(userId: string | undefined) {
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return null;
-  
+
     let nextStatus = forcedStatus;
     if (!nextStatus) {
       if (task.status === "todo") nextStatus = "in-progress";
       else if (task.status === "in-progress") nextStatus = "todo";
       else if (task.status === "completed") nextStatus = "in-progress";
     }
-  
+
     const res = await fetch(`/api/tasks/${taskId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: nextStatus }),
     });
-  
+
     const data = await res.json();
-  
+
     setTasks(prev => prev.map((t) => t.id === taskId ? { ...t, status: nextStatus, completed: nextStatus === "completed" } : t));
+
+    // Trigger progress update when task status changes
+    window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+
     return data.rewards ?? null;
   };
 

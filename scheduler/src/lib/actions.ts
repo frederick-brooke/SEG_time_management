@@ -1,10 +1,25 @@
-// scheduler/src/lib/actions.ts
 'use server';
+
+/**
+ * Server actions for calendar events
+ *
+ * Handles creation of events and triggers cache revalidation
+ * for calendar views after database updates.
+ */
 
 import prisma from "lib/prisma";
 import { revalidatePath } from 'next/cache';
 import { getServerSession } from "next-auth";
 
+/**
+ * Creates a new calendar event for the logged-in user.
+ *
+ * Extracts event data from FormData, saves it to the database,
+ * and revalidates the calendar page cache.
+ *
+ * @param formData - Form data containing title, description, start, and end
+ * @returns Success or error response object
+ */
 export async function addEventAction(formData: FormData) {
 	const title = formData.get('title') as string;
 	const description = formData.get('description') as string;

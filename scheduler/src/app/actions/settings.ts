@@ -1,11 +1,26 @@
 'use server'
 
+/**
+ * Account settings service
+ *
+ * Handles user account management including profile updates,
+ * password changes, OAuth linking, preferences, and full account deletion.
+ * Ensures authentication checks and cascades deletions safely across related data.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
+/**
+ * Updates the user's username and email address.
+ * Validates uniqueness before applying changes.
+ *
+ * @param {FormData} formData - Contains `username` and `email`
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function updateAccountDetails(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -36,6 +51,13 @@ export async function updateAccountDetails(formData: FormData) {
   return { success: true };
 }
 
+/**
+ * Changes the user's password after validating the current password.
+ * Requires matching new password confirmation.
+ *
+ * @param {FormData} formData - Contains `currentPassword`, `newPassword`, `confirmPassword`
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function changePassword(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -67,6 +89,12 @@ export async function changePassword(formData: FormData) {
   return { success: true };
 }
 
+/**
+ * Disconnects the user's Google OAuth account.
+ * Ensures a fallback password exists before removal.
+ *
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function disconnectGoogle() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -88,6 +116,13 @@ export async function disconnectGoogle() {
   return { success: true };
 }
 
+/**
+ * Updates user productivity preferences such as work hours,
+ * session lengths, task limits, and scheduling behavior.
+ *
+ * @param {FormData} formData - Preference configuration values
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function updatePreferences(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -126,6 +161,14 @@ export async function updatePreferences(formData: FormData) {
   return { success: true };
 }
 
+/**
+ * Permanently deletes the user's account and all related data.
+ * Requires password confirmation and manually cascades deletions
+ * across all dependent tables before removing the user record.
+ *
+ * @param {FormData} formData - Contains `password` for confirmation
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function deleteAccount(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
@@ -145,20 +188,20 @@ export async function deleteAccount(formData: FormData) {
 
   const userId = session.user.id;
 
-  // Step 1: fetch progress ID before deleting anything
+  // Fetch progress ID before deleting anything
   const progress = await prisma.userProgress.findUnique({
     where: { userId },
     select: { id: true },
   });
 
-  // Step 2: delete PointTransactions first (child of UserProgress)
+  // Delete PointTransactions first (child of UserProgress)
   if (progress) {
     await prisma.pointTransaction.deleteMany({
       where: { progressId: progress.id },
     });
   }
 
-  // Step 3: delete all other relations before deleting the user
+  // Delete all other relations before deleting the user
   await prisma.friendRequest.deleteMany({
     where: { OR: [{ senderId: userId }, { receiverId: userId }] },
   });
@@ -178,7 +221,7 @@ export async function deleteAccount(formData: FormData) {
   await prisma.groupMember.deleteMany({ where: { userId } });
   await prisma.account.deleteMany({ where: { userId } });
 
-  // Step 4: delete the user last
+  // Delete the user last
   await prisma.user.delete({ where: { id: userId } });
 
   return { success: true };

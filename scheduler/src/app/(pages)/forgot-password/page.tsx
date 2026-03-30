@@ -1,5 +1,11 @@
 "use client";
 
+ /**
+  * Client-side Forgot Password page.
+  * Handles email submission for password recovery and displays
+  * success/error states for reset link delivery.
+  */
+ 
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";

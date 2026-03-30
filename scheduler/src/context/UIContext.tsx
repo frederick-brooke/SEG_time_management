@@ -1,5 +1,11 @@
 "use client";
-// Instantiate global states that can be shared across different pages
+
+/**
+ * UIContext
+ *
+ * Global UI state provider for shared interface controls,
+ * such as the wellbeing panel toggle.
+ */
 
 import { createContext, useContext, useState } from "react";
 
@@ -8,10 +14,10 @@ interface UIContextType {
   setWellbeingOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const UIContext = createContext<UIContextType | null>(null);  // ← typed with a default of null
+const UIContext = createContext<UIContextType | null>(null);
 
 export function UIProvider({ children }: { children: React.ReactNode }) {
-  const [wellbeingOpen, setWellbeingOpen] = useState(false);  // for the entire wellbeing panel being opened
+  const [wellbeingOpen, setWellbeingOpen] = useState(false);
 
   return (
     <UIContext.Provider value={{ wellbeingOpen, setWellbeingOpen }}>

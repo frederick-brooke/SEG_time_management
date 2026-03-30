@@ -1,7 +1,11 @@
+/**
+ * Testing for forgot-password page.
+ */
+
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import ForgotPasswordPage from "./page";
+import ForgotPasswordPage from "../page";
 
 jest.mock("next/link", () => ({
   __esModule: true,

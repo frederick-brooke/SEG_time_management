@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/shop-catalogue
+ */
+
 import {
   AVATAR_IMAGES,
   SHOP_CATALOGUE,
@@ -7,7 +11,7 @@ import {
   type ShopItem,
 } from "../shop-catalogue";
 
-// ── Helpers ────────
+// Helpers
 
 const AVATAR_KEYS: AvatarKey[] = [
   "astronaut-pioneer",
@@ -30,8 +34,8 @@ const isSvgDataUri = (value: string) =>
   value.includes("%3Csvg") &&   // <svg
   value.includes("%3C/svg%3E"); // </svg>
 
-// ── AVATAR_IMAGES ──
 
+// Avatar images
 describe("AVATAR_IMAGES", () => {
   it("contains an entry for every AvatarKey", () => {
     for (const key of AVATAR_KEYS) {
@@ -80,8 +84,7 @@ describe("AVATAR_IMAGES", () => {
   });
 });
 
-// ── SHOP_CATALOGUE ─
-
+// Shop catalogue
 describe("SHOP_CATALOGUE", () => {
   it("contains exactly 8 items", () => {
     expect(SHOP_CATALOGUE).toHaveLength(8);
@@ -204,7 +207,7 @@ describe("SHOP_CATALOGUE", () => {
   });
 });
 
-// ── FRAME_STYLES ───
+// Frame_styles
 
 describe("FRAME_STYLES", () => {
   const FRAME_KEYS = ["solar-flare", "nebula-glow", "aurora-ring", "event-horizon"];

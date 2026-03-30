@@ -1,10 +1,21 @@
 'use server'
 
+/**
+ * Location service (server actions)
+ *
+ * Handles updating and managing a user's geolocation data
+ * including coordinates, optional city/country metadata,
+ * and privacy controls for location visibility.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
+/**
+ * Input payload for updating a user's location.
+ */
 export interface UpdateUserLocationInput {
   latitude: number;
   longitude: number;
@@ -13,6 +24,15 @@ export interface UpdateUserLocationInput {
   locationHidden: boolean;
 }
 
+/**
+ * Updates the authenticated user's location data.
+ *
+ * Validates coordinates, stores geolocation and metadata,
+ * and updates privacy setting for location visibility.
+ *
+ * @param input - User location payload
+ * @returns Success state or error message
+ */
 export async function updateUserLocation(input: UpdateUserLocationInput) {
   try {
     const session = await getServerSession(authOptions);
@@ -60,6 +80,12 @@ export async function updateUserLocation(input: UpdateUserLocationInput) {
   }
 }
 
+/**
+ * Updates only the user's location visibility setting.
+ *
+ * @param locationHidden - Whether the user hides their location
+ * @returns Success state or error message
+ */
 export async function updateLocationHidden(locationHidden: boolean) {
   try {
     const session = await getServerSession(authOptions);

@@ -1,5 +1,9 @@
+/**
+ * Testing for login page.
+ */
+
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
-import LoginPage from "./page";
+import LoginPage from "../page";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -32,7 +36,6 @@ describe("LoginPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush, replace: mockReplace });
-    // Default: no search params at all
     (useSearchParams as jest.Mock).mockReturnValue({ get: () => null });
     (useSession as jest.Mock).mockReturnValue({ status: "unauthenticated" });
   });

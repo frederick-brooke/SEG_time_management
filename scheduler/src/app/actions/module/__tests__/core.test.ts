@@ -1,3 +1,7 @@
+/**
+ * Testing for module/core actions.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
@@ -21,7 +25,8 @@ import {
   syncTasksToMember,
 } from "../utils";
 
-//mocks
+// Mocks
+
 jest.mock("@/lib/prisma", () => {
   const { mockDeep } = require("jest-mock-extended");
   return { prisma: mockDeep() };
@@ -38,7 +43,7 @@ jest.mock("../utils", () => ({
 
 const prismaMock = prisma as unknown as DeepMockProxy<typeof prisma>;
 
-//helpers
+// Helpers
 
 /**
  * Converts a key-value record into FormData
@@ -51,7 +56,8 @@ function makeFormData(fields: Record<string, string>): FormData {
   return fd;
 }
 
-//tests
+// Tests
+
 describe("Module Core Actions", () => {
   const mockUserId = "user-123";
   const mockSession = { user: { id: mockUserId, email: "test@test.com" } };
@@ -324,7 +330,7 @@ describe("Module Core Actions", () => {
     
 
     /**
-     * Happy Path: Creates the module, generates a PIN, and assigns the OWNER role.
+     * Creates the module, generates a PIN, and assigns the OWNER role.
      */
     it("should create a module and assign the creator as OWNER", async () => {
       const fd = makeFormData({ name: "Physics", description: "Hard class", maxMembers: "50" });
@@ -367,7 +373,7 @@ describe("Module Core Actions", () => {
     });
 
     /**
-     * Happy Path: Joins the module, creates a MEMBER role, and syncs historical data.
+     * Joins the module, creates a MEMBER role, and syncs historical data.
      */
     it("should join the module and trigger sync tasks/events", async () => {
       prismaMock.module.findUnique.mockResolvedValue({

@@ -1,3 +1,10 @@
+/**
+ * Map constants
+ *
+ * Shared configuration for map defaults, category colors,
+ * transport icons, and icon assets used across the app.
+ */
+
 export const DEFAULT_CENTER: [number, number] = [51.505, -0.09]; // London fallback
 
 export const CATEGORY_COLORS: Record<string, string> = {

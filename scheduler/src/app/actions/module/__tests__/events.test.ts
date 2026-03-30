@@ -1,3 +1,7 @@
+/**
+ * Testing for module/events actions.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
@@ -44,7 +48,7 @@ describe("Module Events Actions", () => {
     });
 
     /**
-     * Happy Path: Duplicates the event for all members in the module, and explicitly
+     * Duplicates the event for all members in the module, and explicitly
      * ensures the creator gets a copy even if they aren't technically returned
      * in the member fetch (safeguard for empty modules).
      */
@@ -151,7 +155,7 @@ describe("Module Events Actions", () => {
     });
 
     /**
-     * Happy Path: Deletes all member copies of the event by group ID.
+     * Deletes all member copies of the event by group ID.
      */
     it("should delete all member copies and revalidate the path", async () => {
       (isModuleOwnerOrAdmin as jest.Mock).mockResolvedValue(true);
@@ -175,7 +179,7 @@ describe("Module Events Actions", () => {
     });
 
     /**
-     * Happy Path: Returns the current user's module events ordered by start date.
+     * Returns the current user's module events ordered by start date.
      */
     it("should return the user's module events", async () => {
       (getServerSession as jest.Mock).mockResolvedValue({ user: { id: mockUserId } });

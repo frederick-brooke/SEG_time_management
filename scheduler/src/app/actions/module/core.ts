@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Module service
+ *
+ * Handles module CRUD, membership, roles, and settings.
+ * Includes join via PIN and keeps events/tasks in sync across members.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
@@ -206,7 +213,6 @@ export async function updateModuleSettings(
   if (!(await isModuleOwner(moduleId, session.user.id))) {
     return { success: false, error: "Only module owners can edit settings" };
   }
-
   if (data.maxMembers < 2 || data.maxMembers > 100) {
     return { success: false, error: "Max members must be between 2 and 100" };
   }
@@ -230,7 +236,6 @@ export async function updateModuleSettings(
       maxMembers: data.maxMembers,
     },
   });
-
   revalidatePath(`/modules/${moduleId}`);
   return { success: true };
 }
@@ -290,16 +295,11 @@ export async function removeMember(moduleId: string, targetUserId: string) {
     return { success: false, error: "Admins cannot remove other admins" };
   }
 
-  await prisma.moduleMember.delete({
-    where: { moduleId_userId: { moduleId, userId: targetUserId } }
-  });
+  await prisma.moduleMember.delete({ where: { moduleId_userId: { moduleId, userId: targetUserId } }});
 
-  await prisma.event.deleteMany({
-    where: { moduleId, userId: targetUserId, isModuleEvent: true }
-  });
-  await prisma.task.deleteMany({
-    where: { moduleId, userId: targetUserId, isModuleTask: true }
-  });
+  await prisma.event.deleteMany({ where: { moduleId, userId: targetUserId, isModuleEvent: true }});
+
+  await prisma.task.deleteMany({ where: { moduleId, userId: targetUserId, isModuleTask: true }});
 
   revalidatePath(`/modules/${moduleId}`);
   return { success: true };

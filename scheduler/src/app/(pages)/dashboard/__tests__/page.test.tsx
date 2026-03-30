@@ -7,9 +7,10 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 let mockErrorParam: string | null = null;
 let mockWellbeingOpen = false;
 
-const pushMock       = jest.fn();
-const replaceMock    = jest.fn();
+const pushMock             = jest.fn();
+const replaceMock          = jest.fn();
 const setWellbeingOpenMock = jest.fn();
+const refreshProgressMock = jest.fn().mockResolvedValue(undefined);
 
 // Mocks
 
@@ -25,6 +26,17 @@ jest.mock("next-auth/react", () => ({
 
 jest.mock("@/context/UIContext", () => ({
   useUI: () => ({ wellbeingOpen: mockWellbeingOpen, setWellbeingOpen: setWellbeingOpenMock }),
+}));
+
+jest.mock("@/context/TaskProgressContext", () => ({
+  useTaskProgress: jest.fn().mockReturnValue({
+    progressPercentage: 0,
+    tasks: [],
+    isLoading: false,
+    lastUpdatedAt: null,
+    refreshProgress: jest.fn().mockResolvedValue(undefined),
+    triggerProgressUpdate: jest.fn(),
+  }),
 }));
 
 jest.mock("@/app/actions/leaderboard", () => ({
@@ -87,8 +99,11 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
 }));
 
 
+// Helpers
+
 import Page from "../page";
 import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
+import { useTaskProgress } from "@/context/TaskProgressContext";
 
 const { useSession, signOut } = require("next-auth/react");
 
@@ -99,6 +114,20 @@ function setAuth(status = "authenticated", name: string | null = "Test User", id
   });
 }
 
+function makeProgressContext(overrides: Record<string, unknown> = {}) {
+  return {
+    progressPercentage: 0,
+    tasks: [],
+    isLoading: false,
+    lastUpdatedAt: null,
+    refreshProgress: refreshProgressMock, // safe here — called at runtime, not hoist time
+    triggerProgressUpdate: jest.fn(),
+    ...overrides,
+  };
+}
+
+// Tests
+
 describe("Dashboard Page", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,10 +136,13 @@ describe("Dashboard Page", () => {
     getMyExamsMock.mockResolvedValue([]);
     getMyProfileMock.mockResolvedValue({ fname: "Test", accounts: [] });
     useTasksMock.mockReturnValue({ tasks: [] });
+
+    (useTaskProgress as jest.Mock).mockReturnValue(makeProgressContext());
+
     setAuth();
   });
 
-  // Greeting 
+  // Greeting
   it("shows fname from profile when available", async () => {
     getMyProfileMock.mockResolvedValue({ fname: "Ada", accounts: [] });
     render(<Page />);
@@ -130,36 +162,45 @@ describe("Dashboard Page", () => {
     expect(await screen.findByText(/Welcome, User/)).toBeInTheDocument();
   });
 
-  // Rocket progress
-  it("shows 0% when there are no tasks", async () => {
-    useTasksMock.mockReturnValue({ tasks: [] });
+  // Rocket progress (from context)
+  it("shows 0% when progress context returns 0", async () => {
+    (useTaskProgress as jest.Mock).mockReturnValue(makeProgressContext({ progressPercentage: 0 }));
     render(<Page />);
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 0%");
   });
 
-  it("calculates percentage correctly for partial completion", async () => {
-    useTasksMock.mockReturnValue({
-      tasks: [
-        { id: "1", status: "completed" },
-        { id: "2", status: "pending" },
-      ],
-    });
+  it("displays progress percentage from context", async () => {
+    (useTaskProgress as jest.Mock).mockReturnValue(
+      makeProgressContext({
+        progressPercentage: 50,
+        tasks: [{ id: "1", status: "completed" }, { id: "2", status: "todo" }],
+        lastUpdatedAt: Date.now(),
+      })
+    );
     render(<Page />);
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 50%");
   });
 
-  it("shows 100% when all tasks are completed", async () => {
-    useTasksMock.mockReturnValue({
-      tasks: [
-        { id: "1", status: "completed" },
-        { id: "2", status: "completed" },
-      ],
-    });
+  it("shows 100% when progress context returns 100", async () => {
+    (useTaskProgress as jest.Mock).mockReturnValue(
+      makeProgressContext({
+        progressPercentage: 100,
+        tasks: [{ id: "1", status: "completed" }, { id: "2", status: "completed" }],
+        lastUpdatedAt: Date.now(),
+      })
+    );
     render(<Page />);
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 100%");
   });
 
-  // Core components 
+  it("calls refreshProgress with userId on mount when authenticated", async () => {
+    render(<Page />);
+    await waitFor(() => {
+      expect(refreshProgressMock).toHaveBeenCalledWith("u1");
+    });
+  });
+
+  // Core components
   it("renders UpcomingExams and ComingUpSoon", async () => {
     render(<Page />);
     expect(await screen.findByText("UpcomingExams")).toBeInTheDocument();
@@ -190,21 +231,21 @@ describe("Dashboard Page", () => {
     expect(pushMock).toHaveBeenCalledWith("/api/auth/signin/google");
   });
 
-  // Sign out 
+  // Sign out
   it("calls signOut with /login callback", async () => {
     render(<Page />);
     fireEvent.click(await screen.findByText("Sign Out"));
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
   });
 
-  // Auth redirects 
+  // Auth redirects
   it("redirects to /login when unauthenticated", async () => {
     setAuth("unauthenticated");
     render(<Page />);
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/login"));
   });
 
-  // Error query param 
+  // Error query param
   it("replaces URL for GoogleAccountTaken error", async () => {
     mockErrorParam = "GoogleAccountTaken";
     render(<Page />);
@@ -223,7 +264,7 @@ describe("Dashboard Page", () => {
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
-  // Wellbeing panel 
+  // Wellbeing panel
   it("renders the wellbeing button", async () => {
     render(<Page />);
     expect(await screen.findByLabelText("Open wellbeing panel")).toBeInTheDocument();
@@ -247,11 +288,10 @@ describe("Dashboard Page", () => {
   it("shows panel-open marker when wellbeingOpen is true", async () => {
     mockWellbeingOpen = true;
     render(<Page />);
-    // panel-open marker is rendered by the WellbeingPanel mock when open=true
     expect(await screen.findByTestId("panel-open")).toBeInTheDocument();
   });
 
-  // Data fetching guards 
+  // Data fetching guards
   it("fetches exams and profile when authenticated", async () => {
     render(<Page />);
     await waitFor(() => {

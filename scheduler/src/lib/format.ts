@@ -1,4 +1,6 @@
-// ─── Date formatting ───────
+/**
+ * File for formatting actions.
+ */
 
 /**
  * Formats a date string as a short readable event timestamp
@@ -33,8 +35,6 @@ export function formatLongDate(dateString: Date | string): string {
     day: 'numeric', month: 'long', year: 'numeric',
   });
 }
-
-// ─── Duration formatting ───
 
 /**
  * Formats a duration in minutes to a human-readable string

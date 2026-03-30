@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * useLocationSearch hook
+ *
+ * Debounced location search hook for fetching autocomplete suggestions
+ * from the OpenRouteService API with loading and error state handling.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 
 /**

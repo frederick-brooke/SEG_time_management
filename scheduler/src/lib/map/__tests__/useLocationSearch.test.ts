@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/map/useLocationSearch
+ */
+
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useLocationSearch } from "../useLocationSearch";
 
@@ -95,7 +99,7 @@ describe("useLocationSearch", () => {
         jest.advanceTimersByTime(200);
       });
 
-      // Ensure first debounceTimer state is applied before second search
+      // First debounceTimer state is applied before second search
       act(() => {
         result.current.handleLocationSearch("lond");
       });
@@ -216,7 +220,6 @@ describe("useLocationSearch", () => {
       // Unmount should clean up any active timers
       unmount();
 
-      // The important thing is that unmount doesn't throw - the cleanup happened
       expect(unmount).toBeDefined();
     });
   });

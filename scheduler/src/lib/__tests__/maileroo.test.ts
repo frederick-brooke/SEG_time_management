@@ -1,5 +1,10 @@
+/**
+ * Testing for lib/maileroo
+ */
+
 import type { MailOptions } from "@/lib/maileroo";
 
+// Mocks
 
 const MOCK_API_KEY = "test-api-key";
 const MOCK_BASE_URL = "https://api.maileroo.com/send";
@@ -27,6 +32,8 @@ afterEach(() => {
   delete process.env.MAILEROO_BASE_URL;
   delete process.env.MAILEROO_FROM;
 });
+
+// Tests
 
 // sendMail
 
