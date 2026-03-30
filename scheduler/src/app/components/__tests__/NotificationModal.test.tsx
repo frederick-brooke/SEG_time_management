@@ -1,3 +1,7 @@
+/**
+ * Testing for notification modal.
+ */
+
 import React from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -8,7 +12,7 @@ jest.mock("next-auth/react", () => ({
   useSession: jest.fn(),
 }));
 
-jest.mock("../actions/notifications", () => ({
+jest.mock("../../actions/notifications", () => ({
   getNotifications: jest.fn(),
   markNotificationAsRead: jest.fn(),
   markAllNotificationsAsRead: jest.fn(),
@@ -22,8 +26,8 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   createNotification,
-} from "../actions/notifications";
-import NotificationModal from "./NotificationModal";
+} from "../../actions/notifications";
+import NotificationModal from "../NotificationModal";
 
 // Typed mock helpers 
 const mockUseSession = useSession as jest.Mock;
