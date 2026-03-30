@@ -1,5 +1,11 @@
+/**
+ * Testing for travel/preview api route
+ */
+
 import { GET } from "@/app/api/travel/preview/route";
 import { calculateTravelTime } from "@/lib/travel";
+
+// Mocks
 
 jest.mock("@/lib/travel", () => ({
   calculateTravelTime: jest.fn(),
@@ -31,6 +37,8 @@ function createRequest(params: Record<string, string | undefined>) {
   
     return new Request(url.toString());
   }
+
+// Tests
 
 describe("GET /api/travel", () => {
   beforeEach(() => {

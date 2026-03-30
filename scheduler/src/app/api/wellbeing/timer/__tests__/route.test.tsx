@@ -1,6 +1,11 @@
+/**
+ * Testing for wellbeing timer api route.
+ */
+
 import { GET, POST } from "../route";
 
-//Mock NextResponse
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: any) => ({
@@ -10,13 +15,15 @@ jest.mock("next/server", () => ({
   },
 }));
 
+// Tests
+
 describe("Wellbeing Timer API", () => {
     let GET, POST;
 
     beforeEach(async () => {
-        jest.resetModules(); // reset module state
+        jest.resetModules();
 
-        const route = await import("../route"); // re-import fresh module
+        const route = await import("../route");
         GET = route.GET;
         POST = route.POST;
     });
@@ -26,7 +33,6 @@ describe("Wellbeing Timer API", () => {
         json: jest.fn().mockResolvedValue(body),
     });
 
-    //Now this works
     it("returns null endTime initially", async () => {
         const res = await GET();
         const data = await res.json();
@@ -43,7 +49,6 @@ describe("Wellbeing Timer API", () => {
         expect(data.endTime).toBeGreaterThan(Date.now());
     });
 
-    // GET returns null initially
     it("returns null endTime initially", async () => {
         const res = await GET();
         const data = await res.json();
@@ -51,7 +56,6 @@ describe("Wellbeing Timer API", () => {
         expect(data.endTime).toBeNull();
     });
 
-    // POST then GET returns same endTime
     it("persists endTime between POST and GET", async () => {
         const req = mockRequest({ durationMs: 5000 });
 
@@ -64,7 +68,6 @@ describe("Wellbeing Timer API", () => {
         expect(getData.endTime).toBe(postData.endTime);
     });
 
-    //Multiple POST updates endTime
     it("updates endTime on multiple POST calls", async () => {
         const req1 = mockRequest({ durationMs: 1000 });
         const res1 = await POST(req1);

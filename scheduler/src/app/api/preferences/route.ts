@@ -1,10 +1,17 @@
+/**
+ * User Preferences API
+ *
+ * GET: fetches a user's preferences (or null if none exist).
+ * POST: creates or updates preferences with defaults.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// ---------------------------------------------------------------------------
-// GET /api/preferences?userId=xxx
-// Returns the user's saved preferences, or null if none exist yet.
-// ---------------------------------------------------------------------------
+/**
+ * GET /api/preferences?userId=...
+ * Returns the user's saved preferences or null.
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
@@ -21,10 +28,11 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/preferences
-// Creates or updates preferences for the given user.
-// ---------------------------------------------------------------------------
+/**
+ * POST /api/preferences
+ * Creates or updates preferences for a user.
+ * Applies default values when creating new preferences.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

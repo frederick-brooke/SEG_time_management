@@ -1,5 +1,13 @@
+/**
+ * User Preferences API
+ *
+ * GET: checks if a user has saved preferences.
+ * POST: creates or updates user preferences with defaults.
+ */
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+
 interface PreferencesBody {
   userId: string;
   workStartTime?: string;
@@ -14,6 +22,10 @@ interface PreferencesBody {
   reminderDays?: number;
 }
 
+/**
+ * GET /api/preferences?userId=...
+ * Returns whether the user has existing preferences.
+ */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -40,6 +52,11 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * POST /api/preferences
+ * Creates or updates user preferences.
+ * Missing fields fall back to default values on create.
+ */
 export async function POST(request: Request) {
   try {
     const body: PreferencesBody = await request.json();

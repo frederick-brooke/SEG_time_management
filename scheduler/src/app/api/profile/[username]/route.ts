@@ -1,6 +1,16 @@
+/**
+ * User API
+ *
+ * GET: fetches a user by username.
+ */
+
 import { NextResponse } from "next/server";
 import { prisma } from "lib/prisma";
 
+/**
+ * GET /api/users/:username
+ * Returns user details for the given username.
+ */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ username: string }> }

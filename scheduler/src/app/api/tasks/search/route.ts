@@ -1,8 +1,18 @@
+/**
+ * Task listing API route
+ * Supports filtering, searching, sorting, pagination, and date range queries.
+ * Returns only tasks belonging to the authenticated user.
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+/**
+ * Fetches paginated and filtered tasks for the logged-in user.
+ * Supports search, status, priority, completion, date range, sorting, and pagination.
+ */
 export async function GET(req: Request) {
 
   const session = await getServerSession(authOptions);
@@ -38,7 +48,7 @@ export async function GET(req: Request) {
     ]
   };
 
-  // search by title
+  // Search by title
   if (search.trim() !== "") {
     where.AND.push({
       title: {
@@ -48,21 +58,21 @@ export async function GET(req: Request) {
     });
   }
 
-  // filter by status
+  // Filter by status
   if (status) {
     where.AND.push({
       status: status
     });
   }
 
-  // filter by priority
+  // Filter by priority
   if (priority) {
     where.AND.push({
       priority: priority
     });
   }
 
-  // completed filter
+  // Completed filter
   if (completed === "true") {
     where.AND.push({
       completed: true
@@ -75,7 +85,7 @@ export async function GET(req: Request) {
     });
   }
 
-  // due date filter
+  // Due date filter
   if (startDate || endDate) {
 
     const dateFilter: any = {};

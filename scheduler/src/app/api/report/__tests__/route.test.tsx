@@ -1,8 +1,13 @@
+/**
+ * Testing for report api route.
+ */
+
 import { POST } from "../route";
 import { getServerSession } from "next-auth";
 import { prisma } from "lib/prisma";
 
-// mock NextResponse
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: any, init?: any) => ({
@@ -12,12 +17,10 @@ jest.mock("next/server", () => ({
   },
 }));
 
-// Mock next-auth
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
-// Mock prisma
 jest.mock("../../../../lib/prisma", () => ({
   prisma: {
     report: {
@@ -25,6 +28,8 @@ jest.mock("../../../../lib/prisma", () => ({
     },
   },
 }));
+
+// Tests
 
 describe("POST /api/report", () => {
   beforeEach(() => {
@@ -36,7 +41,7 @@ describe("POST /api/report", () => {
       json: jest.fn().mockResolvedValue(body),
     } as unknown as Request);
 
-  //Unauthorized
+  // Unauthorized
   it("returns 401 if no session", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
@@ -48,7 +53,7 @@ describe("POST /api/report", () => {
     expect(data.error).toBe("Unauthorized");
   });
 
-  //Missing fields
+  // Missing fields
   it("returns 400 if required fields are missing", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
       user: { id: "user1" },
@@ -101,7 +106,7 @@ describe("POST /api/report", () => {
     expect(data.report).toEqual(mockReport);
   });
 
-  // checks DB failure
+  // Checks DB failure
   it("returns 500 if database fails", async () => {
     (getServerSession as jest.Mock).mockResolvedValue({
       user: { id: "user1" },

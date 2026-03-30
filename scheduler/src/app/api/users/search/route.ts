@@ -1,3 +1,9 @@
+/**
+ * User search API
+ * Provides paginated user search with filtering (username, date range, roles)
+ * Excludes current user and requires authentication
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -6,11 +12,8 @@ import { prisma } from "@/lib/prisma";
 /**
  * Builds a Prisma `where` clause for user search.
  *
- * Features:
- * - Excludes current user
- * - Username search (case-insensitive)
- * - Date range filtering
- * - Role/category filtering
+ * It excludes the current user, username search, date range filtering
+ * and role/category filtering
  *
  * @param {string} search - Search query for usernames
  * @param {string} username - Current user's username (to exclude)
@@ -109,7 +112,8 @@ export async function GET(req: Request) {
 
   const search = searchParams.get("search") || "";
 
-  if (!search.trim()) {   // Do not return results if search is empty (prevents full table scan)
+  // Doesn't return results if search is empty (prevents full table scan)
+  if (!search.trim()) {
     return NextResponse.json({
       users: [],
       totalUsers: 0,
@@ -117,7 +121,7 @@ export async function GET(req: Request) {
     });
   }
 
-  const sortBy = searchParams.get("sortBy") || "createdAt";		// Extract query parameters
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const order = searchParams.get("order") === "asc" ? "asc" : "desc";
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "12");
@@ -126,7 +130,7 @@ export async function GET(req: Request) {
   const endDate = searchParams.get("endDate");
   const categories = searchParams.get("categories");
 
-  const where = buildUserSearchWhere(		// Build filters and pagination config
+  const where = buildUserSearchWhere(
     search,
     session.user.username,
     startDate,
@@ -136,7 +140,7 @@ export async function GET(req: Request) {
 
   const { skip, take } = getPagination(page, limit);
 
-  const [users, totalMatchingUsers] = await Promise.all([ 		// Execute queries in parallel
+  const [users, totalMatchingUsers] = await Promise.all([
     prisma.user.findMany({
       where,
       orderBy: { [sortBy]: order },
