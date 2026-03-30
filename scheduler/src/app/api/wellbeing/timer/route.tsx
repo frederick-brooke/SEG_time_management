@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server"
-//backend handling of the wellbeing page
+/**
+ * Wellbeing timer API
+ * Stores a temporary in-memory countdown end time for the current server instance
+ */
 
-let endTime = null;     //reference the selected database later
+import { NextResponse } from "next/server"
+
+let endTime = null;
 
 /**
  * Starts or updates the wellbeing timer.
- *
- * Behavior:
- * - Accepts a duration in milliseconds
- * - Calculates and stores the timer end time
  *
  * @param {Request} req - Incoming request containing durationMs
  * @returns {Promise<NextResponse>} JSON response with calculated endTime
@@ -24,10 +24,6 @@ export async function POST(req){
 
 /**
  * Retrieves the current timer end time.
- *
- * Behavior:
- * - Returns the stored endTime
- * - If no timer is set, returns null
  *
  * @returns {Promise<NextResponse>} JSON response with endTime
  */

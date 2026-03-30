@@ -1,7 +1,10 @@
+/**
+ * Testing for schedule api route.
+ */
 
 import { POST } from "../route";
 
-// ── Mocks 
+// Mocks
 
 const mockSession = { user: { id: "user-1" } };
 
@@ -44,7 +47,7 @@ jest.mock("@/lib/scheduling/scheduler", () => ({
 import { getServerSession } from "next-auth/next";
 const mockGetServerSession = getServerSession as jest.Mock;
 
-// ── Helpers ────────
+// Helpers
 
 function makeRequest(body: object) {
     return { json: () => Promise.resolve(body) } as any;
@@ -86,7 +89,8 @@ function setupHappyPath() {
 beforeEach(() => {
     jest.clearAllMocks();
   });
-// ── Auth ─
+
+// Tests
 
 describe("POST /api/schedule — auth", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -97,7 +101,6 @@ describe("POST /api/schedule — auth", () => {
   });
 });
 
-// ── Validation ─────
 
 describe("POST /api/schedule — validation", () => {
   beforeEach(() => mockGetServerSession.mockResolvedValue(mockSession));
@@ -136,7 +139,6 @@ describe("POST /api/schedule — validation", () => {
   });
 });
 
-// ── Happy path ─────
 
 describe("POST /api/schedule — happy path", () => {
   beforeEach(setupHappyPath);
@@ -230,7 +232,6 @@ describe("POST /api/schedule — happy path", () => {
   });
 });
 
-// ── Break overrides 
 
 describe("POST /api/schedule — breakOverrides", () => {
   beforeEach(setupHappyPath);
@@ -262,7 +263,6 @@ describe("POST /api/schedule — breakOverrides", () => {
   });
 });
 
-// ── Over capacity ──
 
 describe("POST /api/schedule — over capacity", () => {
   beforeEach(() => {
@@ -299,7 +299,6 @@ describe("POST /api/schedule — over capacity", () => {
   });
 });
 
-// ── Missed deadlines ───────
 
 describe("POST /api/schedule — missed deadlines", () => {
   beforeEach(() => {
@@ -323,7 +322,6 @@ describe("POST /api/schedule — missed deadlines", () => {
   });
 });
 
-// ── Linked events ──
 
 describe("POST /api/schedule — linked events", () => {
   beforeEach(setupHappyPath);
@@ -359,7 +357,6 @@ describe("POST /api/schedule — linked events", () => {
   });
 });
 
-// ── Schedule log fallback ──
 
 describe("POST /api/schedule — schedule log fallback", () => {
   beforeEach(setupHappyPath);
@@ -386,7 +383,6 @@ describe("POST /api/schedule — schedule log fallback", () => {
   });
 });
 
-// ── scheduleTasks integration ────────
 
 describe("POST /api/schedule — scheduleTasks call", () => {
   beforeEach(setupHappyPath);

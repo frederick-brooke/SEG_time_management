@@ -1,6 +1,10 @@
+/**
+ * Testing for schedule-log api route
+ */
+
 import { GET, POST, DELETE } from "../route";
 
-// ── Mocks 
+// Mocks
 
 const mockSession = { user: { id: "user-1" } };
 
@@ -15,6 +19,7 @@ jest.mock("next/server", () => ({
 }));
 
 jest.mock("next-auth/next", () => ({ getServerSession: jest.fn() }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
 
 const mockTaskUpdate = jest.fn();
@@ -38,7 +43,7 @@ jest.mock("@/lib/prisma", () => ({
 import { getServerSession } from "next-auth/next";
 const mockGetServerSession = getServerSession as jest.Mock;
 
-// ── Helpers ────────
+// Helpers
 
 function makeRequest(body: object) {
   return { json: () => Promise.resolve(body) } as any;
@@ -52,7 +57,8 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ── GET ──
+// Tests
+// GET
 
 describe("GET /api/schedule-log — auth", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -63,7 +69,7 @@ describe("GET /api/schedule-log — auth", () => {
   });
 });
 
-describe("GET /api/schedule-log — happy path", () => {
+describe("GET /api/schedule-log — correct path", () => {
   beforeEach(() => mockGetServerSession.mockResolvedValue(mockSession));
 
   it("returns logs ordered by scheduledAt desc", async () => {
@@ -86,7 +92,7 @@ describe("GET /api/schedule-log — happy path", () => {
   });
 });
 
-// ── POST ─
+// POST
 
 describe("POST /api/schedule-log — auth", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -97,7 +103,7 @@ describe("POST /api/schedule-log — auth", () => {
   });
 });
 
-describe("POST /api/schedule-log — happy path", () => {
+describe("POST /api/schedule-log — correct path", () => {
   beforeEach(() => mockGetServerSession.mockResolvedValue(mockSession));
 
   it("creates a log entry and returns it", async () => {
@@ -154,7 +160,7 @@ describe("POST /api/schedule-log — happy path", () => {
   });
 });
 
-// ── DELETE ─────────
+// DELETE
 
 describe("DELETE /api/schedule-log — auth", () => {
   it("returns 401 when unauthenticated", async () => {
@@ -182,7 +188,7 @@ describe("DELETE /api/schedule-log — validation", () => {
   });
 });
 
-describe("DELETE /api/schedule-log — happy path", () => {
+describe("DELETE /api/schedule-log — correct path", () => {
   beforeEach(() => mockGetServerSession.mockResolvedValue(mockSession));
 
   it("returns success true", async () => {

@@ -12,6 +12,7 @@ import { scheduleTasks } from "@/lib/scheduling/scheduler";
 
 /**
  * Converts "YYYY-MM-DD" strings to local midnight Date objects.
+ * 
  * @param days - Array of date strings in "YYYY-MM-DD" format.
  * @returns Array of Date objects set to local midnight.
  */
@@ -24,6 +25,7 @@ function buildScheduleDays(days: string[]): Date[] {
 
 /**
  * Fetches calendar events within the schedule range, padded by 1 day on each side for slot blocking.
+ * 
  * @param userId - The authenticated user's ID.
  * @param scheduleDays - The days being scheduled, used to derive the query range.
  * @returns Events overlapping the padded date window.
@@ -40,6 +42,7 @@ async function fetchWindowEvents(userId: string, scheduleDays: Date[]) {
 /**
  * Returns windowEvents plus any linked events not already in the window.
  * Needed so recurring event-linked tasks can compute their deadline for the current week.
+ * 
  * @param tasks - The tasks being scheduled, some of which may reference a linked event.
  * @param windowEvents - Events already fetched for the schedule window.
  * @param userId - The authenticated user's ID, used to scope the fallback query.
@@ -57,6 +60,7 @@ async function fetchAllEvents(tasks: any[], windowEvents: any[], userId: string)
 
 /**
  * Captures each task's current scheduledDate/scheduledTime before overwriting, for the audit log.
+ * 
  * @param result - The scheduler result containing the list of newly scheduled tasks.
  * @param tasks - The original task records, used to read their pre-schedule times.
  * @returns A map of taskId to its previous scheduledDate and scheduledTime as ISO strings.
@@ -75,6 +79,7 @@ function snapshotSchedule(result: any, tasks: any[]) {
 
 /**
  * Writes the scheduler's output back to the database, updating each task's scheduled times and status.
+ * 
  * @param result - The scheduler result whose `scheduled` entries are persisted.
  */
 async function persistSchedule(result: any) {
@@ -93,6 +98,7 @@ async function persistSchedule(result: any) {
 /**
  * Persists a schedule log entry. Falls back to a reduced payload if the schema
  * doesn't yet have the `previousSchedule` or `days` columns.
+ * 
  * @param logData - The full log payload including userId, mode, taskIds, previousSchedule, and days.
  */
 async function createScheduleLog(logData: any) {

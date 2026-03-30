@@ -1,6 +1,12 @@
+/**
+ * Testing for preferences api route.
+ */
+
 import { GET, POST } from "../route";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+
+// Mocks
 
 jest.mock("@/lib/prisma", () => ({
     prisma: {
@@ -19,6 +25,8 @@ jest.mock("next/server", () => ({
         })),
     },
 }));
+
+// Tests
 
 describe("Preferences API Route", () => {
     const userId = "test-user-123";

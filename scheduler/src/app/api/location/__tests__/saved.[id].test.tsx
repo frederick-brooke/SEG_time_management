@@ -8,7 +8,6 @@
 
 //  Mocks 
 
-// NextResponse.json is broken in Jest/JSDOM — replace with a plain Response
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: unknown, init?: ResponseInit) =>
@@ -21,7 +20,9 @@ jest.mock("next/server", () => ({
 }));
 
 jest.mock("next-auth/next", () => ({ getServerSession: jest.fn() }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     savedLocation: {
@@ -51,7 +52,7 @@ const mockLocation = {
   type: "HOME",
 };
 
-//Helpers 
+// Helpers 
 
 function makeParams(id: string) {
   return { params: Promise.resolve({ id }) };
