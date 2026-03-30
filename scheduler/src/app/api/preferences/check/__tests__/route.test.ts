@@ -1,8 +1,13 @@
+/**
+ * Testing for preferences/check api route
+ */
+
 import { GET, POST } from "../route";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// Mock NextResponse
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: jest.fn((body, init) => ({
@@ -13,7 +18,6 @@ jest.mock("next/server", () => ({
   },
 }));
 
-// Mock Prisma
 jest.mock("@/lib/prisma", () => ({
   __esModule: true,
   prisma: {
@@ -26,6 +30,8 @@ jest.mock("@/lib/prisma", () => ({
 
 const findUniqueMock = jest.mocked(prisma.userPreferences.findUnique);
 const upsertMock = jest.mocked(prisma.userPreferences.upsert);
+
+// Tests
 
 describe("Preferences API Route", () => {
   beforeEach(() => {

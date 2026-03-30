@@ -1,6 +1,9 @@
 /**
- * API routes for managing schedule logs.
+ * API route for managing schedule logs.
+ * GET fetches all logs for the current user, POST creates a log entry directly,
+ * and DELETE restores tasks to their pre-schedule state and removes the log.
  */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -12,8 +15,10 @@ type ScheduleSnapshot = Record<
 >;
 
 /**
- * Restores each task to its pre-schedule times using the snapshot.
- * Uses updateMany so it silently skips tasks that no longer exist (e.g. deleted with their exam).
+ * Restores each task in the log to its pre-schedule times using the snapshot.
+ * 
+ * @param taskIds - The IDs of tasks that were scheduled in this log entry.
+ * @param snapshot - Map of taskId to previous scheduledDate and scheduledTime.
  */
 async function restoreTaskSchedule(
 	taskIds: string[],
@@ -76,6 +81,13 @@ export async function POST(req: NextRequest) {
 	return NextResponse.json({ log });
 }
 
+/**
+ * DELETE /api/schedule-log?id=<logId>
+ * Restores each task to its pre-schedule times using the log's snapshot, then deletes the log.
+ * 
+ * @param req - Query param `id` is the log entry to undo and delete.
+ * @returns `{ success: true }` on completion, or an error if the log is not found.
+ */
 export async function DELETE(req: NextRequest) {
 	const session = await getServerSession(authOptions);
 	if (!session)

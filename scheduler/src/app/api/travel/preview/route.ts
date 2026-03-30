@@ -1,20 +1,18 @@
 /**
- * GET /api/travel
- *
- * Calculates travel duration between two coordinates using a selected mode.
- *
- * Query parameters:
- *  - start: JSON stringified coordinates for the start location
- *  - dest: JSON stringified coordinates for the destination
- *  - mode: travel mode ("walking" | "cycling" | "driving"), defaults to "walking"
- *
- * Returns:
- *  - { duration: number | null } in seconds (or null if inputs are invalid or error occurs)
+ * Travel time API route
+ * Calculates duration between two coordinates using selected travel mode
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { calculateTravelTime } from "@/lib/travel";
 
+/**
+ * GET /api/travel/preview
+ *
+ * Computes travel duration between a start and destination point.
+ * Accepts coordinates as JSON strings and supports walking, cycling, and driving modes.
+ * Returns null if inputs are missing or invalid.
+ */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const mode = (searchParams.get("mode") || "walking") as "walking" | "cycling" | "driving";

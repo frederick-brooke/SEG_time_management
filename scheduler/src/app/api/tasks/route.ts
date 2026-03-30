@@ -1,11 +1,16 @@
+/**
+ * Tasks API route
+ * Handles fetching user tasks and creating new ones (single or bulk)
+ * including scheduling and event-based task generation
+ */
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { addDays, addWeeks, addMonths } from "date-fns";
 
-// ---------------------------------------------------------------------------
-// Compute the calendar date for a task linked to an event via relative offset.
-// e.g. offset = -1 means "1 day before" the next occurrence of the event.
-// ---------------------------------------------------------------------------
+/**
+ * Compute the calendar date for a task linked to an event via relative offset.
+ */
 function computeTaskDateFromEvent(event, relativeOffsetDays = 0) {
 	const offset = relativeOffsetDays ?? 0;
 
@@ -17,12 +22,12 @@ function computeTaskDateFromEvent(event, relativeOffsetDays = 0) {
 		return base;
 	}
 
-	// Recurring: find the next occurrence on or after today
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-	const { type, days: recDays, until } = event.recurrence;
-	const limitDate = until ? new Date(until) : addMonths(today, 12);
-	const DAY_MAP = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  // Find the next occurrence on or after today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const { type, days: recDays, until } = event.recurrence;
+  const limitDate = until ? new Date(until) : addMonths(today, 12);
+  const DAY_MAP = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
 	let cursor = new Date(event.start);
 	cursor.setHours(0, 0, 0, 0);
@@ -82,10 +87,10 @@ function computeTaskDateFromEvent(event, relativeOffsetDays = 0) {
 	return fallback;
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/tasks?userId=xxx&page=1&limit=20
-// ⚡ PERF: Added pagination to prevent loading all tasks at once
-// ---------------------------------------------------------------------------
+/**
+ * GET /api/tasks
+ * Fetches all tasks for a specific user, including related exam and event data.
+ */
 export async function GET(request) {
 	try {
 		const { searchParams } = new URL(request.url);
@@ -135,9 +140,11 @@ export async function GET(request) {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/tasks
-// ---------------------------------------------------------------------------
+/**
+ * POST /api/tasks
+ * Creates a single task or multiple tasks in bulk.
+ * Handles scheduling, recurrence, and event-based task generation logic.
+ */
 export async function POST(request) {
 	try {
 		const body = await request.json();
@@ -175,7 +182,6 @@ export async function POST(request) {
 							taskDate.setHours(0, 0, 0, 0);
 						}
 					} else if (t.relativeOffsetDays != null && t.eventId) {
-						// ⚡ PERF: Use pre-fetched event from map instead of querying
 						const event = eventMap.get(t.eventId);
 						if (event) {
 							taskDate = computeTaskDateFromEvent(
@@ -189,11 +195,9 @@ export async function POST(request) {
 						taskDate.setHours(0, 0, 0, 0);
 					}
 
-					// ── Step 2: apply the clock time if the user toggled it on ───────
-					if (taskDate) {
-						// Always set scheduledDate to the computed date at midnight
-						scheduledDate = new Date(taskDate);
-						scheduledDate.setHours(0, 0, 0, 0);
+          if (taskDate) {
+            scheduledDate = new Date(taskDate);
+            scheduledDate.setHours(0, 0, 0, 0);
 
 						if (t.scheduleTime && t.specificTime) {
 							// User explicitly picked a clock time → set scheduledTime

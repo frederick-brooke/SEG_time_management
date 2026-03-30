@@ -1,5 +1,11 @@
-import { GET } from "./route";
+/**
+ * Testing for profile/[username] api route
+ */
+
+import { GET } from "../route";
 import { prisma } from "lib/prisma";
+
+// Mocks
 
 jest.mock("lib/prisma", () => ({
   prisma: {
@@ -21,6 +27,8 @@ jest.mock("next/server", () => {
     },
   };
 });
+
+// Tests
 
 describe("GET /api/profile/[username]", () => {
   let req: Request;

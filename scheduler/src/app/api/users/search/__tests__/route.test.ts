@@ -1,8 +1,13 @@
+/**
+ * Testing for users search
+ */
+
 import { GET } from "../route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 
-// Mock NextResponse
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: any, init?: any) => ({
@@ -12,12 +17,10 @@ jest.mock("next/server", () => ({
   },
 }));
 
-// Mock next-auth
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
 }));
 
-// Mock prisma
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     user: {
@@ -27,12 +30,13 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-// Mock cookies
 jest.mock("next/headers", () => ({
   cookies: jest.fn().mockResolvedValue({
     get: jest.fn(),
   }),
 }));
+
+// Tests
 
 describe("GET /api/admin/users (search)", () => {
   beforeEach(() => {
@@ -46,7 +50,6 @@ describe("GET /api/admin/users (search)", () => {
     },
   };
 
-  // testing searching when no session
   it("returns 401 if no session", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(null);
 
@@ -59,7 +62,6 @@ describe("GET /api/admin/users (search)", () => {
     expect(data.error).toBe("No session found. Please log in.");
   });
 
-  //  Empty search causes early return
   it("returns empty result if search is empty", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
@@ -77,7 +79,6 @@ describe("GET /api/admin/users (search)", () => {
     expect(prisma.user.findMany).not.toHaveBeenCalled();
   });
 
-  // Basic search
   it("applies search filter", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
@@ -104,10 +105,9 @@ describe("GET /api/admin/users (search)", () => {
       })
     );
 
-    expect(data.totalUserPages).toBe(2); // 20 / default 12 → ceil = 2
+    expect(data.totalUserPages).toBe(2);
   });
 
-  // Pagination and sorting
   it("applies pagination and sorting", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 
@@ -123,13 +123,12 @@ describe("GET /api/admin/users (search)", () => {
     expect(prisma.user.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: { username: "asc" },
-        skip: 12, // (2-1)*12
+        skip: 12,
         take: 12,
       })
     );
   });
 
-  // Date and category filters
   it("applies date and category filters", async () => {
     (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 

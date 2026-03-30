@@ -12,20 +12,18 @@ import {
 	SIDEBAR_WIDTH_ICON,
 } from "./sidebar.constants";
 import type { SidebarProviderProps } from "./sidebar.types";
-
-// Explicit type so useSidebar() returns the correct shape everywhere
 type SidebarContextValue = {
-	state: "expanded" | "collapsed";
-	open: boolean;
-	setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-	isMobile: boolean;
-	openMobile: boolean;
-	setOpenMobile: React.Dispatch<React.SetStateAction<boolean>>;
-	toggleSidebar: () => void;
+  state: "expanded" | "collapsed";
+  open: boolean;
+  setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
+  isMobile: boolean;
+  openMobile: boolean;
+  setOpenMobile: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleSidebar: () => void;
 };
 
 export const [LocalSidebarProvider, useSidebar] =
-	getStrictContext<SidebarContextValue>("SidebarContext");
+  getStrictContext<SidebarContextValue>("SidebarContext");
 
 export function SidebarProvider({
 	defaultOpen = true,

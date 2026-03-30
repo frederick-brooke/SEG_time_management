@@ -1,14 +1,8 @@
 /**
  * Tests for src/app/api/location/search/route.ts
- *
- * Covers GET /api/geocode including:
- * - missing query param
- * - successful UK/global searches
- * - deduplication and ordering
- * - fallback property mapping
- * - upstream fetch failures and JSON parse errors
- * - non-ok upstream responses
  */
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -71,6 +65,8 @@ function stubBothSearches(ukFeatures: unknown[], globalFeatures: unknown[]) {
     .mockResolvedValueOnce(makeFetchResponse(ukFeatures))
     .mockResolvedValueOnce(makeFetchResponse(globalFeatures));
 }
+
+// Tests
 
 describe("GET /api/geocode", () => {
   beforeEach(() => {
@@ -136,9 +132,6 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.display).toBe("Test Place, Coventry, UK");
   });
 
-  /**
-   * Covers the name fallback branch: when name is missing, label is used instead.
-   */
   it("falls back to label when name is missing", async () => {
     stubUkOnly(makeFeature({ name: undefined }));
 
@@ -147,10 +140,6 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.name).toBe("Test Place, Coventry, UK");
   });
 
-  /**
-   * Covers the final fallback branch in mapFeature: when both name and label
-   * are missing, the name should default to "Unknown".
-   */
   it("falls back to Unknown when both name and label are missing", async () => {
     stubUkOnly(makeFeature({ name: undefined, label: undefined }));
 
@@ -159,9 +148,6 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.name).toBe("Unknown");
   });
 
-  /**
-   * Covers the city fallback branch: when locality is absent, county is used.
-   */
   it("uses county as city when locality is missing", async () => {
     stubUkOnly(makeFeature({ locality: undefined, county: "West Midlands" }));
 
@@ -170,10 +156,6 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.city).toBe("West Midlands");
   });
 
-  /**
-   * Covers the empty-string city branch: when both locality and county are
-   * absent, city defaults to an empty string.
-   */
   it("returns empty string for city when both locality and county are missing", async () => {
     stubUkOnly(makeFeature({ locality: undefined, county: undefined }));
 
@@ -182,9 +164,6 @@ describe("GET /api/geocode", () => {
     expect(body[0].properties.city).toBe("");
   });
 
-  /**
-   * Verifies UK results appear before global results in the final array.
-   */
   it("places UK results before global results", async () => {
     const ukFeature = makeFeature({ label: "UK Place" });
     const globalFeature = makeFeature({ label: "Global Place", name: "Global Place" });
@@ -236,10 +215,6 @@ describe("GET /api/geocode", () => {
     expect(body).toEqual([]);
   });
 
-  /**
-   * Covers the safeJson early-return branch: when the upstream response has
-   * ok: false, safeJson returns empty features without attempting to parse.
-   */
   it("returns empty array when upstream responds with non-ok status", async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ ok: false, json: async () => ({}) })
@@ -250,10 +225,6 @@ describe("GET /api/geocode", () => {
     expect(body).toEqual([]);
   });
 
-  /**
-   * Covers the mapFeatures default parameter branch: when the upstream response
-   * omits the features array entirely, it defaults to empty rather than throwing.
-   */
   it("handles undefined features array gracefully", async () => {
     global.fetch = jest.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) })

@@ -1,8 +1,19 @@
+/**
+ * User search API route
+ * Returns the authenticated user's accepted friends list
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { prisma } from "lib/prisma";
 
+/**
+ * GET /api/user/search
+ *
+ * Fetches all accepted friend relationships for the current user
+ * and returns the "other user" in each friendship.
+ */
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
