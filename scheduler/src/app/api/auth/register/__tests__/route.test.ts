@@ -1,6 +1,12 @@
-import { POST } from './route';
+/**
+ * Testing for auth/register api route
+ */
+
+import { POST } from '../route';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, validatePassword } from '@/lib/password';
+
+// Mocks
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -40,6 +46,8 @@ jest.mock('@/lib/password', () => ({
 
 const mockFindFirst = prisma.user.findFirst as jest.Mock;
 const mockTransaction = prisma.$transaction as jest.Mock;
+
+// Tests
 
 describe('POST /register', () => {
   beforeEach(() => {

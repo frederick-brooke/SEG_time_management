@@ -1,3 +1,9 @@
+/**
+ * NextAuth API route handler.
+ *
+ * Exposes GET and POST endpoints for authentication using the configured authOptions.
+ */
+
 import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
 

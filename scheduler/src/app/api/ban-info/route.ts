@@ -20,17 +20,20 @@ import { NextResponse } from "next/server";
  * @returns {Promise<NextResponse>} Ban details for the current user
  */
 export async function GET() {
-	const session = await getServerSession(authOptions);	// Retrieve authenticated session
-
-	if (!session?.user?.id) {	// Ensure user is logged in
+	const session = await getServerSession(authOptions);
+	
+	// Ensure user is logged in
+	if (!session?.user?.id) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	const user = await prisma.user.findUnique({	// Fetch user details (for ban status and expiration)
+	// Fetch user details (for ban status and expiration)
+	const user = await prisma.user.findUnique({
 		where: { id: session.user.id },
 	});
 
-	const report = await prisma.report.findFirst({  // Fetch most recent resolved report related to the user
+	// Fetch most recent resolved report related to the user
+	const report = await prisma.report.findFirst({
 		where: {
 			reportedUserId: session.user.id,
 			status: "RESOLVED",
@@ -39,8 +42,8 @@ export async function GET() {
 	});
 
 	return NextResponse.json({
-		reason: report?.description ?? "Violation of community rules",	    // Use report description if available, otherwise fallback message
-		expires: user?.banExpires,	// Ban expiration (null for permanent bans or no ban)
-		reportId: report?.id,		// Report ID for linking to appeals or further actions
+		reason: report?.description ?? "Violation of community rules",
+		expires: user?.banExpires,
+		reportId: report?.id,
 	});
 }

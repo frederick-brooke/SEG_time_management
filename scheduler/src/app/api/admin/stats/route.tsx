@@ -8,11 +8,7 @@ import prisma from "@/lib/prisma";
  * - Total number of users
  * - Total number of reports
  * - Total number of appeals
- *
- * Notes:
- * - Queries are executed in parallel for better performance
- * - Intended for admin dashboard usage
- *
+ * 
  * @returns {Promise<NextResponse>} JSON response containing system statistics
  */
 export async function GET() {

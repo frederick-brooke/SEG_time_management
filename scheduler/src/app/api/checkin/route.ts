@@ -1,13 +1,21 @@
+/**
+ * Check-in API
+ * GET: returns overdue/incomplete tasks from schedule logs.
+ * POST: processes task check-ins (completed / partial / missed),
+ * updates task state, and returns tasks needing rescheduling.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// ---------------------------------------------------------------------------
-// GET /api/checkin
-// Returns incomplete tasks from active schedule logs whose scheduled dates
-// are before today — i.e. tasks the user should check in on.
-// ---------------------------------------------------------------------------
+/**
+ * Returns overdue or incomplete tasks derived from schedule logs
+ * where the scheduled date is before today.
+ *
+ * @returns {Promise<NextResponse>} JSON response with tasks array
+ */
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session)
@@ -54,17 +62,12 @@ export async function GET() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/checkin
-// Body: { entries: [{ taskId, status, progress }] }
-//
-// For each entry:
-//   completed → mark done, clear scheduled slots, clear progress
-//   partial   → store progress %, compute remaining duration, clear slots
-//   missed    → clear slots so scheduler re-queues at full duration
-//
-// Returns: { tasksToReschedule: Task[] } with adjusted `remainingDuration`.
-// ---------------------------------------------------------------------------
+/**
+ * Processes task check-in entries and updates task state based on status.
+ *
+ * @param {NextRequest} req - Request containing { entries: { taskId, status, progress }[] }
+ * @returns {Promise<NextResponse>} JSON response with tasksToReschedule array
+ */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session)
@@ -117,7 +120,7 @@ export async function POST(req: NextRequest) {
           status === "partial" ? Math.max(0, Math.min(progress, 100)) : 0;
         const remainingMins = Math.round(originalDuration * (1 - pct / 100));
 
-        // ── Persist progress so TaskCard/TaskViewDialog can show it 
+        // Persist progress so TaskCard/TaskViewDialog can show it 
         updateData.progress = status === "partial" ? pct : 0;
 
         needsReschedule.push({

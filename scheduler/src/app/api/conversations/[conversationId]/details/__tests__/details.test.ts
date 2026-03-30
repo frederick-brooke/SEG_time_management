@@ -1,4 +1,10 @@
+/**
+ * Testing for conversations/[conversationId]/details api route
+ */
+
 import { GET } from "../route";
+
+// Mocks
 
 jest.mock("next/server", () => {
   const actual = jest.requireActual("next/server");
@@ -18,7 +24,9 @@ jest.mock("next-auth", () => ({
   __esModule: true,
   getServerSession: jest.fn(),
 }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     conversation: {
@@ -65,6 +73,8 @@ beforeEach(() => {
     user: { id: "user-1" },
   });
 });
+
+// Tests
 
 describe("GET /api/conversations/[conversationId]", () => {
   describe("authentication", () => {
