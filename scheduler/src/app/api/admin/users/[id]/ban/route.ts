@@ -1,3 +1,10 @@
+/**
+ * API route for moderating users and handling report resolution.
+ *
+ * Supports temporary bans, permanent bans, and unbanning users,
+ * with optional report resolution. Restricted to SUPERUSER accounts.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

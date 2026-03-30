@@ -1,8 +1,12 @@
+/**
+ * Testing for admin/reports api route.
+ */
+
 import { GET, POST } from "../route";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 
-// ─── Mocks ─────────
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -32,7 +36,7 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-// ─── Helpers ───────
+// Helpers
 
 const SUPERUSER_SESSION = { user: { id: "admin1", role: "SUPERUSER" } };
 const USER_SESSION = { user: { id: "user1", role: "USER" } };
@@ -60,17 +64,15 @@ const MOCK_REPORTS = [
   },
 ];
 
-// ─── Setup ─────────
+// Setup
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ─── GET tests ─────
+// GET tests
 
 describe("GET /api/admin/reports", () => {
-
-  // ── Auth ─────────
 
   describe("authentication", () => {
     test("returns 403 when session is null", async () => {
@@ -104,7 +106,6 @@ describe("GET /api/admin/reports", () => {
     });
   });
 
-  // ── Default behaviour ────
 
   describe("default query behaviour", () => {
     beforeEach(() => {
@@ -167,7 +168,6 @@ describe("GET /api/admin/reports", () => {
     });
   });
 
-  // ── Sorting & pagination params ────
 
   describe("query parameters", () => {
     beforeEach(() => {
@@ -220,7 +220,6 @@ describe("GET /api/admin/reports", () => {
     });
   });
 
-  // ── Date filtering ───────
 
   describe("date filtering", () => {
     beforeEach(() => {
@@ -281,7 +280,6 @@ describe("GET /api/admin/reports", () => {
     });
   });
 
-  // ── Status filtering ─────
 
   describe("status filtering", () => {
     beforeEach(() => {
@@ -319,11 +317,9 @@ describe("GET /api/admin/reports", () => {
   });
 });
 
-// ─── POST tests ────
+// POST tests
 
 describe("POST /api/admin/reports", () => {
-
-  // ── Auth ─────────
 
   describe("authentication", () => {
     test("returns 401 when session is null", async () => {
@@ -346,7 +342,6 @@ describe("POST /api/admin/reports", () => {
     });
   });
 
-  // ── Self-report prevention ─────────
 
   describe("self-report prevention", () => {
     test("returns 400 when user tries to report themselves", async () => {
@@ -364,7 +359,6 @@ describe("POST /api/admin/reports", () => {
     });
   });
 
-  // ── Duplicate report prevention ────
 
   describe("duplicate report prevention", () => {
     test("returns 409 when report already exists", async () => {
@@ -397,7 +391,6 @@ describe("POST /api/admin/reports", () => {
     });
   });
 
-  // ── Successful report creation ─────
 
   describe("successful creation", () => {
     const CREATED_REPORT = {

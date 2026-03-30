@@ -1,6 +1,12 @@
+/**
+ * Testing for admin/users/[id]/ban api route
+ */
+
 import { PATCH } from "../route";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -21,6 +27,8 @@ jest.mock("@/lib/prisma", () => ({
     report: { update: jest.fn() },
   },
 }));
+
+// Tests
 
 describe("PATCH /api/admin/users/[id]/ban", () => {
   const mockParams = { params: Promise.resolve({ id: "user123" }) };
