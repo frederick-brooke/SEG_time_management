@@ -8,8 +8,14 @@ import { getStrictContext } from 'lib/get-strict-context';
 import { useControlledState } from 'hooks/use-controlled-state';
 import { cn } from 'lib/utils';
 
-const [CheckboxProvider, useCheckbox] = getStrictContext('CheckboxContext');
+type CheckboxContextValue = {
+  isChecked: boolean | "indeterminate";
+  setIsChecked: (checked: boolean | "indeterminate") => void;
+};
 
+const [CheckboxProvider, useCheckbox] =
+  getStrictContext<CheckboxContextValue>("CheckboxContext");
+  
 interface CheckboxProps extends React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> {
   defaultChecked?: boolean;
   checked?: boolean;

@@ -13,7 +13,18 @@ import {
   SIDEBAR_WIDTH_ICON,
 } from "./sidebar.constants";
 import type { SidebarProviderProps } from "./sidebar.types";
-export const [LocalSidebarProvider, useSidebar] = getStrictContext("SidebarContext");
+type SidebarContextValue = {
+  state: "expanded" | "collapsed";
+  open: boolean;
+  setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
+  isMobile: boolean;
+  openMobile: boolean;
+  setOpenMobile: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleSidebar: () => void;
+};
+
+export const [LocalSidebarProvider, useSidebar] =
+  getStrictContext<SidebarContextValue>("SidebarContext");
 
 export function SidebarProvider({
   defaultOpen = true,
@@ -58,7 +69,7 @@ export function SidebarProvider({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [toggleSidebar]);
 
-  const state = open ? "expanded" : "collapsed";
+  const state: "expanded" | "collapsed" = open ? "expanded" : "collapsed";
 
   const contextValue = React.useMemo(
     () => ({ state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar }),

@@ -5,25 +5,20 @@
  * ensuring hooks throw if used outside their provider.
  */
 
-import * as React from 'react';
+import * as React from "react";
 
-function getStrictContext(name) {
-  const Context = React.createContext(undefined);
+export function getStrictContext<T>(name: string) {
+  const Context = React.createContext<T | null>(null);
 
-  const Provider = ({
-    value,
-    children
-  }) => <Context.Provider value={value}>{children}</Context.Provider>;
+  function useStrictContext(): T {
+    const context = React.useContext(Context);
 
-  const useSafeContext = () => {
-    const ctx = React.useContext(Context);
-    if (ctx === undefined) {
-      throw new Error(`useContext must be used within ${name ?? 'a Provider'}`);
+    if (!context) {
+      throw new Error(`${name} must be used within ${name}.Provider`);
     }
-    return ctx;
-  };
 
-  return [Provider, useSafeContext];
+    return context;
+  }
+
+  return [Context.Provider, useStrictContext] as const;
 }
-
-export { getStrictContext };

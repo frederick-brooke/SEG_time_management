@@ -4,11 +4,11 @@ import { Calendar, Clock, Users, Map, Settings2, BarChart3 } from "lucide-react"
 
 const features = [
   { icon: Calendar, title: "Task Scheduling", description: "Auto-schedules tasks into your calendar around your work hours and rest days." },
-  { icon: Clock, title: "Smart Time Blocking", description: "Focus sessions, breaks, and task limits shaped around how you work." },
+  { icon: Clock, title: "Smart Time Blocking", description: "Focus sessions, breaks and task limits shaped around how you work." },
   { icon: Users, title: "Friend Map", description: "See where your friends are in real time. Coordinate without the back-and-forth." },
   { icon: Map, title: "Module Planner", description: "Track deadlines across all your modules in one place." },
-  { icon: Settings2, title: "Preferences", description: "Set your hours, rest days, and session lengths to make Lunar yours." },
-  { icon: BarChart3, title: "Profiles", description: "View completed tasks, current workload, and how your week is shaping up." },
+  { icon: Settings2, title: "Preferences", description: "Set your hours, rest days and session lengths to make Lunar yours." },
+  { icon: BarChart3, title: "Profiles", description: "View completed tasks, current workload and how your week is shaping up." },
 ];
 
 export default function FeaturesSection() {
