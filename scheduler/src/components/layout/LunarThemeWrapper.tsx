@@ -1,4 +1,4 @@
-import { StarField } from "@/components/landing/HeroSection";
+import StarField from "@/components/effects/starField"
 
 export default function LunarThemeWrapper({ children } : { children: React.ReactNode }) {
     return (
