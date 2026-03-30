@@ -1,7 +1,11 @@
-// src/app/api/admin/appeals/tests/appeals.route.test.ts
+/**
+ * Testing for the admins/appeal api route
+ */
 
 import { GET } from "../route";
 import { prisma } from "@/lib/prisma";
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -20,6 +24,8 @@ jest.mock("@/lib/prisma", () => ({
     },
   },
 }));
+
+// Tests
 
 describe("GET /api/admin/appeals", () => {
   beforeEach(() => {

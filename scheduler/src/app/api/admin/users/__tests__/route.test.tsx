@@ -1,8 +1,13 @@
+/**
+ * Testing for admin/users api route
+ */
+
 import { GET } from "../route";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 
 // Mocks 
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
 
 jest.mock("next-auth/next", () => ({
@@ -27,7 +32,7 @@ jest.mock("next/server", () => ({
   },
 }));
 
-//Helpers 
+// Helpers 
 
 const mockSession = (role = "SUPERUSER") =>
   (getServerSession as jest.Mock).mockResolvedValue({ user: { role } });
@@ -40,11 +45,12 @@ const mockDB = (users: any[] = [], count = 0) => {
 const get = (path = "") =>
   GET({ url: `http://localhost/api/admin${path}` } as Request);
 
-//  Tests 
+// Tests 
+
 describe("GET /api/admin/users", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  //  Auth guards 
+  // Auth guards 
   describe("auth", () => {
     it("returns 401 when there is no session", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
@@ -75,7 +81,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Default params 
+  // Default params 
   describe("default params", () => {
     it("queries with correct defaults and returns pagination", async () => {
       mockSession();
@@ -124,7 +130,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Search filter 
+  // Search filter 
   describe("search filter", () => {
     it("adds case-insensitive username contains filter", async () => {
       mockSession();
@@ -147,7 +153,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Date filter 
+  // Date filter 
   describe("date filter", () => {
     it("applies gte and lte when both dates are provided", async () => {
       mockSession();
@@ -186,7 +192,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Category filter 
+  // Category filter 
   describe("category filter", () => {
     it("uppercases and filters by role", async () => {
       mockSession();
@@ -209,7 +215,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Sorting 
+  // Sorting 
   describe("sorting", () => {
     it("sorts by username asc when specified", async () => {
       mockSession();
@@ -251,7 +257,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Pagination 
+  // Pagination 
   describe("pagination", () => {
     it("calculates skip correctly for page 2 limit 5", async () => {
       mockSession();
@@ -286,7 +292,7 @@ describe("GET /api/admin/users", () => {
     });
   });
 
-  //  Response shape 
+  // Response shape 
   describe("response shape", () => {
     it("returns users array in response", async () => {
       const users = [{ id: "1", username: "alice" }];

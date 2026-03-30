@@ -1,6 +1,5 @@
-/**
- * FIX: Mock NextResponse to avoid "Response.json is not a function"
- */
+// Mocks
+
 jest.mock("next/server", () => {
     return {
       NextResponse: {
@@ -12,16 +11,12 @@ jest.mock("next/server", () => {
     };
   });
   
-  /**
-   * Mock next-auth
-   */
+  // Mock next-auth
   jest.mock("next-auth/next", () => ({
     getServerSession: jest.fn(),
   }));
   
-  /**
-   * Mock Prisma
-   */
+  // Mock prisma
   jest.mock("@/lib/prisma", () => ({
     prisma: {
       scheduleLog: {

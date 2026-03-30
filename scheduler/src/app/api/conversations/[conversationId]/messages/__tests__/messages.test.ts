@@ -1,4 +1,10 @@
+/**
+ * Testing for conversations/[conversationId]/messages
+ */
+
 import { GET } from "../route";
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextRequest: jest.fn(),
@@ -9,12 +15,15 @@ jest.mock("next/server", () => ({
     })),
   },
 }));
+
 jest.mock("next-auth", () => ({
   __esModule: true,
   default: jest.fn(() => ({})),
   getServerSession: jest.fn(),
 }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     conversationParticipant: {
@@ -68,6 +77,8 @@ beforeEach(() => {
   jest.mocked(prisma.conversationParticipant.findFirst).mockResolvedValue(mockParticipant);
   jest.mocked(prisma.message.findMany).mockResolvedValue(mockMessages);
 });
+
+// Tests
 
 describe("GET /api/conversations/[conversationId]/messages", () => {
   describe("authentication", () => {

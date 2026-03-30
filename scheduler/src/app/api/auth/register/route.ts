@@ -1,14 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
-import { hashPassword, validatePassword } from "@/lib/password"; // Fixed alias
-import { prisma } from "@/lib/prisma";
 /**
- * Validates username: letters, numbers, underscores and hyphens (3-20 chars)
+ * User registration API route.
+ *
+ * Validates username, email, and password, checks for duplicates,
+ * creates a new user with default progress and category setup,
+ * and returns the created user (excluding password hash).
+ */
+
+import { NextRequest, NextResponse } from "next/server";
+import { hashPassword, validatePassword } from "@/lib/password";
+import { prisma } from "@/lib/prisma";
+
+/**
+ * Validates username: letters, numbers, underscores and hyphens.
  */
 function isValidUsername(username: string): boolean {
   const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
   return usernameRegex.test(username);
 }
 
+/**
+ * Handles user registration.
+ *
+ * @param {NextRequest} req - Incoming registration request
+ * @returns {Promise<NextResponse>} JSON response with created user or error
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

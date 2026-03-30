@@ -1,3 +1,10 @@
+/**
+ * API route for fetching paginated appeals.
+ *
+ * Supports filtering by date range and status, sorting, and pagination.
+ * Returns appeal data along with total count and page metadata.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 

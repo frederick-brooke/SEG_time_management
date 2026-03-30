@@ -1,4 +1,10 @@
+/**
+ * Testing for conversations/[conversationId]/members
+ */
+
 import { POST, PATCH, DELETE } from "../route";
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextRequest: jest.fn(),
@@ -9,12 +15,15 @@ jest.mock("next/server", () => ({
     })),
   },
 }));
+
 jest.mock("next-auth", () => ({
   __esModule: true,
   default: jest.fn(() => ({})),
   getServerSession: jest.fn(),
 }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     conversationParticipant: {
@@ -27,6 +36,7 @@ jest.mock("@/lib/prisma", () => ({
     },
   },
 }));
+
 jest.mock("pusher", () =>
   jest.fn().mockImplementation(() => ({
     trigger: jest.fn().mockResolvedValue({}),
@@ -79,6 +89,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(getServerSession).mockResolvedValue({ user: { id: "user-1" } });
 });
+
+// Tests
 
 describe("POST /api/conversations/[conversationId]/members", () => {
   describe("authentication", () => {

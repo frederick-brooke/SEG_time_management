@@ -1,4 +1,10 @@
+/**
+ * Testing for conversations/new api route
+ */
+
 import { POST } from "../route";
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextRequest: jest.fn(),
@@ -9,12 +15,15 @@ jest.mock("next/server", () => ({
     })),
   },
 }));
+
 jest.mock("next-auth", () => ({
   __esModule: true,
   default: jest.fn(() => ({})),
   getServerSession: jest.fn(),
 }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     conversation: {
@@ -73,6 +82,8 @@ beforeEach(() => {
   jest.mocked(prisma.conversation.findMany).mockResolvedValue([]);
   jest.mocked(prisma.conversation.create).mockResolvedValue(mockConversation);
 });
+
+// Tests
 
 describe("POST /api/conversations", () => {
   describe("authentication", () => {

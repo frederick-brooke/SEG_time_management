@@ -1,6 +1,12 @@
+/**
+ * Testing for categories api route.
+ */
+
 import { GET, POST, PATCH, DELETE } from "@/app/api/categories/route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
+
+// Mocks
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
@@ -30,6 +36,8 @@ jest.mock("next/server", () => ({
 const mockSession = {
   user: { id: "user-1" },
 };
+
+// Tests
 
 describe("Category API", () => {
   beforeEach(() => {
