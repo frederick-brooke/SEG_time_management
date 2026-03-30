@@ -1,4 +1,13 @@
 "use client";
+
+/**
+ * AppSidebar
+ *
+ * Primary application navigation sidebar. Renders nav sections, user footer,
+ * notification bell, search panel, and polling for notifications and messages.
+ * All polling is gated on an authenticated session to prevent unauthorised requests.
+ */
+
 import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -150,6 +159,13 @@ function NavSection({
 	);
 }
 
+/**
+ * Renders the sidebar footer with user avatar, name, and a dropdown menu
+ * containing profile, settings, and sign-out actions.
+ *
+ * @param {{ session: any; status: string }} props
+ * @returns {JSX.Element} The user footer element
+ */
 function UserFooter({ session, status }: { session: any; status: string }) {
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
@@ -275,6 +291,36 @@ function UserFooter({ session, status }: { session: any; status: string }) {
 	);
 }
 
+/**
+ * Renders the notification bell button with an unread count badge.
+ *
+ * @param {{ count: number; onClick: () => void }} props
+ * @returns {JSX.Element} The bell button element
+ */
+function NotificationBell({ count, onClick }: { count: number; onClick: () => void }) {
+  return (
+    <button
+      data-testid="bell-button"
+      onClick={onClick}
+      className="relative w-8 h-8 flex items-center justify-center rounded-xl text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+    >
+      <IconBell size={19} />
+      {count > 0 && (
+        <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+          {count > 99 ? "99+" : count}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/**
+ * Main application sidebar component.
+ * Polls notifications and unread messages only when the user is authenticated.
+ *
+ * @param {any} props - Sidebar and forwarded props
+ * @returns {JSX.Element} The full sidebar with modals and toast container
+ */
 export function AppSidebar({ onSearchClick, ...props }: any) {
 	const [searchOpen, setSearchOpen] = useState(false);
 	const [notifOpen, setNotifOpen] = useState(false);
