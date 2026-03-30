@@ -105,5 +105,4 @@ export const examPlannerLogic = {
 
         return availableDates
     }
-
 };

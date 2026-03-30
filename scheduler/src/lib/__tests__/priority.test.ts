@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/priority
+ */
+
 import { getPriorityStyle } from "../priority";
 
 describe("getPriorityStyle", () => {

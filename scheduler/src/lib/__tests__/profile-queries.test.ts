@@ -1,3 +1,6 @@
+/**
+ * Testing for lib/profile-queries
+ */
 
 import {
   fetchUserByEmail,
@@ -55,7 +58,6 @@ const baseFriendUser: FriendUser = {
   equippedAvatar: null,
 };
 
-// Raw DB shape returned by FRIEND_USER_SELECT (progress is nested)
 const baseFriendUserRaw = {
   id: 'user-1',
   username: 'alice',

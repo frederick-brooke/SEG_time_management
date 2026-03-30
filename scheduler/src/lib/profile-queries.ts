@@ -1,7 +1,12 @@
+/**
+ * User, friend, and task data access layer with Prisma.
+ * Handles fetching users, friendships, and task statistics with typed helpers.
+ */
+
 import { prisma } from "lib/prisma";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 
-//types
+// Types
 export type FriendUser = {
   id: string;
   username: string;
@@ -136,7 +141,8 @@ export async function fetchUsernameByEmail(email: string): Promise<string | null
   return user?.username ?? null;
 }
 
-//friends
+// Friends
+
 /**
  * Counts the total number of accepted friendships for a user
  * @param {string} userId - The database ID of the user
@@ -221,7 +227,8 @@ export async function fetchFriendStatus(
   return { status: "NONE" };
 }
 
-//tasks
+// Tasks
+
 /**
  * Computes completion statistics from an array of task records
  * @param {{ completed: boolean }[]} tasks - Array of task objects with completion status

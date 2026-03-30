@@ -1,3 +1,9 @@
+/**
+ * Password utilities
+ *
+ * Provides hashing, verification, and validation helpers for secure password handling.
+ */
+
 import bcrypt from "bcryptjs";
 
 export async function hashPassword(password: string) {

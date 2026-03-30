@@ -1,3 +1,13 @@
+/**
+ * Middleware proxy for route protection and access control.
+ *
+ * - Bypasses auth checks for public/auth routes
+ * - Redirects deleted users to /account-deleted
+ * - Redirects banned users to /banned
+ * - Restricts /admin routes to SUPERUSER role only
+ * - Allows all other authenticated and non-authenticated access for matched routes
+ */
+
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 

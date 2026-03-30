@@ -1,3 +1,7 @@
+/**
+ * Returns Tailwind styles based on task priority level.
+ */
+
 export const getPriorityStyle = (priority: string): string => {
     switch (priority) {
       case "High":

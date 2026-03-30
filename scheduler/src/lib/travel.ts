@@ -1,3 +1,8 @@
+/**
+ * Travel time utilities using OpenRouteService API to calculate route durations
+ * between two coordinates for walking, cycling, or driving modes.
+ */
+
 interface Coords {
   lat: number;
   lng: number;

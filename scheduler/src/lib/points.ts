@@ -1,3 +1,10 @@
+/**
+ * Task reward system
+ *
+ * Handles XP and coin rewards for completing or revoking tasks,
+ * including level calculation and transaction logging.
+ */
+
 import { prisma } from "@/lib/prisma";
 
 const PRIORITY_REWARDS: Record<string, { xp: number; coins: number }> = {

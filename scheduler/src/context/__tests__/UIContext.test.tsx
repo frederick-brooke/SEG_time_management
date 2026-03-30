@@ -1,3 +1,7 @@
+/**
+ * Testing for UI Context.
+ */
+
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { UIProvider, useUI } from "../UIContext";
@@ -20,6 +24,8 @@ function TestComponent() {
     </div>
   );
 }
+
+// Tests
 
 describe("UIContext", () => {
   it("provides default state as false", () => {

@@ -1,3 +1,7 @@
+/**
+ * Testing for providers.
+ */
+
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Providers from "../app/providers";
@@ -16,6 +20,8 @@ jest.mock("@/context/TaskProgressContext", () => ({
   ),
   useTaskProgress: jest.fn(),
 }));
+
+// Tests
 
 describe("Providers", () => {
   it("renders without crashing", () => {

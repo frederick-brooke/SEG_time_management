@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * TaskProgressContext
+ *
+ * Global state for task progress tracking, including cached progress,
+ * API syncing, and cross-tab updates via events and localStorage.
+ */
+
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 interface TaskProgressContextType {
