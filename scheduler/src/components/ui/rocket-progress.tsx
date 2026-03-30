@@ -15,13 +15,14 @@ interface Star {
 }
 
 
-const STARS: Star[] = Array.from({ length: 40 }, (_, i) => ({
+// Reduced from 40 to 15 stars for better performance; staggered longer delays
+const STARS: Star[] = Array.from({ length: 15 }, (_, i) => ({
   id: i,
-  left: (i * 137.508) % 100, 
-  top: (i * 97.3) % 100,     
-  size: (i % 3) + 1,      
-  delay: (i * 0.37) % 4,     
-  duration: 2 + (i % 3),     
+  left: (i * 237.508) % 100,
+  top: (i * 197.3) % 100,
+  size: (i % 3) + 1,
+  delay: (i * 0.67) % 6,
+  duration: 3 + (i % 3),
 }));
 
 const easeIn5 = (t: number): number => t * t * t * t * t;
@@ -98,9 +99,9 @@ export function RocketProgress({ progress, height = 40, missionName = "MISSION S
       {/* Header — mission label left, numeric readout right */}
       <div className="flex items-center justify-between mb-3 px-0.5">
         <div className="flex items-center gap-2">
-          {/* Live-ping indicator dot */}
+          {/* Live-ping indicator dot - reduce ping frequency */}
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-60" />
+            <span className="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-40" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
           </span>
           <span className="rp-label text-[9px] tracking-[0.25em] uppercase text-cyan-400/70">{missionName}</span>
@@ -121,18 +122,18 @@ export function RocketProgress({ progress, height = 40, missionName = "MISSION S
         style={{ height }}
       >
         {/* Decorative star-field rendered from the static STARS array */}
-        <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none will-change-auto">
           {STARS.map((s) => (
             <div key={s.id} className="absolute rounded-full bg-white"
               style={{ left: `${s.left}%`, top: `${s.top}%`, width: s.size, height: s.size,
-                opacity: 0.15, animationName: "star-twinkle", animationDuration: `${s.duration}s`,
+                opacity: 0.12, animationName: "star-twinkle", animationDuration: `${s.duration}s`,
                 animationDelay: `${s.delay}s`, animationIterationCount: "infinite",
-                animationTimingFunction: "ease-in-out" }} />
+                animationTimingFunction: "ease-in-out", willChange: "opacity" }} />
           ))}
         </div>
 
-        <div className="absolute top-0 left-0 h-full rounded-full pointer-events-none blur-[6px] bg-gradient-to-r from-blue-700/25 to-sky-400/35"
-          style={{ width: `${displayProgress}%` }} />
+        <div className="absolute top-0 left-0 h-full rounded-full pointer-events-none blur-[3px] bg-gradient-to-r from-blue-700/25 to-sky-400/35"
+          style={{ width: `${displayProgress}%`, willChange: "width" }} />
 
         <div className={`absolute top-0 left-0 h-full rounded-full rp-nebula pointer-events-none z-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] ${nebulaGradient(isComplete)}`}
           style={{ width: `${displayProgress}%` }} />
@@ -141,22 +142,22 @@ export function RocketProgress({ progress, height = 40, missionName = "MISSION S
           style={{ width: `${displayProgress}%` }} />
 
         <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none z-20"
-          style={{ clipPath: `inset(0 ${100 - displayProgress}% 0 0 round 999px)` }}>
-          <div className="rp-scan absolute top-0 h-full w-1/4 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-md" />
+          style={{ clipPath: `inset(0 ${100 - displayProgress}% 0 0 round 999px)`, willChange: "clip-path" }}>
+          <div className="rp-scan absolute top-0 h-full w-1/4 bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm" />
         </div>
 
         {/* Rocket assembly — positioned at the leading edge of the fill */}
-        <div className="absolute top-1/2 z-30 pointer-events-none -translate-y-1/2" style={{ left: `${displayProgress}%` }}>
+        <div className="absolute top-1/2 z-30 pointer-events-none -translate-y-1/2" style={{ left: `${displayProgress}%`, willChange: "left", transform: "translateZ(0)" }}>
           <div className={`rp-tip-ring absolute rounded-full w-5 h-5 bg-transparent -translate-x-1/2 -translate-y-1/2 ${accent(isComplete, "border-[1.5px] border-emerald-400/60", "border-[1.5px] border-sky-400/60")}`}
             style={{ top: "50%", left: "50%" }} />
-          <div className={`absolute w-9 h-9 rounded-full pointer-events-none animate-pulse blur-[4px] -translate-x-1/2 -translate-y-1/2 ${accent(isComplete, "bg-[radial-gradient(circle,rgba(52,211,153,0.35)_0%,transparent_70%)]", "bg-[radial-gradient(circle,rgba(56,189,248,0.4)_0%,transparent_70%)]")}`}
-            style={{ top: "50%", left: "50%" }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="rp-trail-1 absolute w-[5px] h-[5px] rounded-full bg-sky-400/80 blur-[1px] top-0 left-0" />
-            <div className="rp-trail-2 absolute w-1 h-1 rounded-full bg-sky-300/60 blur-[1px] top-0 left-0" />
-            <div className="rp-trail-3 absolute w-[3px] h-[3px] rounded-full bg-sky-200/50 blur-[1px] top-0 left-0" />
+          <div className={`absolute w-9 h-9 rounded-full pointer-events-none animate-pulse-slow blur-[2px] -translate-x-1/2 -translate-y-1/2 ${accent(isComplete, "bg-[radial-gradient(circle,rgba(52,211,153,0.25)_0%,transparent_70%)]", "bg-[radial-gradient(circle,rgba(56,189,248,0.3)_0%,transparent_70%)]")}`}
+            style={{ top: "50%", left: "50%", willChange: "opacity" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ willChange: "transform" }}>
+            <div className="rp-trail-1 absolute w-[5px] h-[5px] rounded-full bg-sky-400/70 blur-[0.5px] top-0 left-0" />
+            <div className="rp-trail-2 absolute w-1 h-1 rounded-full bg-sky-300/50 blur-[0.5px] top-0 left-0" />
+            <div className="rp-trail-3 absolute w-[3px] h-[3px] rounded-full bg-sky-200/40 blur-[0.5px] top-0 left-0" />
           </div>
-          <div className={`rp-rocket absolute text-4xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-45 ${accent(isComplete, "drop-shadow-[0_0_8px_rgba(52,211,153,0.9)]", "drop-shadow-[0_0_8px_rgba(56,189,248,0.9)]")}`}>
+          <div className={`rp-rocket absolute text-4xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-45 ${accent(isComplete, "drop-shadow-[0_0_4px_rgba(52,211,153,0.6)]", "drop-shadow-[0_0_4px_rgba(56,189,248,0.6)]")}`}>
             🚀
           </div>
         </div>

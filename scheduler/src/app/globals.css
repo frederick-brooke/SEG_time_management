@@ -236,8 +236,34 @@
   60%  { opacity: 0.6; }
   100% { transform: translate(var(--smoke-tx), var(--smoke-ty)) scale(4.5); opacity: 0; filter: blur(10px); }
 }
+
+/* Slower ping animation for better performance */
+@keyframes ping-slow {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+/* Slower pulse animation for better performance */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Star twinkling animation */
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.1; }
+}
  
 @layer components {
+  /* Slower animations for performance */
+  .animate-ping-slow {
+    animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
   /* Main Lunar Card/Modal Background */
   .lunar-glass {
     @apply bg-[#111629]/95 border border-white/10 backdrop-blur-xl shadow-2xl rounded-2xl;
