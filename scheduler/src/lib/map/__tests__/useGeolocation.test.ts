@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/map/useGeoLocation
+ */
+
 import { renderHook, act } from "@testing-library/react";
 import { useGeolocation } from "../useGeolocation";
 

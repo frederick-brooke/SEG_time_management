@@ -1,3 +1,10 @@
+/**
+ * Mail service utility
+ *
+ * Handles sending transactional emails via Maileroo API,
+ * including password reset emails and generic mail requests.
+ */
+
 const MAILEROO_API_KEY = process.env.MAILEROO_API_KEY;
 const MAILEROO_BASE_URL = process.env.MAILEROO_BASE_URL;
 const DEFAULT_FROM = process.env.MAILEROO_FROM;
@@ -19,6 +26,14 @@ export type MailResult = {
   body: unknown;
 };
 
+/**
+ * Sends an email using the Maileroo API.
+ *
+ * Handles API request construction, authentication, and response parsing.
+ *
+ * @param options - Email options including recipient, subject, and content
+ * @returns Result object containing success status, HTTP status, and response body
+ */
 export async function sendMail(options: MailOptions): Promise<MailResult> {
   const { to, subject, text, html, from } = options;
 
@@ -61,6 +76,15 @@ export async function sendMail(options: MailOptions): Promise<MailResult> {
   };
 }
 
+/**
+ * Sends a password reset email to a user.
+ *
+ * Generates both text and HTML email content and sends it via the Maileroo service.
+ * Logs an error if the email fails to send.
+ *
+ * @param params - Email details including recipient, optional name, and reset URL
+ * @returns Result of the email send operation
+ */
 export async function sendPasswordResetEmail(params: {
   to: string;
   name?: string;

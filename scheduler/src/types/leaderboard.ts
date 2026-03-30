@@ -1,3 +1,7 @@
+/**
+ * Types for leaderboard filtering, sorting, and user ranking data used in stats views.
+ */
+
 export type Timeframe = 'day' | 'week' | 'month' | 'all';
 export type SortKey = 'streak' | 'focusTime' | 'completionRate';
 

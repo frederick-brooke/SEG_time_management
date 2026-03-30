@@ -4,7 +4,7 @@
 
 import { parseICal, parseRRule, ParsedVEvent } from "../ical-parser";
 
-// ── Helpers ────────
+// Helpers
 
 /**
  * Wraps event lines in a VCALENDAR/VEVENT structure.
@@ -29,10 +29,9 @@ const MINIMAL_EVENT_LINES = [
   "DTEND:20240603T110000Z",
 ];
 
-// ── parseICal ──────
+// Tests
 
 describe("parseICal", () => {
-  // ── Basic parsing 
 
   it("should parse a minimal valid event", () => {
     const result = parseICal(buildICal(...MINIMAL_EVENT_LINES));
@@ -91,8 +90,6 @@ describe("parseICal", () => {
     expect(result[0].description).toBeUndefined();
   });
 
-  // ── All-day events ───────
-
   it("should parse an all-day event using VALUE=DATE param", () => {
     const result = parseICal(
       buildICal(
@@ -132,8 +129,6 @@ describe("parseICal", () => {
     expect(result[0].dtend).toEqual(new Date(Date.UTC(2024, 5, 4)));
   });
 
-  // ── Line folding ─
-
   it("should unfold lines joined by CRLF + whitespace", () => {
     const folded = [
       "BEGIN:VCALENDAR",
@@ -152,8 +147,6 @@ describe("parseICal", () => {
 
     expect(result[0].description).toContain("folded across multiple lines");
   });
-
-  // ── DURATION ─────
 
   it("should compute dtend from DURATION when DTEND is absent", () => {
     const result = parseICal(
@@ -197,8 +190,6 @@ describe("parseICal", () => {
     expect(result[0].dtend.getTime()).toBeCloseTo(expected.getTime(), -3);
   });
 
-  // ── RRULE ────────
-
   it("should parse a RRULE and attach it to the event", () => {
     const result = parseICal(
       buildICal(
@@ -209,8 +200,6 @@ describe("parseICal", () => {
 
     expect(result[0].rrule).toBe("FREQ=WEEKLY;BYDAY=MO,WE");
   });
-
-  // ── EXDATE ───────
 
   it("should parse a single EXDATE into the exdates array", () => {
     const result = parseICal(
@@ -239,8 +228,6 @@ describe("parseICal", () => {
     const result = parseICal(buildICal(...MINIMAL_EVENT_LINES));
     expect(result[0].exdates).toEqual([]);
   });
-
-  // ── Incomplete events ────
 
   it("should discard an event missing UID", () => {
     const result = parseICal(
@@ -291,8 +278,6 @@ describe("parseICal", () => {
     expect(result).toHaveLength(0);
   });
 
-  // ── Local (non-UTC) timestamps ─────
-
   it("should parse a local (non-Z) timestamp as a local Date", () => {
     const result = parseICal(
       buildICal(
@@ -307,8 +292,6 @@ describe("parseICal", () => {
     expect(result[0].dtstart).toBeInstanceOf(Date);
     expect(isNaN(result[0].dtstart.getTime())).toBe(false);
   });
-
-  // ── Lines without colons ─
 
   it("should silently ignore lines without a colon", () => {
     const ical = [
@@ -330,10 +313,8 @@ describe("parseICal", () => {
   });
 });
 
-// ── parseRRule ─────
 
 describe("parseRRule", () => {
-  // ── Frequency types ──────
 
   it("should parse a daily RRULE", () => {
     const result = parseRRule("FREQ=DAILY");
@@ -365,8 +346,6 @@ describe("parseRRule", () => {
     expect(parseRRule("BYDAY=MO")).toBeNull();
   });
 
-  // ── RRULE: prefix 
-
   it("should strip the RRULE: prefix before parsing", () => {
     const result = parseRRule("RRULE:FREQ=DAILY");
 
@@ -378,8 +357,6 @@ describe("parseRRule", () => {
 
     expect(result).toMatchObject({ type: "daily" });
   });
-
-  // ── UNTIL ────────
 
   it("should parse the UNTIL date into a Date object", () => {
     const result = parseRRule("FREQ=DAILY;UNTIL=20241231T000000Z") as any;
@@ -406,8 +383,6 @@ describe("parseRRule", () => {
     expect(result.until.getTime()).toBeLessThanOrEqual(after + oneYear + 1000);
   });
 
-  // ── BYDAY ────────
-
   it("should parse BYDAY for weekly recurrence and map abbreviations to full names", () => {
     const result = parseRRule("FREQ=WEEKLY;BYDAY=MO,WE,FR") as any;
 
@@ -431,8 +406,6 @@ describe("parseRRule", () => {
 
     expect(result.days).toBeUndefined();
   });
-
-  // ── Case insensitivity ───
 
   it("should be case-insensitive for the frequency value", () => {
     const result = parseRRule("FREQ=daily");

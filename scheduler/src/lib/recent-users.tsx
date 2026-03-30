@@ -1,3 +1,8 @@
+/**
+ * Utility for managing recently viewed users in localStorage.
+ * Stores, retrieves, and updates a capped list of recent users.
+ */
+
 const STORAGE_KEY = "recent_users";
 
 export function getRecentUsers() {

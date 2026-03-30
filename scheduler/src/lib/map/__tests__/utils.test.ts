@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/map/utils
+ */
+
 import { calcCenter, formatDate, createPinSvg, injectLeafletCSS } from "../utils";
 
 // calcCenter

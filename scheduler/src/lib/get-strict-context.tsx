@@ -1,3 +1,10 @@
+/**
+ * getStrictContext utility
+ *
+ * Creates a typed React context with a required Provider guard,
+ * ensuring hooks throw if used outside their provider.
+ */
+
 import * as React from 'react';
 
 function getStrictContext(name) {

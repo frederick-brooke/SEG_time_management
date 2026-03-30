@@ -1,4 +1,10 @@
-// lib/auth.ts
+/**
+ * Authentication configuration and helpers
+ *
+ * Handles NextAuth setup, credential validation, Google OAuth linking,
+ * JWT/session callbacks, and user authorization logic.
+ */
+
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -7,9 +13,19 @@ import { prisma } from "./prisma";
 import { verifyPassword } from "./password";
 import { User } from "next-auth";
 
+/**
+ * Validates user credentials and returns an authenticated user object.
+ *
+ * Checks email/username login, verifies password, handles banned users,
+ * and returns a sanitized user object for NextAuth.
+ *
+ * @param credentials - Login credentials (email/username + password)
+ * @param req - Optional request object (unused)
+ * @returns Authenticated user or null if invalid
+ */
 export async function authorizeUser(
   credentials: Record<string, string> | undefined,
-  req?: any  // <-- now optional
+  req?: any
 ): Promise<User | null> {
   if (!credentials?.identifier || !credentials?.password) return null;
 
