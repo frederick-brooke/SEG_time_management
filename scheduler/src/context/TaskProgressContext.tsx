@@ -7,150 +7,205 @@
  * API syncing, and cross-tab updates via events and localStorage.
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, {
+	createContext,
+	useContext,
+	useState,
+	useCallback,
+	useEffect,
+	useRef,
+} from "react";
 
 interface TaskProgressContextType {
-  progressPercentage: number;
-  tasks: any[];
-  isLoading: boolean;
-  lastUpdatedAt: number | null;
-  refreshProgress: (userId: string | undefined) => Promise<void>;
-  triggerProgressUpdate: () => void;
+	progressPercentage: number;
+	tasks: any[];
+	isLoading: boolean;
+	lastUpdatedAt: number | null;
+	refreshProgress: (userId: string | undefined) => Promise<void>;
+	triggerProgressUpdate: () => void;
 }
 
-const TaskProgressContext = createContext<TaskProgressContextType | undefined>(undefined);
+const TaskProgressContext = createContext<TaskProgressContextType | undefined>(
+	undefined,
+);
 
 const PROGRESS_SYNC_EVENT = "task-progress-updated";
 const PROGRESS_STORAGE_KEY = "task-progress-cache";
 
-export function TaskProgressProvider({ children }: { children: React.ReactNode }) {
-  const [progressPercentage, setProgressPercentage] = useState(0);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
+export function TaskProgressProvider({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	const [progressPercentage, setProgressPercentage] = useState(0);
+	const [tasks, setTasks] = useState<any[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
 
-  // Load cached progress on mount
-  useEffect(() => {
-    const cached = localStorage.getItem(PROGRESS_STORAGE_KEY);
-    if (cached) {
-      try {
-        const { progressPercentage: cachedProgress, tasks: cachedTasks, lastUpdatedAt: cachedTime } = JSON.parse(cached);
-        setProgressPercentage(cachedProgress);
-        setTasks(cachedTasks);
-        setLastUpdatedAt(cachedTime);
-      } catch (e) {
-        console.error("Failed to load cached progress:", e);
-      }
-    }
-  }, []);
+	// ⚡ PERF: Debounce localStorage writes to prevent blocking I/O on rapid updates
+	const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Save progress to localStorage whenever it changes
-  useEffect(() => {
-    if (tasks.length > 0 || progressPercentage > 0) {
-      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({
-        progressPercentage,
-        tasks,
-        lastUpdatedAt,
-      }));
-    }
-  }, [progressPercentage, tasks, lastUpdatedAt]);
+	// Load cached progress on mount
+	useEffect(() => {
+		const cached = localStorage.getItem(PROGRESS_STORAGE_KEY);
+		if (cached) {
+			try {
+				const {
+					progressPercentage: cachedProgress,
+					tasks: cachedTasks,
+					lastUpdatedAt: cachedTime,
+				} = JSON.parse(cached);
+				setProgressPercentage(cachedProgress);
+				setTasks(cachedTasks);
+				setLastUpdatedAt(cachedTime);
+			} catch (e) {
+				console.error("Failed to load cached progress:", e);
+			}
+		}
+	}, []);
 
-  // Listen for progress updates from other components or tabs
-  useEffect(() => {
-    const handleProgressUpdate = () => {
-      const cached = localStorage.getItem(PROGRESS_STORAGE_KEY);
-      if (cached) {
-        try {
-          const { progressPercentage: newProgress, tasks: newTasks, lastUpdatedAt: newTime } = JSON.parse(cached);
-          setProgressPercentage(newProgress);
-          setTasks(newTasks);
-          setLastUpdatedAt(newTime);
-        } catch (e) {
-          console.error("Failed to sync progress update:", e);
-        }
-      }
-    };
+	// ⚡ PERF: Debounced localStorage write (max 500ms delay) instead of immediate I/O
+	useEffect(() => {
+		if (saveTimeoutRef.current) {
+			clearTimeout(saveTimeoutRef.current);
+		}
 
-    window.addEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
-    return () => window.removeEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
-  }, []);
+		saveTimeoutRef.current = setTimeout(() => {
+			if (tasks.length > 0 || progressPercentage > 0) {
+				localStorage.setItem(
+					PROGRESS_STORAGE_KEY,
+					JSON.stringify({
+						progressPercentage,
+						tasks,
+						lastUpdatedAt,
+					}),
+				);
+			}
+		}, 500); // Wait 500ms after last change before writing
 
-  const refreshProgress = useCallback(async (userId: string | undefined) => {
-    if (!userId) return;
+		return () => {
+			if (saveTimeoutRef.current) {
+				clearTimeout(saveTimeoutRef.current);
+			}
+		};
+	}, [progressPercentage, tasks, lastUpdatedAt]);
 
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/tasks?userId=${userId}`);
+	// Listen for progress updates from other components or tabs
+	useEffect(() => {
+		const handleProgressUpdate = () => {
+			const cached = localStorage.getItem(PROGRESS_STORAGE_KEY);
+			if (cached) {
+				try {
+					const {
+						progressPercentage: newProgress,
+						tasks: newTasks,
+						lastUpdatedAt: newTime,
+					} = JSON.parse(cached);
+					setProgressPercentage(newProgress);
+					setTasks(newTasks);
+					setLastUpdatedAt(newTime);
+				} catch (e) {
+					console.error("Failed to sync progress update:", e);
+				}
+			}
+		};
 
-      // Check response status
-      if (!res.ok) {
-        console.warn(`API /api/tasks responded with status ${res.status}`);
-        return;
-      }
+		window.addEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
+		return () =>
+			window.removeEventListener(
+				PROGRESS_SYNC_EVENT,
+				handleProgressUpdate,
+			);
+	}, []);
 
-      // Get response text first to avoid JSON parse errors
-      const text = await res.text();
-      if (!text) {
-        console.warn("Empty response body from /api/tasks");
-        return;
-      }
+	const refreshProgress = useCallback(async (userId: string | undefined) => {
+		if (!userId) return;
 
-      // Parse JSON safely
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error("Failed to parse JSON response from /api/tasks", parseError);
-        return;
-      }
+		try {
+			setIsLoading(true);
+			const res = await fetch(`/api/tasks?userId=${userId}`);
 
-      if (data.tasks) {
-        const tasksArray = data.tasks;
-        const totalTasks = tasksArray.length || 0;
-        const completedTasks = tasksArray.filter((t: any) => t.status === "completed").length;
-        const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+			// Check response status
+			if (!res.ok) {
+				console.warn(
+					`API /api/tasks responded with status ${res.status}`,
+				);
+				return;
+			}
 
-        setTasks(tasksArray);
-        setProgressPercentage(newProgress);
-        setLastUpdatedAt(Date.now());
+			// Get response text first to avoid JSON parse errors
+			const text = await res.text();
+			if (!text) {
+				console.warn("Empty response body from /api/tasks");
+				return;
+			}
 
-        // Broadcast update to other components/tabs
-        window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
-      }
-    } catch (error) {
-      console.error("Failed to refresh progress:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+			// Parse JSON safely
+			let data;
+			try {
+				data = JSON.parse(text);
+			} catch (parseError) {
+				console.error(
+					"Failed to parse JSON response from /api/tasks",
+					parseError,
+				);
+				return;
+			}
 
-  const triggerProgressUpdate = useCallback(() => {
-    window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
-  }, []);
+			if (data.tasks) {
+				const tasksArray = data.tasks;
+				const totalTasks = tasksArray.length || 0;
+				const completedTasks = tasksArray.filter(
+					(t: any) => t.status === "completed",
+				).length;
+				const newProgress =
+					totalTasks > 0
+						? Math.round((completedTasks / totalTasks) * 100)
+						: 0;
 
-  const value: TaskProgressContextType = {
-    progressPercentage,
-    tasks,
-    isLoading,
-    lastUpdatedAt,
-    refreshProgress,
-    triggerProgressUpdate,
-  };
+				setTasks(tasksArray);
+				setProgressPercentage(newProgress);
+				setLastUpdatedAt(Date.now());
 
-  return (
-    <TaskProgressContext.Provider value={value}>
-      {children}
-    </TaskProgressContext.Provider>
-  );
+				// Broadcast update to other components/tabs
+				window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+			}
+		} catch (error) {
+			console.error("Failed to refresh progress:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, []);
+
+	const triggerProgressUpdate = useCallback(() => {
+		window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+	}, []);
+
+	const value: TaskProgressContextType = {
+		progressPercentage,
+		tasks,
+		isLoading,
+		lastUpdatedAt,
+		refreshProgress,
+		triggerProgressUpdate,
+	};
+
+	return (
+		<TaskProgressContext.Provider value={value}>
+			{children}
+		</TaskProgressContext.Provider>
+	);
 }
 
 /**
  * Hook to access task progress context
  */
 export function useTaskProgress() {
-  const context = useContext(TaskProgressContext);
-  if (context === undefined) {
-    throw new Error("useTaskProgress must be used within TaskProgressProvider");
-  }
-  return context;
+	const context = useContext(TaskProgressContext);
+	if (context === undefined) {
+		throw new Error(
+			"useTaskProgress must be used within TaskProgressProvider",
+		);
+	}
+	return context;
 }
