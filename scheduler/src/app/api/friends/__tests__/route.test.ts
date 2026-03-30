@@ -1,9 +1,13 @@
-import { GET } from "./route";
+/**
+ * Testing for the friends api route.
+ */
+
+import { GET } from "../route";
 import { getServerSession } from "next-auth/next";
 import { fetchFriends } from "@/lib/profile-queries";
 
-// Mock NextResponse so it works in Jest's jsdom environment,
-// which lacks the native Response.json static method that Next.js relies on.
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (body: unknown, init?: ResponseInit) =>
@@ -23,6 +27,8 @@ jest.mock("@/lib/profile-queries", () => ({
 jest.mock("@/lib/auth", () => ({
   authOptions: {},
 }));
+
+// Tests
 
 describe("GET /api/friends", () => {
   const createMockRequest = () =>

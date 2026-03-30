@@ -1,6 +1,11 @@
+/**
+ * Testing for auth/[nextauth] api route
+ */
+
 import { authOptions } from "@/lib/auth"; 
 
-// BAND V: Virtual mocks to prevent Jest from even LOOKING at these modules
+// Mocks
+
 jest.mock('jose', () => ({}), { virtual: true });
 jest.mock('@panva/hkdf', () => ({}), { virtual: true });
 jest.mock('openid-client', () => ({}), { virtual: true });
@@ -10,6 +15,8 @@ jest.mock('next-auth', () => ({
   default: jest.fn(),
   getServerSession: jest.fn(),
 }), { virtual: true });
+
+// Tests
 
 describe("Auth Configuration (Route Settings)", () => {
   it("Google Provider should be present", () => {

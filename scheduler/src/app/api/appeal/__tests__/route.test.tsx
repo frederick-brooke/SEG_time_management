@@ -1,6 +1,12 @@
+/**
+ * Testing for appeal api route
+ */
+
 import { POST } from "../route";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+
+// Mocks
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -22,6 +28,8 @@ jest.mock("next/server", () => ({
     }),
   },
 }));
+
+// Tests
 
 describe("POST /api/appeals (create appeal)", () => {
   beforeEach(() => {

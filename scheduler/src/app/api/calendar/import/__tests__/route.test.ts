@@ -8,7 +8,7 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { parseICal, parseRRule } from "@/lib/calendar/ical-parser";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -41,7 +41,7 @@ jest.mock("@/lib/calendar/ical-parser", () => ({
 // Mock global fetch used by fetchICalText
 global.fetch = jest.fn();
 
-// ── Typed mock helpers ─────
+// Typed mock helpers
 
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockPrismaEvent = prisma.event as unknown as {
@@ -55,7 +55,7 @@ const mockParseICal = parseICal as jest.Mock;
 const mockParseRRule = parseRRule as jest.Mock;
 const mockFetch = global.fetch as jest.Mock;
 
-// ── Factory helpers 
+// Factory helpers 
 
 /**
  * Creates a mock authenticated session.
@@ -123,14 +123,13 @@ function makeRequest(
   return new Request(url, init) as unknown as NextRequest;
 }
 
-// ── Tests 
+// Tests 
 
 describe("iCal Import API Route", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // ── GET ────────
 
   describe("GET", () => {
     it("should return 401 when the user is not authenticated", async () => {
@@ -219,7 +218,6 @@ describe("iCal Import API Route", () => {
     });
   });
 
-  // ── POST ───────
 
   describe("POST", () => {
     it("should return 401 when the user is not authenticated", async () => {
@@ -488,7 +486,6 @@ describe("iCal Import API Route", () => {
     });
   });
 
-  // ── DELETE ─────
 
   describe("DELETE", () => {
     it("should return 401 when the user is not authenticated", async () => {

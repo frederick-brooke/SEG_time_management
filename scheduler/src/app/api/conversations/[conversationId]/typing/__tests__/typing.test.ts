@@ -1,3 +1,7 @@
+/**
+ * Testing for conversations/[conversationId]/typing
+ */
+
 import { POST } from "../route";
 
 // var needed here because jest.mock is hoisted above const/let declarations

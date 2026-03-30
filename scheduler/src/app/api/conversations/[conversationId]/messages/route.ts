@@ -37,7 +37,7 @@ export async function GET(
       ...(participant?.deletedAt && { createdAt: { gt: participant.deletedAt } }),
     },
     take: 20,
-    // skip: 1 excludes the cursor message itself from the next page
+    // 'skip: 1' excludes the cursor message itself from the next page
     ...(cursor && { skip: 1, cursor: { id: cursor } }),
     orderBy: { createdAt: "desc" },
     include: { sender: { select: { id: true, username: true, pfp: true } } },

@@ -1,7 +1,21 @@
+/**
+ * Password reset API route.
+ *
+ * Validates reset token and new password, checks expiration,
+ * hashes the new password, and updates the user account while
+ * clearing reset credentials.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword, validatePassword } from "lib/password";
 import { prisma } from "lib/prisma";
 
+/**
+ * Resets a user's password using a valid password reset token.
+ * 
+ * @param {NextRequest} req - Incoming request containing token and new password
+ * @returns {Promise<NextResponse>} JSON response indicating success or failure
+ */
 export async function POST(req: NextRequest) {
   try {
     const { token, password } = await req.json();
