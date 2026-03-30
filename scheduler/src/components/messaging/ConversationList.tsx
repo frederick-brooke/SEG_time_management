@@ -44,6 +44,7 @@ type Friend = {
 	id: string;
 	username: string;
 	fname: string | null;
+	lname: string | null;
 	pfp: string | null;
 };
 
