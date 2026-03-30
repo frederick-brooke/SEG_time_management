@@ -9,6 +9,14 @@ jest.mock("next-auth/react", () => ({
   ),
 }));
 
+// Mock TaskProgressProvider
+jest.mock("@/context/TaskProgressContext", () => ({
+  TaskProgressProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="mock-task-progress-provider">{children}</div>
+  ),
+  useTaskProgress: jest.fn(),
+}));
+
 describe("Providers", () => {
   it("renders without crashing", () => {
     render(
@@ -28,6 +36,28 @@ describe("Providers", () => {
     const sessionProvider = screen.getByTestId("mock-session-provider");
     expect(sessionProvider).toBeInTheDocument();
     expect(sessionProvider).toContainElement(screen.getByTestId("child"));
+  });
+
+  it("wraps children in TaskProgressProvider", () => {
+    render(
+      <Providers>
+        <div data-testid="child">Content</div>
+      </Providers>
+    );
+    const taskProgressProvider = screen.getByTestId("mock-task-progress-provider");
+    expect(taskProgressProvider).toBeInTheDocument();
+    expect(taskProgressProvider).toContainElement(screen.getByTestId("child"));
+  });
+
+  it("nests TaskProgressProvider inside SessionProvider", () => {
+    render(
+      <Providers>
+        <div data-testid="child">Content</div>
+      </Providers>
+    );
+    const sessionProvider = screen.getByTestId("mock-session-provider");
+    const taskProgressProvider = screen.getByTestId("mock-task-progress-provider");
+    expect(sessionProvider).toContainElement(taskProgressProvider);
   });
 
   it("renders children correctly", () => {

@@ -16,7 +16,9 @@ import { useTasks } from "../useTasks";
 function mockFetch(response: any, ok = true) {
   return jest.fn().mockResolvedValue({
     ok,
-    json: jest.fn().mockResolvedValue(response),
+    status: ok ? 200 : 400,
+    text: jest.fn().mockResolvedValue(JSON.stringify(response)),
+    json: jest.fn().mockResolvedValue(response), // Keep for backward compatibility with existing tests
   });
 }
 
@@ -78,6 +80,47 @@ describe("useTasks", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(console.error).toHaveBeenCalled();
     expect(result.current.tasks).toEqual([]);
+  });
+
+  it("logs warning when API returns non-ok status", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: jest.fn().mockResolvedValue("")
+    });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("status 500"));
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("handles empty response body gracefully", async () => {
+    const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: jest.fn().mockResolvedValue("")
+    });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Empty response body"));
+    expect(result.current.tasks).toEqual([]);
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("handles malformed JSON gracefully", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: jest.fn().mockResolvedValue("invalid json {")
+    });
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to parse JSON"), expect.any(SyntaxError));
+    expect(result.current.tasks).toEqual([]);
+    consoleErrorSpy.mockRestore();
   });
 
   it("does not update tasks when response has no tasks property", async () => {
@@ -202,6 +245,16 @@ describe("useTasks", () => {
     expect(rewards).toBeNull();
   });
 
+  it("toggleTaskStatus dispatches PROGRESS_SYNC_EVENT after status change", async () => {
+    const dispatchEventSpy = jest.spyOn(window, "dispatchEvent");
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({ rewards: null });
+    await act(async () => { await result.current.toggleTaskStatus("t1"); });
+    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
+    dispatchEventSpy.mockRestore();
+  });
+
   it("toggleTaskStatus returns null and does nothing when task is not found", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -210,6 +263,15 @@ describe("useTasks", () => {
     await act(async () => { rewards = await result.current.toggleTaskStatus("nonexistent"); });
     expect(rewards).toBeNull();
     expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("nonexistent"), expect.anything());
+  });
+
+  it("toggleTaskStatus does not dispatch event when task is not found", async () => {
+    const dispatchEventSpy = jest.spyOn(window, "dispatchEvent");
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => { await result.current.toggleTaskStatus("nonexistent"); });
+    expect(dispatchEventSpy).not.toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
+    dispatchEventSpy.mockRestore();
   });
 
   it("sortTasks orders tasks by priority High > Medium > Low", async () => {
