@@ -144,6 +144,19 @@ export async function POST(request) {
 
 		// ── Bulk creation (event-linked tasks from EventForm) ───────
 		if (body.tasks && Array.isArray(body.tasks)) {
+			// ⚡ PERF: Batch fetch all events at once instead of N+1 queries
+			const eventIds = body.tasks
+				.map((t: any) => t.eventId)
+				.filter((id: string | null) => id != null);
+
+			const eventMap = new Map();
+			if (eventIds.length > 0) {
+				const events = await prisma.event.findMany({
+					where: { id: { in: eventIds } },
+				});
+				events.forEach((event) => eventMap.set(event.id, event));
+			}
+
 			const created = await Promise.all(
 				body.tasks.map(async (t) => {
 					let scheduledDate = null;
@@ -162,10 +175,8 @@ export async function POST(request) {
 							taskDate.setHours(0, 0, 0, 0);
 						}
 					} else if (t.relativeOffsetDays != null && t.eventId) {
-						// Relative to event: compute date from event occurrence + offset
-						const event = await prisma.event.findUnique({
-							where: { id: t.eventId },
-						});
+						// ⚡ PERF: Use pre-fetched event from map instead of querying
+						const event = eventMap.get(t.eventId);
 						if (event) {
 							taskDate = computeTaskDateFromEvent(
 								event,
