@@ -1,10 +1,17 @@
+/**
+ * Group utilities
+ *
+ * Shared helpers for auth, permissions, friend lookup, ID generation,
+ * and syncing group events/tasks across members.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { GroupRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 
-//types
+// Types
 
 export const MEMBER_USER_SELECT = {
   id: true,
@@ -14,7 +21,7 @@ export const MEMBER_USER_SELECT = {
   pfp: true,
 } as const;
 
-//helpers
+// Helpers
 
 /**
  * Retrieves the current session and throws if the user is not authenticated
@@ -80,7 +87,7 @@ export async function fetchFriendsForUser(userId: string) {
   return [...sent.map((r) => r.receiver), ...received.map((r) => r.sender)];
 }
 
-//sync helpers
+// Sync helpers
 
 /**
  * Copies all existing group events to a newly added member's calendar

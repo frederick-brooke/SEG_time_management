@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Group task service
+ *
+ * Handles creating, updating, deleting, and fetching group tasks.
+ * Syncs tasks across members and tracks per-user completion/progress.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

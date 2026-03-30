@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Module event service
+ *
+ * Handles creating, updating, deleting, and fetching events within a module.
+ * Syncs events across all members using a shared moduleEventGroupId.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
@@ -30,7 +37,7 @@ export async function createModuleEvent(moduleId: string, eventData: any) {
 
   const moduleEventGroupId = generateGroupId();
 
-  // Get ALL users in the module (Owners, Admins, and Members all need to see events)
+  // Get all users in the module (Owners, Admins, and Members all need to see events)
   const memberIdsToAssign = members.map((m) => m.userId);
 
   // Force the creator to get a copy so the event saves to the database

@@ -1,3 +1,7 @@
+/**
+ * Testing for module/utils actions.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
@@ -36,7 +40,7 @@ describe("Module Utils", () => {
     });
 
     /**
-     * Happy Path: Returns the session object when the user is authenticated.
+     * Returns the session object when the user is authenticated.
      */
     it("should return the session if the user is authenticated", async () => {
       const mockSession = { user: { id: "user-123" } };

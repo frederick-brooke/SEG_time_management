@@ -1,3 +1,7 @@
+/**
+ * Testing for profile/xpUtils actions.
+ */
+
 import { calculateLevelProgress, XP_PER_LEVEL } from '../xpUtils';
 
 describe('XP Math Utility', () => {

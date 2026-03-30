@@ -1,5 +1,14 @@
 'use server';
 
+/**
+ * User service (server actions)
+ *
+ * Handles core user CRUD operations including:
+ * - Fetching users and individual profiles
+ * - Creating new user accounts
+ * - Loading user-related task data for dashboards, admin panels, and authentication flows
+ */
+
 import { prisma } from "lib/prisma";
 import { revalidatePath } from 'next/cache';
 

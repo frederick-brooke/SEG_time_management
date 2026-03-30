@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Group event service
+ *
+ * Handles creating, updating, deleting, and fetching group events.
+ * Keeps events in sync across all members using a shared groupEventGroupId.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

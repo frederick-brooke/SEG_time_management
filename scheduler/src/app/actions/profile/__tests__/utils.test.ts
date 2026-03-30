@@ -1,15 +1,20 @@
-import { requireSession, countFriends } from '../utils'; // Update with your actual file path
+/**
+ * Testing for profile/utils actions.
+ */
+
+import { requireSession, countFriends } from '../utils';
 import { getServerSession } from "next-auth";
 import { prisma } from "lib/prisma";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 
-// 1. Mock External Dependencies
+// Mocks
+
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
 jest.mock("lib/auth", () => ({
-  authOptions: {}, // We just need this to exist so getServerSession doesn't complain
+  authOptions: {},
 }));
 
 // Mock Prisma client
