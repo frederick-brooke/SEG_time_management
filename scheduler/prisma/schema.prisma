@@ -426,7 +426,7 @@ model Module {
   maxMembers  Int            @default(50)
   joinPin     String         @unique
   creatorId   String         @db.ObjectId
-  creator     User           @relation("ModuleCreator", fields: [creatorId], references: [id])
+  creator     User           @relation("ModuleCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   members     ModuleMember[]
   events      Event[]
   tasks       Task[]
@@ -451,7 +451,7 @@ model Group {
   name        String
   description String?
   creatorId   String  @db.ObjectId
-  creator     User    @relation("GroupCreator", fields: [creatorId], references: [id])
+  creator     User    @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   members     GroupMember[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -11,7 +11,7 @@ export async function getNotifications(count: number = 20) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      throw new Error("Unauthorized");
+      return { notifications: [], error: null };
     }
 
     const notifications = await prisma.notification.findMany({
