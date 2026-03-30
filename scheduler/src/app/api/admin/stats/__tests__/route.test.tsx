@@ -1,5 +1,9 @@
+/**
+ * Testing for admin/stats api route
+ */
+
 import { NextResponse } from "next/server";
-import { GET } from "./route";
+import { GET } from "../route";
 import prisma from "@/lib/prisma";
 
 //  Mocks 

@@ -1,7 +1,12 @@
+/**
+ * Testing for the admins/appeal/[id] api route
+ */
+
 import { PATCH } from "../[id]/route";
-// __tests__/appealPatch.test.ts
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -31,6 +36,8 @@ jest.mock("@/lib/auth", () => ({
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
+
+// Tests
 
 describe("PATCH /api/appeals/[id]", () => {
   const mockParams = Promise.resolve({ id: "appeal123" });

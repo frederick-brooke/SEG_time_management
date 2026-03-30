@@ -1,3 +1,10 @@
+/**
+ * API route for creating and managing user reports.
+ *
+ * - GET: SUPERUSER-only endpoint for paginated, filterable report listings
+ * - POST: Authenticated users can submit reports with validation and deduplication
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";

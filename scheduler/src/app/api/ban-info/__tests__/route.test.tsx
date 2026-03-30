@@ -1,8 +1,13 @@
+/**
+ * Testing for ban-info api route
+ */
+
 import { GET } from "../route";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 
-// ✅ Mock Prisma
+// Mocks
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     user: {
@@ -14,12 +19,10 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-// ✅ Mock next-auth
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
-// ✅ Mock NextResponse
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: any, init?: any) => ({
@@ -28,6 +31,8 @@ jest.mock("next/server", () => ({
     }),
   },
 }));
+
+// Tests
 
 describe("GET /api/user/ban", () => {
   beforeEach(() => {
