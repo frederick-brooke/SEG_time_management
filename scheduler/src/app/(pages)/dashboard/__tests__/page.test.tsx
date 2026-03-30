@@ -27,6 +27,18 @@ jest.mock("@/context/UIContext", () => ({
   useUI: () => ({ wellbeingOpen: mockWellbeingOpen, setWellbeingOpen: setWellbeingOpenMock }),
 }));
 
+const refreshProgressMock = jest.fn().mockResolvedValue(undefined);
+jest.mock("@/context/TaskProgressContext", () => ({
+  useTaskProgress: jest.fn().mockReturnValue({
+    progressPercentage: 0,
+    tasks: [],
+    isLoading: false,
+    lastUpdatedAt: null,
+    refreshProgress: refreshProgressMock,
+    triggerProgressUpdate: jest.fn(),
+  }),
+}));
+
 jest.mock("@/app/actions/leaderboard", () => ({
   getFriendsLeaderboard: jest.fn().mockResolvedValue([]),
 }));
@@ -52,11 +64,11 @@ jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: (_: any, name: string) => function MockIcon() { return null; } })
 );
 
-jest.mock("components/upcoming-exams", () => ({
+jest.mock("components/dashboard/upcoming-exams", () => ({
   UpcomingExams: () => <div>UpcomingExams</div>,
 }));
 
-jest.mock("@/components/coming-up-soon", () => ({
+jest.mock("@/components/dashboard/coming-up-soon", () => ({
   ComingUpSoon: () => <div>ComingUpSoon</div>,
 }));
 
@@ -89,6 +101,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
 
 import Page from "../page";
 import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
+import { useTaskProgress } from "@/context/TaskProgressContext";
 
 const { useSession, signOut } = require("next-auth/react");
 
@@ -107,6 +120,14 @@ describe("Dashboard Page", () => {
     getMyExamsMock.mockResolvedValue([]);
     getMyProfileMock.mockResolvedValue({ fname: "Test", accounts: [] });
     useTasksMock.mockReturnValue({ tasks: [] });
+    (useTaskProgress as jest.Mock).mockReturnValue({
+      progressPercentage: 0,
+      tasks: [],
+      isLoading: false,
+      lastUpdatedAt: null,
+      refreshProgress: refreshProgressMock,
+      triggerProgressUpdate: jest.fn(),
+    });
     setAuth();
   });
 
@@ -130,33 +151,51 @@ describe("Dashboard Page", () => {
     expect(await screen.findByText(/Welcome, User/)).toBeInTheDocument();
   });
 
-  // Rocket progress
-  it("shows 0% when there are no tasks", async () => {
-    useTasksMock.mockReturnValue({ tasks: [] });
+  // Rocket progress (now from context)
+  it("shows 0% when progress context returns 0", async () => {
+    (useTaskProgress as jest.Mock).mockReturnValue({
+      progressPercentage: 0,
+      tasks: [],
+      isLoading: false,
+      lastUpdatedAt: null,
+      refreshProgress: refreshProgressMock,
+      triggerProgressUpdate: jest.fn(),
+    });
     render(<Page />);
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 0%");
   });
 
-  it("calculates percentage correctly for partial completion", async () => {
-    useTasksMock.mockReturnValue({
-      tasks: [
-        { id: "1", status: "completed" },
-        { id: "2", status: "pending" },
-      ],
+  it("displays progress percentage from context", async () => {
+    (useTaskProgress as jest.Mock).mockReturnValue({
+      progressPercentage: 50,
+      tasks: [{ id: "1", status: "completed" }, { id: "2", status: "todo" }],
+      isLoading: false,
+      lastUpdatedAt: Date.now(),
+      refreshProgress: refreshProgressMock,
+      triggerProgressUpdate: jest.fn(),
     });
     render(<Page />);
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 50%");
   });
 
-  it("shows 100% when all tasks are completed", async () => {
-    useTasksMock.mockReturnValue({
-      tasks: [
-        { id: "1", status: "completed" },
-        { id: "2", status: "completed" },
-      ],
+  it("shows 100% when progress context returns 100", async () => {
+    (useTaskProgress as jest.Mock).mockReturnValue({
+      progressPercentage: 100,
+      tasks: [{ id: "1", status: "completed" }, { id: "2", status: "completed" }],
+      isLoading: false,
+      lastUpdatedAt: Date.now(),
+      refreshProgress: refreshProgressMock,
+      triggerProgressUpdate: jest.fn(),
     });
     render(<Page />);
     expect(await screen.findByTestId("rocket")).toHaveTextContent("Rocket 100%");
+  });
+
+  it("calls refreshProgress with userId on mount when authenticated", async () => {
+    render(<Page />);
+    await waitFor(() => {
+      expect(refreshProgressMock).toHaveBeenCalledWith("u1");
+    });
   });
 
   // Core components 

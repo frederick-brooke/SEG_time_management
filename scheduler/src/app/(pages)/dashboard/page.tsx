@@ -7,13 +7,14 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { getMyExams } from "@/app/actions/examActions";
-import { UpcomingExams } from "components/upcoming-exams";
-import { useUI } from "@/context/UIContext";  
+import { UpcomingExams } from "@/components/dashboard/upcoming-exams";
+import { useUI } from "@/context/UIContext";
+import { useTaskProgress } from "@/context/TaskProgressContext";
 import { ProfileStats } from "@/components/profile/StatModules";
 import { getMyProfile } from "@/app/actions/profile";
-import { ComingUpSoon } from "@/components/coming-up-soon";
+import { ComingUpSoon } from "@/components/dashboard/coming-up-soon";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import LeaderboardClient from "../leaderboard/LeaderboardClient";
 import { getFriendsLeaderboard } from "../../actions/leaderboard";
@@ -38,12 +39,18 @@ function DashboardContent() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [wellbeingVisible, setWellbeingVisible] = useState(true);
 
-  // Task progress calculation
-  const { tasks } = useTasks(session?.user?.id);
-  const totalTasks = tasks?.length || 0;
-  const completedTasks = tasks?.filter(t => t.status === "completed").length;
-  const progressPercentage =
-    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  // Get progress from context (cached, persists across navigation)
+  const { progressPercentage, refreshProgress } = useTaskProgress();
+
+  // Extract userId from session first to prevent re-renders
+  const userId = useMemo(() => session?.user?.id, [session?.user?.id]);
+
+  // Refresh progress on mount and when userId changes
+  useEffect(() => {
+    if (userId && status === "authenticated") {
+      refreshProgress(userId);
+    }
+  }, [userId, status, refreshProgress]);
 
   /**
    * Load core dashboard data once user is authenticated.
@@ -120,7 +127,7 @@ function DashboardContent() {
     <>
       <LunarThemeWrapper>
         <main className="max-w-7xl mx-auto pt-20 pb-12 lg:px-16 space-y-12 text-white/90">
-          
+
           {/* Header section */}
           <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
             <div className="flex-1 space-y-4">
@@ -161,7 +168,7 @@ function DashboardContent() {
 
           {/* Main dashboard grid */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start pt-12">
-            
+
             <div className="flex flex-col gap-8">
               <div className="lunar-glass p-6">
                 <ComingUpSoon userId={session?.user?.id} exams={exams} />

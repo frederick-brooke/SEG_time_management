@@ -24,4 +24,4 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
-} from 'components/animate-ui/components/radix/sidebar';
+} from 'components/animate-ui/components/radix/sidebar.index';

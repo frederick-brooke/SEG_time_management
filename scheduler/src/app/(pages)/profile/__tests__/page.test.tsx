@@ -28,7 +28,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
 
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockGetMyProfile = getMyProfile as jest.Mock;
-const mockRedirect = redirect as jest.Mock;
+const mockRedirect = redirect as unknown as jest.Mock;
 
 
 // Tests
