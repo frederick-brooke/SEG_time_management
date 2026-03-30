@@ -1,80 +1,149 @@
 "use client";
 
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-type StarFieldProps = {
-  density?: number;
-};
-
-function Star({ s, mouse }) {
-  const starX = (s.x / 100) * window.innerWidth;
-  const starY = (s.y / 100) * window.innerHeight;
-  const dist = Math.hypot(starX - mouse.x, starY - mouse.y);
-  const isNear = dist < 200;
-
-  const glowOpacity = useSpring(0.1, { stiffness: 80, damping: 8 });
-  const glowScale = useSpring(1, { stiffness: 50, damping: 12 });
-
-  useEffect(() => {
-    glowOpacity.set(isNear ? 0.9 : 0.1);
-    glowScale.set(isNear ? 1.8 : 1);
-  }, [isNear]);
-
-  return (
-    <motion.div
-      className="absolute rounded-full bg-white"
-      style={{
-        width: `${s.size}px`,
-        height: `${s.size}px`,
-        left: `${s.x}%`,
-        top: `${s.y}%`,
-        opacity: glowOpacity,
-        scale: glowScale,
-      }}
-      animate={{
-        opacity: isNear ? [0.6, 2, 0.6] : [0.1, 0.5, 0.1],
-      }}
-      transition={{
-        duration: s.duration,
-        delay: s.delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-    />
-  );
+interface Star {
+	x: number;
+	y: number;
+	baseOpacity: number;
+	size: number;
+	twinkleSpeed: number;
+	twinkleOffset: number;
+	currentOpacity: number;
 }
 
-export default function StarField({ density = 50 }: StarFieldProps) {
-  const [mounted, setMounted] = useState(false);
-  const [mouse, setMouse] = useState({ x: -9999, y: -9999 });
+const STAR_COUNT = 200; // Reduced from 500
+const PROXIMITY_RADIUS = 200;
+const GLOW_STRENGTH = 2;
+const THROTTLE_RATE = 16; // ~60fps
 
-  useEffect(() => {
-    setMounted(true);
-    const handleMove = (e) => setMouse({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", handleMove);
-    return () => window.removeEventListener("mousemove", handleMove);
-  }, []);
+export default function StarField() {
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const starsRef = useRef<Star[]>([]);
+	const mouseRef = useRef({ x: -9999, y: -9999 });
+	const animationIdRef = useRef<number>();
+	const lastMouseUpdateRef = useRef(0);
 
-  const stars = useMemo(() => {
-    if (!mounted) return [];
-    return Array.from({ length: 500 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 0.6,
-      delay: Math.random() * 5,
-      duration: Math.random() * 3 + 2,
-    }));
-  }, [mounted]);
+	// Initialize stars
+	useEffect(() => {
+		const initializeStars = () => {
+			const stars: Star[] = [];
+			for (let i = 0; i < STAR_COUNT; i++) {
+				stars.push({
+					x: Math.random() * window.innerWidth,
+					y: Math.random() * window.innerHeight,
+					baseOpacity: Math.random() * 0.5 + 0.3,
+					size: Math.random() * 1.5 + 0.5,
+					twinkleSpeed: Math.random() * 0.03 + 0.01,
+					twinkleOffset: Math.random() * Math.PI * 2,
+					currentOpacity: 0.5,
+				});
+			}
+			starsRef.current = stars;
+		};
 
-  if (!mounted) return null;
+		initializeStars();
 
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {stars.map((s) => (
-        <Star key={s.id} s={s} mouse={mouse} />
-      ))}
-    </div>
-  );
+		// Handle window resize
+		const handleResize = () => {
+			if (canvasRef.current) {
+				canvasRef.current.width = window.innerWidth;
+				canvasRef.current.height = window.innerHeight;
+			}
+		};
+
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	// Throttled mouse tracking
+	const handleMouseMove = useCallback((e: MouseEvent) => {
+		const now = Date.now();
+		if (now - lastMouseUpdateRef.current < THROTTLE_RATE) return;
+		lastMouseUpdateRef.current = now;
+		mouseRef.current = { x: e.clientX, y: e.clientY };
+	}, []);
+
+	// Main animation loop using requestAnimationFrame
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+
+		const ctx = canvas.getContext("2d");
+		if (!ctx) return;
+
+		// Set canvas size
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+
+		let frameCount = 0;
+
+		const animate = () => {
+			frameCount++;
+
+			// Clear canvas
+			ctx.fillStyle = "rgba(3, 7, 18, 0.2)";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			const mouse = mouseRef.current;
+
+			// Draw and update stars
+			starsRef.current.forEach((star) => {
+				// Calculate distance to mouse
+				const dx = star.x - mouse.x;
+				const dy = star.y - mouse.y;
+				const distance = Math.hypot(dx, dy);
+				const isNear = distance < PROXIMITY_RADIUS;
+
+				// Update opacity with twinkling and proximity effect
+				const twinkle =
+					(Math.sin(
+						frameCount * star.twinkleSpeed + star.twinkleOffset,
+					) +
+						1) /
+					2;
+				const proximityBoost = isNear
+					? Math.max(0, 1 - distance / PROXIMITY_RADIUS) *
+						GLOW_STRENGTH
+					: 0;
+				star.currentOpacity =
+					star.baseOpacity + twinkle * 0.3 + proximityBoost;
+
+				// Draw star
+				ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, star.currentOpacity)})`;
+				ctx.beginPath();
+				ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+				ctx.fill();
+
+				// Add glow for nearby stars
+				if (isNear && proximityBoost > 0.1) {
+					ctx.fillStyle = `rgba(200, 220, 255, ${proximityBoost * 0.3})`;
+					ctx.beginPath();
+					ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2);
+					ctx.fill();
+				}
+			});
+
+			animationIdRef.current = requestAnimationFrame(animate);
+		};
+
+		window.addEventListener("mousemove", handleMouseMove);
+		animationIdRef.current = requestAnimationFrame(animate);
+
+		return () => {
+			window.removeEventListener("mousemove", handleMouseMove);
+			if (animationIdRef.current) {
+				cancelAnimationFrame(animationIdRef.current);
+			}
+		};
+	}, [handleMouseMove]);
+
+	return (
+		<canvas
+			ref={canvasRef}
+			className="absolute inset-0 pointer-events-none"
+			style={{ width: "100%", height: "100%" }}
+		/>
+	);
 }
