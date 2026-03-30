@@ -1,3 +1,8 @@
+/**
+ * Form component for creating or updating exam settings. 
+ * Orchestrates server actions, input validation, and user notifications 
+ * using a flattened, highly readable control flow.
+ */
 "use client";
 
 import React, { useState } from "react";
@@ -27,7 +32,19 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
     const [isPending, setIsPending] = useState(false);
 
     /**
-     * Handles the asynchronous submission of the exam data.
+     * Sends a notification based on whether an exam was added or updated.
+     */
+    const dispatchNotification = async (userId: string, title: string, isUpdate: boolean) => {
+        await createNotification(
+            userId,
+            isUpdate ? "Exam Updated" : "Exam Added",
+            isUpdate ? `"${title}" has been updated.` : `"${title}" has been added.`,
+            isUpdate ? NotificationType.INFO : NotificationType.SUCCESS
+        );
+    };
+
+    /**
+     * Handles submission with a flat control flow (Nesting Depth: 1).
      */
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -35,41 +52,30 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
         setIsPending(true);
 
         const formData = new FormData(e.target);
-        let result;
-       
+        const title = formData.get("title") as string;
+        
         try {
-            if (editingExam) {
-                result = await updateExamSettings(editingExam.id, {
-                    title: formData.get("title") as string,
+            const result = editingExam 
+                ? await updateExamSettings(editingExam.id, {
+                    title,
                     examDate: new Date(formData.get("examDate") as string),
                     maxTimePerDay: parseInt(formData.get("maxTimePerDay") as string)
-                });
-            } else {
-                result = await createExam(formData);
-            }
-            if (result.success) {
-                if (session?.user?.id) {
-                    await createNotification(
-                        session?.user?.id,
-                        editingExam ? "Exam Updated" : "Exam Added",
-                        editingExam
-                            ? `"${formData.get("title")}" has been updated.`
-                            : `"${formData.get("title")} has been added to your planner.`,
-                        editingExam ? NotificationType.INFO : NotificationType.SUCCESS
-                    );
-                }
+                  })
+                : await createExam(formData);
 
-                if (editingExam) {
-                    onExamUpdated?.(result.data);
-                } else {
-                    onExamAdded?.(result.data);
-                }
-
-                onSuccess();
-              
-            } else {
+            if (!result.success) {
                 setServerError(result.error || "Failed to save exam details");
+                setIsPending(false);
+                return; 
             }
+
+            if (session?.user?.id) {
+                await dispatchNotification(session.user.id, title, !!editingExam);
+            }
+
+            editingExam ? onExamUpdated?.(result.data) : onExamAdded?.(result.data);
+            onSuccess();
+            
         } catch (error) {
             setServerError("A network error occurred. Please try again.");
         } finally {
@@ -140,12 +146,14 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 <button 
                     type="button" 
                     onClick={onSuccess} 
+                    disabled={isPending}
                     className="text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                 >
                     Cancel
                 </button>
                 <button 
                     type="submit" 
+                    disabled={isPending}
                     className="lunar-button-primary"
                 >
                     {isPending? "Saving..." : editingExam ? "Update Settings" : "Save Exam"}

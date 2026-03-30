@@ -1,4 +1,4 @@
-import * as React from 'react';
+//testing for components/dashboard/upcoming-exams.tsx
 import { render, screen } from '@testing-library/react';
 import { UpcomingExams, getUpcomingExams } from '../upcoming-exams'; // Adjust import path as needed
 

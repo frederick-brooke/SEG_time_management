@@ -1,4 +1,4 @@
-import React from "react";
+//testing for components/dashboard/coming-up-soon.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ComingUpSoon } from "../coming-up-soon";
 import { useTasks } from "@/hooks/useTasks";

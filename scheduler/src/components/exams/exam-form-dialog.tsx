@@ -1,3 +1,8 @@
+/**
+ * A modal wrapper for the exam configuration form. 
+ * Manages visibility, background scroll-locking, and backdrop dismissal 
+ * to provide a polished user interface.
+ */
 "use client";
 
 import React, { useState } from "react";

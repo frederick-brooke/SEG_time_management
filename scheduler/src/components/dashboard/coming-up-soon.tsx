@@ -1,3 +1,8 @@
+/**
+ * Dashboard section for managing tasks due within the next 7 days. 
+ * Filters incomplete tasks and integrates full CRUD functionality 
+ * via a centralized task management hook.
+ */
 "use client";
 
 import * as React from "react";
