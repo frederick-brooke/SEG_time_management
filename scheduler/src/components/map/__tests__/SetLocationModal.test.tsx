@@ -278,7 +278,7 @@ describe("SetLocationModal", () => {
     });
 
     render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("Bad"));
+    fireEvent.click(screen.getByTestId("suggestion-0"));
     expect(handleLocationSearch).not.toHaveBeenCalled();
   });
 
