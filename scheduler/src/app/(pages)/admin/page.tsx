@@ -44,7 +44,6 @@ export default function AdminPage() {
   const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  
 
   // Report management
-  const [currentReportPage, setCurrentReportPage] = useState(1);
   const [selectedReport, setSelectedReport] = useState(null);
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
 
@@ -84,19 +83,17 @@ export default function AdminPage() {
   const tabs: Record<string, React.ReactNode> = {
     reports: (
       <ReportManagement
-          reports={reports}
-          totalReports={totalReports}
-          totalReportPages={totalReportPages}
-          currentReportPage={currentReportPage}
-          setCurrentReportPage={setCurrentReportPage}
-          setIsReportFilterOpen={setIsReportFilterOpen}
-          selectedReport={selectedReport}
-          setSelectedReport={setSelectedReport}
-          fetchReports={fetchReports}
-          filters={appliedReportFilters}
-          setFilters={setAppliedReportFilters}
-          resetFilters={resetReportFilters}
-        />
+        reports={reports}
+        totalReports={totalReports}
+        totalReportPages={totalReportPages}
+        setIsReportFilterOpen={setIsReportFilterOpen}
+        selectedReport={selectedReport}
+        setSelectedReport={setSelectedReport}
+        fetchReports={fetchReports}
+        filters={appliedReportFilters}
+        setFilters={setAppliedReportFilters}
+        resetFilters={resetReportFilters}
+      />
     ),
 
     appeals: (
@@ -120,7 +117,7 @@ export default function AdminPage() {
   return (
     <LunarThemeWrapper>
       <div className="min-h-screen bg-gray-950 text-white relative">
-        <h1 className="lunar-header text-4xl md:text-5xl font-semibold tracking-tight mb-10">
+        <h1 className="lunar-page-title">
           Admin Dashboard
         </h1>
 

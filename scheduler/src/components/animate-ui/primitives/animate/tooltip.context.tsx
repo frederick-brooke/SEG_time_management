@@ -34,13 +34,7 @@ export type GlobalTooltipContextValue = {
 };
 
 export const [GlobalTooltipProvider, useGlobalTooltip] =
-  getStrictContext('GlobalTooltipProvider') as [
-    React.ComponentType<{
-      value: GlobalTooltipContextValue;
-      children: React.ReactNode;
-    }>,
-    () => GlobalTooltipContextValue,
-  ];
+  getStrictContext<GlobalTooltipContextValue>('GlobalTooltipProvider');
 
 // Local context 
 
@@ -57,13 +51,7 @@ export type LocalTooltipContextValue = {
 };
 
 export const [LocalTooltipProvider, useTooltip] =
-  getStrictContext('LocalTooltipProvider') as [
-    React.ComponentType<{
-      value: LocalTooltipContextValue;
-      children: React.ReactNode;
-    }>,
-    () => LocalTooltipContextValue,
-  ];
+  getStrictContext<LocalTooltipContextValue>('LocalTooltipProvider');
 
 // Rendered tooltip context 
 
@@ -74,13 +62,7 @@ export type RenderedTooltipContextValue = {
 };
 
 export const [RenderedTooltipProvider, useRenderedTooltip] =
-  getStrictContext('RenderedTooltipContext') as [
-    React.ComponentType<{
-      value: RenderedTooltipContextValue;
-      children: React.ReactNode;
-    }>,
-    () => RenderedTooltipContextValue,
-  ];
+  getStrictContext<RenderedTooltipContextValue>('RenderedTooltipContext');
 
 // Floating context 
 
@@ -90,10 +72,4 @@ export type FloatingContextValue = {
 };
 
 export const [FloatingProvider, useFloatingContext] =
-  getStrictContext('FloatingContext') as [
-    React.ComponentType<{
-      value: FloatingContextValue;
-      children: React.ReactNode;
-    }>,
-    () => FloatingContextValue,
-  ];
+  getStrictContext<FloatingContextValue>('FloatingContext');

@@ -166,6 +166,12 @@ function LoginForm() {
           <div className="mt-6 text-center text-sm">
             <Link href="/forgot-password">Forgot your password?</Link>
           </div>
+           <div className="mt-3 text-center text-sm text-white/50">
+              Don't have an account?{" "}
+              <Link href="/register" className="text-blue-400 hover:text-blue-300 transition-colors font-semibold">
+                Sign up
+              </Link>
+            </div>
         </form>
 
         {showBannedInfo && <BannedPage />}

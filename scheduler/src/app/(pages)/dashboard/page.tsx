@@ -15,7 +15,7 @@ import { useTaskProgress } from "@/context/TaskProgressContext";
 import { ProfileStats } from "@/components/profile/StatModules";
 import { getMyProfile } from "@/app/actions/profile";
 import { ComingUpSoon } from "@/components/dashboard/coming-up-soon";
-import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper"
 import LeaderboardClient from "../leaderboard/LeaderboardClient";
 import { getFriendsLeaderboard } from "../../actions/leaderboard";
 import { IconMoonStars } from "@tabler/icons-react";
@@ -131,7 +131,7 @@ function DashboardContent() {
           {/* Header section */}
           <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
             <div className="flex-1 space-y-4">
-              <h1 className="lunar-header text-4xl">
+              <h1 className="lunar-page-title">
                 Welcome, {profile?.fname || session?.user?.name || "User"}!
               </h1>
 
