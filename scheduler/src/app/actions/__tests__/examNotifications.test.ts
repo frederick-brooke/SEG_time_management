@@ -1,7 +1,13 @@
+/**
+ * Testing for examNotifications.
+ */
+
 import { saveTopicAsTask, checkUpcomingDeadlines } from "../examNotifications";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "../notifications";
 import { create } from "domain";
+
+// Mocks
 
 jest.mock("@/lib/prisma", () => ({
     prisma: {
@@ -14,6 +20,8 @@ jest.mock("@/lib/prisma", () => ({
 jest.mock("../notifications", () => ({
     createNotification: jest.fn(),
 }));
+
+// Tests
 
 describe("examNotifications Actions", () => {
     beforeEach(() => jest.clearAllMocks());

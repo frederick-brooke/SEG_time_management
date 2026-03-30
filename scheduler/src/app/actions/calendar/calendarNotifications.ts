@@ -1,5 +1,10 @@
 "use server";
 
+/**
+ * Sends travel and upcoming event notifications.
+ * Prevents duplicates and provides helpers to reset or delete them.
+ */
+
 import { prisma } from "lib/prisma";
 import { createNotification } from "../notifications";
 import { NotificationType } from "@prisma/client";

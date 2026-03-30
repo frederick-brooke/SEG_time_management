@@ -1,5 +1,12 @@
 'use server'
 
+/**
+ * Exam planner service
+ *
+ * Handles exam creation, scheduling, study plan generation,
+ * task allocation, and exam-related calendar syncing.
+ */
+
 import { prisma } from "@/lib/prisma"; 
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

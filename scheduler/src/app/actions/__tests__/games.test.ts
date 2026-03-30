@@ -1,7 +1,13 @@
-import { payGameEntry, getGameBalance } from "./games";
+/**
+ * Testing for actions/games
+ */
+
+import { payGameEntry, getGameBalance } from "../games";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { DIFFICULTY_CONFIG } from "@/lib/games-config";
+
+// Mocks
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -19,7 +25,7 @@ jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
 }));
 
-// shared test data 
+// Shared test data 
 
 const USER_ID = "user-123";
 const PROGRESS_ID = "progress-456";
@@ -31,7 +37,7 @@ const mockProgress = { id: PROGRESS_ID, coins: COST + 50 };
 const mockProgressBarelyEnough = { id: PROGRESS_ID, coins: COST };
 const mockProgressInsufficient = { id: PROGRESS_ID, coins: COST - 1 };
 
-// helpers 
+// Helpers 
 
 const setSession = (session: unknown) =>
   (getServerSession as jest.Mock).mockResolvedValue(session);
@@ -45,7 +51,8 @@ const setUpdateResult = (result: unknown) =>
 const setTransactionResult = (result: unknown) =>
   (prisma.pointTransaction.create as jest.Mock).mockResolvedValue(result);
 
-// payGameEntry 
+
+// Tests for payGameEntry 
 
 describe("payGameEntry", () => {
   beforeEach(() => {
@@ -154,7 +161,7 @@ describe("payGameEntry", () => {
   });
 });
 
-// getGameBalance 
+// Tests for getGameBalance 
 
 describe("getGameBalance", () => {
   beforeEach(() => {

@@ -1,3 +1,7 @@
+/**
+ * Testing for examActions.
+ */
+
 import { createExam, getMyExams, generateExamPlan, updateExamSettings, getExamById, updateExamUnavailableDays, deleteExam } from "../examActions";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -6,6 +10,8 @@ import { checkUpcomingDeadlines, saveTopicAsTask } from "../examNotifications";
 import { examPlannerLogic } from "@/lib/examPlannerLogic";
 import { getServers } from "node:dns";
 import { mock } from "node:test";
+
+// Mocks
 
 jest.mock("next-auth", () => ({
     __esModule: true,
@@ -51,6 +57,8 @@ jest.mock("@/lib/examPlannerLogic", () => ({
         getAvailableDates: jest.fn().mockReturnValue([new Date(), new Date(), new Date()]),
     },
 }));
+
+// Tests
 
 describe("examActions", () => {
     const mockUser = { id: "user-1"};

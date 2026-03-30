@@ -1,5 +1,12 @@
 'use server'
 
+/**
+ * Friends leaderboard service
+ *
+ * Builds a ranked leaderboard from a user’s friends based on productivity metrics
+ * such as streaks, task completion rate, and focus time within a selected timeframe.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

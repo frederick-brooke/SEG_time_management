@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Group service
+ *
+ * Handles group CRUD, membership, and settings.
+ * Enforces roles (owner vs member) and keeps events/tasks in sync.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";

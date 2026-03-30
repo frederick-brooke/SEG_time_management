@@ -1,3 +1,6 @@
+/**
+ * Testing for groups/core actions
+ */
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
@@ -22,7 +25,9 @@ import {
   syncTasksToMember,
 } from "../utils";
 
-//mocks
+
+// Mocks
+
 jest.mock("@/lib/prisma", () => {
   const { mockDeep } = require("jest-mock-extended");
   return { prisma: mockDeep() };
@@ -47,7 +52,8 @@ jest.mock("../utils", () => ({
 
 const prismaMock = prisma as unknown as DeepMockProxy<typeof prisma>;
 
-//tests
+// Tests
+
 describe("Group Core Actions", () => {
   const mockUserId = "user-123";
   const mockSession = { user: { id: mockUserId, email: "test@test.com" } };
@@ -58,9 +64,9 @@ describe("Group Core Actions", () => {
     (requireSession as jest.Mock).mockResolvedValue(mockSession);
   });
   afterAll(async () => {
-    // Flushes pending asynchronous Prisma calls to prevent Jest open handle warnings.
     await new Promise(process.nextTick); 
   });
+
   describe("createGroup", () => {
     /**
      * Verifies that providing an empty or whitespace-only name fails validation
@@ -128,10 +134,6 @@ describe("Group Core Actions", () => {
       expect(result).toEqual([]);
     });
 
-    /**
-     * Verifies that the query correctly maps the deeply nested Prisma output
-     * into a flat, UI-friendly object containing the memberCount and userRole.
-     */
     it("should fetch and format the user's groups correctly", async () => {
       prismaMock.groupMember.findMany.mockResolvedValue([
         {
@@ -182,7 +184,7 @@ describe("Group Core Actions", () => {
     });
 
     /**
-     * A crucial security test. Ensures that even if the group exists, if the current
+     * Ensures that even if the group exists, if the current
      * user is not in the `members` array, they are denied access (returns null).
      */
     it("should return null if the user is not a member of the group", async () => {
@@ -240,7 +242,7 @@ describe("Group Core Actions", () => {
 
   describe("addGroupMember", () => {
     /**
-     * Verifies the strict permission boundary: only owners can add new members.
+     * Verifies only owners can add new members.
      */
     it("should fail if the user is not the group owner", async () => {
       (isGroupOwner as jest.Mock).mockResolvedValue(false);
@@ -262,7 +264,7 @@ describe("Group Core Actions", () => {
     });
 
     /**
-     * THE HAPPY PATH: Verifies the member is added, and crucial synchronization 
+     * Verifies the member is added, and synchronization 
      * functions are fired to ensure they receive past global tasks and events.
      */
     it("should add the member and trigger sync functions", async () => {

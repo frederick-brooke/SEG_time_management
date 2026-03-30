@@ -1,11 +1,24 @@
 "use server";
 
+/**
+ * Notification service
+ *
+ * Handles creation, retrieval, and update of user notifications,
+ * including read state management and expiry filtering.
+ */
+
 import { prisma } from "lib/prisma";
 import { NotificationType } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 
-// Returns the n (20 default) most recent notifications that are either non-expiring or not yet expired
+/**
+ * Fetches unread notifications for the current user.
+ * Only returns notifications that are not expired (or have no expiry date).
+ *
+ * @param {number} [count=20] - Maximum number of notifications to return
+ * @returns {Promise<{ notifications: any[] | null; error: string | null }>}
+ */
 export async function getNotifications(count: number = 20) {
   try {
     const session = await getServerSession(authOptions);
@@ -31,6 +44,13 @@ export async function getNotifications(count: number = 20) {
   }
 }
 
+/**
+ * Marks a single notification as read for the current user.
+ * Ensures the notification belongs to the authenticated user before updating.
+ *
+ * @param {string} notificationId - The ID of the notification to mark as read
+ * @returns {Promise<{ success: boolean; error: string | null }>}
+ */
 export async function markNotificationAsRead(notificationId: string) {
   try {
     const session = await getServerSession(authOptions);
@@ -60,6 +80,11 @@ export async function markNotificationAsRead(notificationId: string) {
   }
 }
 
+/**
+ * Marks all unread notifications as read for the current user.
+ *
+ * @returns {Promise<{ success: boolean; error: string | null }>}
+ */
 export async function markAllNotificationsAsRead() {
   try {
     const session = await getServerSession(authOptions);
@@ -80,6 +105,17 @@ export async function markAllNotificationsAsRead() {
   }
 }
 
+/**
+ * Creates a new notification for a user.
+ *
+ * @param {string} userId - Recipient user ID
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message body
+ * @param {NotificationType} type - Type/category of notification
+ * @param {string} [link] - Optional navigation link
+ * @param {Date} [expiresAt] - Optional expiration date
+ * @returns {Promise<{ notification: any | null; error: string | null }>}
+ */
 export async function createNotification(
   userId: string,
   title: string,

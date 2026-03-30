@@ -1,8 +1,10 @@
+/**
+ * Testing for events actions.
+ */
+
 import { createEvent } from "../events";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 const mockCreate = jest.fn();
 
@@ -23,9 +25,7 @@ jest.mock("@/lib/auth", () => ({
   authOptions: {},
 }));
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 function makeFormData(fields: Record<string, string>): FormData {
   const fd = new FormData();
@@ -40,9 +40,7 @@ const validFields = {
   category: "Lecture",
 };
 
-// ---------------------------------------------------------------------------
-// Auth guard
-// ---------------------------------------------------------------------------
+// Tests
 
 describe("createEvent — auth guard", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -72,9 +70,6 @@ describe("createEvent — auth guard", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Successful creation
-// ---------------------------------------------------------------------------
 
 describe("createEvent — successful creation", () => {
   beforeEach(() => {
@@ -148,9 +143,6 @@ describe("createEvent — successful creation", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Error handling
-// ---------------------------------------------------------------------------
 
 describe("createEvent — error handling", () => {
   beforeEach(() => {

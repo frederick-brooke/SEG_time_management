@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Profile service
+ *
+ * Handles fetching and updating user profiles, including stats,
+ * friends, streaks, and friendship status.
+ */
+
 import { prisma } from "lib/prisma";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";

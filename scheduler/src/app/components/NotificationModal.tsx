@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * NotificationModal
+ *
+ * Displays a modal UI for viewing, dismissing, and managing user notifications.
+ */
+
 import React, { useState, useEffect } from "react";
 import {
   X,
@@ -8,14 +14,12 @@ import {
   Info,
   XCircle,
   Trash2,
-  UserRoundIcon,
 } from "lucide-react";
 import { NotificationType } from "@prisma/client";
 import {
   getNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-  createNotification,
 } from "../actions/notifications";
 import { useSession } from "next-auth/react";
 interface Notification {
@@ -99,22 +103,6 @@ const NotificationModal = ({
   const clearAll = () => {
     markAllNotificationsAsRead();
     setNotifications([]);
-  };
-
-  //TESTING PURPOSES ONLY
-  const createTestNotification = async () => {
-    const userId = session?.user?.id;
-    const result = await createNotification(
-      userId,
-      "Test",
-      "This is a test notification",
-      NotificationType.INFO,
-    );
-    if (result.error) {
-      console.error("Failed to create test notification:", result.error);
-    } else {
-      fetchNotifications();
-    }
   };
 
   // Fetch notifications only once when the component mounts

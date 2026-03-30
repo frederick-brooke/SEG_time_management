@@ -1,28 +1,29 @@
 'use server'
 
+/**
+ * Shop service
+ *
+ * Handles in-app economy features including shop browsing,
+ * item seeding, purchases, and equipping/unequipping cosmetics
+ * and functional upgrades tied to user progress and inventory.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { SHOP_CATALOGUE } from "@/lib/shop-catalogue";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 type EquippableType = "TITLE" | "FRAME" | "AVATAR";
 
-// ---------------------------------------------------------------------------
 // Auth
-// ---------------------------------------------------------------------------
 async function requireUserId(): Promise<string> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
   return session.user.id;
 }
 
-// ---------------------------------------------------------------------------
 // Progress
-// ---------------------------------------------------------------------------
 async function findOrCreateProgress(userId: string) {
   const existing = await prisma.userProgress.findUnique({
     where: { userId },
@@ -40,9 +41,17 @@ function buildItemView(item: any, ownedIds: Set<string>, coins: number) {
   return { ...item, owned: ownedIds.has(item.id), canAfford: coins >= item.price };
 }
 
-// ---------------------------------------------------------------------------
-// Shop queries
-// ---------------------------------------------------------------------------
+/**
+ * Returns shop data for the current user including available items,
+ * ownership state, affordability, and equipped cosmetics.
+ *
+ * @returns {Promise<{
+*   items: any[];
+*   points: number;
+*   equippedAvatar: string | null;
+*   xpBoostExpires: Date | null;
+* } | null>}
+*/
 export async function getShopData() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
@@ -65,9 +74,12 @@ export async function getShopData() {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Shop seeding
-// ---------------------------------------------------------------------------
+/**
+ * Seeds the shop with default items from the catalogue.
+ * Upserts items to ensure existing entries are updated safely.
+ *
+ * @returns {Promise<void>}
+ */
 export async function seedShopItems() {
   for (const item of SHOP_CATALOGUE) {
     await prisma.shopItem.upsert({
@@ -78,9 +90,8 @@ export async function seedShopItems() {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Purchase
-// ---------------------------------------------------------------------------
+// Purchase item
+
 async function requireItem(itemId: string) {
   const item = await prisma.shopItem.findUnique({ where: { id: itemId } });
   if (!item) throw new Error("Item not found");
@@ -126,6 +137,14 @@ async function applyFunctionalItem(userId: string, value: string) {
   }
 }
 
+/**
+ * Purchases a shop item for the current user.
+ * Deducts coins, creates inventory entry, and logs transaction.
+ * Applies functional effects if applicable (e.g. boosts).
+ *
+ * @param {string} itemId - ID of the item to purchase
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function purchaseItem(itemId: string) {
   const userId   = await requireUserId();
   const [item, progress] = await Promise.all([
@@ -143,9 +162,8 @@ export async function purchaseItem(itemId: string) {
   return { success: true };
 }
 
-// ---------------------------------------------------------------------------
 // Equip
-// ---------------------------------------------------------------------------
+
 async function requireOwnedItem(userId: string, itemId: string) {
   const owned = await prisma.userInventory.findUnique({
     where: { userId_itemId: { userId, itemId } },
@@ -172,6 +190,13 @@ async function equipLegacyItem(userId: string, type: "TITLE" | "FRAME", value: s
   });
 }
 
+/**
+ * Equips an owned shop item to the user's profile.
+ * Supports avatars, titles, and frames.
+ *
+ * @param {string} itemId - ID of the item to equip
+ * @returns {Promise<{ success: boolean }>}
+ */
 export async function equipItem(itemId: string) {
   const userId = await requireUserId();
   const item   = await requireItem(itemId);
@@ -187,9 +212,8 @@ export async function equipItem(itemId: string) {
   return { success: true };
 }
 
-// ---------------------------------------------------------------------------
 // Unequip
-// ---------------------------------------------------------------------------
+
 async function unequipAvatar(userId: string) {
   await (prisma.userProgress as any).update({
     where: { userId },
@@ -211,6 +235,12 @@ async function unequipLegacyItem(userId: string, type: "TITLE" | "FRAME") {
   await prisma.userProgress.update({ where: { userId }, data: { [field]: null } });
 }
 
+/**
+ * Unequips a currently equipped shop item type.
+ *
+ * @param {"TITLE" | "FRAME" | "AVATAR"} type - The equipment slot to clear
+ * @returns {Promise<void>}
+ */
 export async function unequipItem(type: EquippableType) {
   const userId = await requireUserId();
 
