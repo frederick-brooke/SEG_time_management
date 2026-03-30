@@ -7,7 +7,9 @@ export function PageHeader({ icon, title, subtitle }: { icon: ReactNode, title: 
         {icon}
       </div>
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">{title}</h1>
+        <h1 className="lunar-page-title text-3xl">
+          {title}
+        </h1>
         <p className="text-sm text-white/50 mt-0.5">{subtitle}</p>
       </div>
     </div>
