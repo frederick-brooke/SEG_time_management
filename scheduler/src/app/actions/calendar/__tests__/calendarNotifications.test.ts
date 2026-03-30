@@ -1,12 +1,14 @@
+/**
+ * Testing for calendar notifications actions.
+ */
 import {
     checkUpcomingEventNotifications,
     resetEventNotificationGuards,
     deleteEventNotifications,
   } from "../calendarNotifications";
   
-// ---------------------------------------------------------------------------
+
 // Mocks
-// ---------------------------------------------------------------------------
 
 const mockFindMany = jest.fn();
 const mockUpdate = jest.fn();
@@ -33,9 +35,7 @@ jest.mock("@prisma/client", () => ({
 NotificationType: { WARNING: "WARNING", INFO: "INFO" },
 }));
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 const NOW = new Date("2026-03-23T10:00:00.000Z");
 
@@ -53,9 +53,7 @@ return {
 };
 }
 
-// ---------------------------------------------------------------------------
-// checkUpcomingEventNotifications
-// ---------------------------------------------------------------------------
+// Tests
 
 describe("checkUpcomingEventNotifications", () => {
 beforeEach(() => {
@@ -68,15 +66,11 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-// ── Guard: no userId ────
-
 it("returns error when userId is empty", async () => {
     const result = await checkUpcomingEventNotifications("");
     expect(result).toEqual({ success: false, error: "No userId" });
     expect(mockFindMany).not.toHaveBeenCalled();
 });
-
-// ── No events ──
 
 it("returns success when no upcoming events found", async () => {
     mockFindMany.mockResolvedValue([]);
@@ -84,8 +78,6 @@ it("returns success when no upcoming events found", async () => {
     expect(result).toEqual({ success: true });
     expect(mockCreateNotification).not.toHaveBeenCalled();
 });
-
-// ── Event reminder ──────
 
 it("sends event reminder when event starts within 5 mins and not yet notified", async () => {
     mockFindMany.mockResolvedValue([makeEvent()]);
@@ -183,8 +175,6 @@ it("includes plural 'minutes' when multiple minutes until event", async () => {
     "INFO",
     );
 });
-
-// ── Travel notification ─
 
 it("sends travel notification when within travel window and not yet notified", async () => {
     mockFindMany.mockResolvedValue([
@@ -376,8 +366,6 @@ it("can send both travel and event reminder notifications for the same event", a
     expect(calls).toContain("Event Starting Soon");
 });
 
-// ── Error handling ──────
-
 it("returns failure when prisma throws", async () => {
     mockFindMany.mockRejectedValue(new Error("DB error"));
 
@@ -390,9 +378,6 @@ it("returns failure when prisma throws", async () => {
 });
 });
 
-// ---------------------------------------------------------------------------
-// resetEventNotificationGuards
-// ---------------------------------------------------------------------------
 
 describe("resetEventNotificationGuards", () => {
 beforeEach(() => jest.clearAllMocks());
@@ -418,9 +403,6 @@ it("returns failure when prisma throws", async () => {
 });
 });
 
-// ---------------------------------------------------------------------------
-// deleteEventNotifications
-// ---------------------------------------------------------------------------
 
 describe("deleteEventNotifications", () => {
 beforeEach(() => jest.clearAllMocks());

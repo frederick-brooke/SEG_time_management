@@ -1,11 +1,19 @@
+/**
+ * Testing for lib/password
+ */
+
 import { hashPassword, verifyPassword } from '../password';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from "../password";
+
+// Mocks
 
 jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockResolvedValue('mock_hashed_password'),
   compare: jest.fn().mockResolvedValue(true),
 }));
+
+// Tests
 
 describe('Password Utility', () => {
   beforeEach(() => {

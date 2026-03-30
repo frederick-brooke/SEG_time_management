@@ -19,7 +19,6 @@ interface SetLocationModalProps {
   initialHidden: boolean;
 }
 
-// Map center controller component
 function MapCenterController({ location, shouldCenter }: { location: LatLng; shouldCenter: boolean }) {
   const map = useMap();
 
@@ -32,7 +31,6 @@ function MapCenterController({ location, shouldCenter }: { location: LatLng; sho
   return null;
 }
 
-// Draggable marker component
 function DraggableMarker({
   position,
   onPositionChange,
@@ -88,7 +86,6 @@ export default function SetLocationModal({
   const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; width: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Handle selecting a suggestion
   const handleSelectSuggestion = (feature: any) => {
     if (!feature?.geometry?.coordinates) return;
 
@@ -98,11 +95,9 @@ export default function SetLocationModal({
     setLocation({ lat, lng });
     setShouldCenterMap(true);
     setTimeout(() => setShouldCenterMap(false), 100);
-    // Note: search is cleared by re-calling handleLocationSearch with empty string
     handleLocationSearch("");
   };
 
-  // Handle "Use My Location" button
   const handleUseMyLocation = () => {
     if (userLocation) {
       setLocation({ lat: userLocation[0], lng: userLocation[1] });
@@ -111,7 +106,6 @@ export default function SetLocationModal({
     }
   };
 
-  // Calculate dropdown position when suggestions appear
   useEffect(() => {
     if (suggestions.length > 0 && inputRef.current) {
       const rect = inputRef.current.getBoundingClientRect();
@@ -123,7 +117,6 @@ export default function SetLocationModal({
     }
   }, [suggestions]);
 
-  // Handle save
   const handleSave = async () => {
     if (!location) return;
 
@@ -186,8 +179,6 @@ export default function SetLocationModal({
                 onChange={(e) => handleLocationSearch(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-3 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
               />
-
-              {/* Use My Location Button */}
               <button
                 type="button"
                 onClick={handleUseMyLocation}
@@ -207,6 +198,7 @@ export default function SetLocationModal({
                   <button
                     key={i}
                     type="button"
+                    data-testid={`suggestion-${i}`}
                     onClick={() => handleSelectSuggestion(s)}
                     className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm border-b border-white/[0.06] last:border-0 transition-colors"
                   >
@@ -247,6 +239,7 @@ export default function SetLocationModal({
             <label className="text-sm font-medium text-white">Hide location from friends</label>
             <button
               type="button"
+              aria-label="Hide location from friends"
               onClick={() => setHidden(!hidden)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 hidden ? "bg-indigo-600" : "bg-white/10"
@@ -261,7 +254,11 @@ export default function SetLocationModal({
           </div>
 
           {/* Error Message */}
-          {error && <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">{error}</div>}
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
         </div>
 
         {/* Footer */}

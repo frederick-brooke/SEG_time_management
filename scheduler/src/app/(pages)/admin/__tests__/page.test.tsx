@@ -127,6 +127,7 @@ jest.mock("@/hooks/useAdminAppeals", () => ({ useAdminAppeals: (...a: any[]) => 
 import AdminPage from "../page";
 
 // Helpers 
+
 function setupHooks({ loading = false, reportLoading = false } = {}) {
   useUsersMock.mockReturnValue({
     users: [],
@@ -150,6 +151,7 @@ function setupHooks({ loading = false, reportLoading = false } = {}) {
 }
 
 // Tests
+
 describe("AdminPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -1,16 +1,21 @@
+/**
+ * Testing for profile/friends actions.
+ */
+
 import {
   sendFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
   cancelSentRequest,
   removeFriend,
-} from "../friends"; // Update with your actual file path
+} from "../friends";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "../utils";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 
-// 1. Mock Dependencies
+// Mocks
+
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     friendRequest: {

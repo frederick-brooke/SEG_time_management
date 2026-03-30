@@ -1,7 +1,7 @@
 "use client";
 // src/components/map/SavedLocationsPanel.tsx
 import { useRef, useState } from "react";
-import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
+import { useSavedLocations, SavedLocation, SaveLocationPayload } from "hooks/useSavedLocations";
 
 const TYPE_ICONS: Record<string, string> = {
   HOME: "🏠",
@@ -56,7 +56,10 @@ function LocationCard({
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setEditing(false); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRename();
+                if (e.key === "Escape") setEditing(false);
+              }}
               autoFocus
               className="flex-1 border border-gray-300 rounded-lg px-2 py-1 text-sm text-black bg-white"
             />
@@ -100,21 +103,26 @@ function LocationCard({
   );
 }
 
-function AddLocationForm({ onAdd }: { onAdd: () => void }) {
-  const { saveLocation } = useSavedLocations();
+function AddLocationForm({
+  onAdd,
+  saveLocation,
+}: {
+  onAdd: () => void;
+  saveLocation: (payload: SaveLocationPayload) => Promise<boolean>;
+}) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [selected, setSelected] = useState<{ lat: number; lng: number; address: string } | null>(null);
   const [label, setLabel] = useState("");
   const [type, setType] = useState<"HOME" | "WORK" | "FAVOURITE">("FAVOURITE");
   const [saving, setSaving] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // ← changed
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = (text: string) => {
     setQuery(text);
     setSelected(null);
-    if (timerRef.current) clearTimeout(timerRef.current); // ← changed
-    timerRef.current = setTimeout(async () => {           // ← changed
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
       if (text.length < 3) { setSuggestions([]); return; }
       try {
         const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
@@ -123,8 +131,6 @@ function AddLocationForm({ onAdd }: { onAdd: () => void }) {
       } catch { setSuggestions([]); }
     }, 400);
   };
-
-
 
   const pick = (s: any) => {
     const lat = parseFloat(s.geometry.coordinates[1]);
@@ -227,7 +233,7 @@ interface SavedLocationsPanelProps {
 }
 
 export function SavedLocationsPanel({ onLocationsChange }: SavedLocationsPanelProps) {
-  const { locations, home, work, favourites, loading, deleteLocation, renameLocation, refresh } =
+  const { locations, home, work, favourites, loading, deleteLocation, renameLocation, refresh, saveLocation } =
     useSavedLocations();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -249,7 +255,6 @@ export function SavedLocationsPanel({ onLocationsChange }: SavedLocationsPanelPr
 
   return (
     <div className="bg-white rounded-xl border shadow-sm">
-      {/* Header */}
       <button
         type="button"
         onClick={() => setCollapsed((p) => !p)}
@@ -275,22 +280,19 @@ export function SavedLocationsPanel({ onLocationsChange }: SavedLocationsPanelPr
             </p>
           ) : (
             <>
-              {/* HOME first */}
               {home && (
                 <LocationCard loc={home} onDelete={handleDelete} onRename={handleRename} />
               )}
-              {/* WORK second */}
               {work && (
                 <LocationCard loc={work} onDelete={handleDelete} onRename={handleRename} />
               )}
-              {/* Favourites */}
               {favourites.map((loc) => (
                 <LocationCard key={loc.id} loc={loc} onDelete={handleDelete} onRename={handleRename} />
               ))}
             </>
           )}
 
-          <AddLocationForm onAdd={handleAdd} />
+          <AddLocationForm onAdd={handleAdd} saveLocation={saveLocation} />
         </div>
       )}
     </div>

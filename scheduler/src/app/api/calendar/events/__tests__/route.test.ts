@@ -22,7 +22,7 @@ import {
   handleSeriesUpdate,
 } from "@/lib/calendar/eventMutations";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("next/server", () => ({
   NextResponse: {
@@ -68,7 +68,7 @@ jest.mock("mongodb", () => ({
   ObjectId: { isValid: jest.fn((id) => /^[a-f\d]{24}$/i.test(id)) },
 }));
 
-// ── Typed mock helpers ─────
+// Typed mock helpers
 
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockPrismaEvent = prisma.event as unknown as {
@@ -89,7 +89,7 @@ const mockFetchAllGoogleEvents = fetchAllGoogleEvents as jest.Mock;
 const mockHandleSingleInstanceUpdate = handleSingleInstanceUpdate as jest.Mock;
 const mockHandleSeriesUpdate = handleSeriesUpdate as jest.Mock;
 
-// ── Factory helpers 
+// Factory helpers 
 
 /**
  * Creates a mock authenticated session.
@@ -136,15 +136,13 @@ function makeRequest(
   return new Request(url, init) as unknown as NextRequest;
 }
 
-// ── Tests 
+// Tests 
 
 describe("Calendar Events API Route", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockExpandRecurringEvents.mockImplementation((events) => events);
   });
-
-  // ── GET ────────
 
   describe("GET", () => {
     it("should return 401 when the user is not authenticated", async () => {
@@ -258,7 +256,6 @@ describe("Calendar Events API Route", () => {
     });
   });
 
-  // ── POST ───────
 
   describe("POST", () => {
     it("should return 401 when the user is not authenticated", async () => {
@@ -400,7 +397,6 @@ describe("Calendar Events API Route", () => {
     });
   });
 
-  // ── PUT ────────
 
   describe("PUT", () => {
     it("should return 401 when the user is not authenticated", async () => {
@@ -454,7 +450,6 @@ describe("Calendar Events API Route", () => {
     });
   });
 
-  // ── PATCH ──────
 
   describe("PATCH", () => {
     it("should return 401 when the user is not authenticated", async () => {
@@ -551,7 +546,6 @@ describe("Calendar Events API Route", () => {
     });
   });
 
-  // ── DELETE ─────
 
   describe("DELETE", () => {
     it("should return 401 when the user is not authenticated", async () => {

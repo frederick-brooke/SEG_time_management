@@ -5,7 +5,7 @@
 import { expandRecurringEvents, buildGoogleRecurrenceRule } from "../eventHelpers";
 import { addMonths, endOfDay } from "date-fns";
 
-// ── Helpers ────────
+// Helpers
 
 /**
  * Creates a base non-recurring mock event.
@@ -30,10 +30,10 @@ function toOccIso(date: Date): string {
   return date.toISOString().split(".")[0] + "Z";
 }
 
-// ── expandRecurringEvents ──
+// expandRecurringEvents
 
 describe("expandRecurringEvents", () => {
-  // ── Non-recurring 
+  // Non-recurring 
 
   describe("non-recurring events", () => {
     it("should return a single occurrence for an event with no recurrence", () => {
@@ -77,7 +77,7 @@ describe("expandRecurringEvents", () => {
     });
   });
 
-  // ── Daily recurrence ─────
+  // Daily recurrence
 
   describe("daily recurrence", () => {
     it("should generate daily occurrences up to the until date", () => {
@@ -164,7 +164,7 @@ describe("expandRecurringEvents", () => {
     });
   });
 
-  // ── Weekly recurrence ────
+  // Weekly recurrence
 
   describe("weekly recurrence", () => {
     it("should generate occurrences on the specified days of the week", () => {
@@ -247,7 +247,7 @@ describe("expandRecurringEvents", () => {
     });
   });
 
-  // ── Monthly recurrence ───
+  // Monthly recurrence
 
   describe("monthly recurrence", () => {
     it("should generate monthly occurrences up to the until date", () => {
@@ -284,7 +284,7 @@ describe("expandRecurringEvents", () => {
     });
   });
 
-  // ── Unknown recurrence type ────────
+  // Unknown recurrence type
 
   describe("unknown recurrence type", () => {
     it("should return no occurrences for an unrecognised recurrence type", () => {
@@ -302,7 +302,7 @@ describe("expandRecurringEvents", () => {
     });
   });
 
-  // ── Iteration cap 
+  // Iteration cap 
 
   describe("iteration cap", () => {
     it("should not exceed 366 iterations regardless of until date", () => {
@@ -320,7 +320,7 @@ describe("expandRecurringEvents", () => {
     });
   });
 
-  // ── Exceptions edge cases 
+  // Exceptions edge cases 
 
   describe("exceptions handling", () => {
     it("should handle exceptions as Date objects as well as ISO strings", () => {
@@ -357,10 +357,10 @@ describe("expandRecurringEvents", () => {
   });
 });
 
-// ── buildGoogleRecurrenceRule ────────
+// buildGoogleRecurrenceRule
 
 describe("buildGoogleRecurrenceRule", () => {
-  // ── Returns undefined ────
+  // Returns undefined
 
   it("should return undefined when recurrence is null", () => {
     expect(buildGoogleRecurrenceRule(null)).toBeUndefined();
@@ -388,7 +388,7 @@ describe("buildGoogleRecurrenceRule", () => {
     ).toBeUndefined();
   });
 
-  // ── Daily ────────
+  // Daily
 
   it("should return a daily RRULE string", () => {
     const result = buildGoogleRecurrenceRule({
@@ -403,7 +403,7 @@ describe("buildGoogleRecurrenceRule", () => {
     expect(result![0]).not.toContain("BYDAY");
   });
 
-  // ── Weekly ───────
+  // Weekly
 
   it("should return a weekly RRULE string with BYDAY", () => {
     const result = buildGoogleRecurrenceRule({
@@ -446,7 +446,7 @@ describe("buildGoogleRecurrenceRule", () => {
     expect(result![0]).not.toContain("BYDAY");
   });
 
-  // ── Monthly ──────
+  // Monthly
 
   it("should return a monthly RRULE string", () => {
     const result = buildGoogleRecurrenceRule({
@@ -458,7 +458,7 @@ describe("buildGoogleRecurrenceRule", () => {
     expect(result![0]).not.toContain("BYDAY");
   });
 
-  // ── UNTIL format ─
+  // UNTIL format
 
   it("should format the UNTIL date without dashes, colons, or milliseconds", () => {
     const result = buildGoogleRecurrenceRule({
@@ -483,7 +483,7 @@ describe("buildGoogleRecurrenceRule", () => {
     expect(result![0]).toContain("FREQ=DAILY");
   });
 
-  // ── Return shape ─
+  // Return shape
 
   it("should return an array containing exactly one RRULE string", () => {
     const result = buildGoogleRecurrenceRule({

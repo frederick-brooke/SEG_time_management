@@ -115,13 +115,10 @@ function PageHeader({ count }: { count: number }) {
   return (
     <div className="flex justify-between items-center mb-6">
       <div>
-        <h1 className="text-2xl font-bold">Event Map</h1>
-        <p className="text-sm text-gray-500 mt-1">{getEventCountLabel(count)}</p>
+        <h1 className="lunar-page-title">Map</h1>
+        <p className="lunar-page-subtitle">{getEventCountLabel(count)}</p>
       </div>
-      <a
-        href="/calendar"
-        className="text-sm text-blue-600 font-semibold hover:underline"
-      >
+      <a href="/calendar" className="text-sm text-blue-600 font-semibold hover:underline">
         ← Back to Calendar
       </a>
     </div>

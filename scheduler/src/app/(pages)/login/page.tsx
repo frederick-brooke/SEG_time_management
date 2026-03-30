@@ -1,5 +1,11 @@
 "use client";
 
+ /**
+  * Client-side Login page.
+  * Handles credential authentication via NextAuth, session routing logic,
+  * error states (including banned users), and post-login navigation flow.
+  */
+
 import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -7,7 +13,6 @@ import Link from "next/link";
 import { AlertCircle, LogIn } from "lucide-react";
 import BannedPage from "@/components/admin/ban-message-page";
 
-// ── DRY UI Sub-Components ───
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
@@ -27,7 +32,7 @@ function FormInput({ label, type = "text", name, value, onChange, placeholder, r
   );
 }
 
-// ── Client Component (uses useSearchParams) ───────
+// Client Component (uses useSearchParams)
 function LoginForm() {
   const router = useRouter();
   const { status } = useSession();
@@ -161,6 +166,12 @@ function LoginForm() {
           <div className="mt-6 text-center text-sm">
             <Link href="/forgot-password">Forgot your password?</Link>
           </div>
+           <div className="mt-3 text-center text-sm text-white/50">
+              Don't have an account?{" "}
+              <Link href="/register" className="text-blue-400 hover:text-blue-300 transition-colors font-semibold">
+                Sign up
+              </Link>
+            </div>
         </form>
 
         {showBannedInfo && <BannedPage />}
@@ -169,7 +180,7 @@ function LoginForm() {
   );
 }
 
-// ── Page Wrapper with Suspense ────────
+// Page Wrapper with Suspense
 export default function LoginPage() {
   return (
     <Suspense fallback={<div className="p-6 text-center">Loading...</div>}>

@@ -1,3 +1,10 @@
+/**
+ * Map types
+ *
+ * Shared TypeScript definitions for map-related data
+ * including coordinates, friends, events, and map modes.
+ */
+
 export interface LatLng {
   lat: number;
   lng: number;

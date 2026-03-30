@@ -1,3 +1,10 @@
+/**
+ * Admin API route for fetching paginated and filterable user data.
+ *
+ * Supports username search, role/date filtering, safe sorting, and pagination.
+ * Restricted to SUPERUSER accounts and includes aggregated user-related counts.
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -42,7 +49,7 @@ function buildUserWhere(search: string, startDate: string | null, endDate: strin
 		}
 	}
 
-	// Role/category filtering
+	// Role/ category filtering
 	if (categories?.trim()) {
 		const roles = categories.split(",").map(c => c.trim().toUpperCase() as Role).filter(Boolean);
 

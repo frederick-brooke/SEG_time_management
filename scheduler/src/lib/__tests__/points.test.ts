@@ -1,5 +1,11 @@
+/**
+ * Testing for lib/points
+ */
+
 import { awardTaskPoints, revokeTaskPoints } from "../points";
 import { prisma } from "@/lib/prisma";
+
+// Mocks
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -12,6 +18,8 @@ jest.mock("@/lib/prisma", () => ({
     },
   },
 }));
+
+// Tests
 
 describe("Points System Library", () => {
   const mockUserId = "user-123";

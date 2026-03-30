@@ -6,7 +6,7 @@ import { handleSingleInstanceUpdate, handleSeriesUpdate } from "../eventMutation
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -21,7 +21,7 @@ jest.mock("@/lib/calendar/googleCalendar", () => ({
   getGoogleCalendarClient: jest.fn(),
 }));
 
-// ── Typed mock helpers ─────
+// Typed mock helpers
 
 const mockPrismaEvent = prisma.event as unknown as {
   update: jest.Mock;
@@ -29,7 +29,7 @@ const mockPrismaEvent = prisma.event as unknown as {
 };
 const mockGetGoogleCalendarClient = getGoogleCalendarClient as jest.Mock;
 
-// ── Factory helpers 
+// Factory helpers
 
 /**
  * Creates a mock Google Calendar client with a patchable events.patch method.
@@ -103,14 +103,10 @@ function createSeriesBody(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── handleSingleInstanceUpdate ───────
-
 describe("handleSingleInstanceUpdate", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  // ── Exception pushing ────
 
   it("should push the originalDate ISO string to the event exceptions", async () => {
     const event = createMockEvent();
@@ -129,8 +125,6 @@ describe("handleSingleInstanceUpdate", () => {
       })
     );
   });
-
-  // ── Exception event creation ───────
 
   it("should create a new exception event with the updated fields", async () => {
     const event = createMockEvent();
@@ -206,8 +200,6 @@ describe("handleSingleInstanceUpdate", () => {
     );
   });
 
-  // ── Google patching ──────
-
   it("should patch the Google Calendar instance when googleEventId exists", async () => {
     const event = createMockEvent({ googleEventId: "google-event-id" });
     const body = createSingleInstanceBody();
@@ -281,8 +273,6 @@ describe("handleSingleInstanceUpdate", () => {
     expect(result).toEqual(createdEvent);
   });
 
-  // ── Google instance ID format ──────
-
   it("should format the Google instance ID by stripping dashes and colons from the date", async () => {
     const event = createMockEvent({ googleEventId: "google-event-id" });
     const body = createSingleInstanceBody({ originalDate: "2024-06-10T09:00:00Z" });
@@ -299,14 +289,10 @@ describe("handleSingleInstanceUpdate", () => {
   });
 });
 
-// ── handleSeriesUpdate ─────
-
 describe("handleSeriesUpdate", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  // ── Time calculation ─────
 
   it("should preserve the original date and apply the new time-of-day from the body", async () => {
     const event = createMockEvent({
@@ -342,8 +328,6 @@ describe("handleSeriesUpdate", () => {
     const duration = updateCall.data.end.getTime() - updateCall.data.start.getTime();
     expect(duration).toBe(2 * 60 * 60 * 1000); // 2 hours in ms
   });
-
-  // ── Prisma update 
 
   it("should call prisma.event.update with the correct event ID", async () => {
     const event = createMockEvent();
@@ -430,8 +414,6 @@ describe("handleSeriesUpdate", () => {
     );
   });
 
-  // ── Return value ─
-
   it("should return the updated event from Prisma", async () => {
     const event = createMockEvent();
     const body = createSeriesBody();
@@ -442,8 +424,6 @@ describe("handleSeriesUpdate", () => {
 
     expect(result).toEqual(updatedEvent);
   });
-
-  // ── Google fire-and-forget ─────────
 
   it("should fire-and-forget the Google patch without awaiting it", async () => {
     const event = createMockEvent({ googleEventId: "google-event-id" });
@@ -466,7 +446,7 @@ describe("handleSeriesUpdate", () => {
     mockGetGoogleCalendarClient.mockResolvedValue(mockClient);
     mockPrismaEvent.update.mockResolvedValue(createMockEvent());
 
-    // Fire-and-forget — error is swallowed internally
+    // Error is swallowed internally
     await expect(handleSeriesUpdate(event, body, "user-123")).resolves.not.toThrow();
   });
 

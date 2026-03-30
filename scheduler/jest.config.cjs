@@ -10,7 +10,7 @@ collectCoverageFrom: [
   "!src/**/types.ts",
   "!index.ts"
 ],
-setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 forceExit: true,
 maxWorkers: 1,
 coveragePathIgnorePatterns: [

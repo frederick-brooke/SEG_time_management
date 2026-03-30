@@ -58,31 +58,35 @@ export function RocketProgress({ progress, height = 40, missionName = "MISSION S
       if (timerRef.current !== null) clearTimeout(timerRef.current);
     };
 
-    const runCycle = () => {
-      setDisplayProgress(0);
-      setBurst(false);
-      timerRef.current = setTimeout(() => {
-        const target = safeProgressRef.current;
-        const duration = 1400 + target * 14; 
-        const startTime = performance.now();
-        const tick = (now: number) => {
-          const t = Math.min((now - startTime) / duration, 1);
-          setDisplayProgress(Math.round(target * easeIn5(t)));
-          if (t < 1) { rafRef.current = requestAnimationFrame(tick); return; }
-          setDisplayProgress(target);
-          setBurst(true);
-          timerRef.current = setTimeout(() => {
-            setBurst(false);
-            timerRef.current = setTimeout(runCycle, 2000); 
-          }, 8000); 
-        };
-        rafRef.current = requestAnimationFrame(tick);
-      }, 400); 
-    };
+    // Only run cycle if progress has actually changed
+    if (safeProgressRef.current !== 0 || displayProgress === 0) {
+      const runCycle = () => {
+        setDisplayProgress(0);
+        setBurst(false);
+        timerRef.current = setTimeout(() => {
+          const target = safeProgressRef.current;
+          const duration = 1400 + target * 14;
+          const startTime = performance.now();
+          const tick = (now: number) => {
+            const t = Math.min((now - startTime) / duration, 1);
+            setDisplayProgress(Math.round(target * easeIn5(t)));
+            if (t < 1) { rafRef.current = requestAnimationFrame(tick); return; }
+            setDisplayProgress(target);
+            setBurst(true);
+            timerRef.current = setTimeout(() => {
+              setBurst(false);
+              // Don't reschedule the cycle - animation completes after burst
+            }, 8000);
+          };
+          rafRef.current = requestAnimationFrame(tick);
+        }, 400);
+      };
 
-    runCycle();
-    return clearAll; 
-  }, []); // intentionally empty — cycle must not restart when `progress` changes
+      runCycle();
+    }
+
+    return clearAll;
+  }, [safeProgress]);
 
   const isComplete = displayProgress === 100;
   const clockMin = String(Math.floor(displayProgress / 10)).padStart(2, "0");

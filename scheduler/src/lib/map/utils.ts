@@ -1,3 +1,10 @@
+/**
+ * Map utilities
+ *
+ * Helper functions for map calculations, formatting dates,
+ * generating SVG markers, and injecting Leaflet styles.
+ */
+
 import { format } from "date-fns";
 import { DEFAULT_CENTER } from "./constants";
 

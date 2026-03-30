@@ -1,3 +1,10 @@
+/**
+ * API route for handling appeal moderation (approve/reject).
+ *
+ * Only accessible to SUPERUSER accounts. Approving an appeal unbans the user
+ * and clears ban data, while rejecting simply updates the appeal status.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -62,11 +69,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
-
   if (!session || session.user.role !== "SUPERUSER") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
-
   const { id } = await params;
   const { action } = await req.json();
 
@@ -80,13 +85,9 @@ export async function PATCH(
       );
     }
 
-    if (action === "APPROVE") {
-      await handleApprove(id, appeal.userId, session.user.id);
-    }
+    if (action === "APPROVE") { await handleApprove(id, appeal.userId, session.user.id); }
 
-    if (action === "REJECT") {
-      await handleReject(id);
-    }
+    if (action === "REJECT") { await handleReject(id); }
 
     return NextResponse.json({ success: true });
   } catch (e: any) {

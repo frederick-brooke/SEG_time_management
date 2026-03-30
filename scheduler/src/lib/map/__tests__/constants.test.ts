@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/map/constants
+ */
+
 import {
   DEFAULT_CENTER,
   CATEGORY_COLORS,

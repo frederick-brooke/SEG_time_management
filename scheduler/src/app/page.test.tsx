@@ -1,3 +1,6 @@
+/**
+ * Testing for home page.tsx
+ */
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Home from "../app/page";
@@ -19,6 +22,8 @@ jest.mock("@/components/landing/FeaturesSection", () => ({
     <section data-testid="mock-features-section">FeaturesSection</section>
   ),
 }));
+
+// Tests
 
 describe("Home (page.tsx)", () => {
   it("renders without crashing", () => {

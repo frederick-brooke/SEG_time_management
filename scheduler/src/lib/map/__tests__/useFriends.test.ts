@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/map/useFriends
+ */
+
 import { renderHook, waitFor } from "@testing-library/react";
 import { useFriends } from "../useFriends";
 import { Friend } from "../types";

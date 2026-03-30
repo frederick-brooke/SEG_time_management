@@ -1,3 +1,7 @@
+/**
+ * Testing for lib/format
+ */
+
 import { formatEventDate, formatTaskDate, formatLongDate, formatDuration } from "lib/format";
 
 describe("formatEventDate", () => {

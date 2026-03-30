@@ -7,17 +7,29 @@
  * On mobile, toggles between the sidebar and the active conversation full-screen,
  * hiding the sidebar when a conversation is open and vice versa.
  */
-
 import { useRouter, useParams } from "next/navigation";
-import { useSidebar } from "components/ui/sidebar";
+import { useEffect, useState } from "react";
 import UserSearch from "components/messaging/UserSearch";
 import ConversationList from "components/messaging/ConversationList";
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < breakpoint);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [breakpoint]);
+
+  return isMobile;
+}
 
 export default function MessagesLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const params = useParams();
   const conversationId = params?.conversationId as string | undefined;
-  const { isMobile } = useSidebar();
+  const isMobile = useIsMobile();
 
   const SidebarContent = (
     <>

@@ -1,4 +1,6 @@
-// src/__tests__/lib/recentUsers.test.ts
+/**
+ * Testing for lib/recent-users
+ */
 
 import {
   getRecentUsers,
@@ -28,8 +30,9 @@ const makeUser = (username: string) => ({
 // jsdom provides a working localStorage implementation, so no manual mock needed.
 beforeEach(() => localStorage.clear());
 
-// getRecentUsers 
+// Tests
 
+// getRecentUsers 
 describe('getRecentUsers', () => {
   it('returns an empty array when storage is empty', () => {
     expect(getRecentUsers()).toEqual([]);
@@ -51,7 +54,6 @@ describe('getRecentUsers', () => {
 });
 
 // addRecentUser 
-
 describe('addRecentUser', () => {
   it('adds a user to an empty list', () => {
     addRecentUser(makeUser('alice'));
@@ -116,7 +118,6 @@ describe('addRecentUser', () => {
 });
 
 // removeRecentUser
-
 describe('removeRecentUser', () => {
   it('removes the user with the matching username', () => {
     seedStorage([makeUser('alice'), makeUser('bob'), makeUser('carol')]);
@@ -164,7 +165,6 @@ describe('removeRecentUser', () => {
 });
 
 // clearRecentUsers 
-
 describe('clearRecentUsers', () => {
   it('removes the storage key entirely', () => {
     seedStorage([makeUser('alice')]);

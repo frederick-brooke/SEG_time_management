@@ -1,11 +1,24 @@
 'use server';
 
+/**
+ * Friend request service
+ *
+ * Handles sending, accepting, declining, cancelling, and removing friendships.
+ * Uses a single FriendRequest model to represent both pending and accepted states.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { FriendStatus as PrismaFriendStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireSession } from "./utils";
 
-// 1. Send a request to someone
+/**
+ * Sends a friend request to another user.
+ * Prevents duplicate or reverse-direction requests from existing.
+ *
+ * @param {string} receiverId - The user ID of the recipient
+ * @returns {Promise<{ success: boolean; error?: string } | void>}
+ */
 export async function sendFriendRequest(receiverId: string) {
   const session = await requireSession();
   
@@ -26,7 +39,12 @@ export async function sendFriendRequest(receiverId: string) {
   revalidatePath("/profile");
 }
 
-// 2. Accept a request someone sent you
+/**
+ * Accepts a pending friend request from another user.
+ *
+ * @param {string} senderId - The user ID of the person who sent the request
+ * @returns {Promise<void>}
+ */
 export async function acceptFriendRequest(senderId: string) {
   const session = await requireSession();
   await prisma.friendRequest.updateMany({
@@ -40,7 +58,12 @@ export async function acceptFriendRequest(senderId: string) {
   revalidatePath("/profile");
 }
 
-// 3. Decline a request someone sent you
+/**
+ * Declines (deletes) a pending friend request from another user.
+ *
+ * @param {string} senderId - The user ID of the person who sent the request
+ * @returns {Promise<void>}
+ */
 export async function declineFriendRequest(senderId: string) {
   const session = await requireSession();
   await prisma.friendRequest.deleteMany({
@@ -53,7 +76,12 @@ export async function declineFriendRequest(senderId: string) {
   revalidatePath("/profile");
 }
 
-// 4. Cancel a request YOU sent to someone else
+/**
+ * Cancels a friend request that was previously sent to another user.
+ *
+ * @param {string} receiverId - The user ID of the recipient
+ * @returns {Promise<void>}
+ */
 export async function cancelSentRequest(receiverId: string) {
   const session = await requireSession();
   await prisma.friendRequest.deleteMany({
@@ -66,7 +94,12 @@ export async function cancelSentRequest(receiverId: string) {
   revalidatePath("/profile");
 }
 
-// 5. Remove an accepted friend
+/**
+ * Removes an existing accepted friendship between two users.
+ *
+ * @param {string} friendId - The user ID of the friend to remove
+ * @returns {Promise<void>}
+ */
 export async function removeFriend(friendId: string) {
   const session = await requireSession();
   await prisma.friendRequest.deleteMany({

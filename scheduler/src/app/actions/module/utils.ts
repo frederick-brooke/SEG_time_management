@@ -1,10 +1,17 @@
+/**
+ * Module utilities
+ *
+ * Shared helpers for authentication, PIN generation, role checks,
+ * and syncing module events/tasks across members.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
 import { ModuleRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 
-//helpers
+// Helpers
 
 /**
  * Retrieves the current session and throws if the user is not authenticated
@@ -63,7 +70,7 @@ export async function isModuleOwner(moduleId: string, userId: string): Promise<b
   return membership?.role === ModuleRole.OWNER;
 }
 
-//sync helpers
+// Sync helpers
 
 /**
  * Copies all existing module events to a newly joined member's calendar

@@ -1,7 +1,12 @@
+/**
+ * Testing for lib/auth
+ */
+
 import { authOptions, authorizeUser } from '../auth';
 import { prisma } from '../prisma';
 import bcrypt from 'bcryptjs';
 
+// Mocks
 
 jest.mock('@next-auth/prisma-adapter', () => ({
   PrismaAdapter: jest.fn()
@@ -27,13 +32,13 @@ import { verifyPassword } from '../password';
 
 const getCallbacks = () => authOptions.callbacks as any;
 
+// Tests
+
 describe('Auth Logic Coverage (/lib/auth.ts)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (verifyPassword as jest.Mock).mockResolvedValue(true);
   });
-
-  // ── authorizeUser ───────
 
   describe('authorizeUser', () => {
     it('returns null if missing credentials', async () => {
@@ -102,8 +107,6 @@ describe('Auth Logic Coverage (/lib/auth.ts)', () => {
       expect(result.isBanned).toBe(false);
     });
   });
-
-  // ── Callbacks ───
 
   describe('Callbacks', () => {
 

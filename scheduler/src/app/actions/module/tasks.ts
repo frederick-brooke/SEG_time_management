@@ -1,5 +1,12 @@
 'use server';
 
+/**
+ * Module task service
+ *
+ * Handles creation, updates, deletion, and retrieval of module tasks.
+ * Syncs tasks across members and provides per-user progress views.
+ */
+
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "lib/auth";
@@ -29,13 +36,10 @@ export async function createModuleTask(moduleId: string, taskData: any) {
 
   const moduleTaskGroupId = generateGroupId();
 
-  // 1. Get all regular students who need to complete the task
   const memberIdsToAssign = members
     .filter((m) => m.role === 'MEMBER')
     .map((m) => m.userId);
 
-  // 2. FORCE the creator to get a "Template" copy so the task saves to the database
-  // even if there are no students in the module yet.
   if (!memberIdsToAssign.includes(session.user.id)) {
     memberIdsToAssign.push(session.user.id);
   }

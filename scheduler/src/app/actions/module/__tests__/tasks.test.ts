@@ -1,3 +1,7 @@
+/**
+ * Testing for module/tasks actions.
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
@@ -162,7 +166,7 @@ describe("Module Tasks Actions", () => {
     });
 
     /**
-     * Happy Path: Deletes all member copies of the task by group ID and revalidates the path.
+     * Deletes all member copies of the task by group ID and revalidates the path.
      */
     it("should delete all member copies and revalidate the path", async () => {
       (isModuleOwner as jest.Mock).mockResolvedValue(true);
@@ -187,7 +191,7 @@ describe("Module Tasks Actions", () => {
     });
 
     /**
-     * Happy Path: Returns the current user's module tasks ordered by completion and due date.
+     * Returns the current user's module tasks ordered by completion and due date.
      */
     it("should return the user's module tasks", async () => {
       prismaMock.task.findMany.mockResolvedValue([
@@ -216,8 +220,8 @@ describe("Module Tasks Actions", () => {
     });
 
     /**
-     * Very important logic test: It ensures that when calculating completion stats,
-     * the Owner and Admin template tasks are IGNORED so they don't artificially skew
+     * Ensures that when calculating completion stats,
+     * the Owner and Admin template tasks are ignored so they don't artificially skew
      * the "In Progress" counts for actual students.
      */
     it("should deduplicate tasks and ONLY aggregate progress for standard members", async () => {

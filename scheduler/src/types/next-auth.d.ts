@@ -1,3 +1,8 @@
+/**
+ * NextAuth type augmentations for custom user fields, JWT claims, and session shape.
+ * Extends default NextAuth types to support roles, bans, and Google integration state.
+ */
+
 import { DefaultSession, DefaultUser } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
 
