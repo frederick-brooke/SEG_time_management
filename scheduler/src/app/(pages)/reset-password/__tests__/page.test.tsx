@@ -2,9 +2,9 @@ import * as React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
-import { ResetPasswordContent } from "./page";
+import { ResetPasswordContent } from "../page";
 
-// ── Mocks ──────────────────────────────────────────────────────────────────────
+// Mocks
 
 const mockPush = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -36,7 +36,7 @@ function setup() {
   return user;
 }
 
-// ── Tests ──────────────────────────────────────────────────────────────────────
+// Tests
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -188,7 +188,7 @@ describe("ResetPasswordContent — with token", () => {
 describe("ResetPasswordPage — Suspense wrapper", () => {
   it("renders the Suspense fallback then resolves", async () => {
     setToken("valid-token-abc");
-    const { default: ResetPasswordPage } = await import("./page");
+    const { default: ResetPasswordPage } = await import("../page");
     render(<ResetPasswordPage />);
     // After Suspense resolves the form should be present
     expect(await screen.findByLabelText(/new password/i)).toBeInTheDocument();

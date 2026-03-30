@@ -1,3 +1,7 @@
+/**
+ * Testing for actions/notifications.
+ */
+
 import { NotificationType } from "@prisma/client";
 
 // Mocks 
@@ -21,7 +25,6 @@ jest.mock("lib/auth", () => ({
   authOptions: {},
 }));
 
-// Imports
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import {
@@ -31,7 +34,6 @@ import {
   createNotification,
 } from "@/app/actions/notifications";
 
-// Typed mock helpers
 const mockGetServerSession = getServerSession as jest.Mock;
 const db = prisma.notification as unknown as {
   findMany: jest.Mock;
@@ -55,6 +57,8 @@ const NOTIFICATION = {
   expiresAt: null,
   createdAt: new Date(),
 };
+
+// Tests
 
 describe("getNotifications", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -139,7 +143,7 @@ describe("getNotifications", () => {
   });
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
+
 describe("markNotificationAsRead", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -201,7 +205,7 @@ describe("markNotificationAsRead", () => {
   });
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
+
 describe("markAllNotificationsAsRead", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -249,7 +253,7 @@ describe("markAllNotificationsAsRead", () => {
   });
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
+
 describe("createNotification", () => {
   beforeEach(() => jest.clearAllMocks());
 

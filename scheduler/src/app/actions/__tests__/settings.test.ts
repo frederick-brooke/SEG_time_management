@@ -1,3 +1,7 @@
+/**
+ * Testing for actions/settings.
+ */
+
 import {
   updateAccountDetails,
   changePassword,
@@ -10,6 +14,8 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { hashPassword, verifyPassword } from "@/lib/password";
+
+// Mocks
 
 jest.mock("next-auth", () => ({
   getServerSession: jest.fn(),
@@ -66,10 +72,9 @@ beforeEach(() => {
   (getServerSession as jest.Mock).mockResolvedValue(mockSession);
 });
 
+// Tests
+
 describe("updateAccountDetails", () => {
-  /**
-   * Happy path: updates username and email when no conflicts exist.
-   */
   it("updates user successfully", async () => {
     (prisma.user.findFirst as jest.Mock).mockResolvedValue(null);
     (prisma.user.update as jest.Mock).mockResolvedValue({});
@@ -85,17 +90,11 @@ describe("updateAccountDetails", () => {
     expect(revalidatePath).toHaveBeenCalledWith("/settings");
   });
 
-  /**
-   * Throws when both username and email are absent from the form data.
-   */
   it("throws if username/email missing", async () => {
     const formData = new FormData();
     await expect(updateAccountDetails(formData)).rejects.toThrow();
   });
 
-  /**
-   * Throws when the username is already taken by another user in the database.
-   */
   it("throws if username is already taken", async () => {
     (prisma.user.findFirst as jest.Mock).mockResolvedValue({
       id: "other-user",
@@ -110,9 +109,6 @@ describe("updateAccountDetails", () => {
     await expect(updateAccountDetails(formData)).rejects.toThrow("Username already taken");
   });
 
-  /**
-   * Throws when the email is already registered to another user in the database.
-   */
   it("throws if email is already in use", async () => {
     (prisma.user.findFirst as jest.Mock).mockResolvedValue({
       id: "other-user",
@@ -129,9 +125,6 @@ describe("updateAccountDetails", () => {
 });
 
 describe("changePassword", () => {
-  /**
-   * Happy path: verifies the old password, hashes the new one, and updates the record.
-   */
   it("changes password successfully", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "oldhash" });
     (verifyPassword as jest.Mock).mockResolvedValue(true);
@@ -147,9 +140,6 @@ describe("changePassword", () => {
     expect(res).toEqual({ success: true });
   });
 
-  /**
-   * Throws immediately when the new password and confirmation do not match.
-   */
   it("throws if passwords do not match", async () => {
     const formData = new FormData();
     formData.set("newPassword", "a");
@@ -158,10 +148,6 @@ describe("changePassword", () => {
     await expect(changePassword(formData)).rejects.toThrow();
   });
 
-  /**
-   * Allows OAuth users with no existing passwordHash to set a new password
-   * without needing to supply a current password.
-   */
   it("allows password change for OAuth user with no existing passwordHash", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: null });
     (hashPassword as jest.Mock).mockResolvedValue("newhash");
@@ -176,9 +162,6 @@ describe("changePassword", () => {
     expect(verifyPassword).not.toHaveBeenCalled();
   });
 
-  /**
-   * Throws when the user has a password but no currentPassword is supplied in the form.
-   */
   it("throws if currentPassword is missing when user has a password", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "oldhash" });
 
@@ -189,9 +172,6 @@ describe("changePassword", () => {
     await expect(changePassword(formData)).rejects.toThrow("Current password is required");
   });
 
-  /**
-   * Throws when the supplied currentPassword does not match the stored hash.
-   */
   it("throws if currentPassword is incorrect", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "oldhash" });
     (verifyPassword as jest.Mock).mockResolvedValue(false);
@@ -206,9 +186,6 @@ describe("changePassword", () => {
 });
 
 describe("disconnectGoogle", () => {
-  /**
-   * Happy path: removes the Google account link when the user has a password set.
-   */
   it("disconnects google account", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "hash" });
     (prisma.account.deleteMany as jest.Mock).mockResolvedValue({});
@@ -219,10 +196,6 @@ describe("disconnectGoogle", () => {
     expect(prisma.account.deleteMany).toHaveBeenCalled();
   });
 
-  /**
-   * Throws when the user has no password set, preventing them from being locked out
-   * after disconnecting their only auth method.
-   */
   it("throws if no password set", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: null });
     await expect(disconnectGoogle()).rejects.toThrow();
@@ -230,9 +203,6 @@ describe("disconnectGoogle", () => {
 });
 
 describe("updatePreferences", () => {
-  /**
-   * Happy path: upserts the preferences record with values from the form.
-   */
   it("upserts preferences", async () => {
     (prisma.userPreferences.upsert as jest.Mock).mockResolvedValue({});
 
@@ -245,10 +215,6 @@ describe("updatePreferences", () => {
     expect(prisma.userPreferences.upsert).toHaveBeenCalled();
   });
 
-  /**
-   * Verifies that all preference fields fall back to their defaults when the
-   * form data contains no values.
-   */
   it("applies default values when form fields are empty", async () => {
     (prisma.userPreferences.upsert as jest.Mock).mockResolvedValue({});
 
@@ -272,10 +238,6 @@ describe("updatePreferences", () => {
     );
   });
 
-  /**
-   * Verifies that daysOff is correctly collected as a multi-value array
-   * when multiple checkbox values are submitted.
-   */
   it("collects multiple daysOff values from form", async () => {
     (prisma.userPreferences.upsert as jest.Mock).mockResolvedValue({});
 
@@ -296,9 +258,6 @@ describe("updatePreferences", () => {
 });
 
 describe("deleteAccount", () => {
-  /**
-   * Happy path: cascades through all related tables and deletes the user record.
-   */
   it("deletes full account flow", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "hash" });
     (verifyPassword as jest.Mock).mockResolvedValue(true);
@@ -315,10 +274,6 @@ describe("deleteAccount", () => {
     expect(prisma.user.delete).toHaveBeenCalled();
   });
 
-  /**
-   * Skips pointTransaction cleanup when the user has no progress record,
-   * then continues deleting all other relations and the user.
-   */
   it("skips pointTransaction cleanup if no progress record exists", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "hash" });
     (verifyPassword as jest.Mock).mockResolvedValue(true);
@@ -335,9 +290,6 @@ describe("deleteAccount", () => {
     expect(prisma.user.delete).toHaveBeenCalled();
   });
 
-  /**
-   * Throws when no password is provided in the form, preventing accidental deletion.
-   */
   it("throws if password field is missing", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "hash" });
 
@@ -346,9 +298,6 @@ describe("deleteAccount", () => {
     await expect(deleteAccount(formData)).rejects.toThrow("Password is required");
   });
 
-  /**
-   * Throws when the supplied password does not match the stored hash.
-   */
   it("throws if password is incorrect", async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ passwordHash: "hash" });
     (verifyPassword as jest.Mock).mockResolvedValue(false);

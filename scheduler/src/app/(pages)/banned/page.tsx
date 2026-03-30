@@ -2,7 +2,7 @@ import BannedPage from "@/components/admin/ban-message-page";
 
 /**
  * Renders the banned user page.
- *
+ * 
  * Behavior:
  * - Displays a message informing the user they are banned
  * - Delegates UI and logic to the `BannedPage` component

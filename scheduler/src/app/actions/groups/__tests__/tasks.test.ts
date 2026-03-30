@@ -1,3 +1,7 @@
+/**
+ * Testing for groups/tasks actions
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { mockDeep, DeepMockProxy } from "jest-mock-extended";
@@ -11,7 +15,8 @@ import {
 } from "../tasks";
 import { requireSession, isGroupMember, generateGroupId } from "../utils";
 
-// mocks
+// Mocks
+
 jest.mock("@/lib/prisma", () => {
   const { mockDeep } = require("jest-mock-extended");
   return { prisma: mockDeep() };
@@ -26,7 +31,8 @@ jest.mock("../utils", () => ({
 
 const prismaMock = prisma as unknown as DeepMockProxy<typeof prisma>;
 
-// tests
+// Tests
+
 describe("Group Tasks Actions", () => {
   const mockUserId = "user-123";
 
@@ -37,7 +43,6 @@ describe("Group Tasks Actions", () => {
   });
 
   afterAll(async () => {
-    // Wait a tick for any pending Prisma promises to resolve to prevent Open Handles
     await new Promise(process.nextTick); 
   });
 
@@ -60,6 +65,7 @@ describe("Group Tasks Actions", () => {
         })
       );
     });
+    
     // Confirms task creation fails if the group has no members.
     it("should return an error if the group has no members", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(true);

@@ -1,3 +1,7 @@
+/**
+ * Testing for groups/events actions
+ */
+
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
@@ -5,7 +9,8 @@ import { mockDeep, DeepMockProxy } from "jest-mock-extended";
 import { createGroupEvent, updateGroupEvent, deleteGroupEvent, getGroupEvents } from "../events";
 import { requireSession, isGroupMember, generateGroupId } from "../utils";
 
-//mocks
+// Mocks
+
 jest.mock("@/lib/prisma", () => {
   const { mockDeep } = require("jest-mock-extended");
   return { prisma: mockDeep() };
@@ -20,7 +25,8 @@ jest.mock("../utils", () => ({
 
 const prismaMock = prisma as unknown as DeepMockProxy<typeof prisma>;
 
-//tests
+// Tests
+
 describe("Group Events Actions", () => {
   const mockUserId = "user-123";
 
@@ -30,12 +36,11 @@ describe("Group Events Actions", () => {
     (getServerSession as jest.Mock).mockResolvedValue({ user: { id: mockUserId } });
   });
   afterAll(async () => {
-    // Flushes pending asynchronous Prisma calls to prevent Jest open handle warnings.
     await new Promise(process.nextTick); 
   });
   describe("createGroupEvent", () => {
     /**
-     * Security check: Verifies that users cannot create events in groups they don't belong to.
+     * Verifies that users cannot create events in groups they don't belong to.
      */
     it("should fail if the user is not a group member", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(false);
@@ -45,7 +50,7 @@ describe("Group Events Actions", () => {
     });
 
     /**
-     * Edge case: Verifies it handles empty groups gracefully without attempting DB inserts.
+     * Verifies it handles empty groups gracefully without attempting DB inserts.
      */
     it("should fail if the group has no members", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(true);
@@ -57,7 +62,7 @@ describe("Group Events Actions", () => {
     });
 
     /**
-     * Happy path: Ensures an event is duplicated for EVERY member in the group
+     * Ensures an event is duplicated for every member in the group
      * so it shows up on their personal calendars, tagged with the shared groupEventGroupId.
      */
     it("should create an event copy for every member in the group", async () => {
@@ -94,7 +99,7 @@ describe("Group Events Actions", () => {
 
   describe("updateGroupEvent", () => {
     /**
-     * Security check: Ensures only valid group members can update shared events.
+     * Ensures only valid group members can update shared events.
      */
     it("should fail if the user is not a member", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(false);
@@ -103,7 +108,7 @@ describe("Group Events Actions", () => {
     });
 
     /**
-     * Happy path: Uses `updateMany` to apply the edits to every user's copy of the event.
+     * Uses `updateMany` to apply the edits to every user's copy of the event.
      */
     it("should update all member copies of the event", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(true);
@@ -124,7 +129,7 @@ describe("Group Events Actions", () => {
 
   describe("deleteGroupEvent", () => {
     /**
-     * Verifies that deleting a group event strips it from ALL members' calendars.
+     * Verifies that deleting a group event strips it from all members' calendars.
      */
     it("should delete all member copies of the event", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(true);
