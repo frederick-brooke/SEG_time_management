@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { LunarCard } from "@/components/ui/lunar-card";
+import { createPortal } from "react-dom";
 
 /**
  * ReportModal
@@ -45,7 +46,7 @@ export default function ReportModal({
 		}
 	}
 
-	return (
+	return createPortal(
 		<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
 			<LunarCard className="w-full max-w-md p-6 space-y-5 hover:-translate-y-0">
 				<Header username={reportedUsername} onClose={onClose} />
@@ -65,7 +66,8 @@ export default function ReportModal({
 					loading={loading}
 				/>
 			</LunarCard>
-		</div>
+		</div>,
+		document.body
 	);
 }
 
