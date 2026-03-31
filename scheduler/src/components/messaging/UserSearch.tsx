@@ -54,6 +54,12 @@ export default function UserSearch() {
 
   const hasResults = filteredFriends.length > 0 || filteredGroups.length > 0;
 
+  /**
+   * Creates or retrieves a direct conversation with the given user,
+   * then navigates to it and clears the search query.
+   *
+   * @param targetUserId - The ID of the user to start a chat with.
+   */
   const startChat = async (targetUserId: string) => {
     const res = await fetch("/api/conversations/new", {
       method: "POST",

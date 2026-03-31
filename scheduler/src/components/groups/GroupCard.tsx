@@ -1,9 +1,11 @@
+/**
+ * Pure presentation component for displaying group overviews.
+ */
 'use client';
 
 import Link from "next/link";
 import { Users, Crown } from "lucide-react";
 
-//section types
 interface GroupCardProps {
   group: {
     id: string;
@@ -19,7 +21,6 @@ interface GroupCardProps {
   };
 }
 
-//section component
 
 /**
  * Displays a group card with name, description, member count and owner badge
