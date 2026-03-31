@@ -60,17 +60,13 @@ export default function ReportManagement({
 					transition={{ delay: i * 0.03 }}
 					onClick={() => setSelectedReport(report)}
 					className="px-4 py-3 rounded-xl cursor-pointer transition-all hover:bg-white/5 text-white/80"
-					>
+				>
 					<p className="font-medium text-white">ID: {report.id}</p>
 					<p className="text-sm text-white/50">Status: {report.status}</p>
 				</motion.div>
 			)}
 			renderPanel={() => (
-				<ReportPanel
-				report={selectedReport}
-				onClose={() => setSelectedReport(null)}
-				fetchReports={fetchReports}
-				/>
+				<ReportPanel report={selectedReport} onClose={() => setSelectedReport(null)} fetchReports={fetchReports}/>
 			)}
 		/>
 	);
