@@ -29,98 +29,97 @@ import LunarDrawer from "../layout/lunar-drawer";
  * @returns {JSX.Element} Search panel UI
  */
 export default function SearchPanel({ open, onClose }) {
-    const defaultUserFilters = { search:"", sortBy:"username", order:"desc", startDate:"", endDate:"", categories:[], page:1, limit:6 };
+	const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1, limit: 6,};
 
-    const [currentTab,setCurrentTab] = useState("users");	// Currently selected tab 
+	const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
+	const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
+	const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);
 
-    const [appliedUserFilters,setAppliedUserFilters] = useState(defaultUserFilters);
-    const [draftUserFilters,setDraftUserFilters] = useState(defaultUserFilters);
+	useDebouncedSearch(draftUserFilters.search, setAppliedUserFilters);
 
-	/**
-     * resetUserFilters
-     *
-     * Resets both draft and applied filters to defaults
-     */
-    function resetUserFilters(){
-        setDraftUserFilters(defaultUserFilters);
-        setAppliedUserFilters(defaultUserFilters);
-    }
+	const { users, totalUserPages, totalUsers } = useUsers(
+		appliedUserFilters,
+		"/api/users/search"
+	);
 
-    //debounce for the searching by 30 miliseconds instead of instantenous returning results
-    useEffect(() => {
-        const delay = setTimeout(() => {
-            setAppliedUserFilters(prev => ({
-                ...prev,
-                search: draftUserFilters.search,
-                page: 1
-            }));
-        }, 300);
+	return (
+		<>
+			<LunarDrawer open={open} onClose={onClose} side="left" title="Search Panel" width="w-full sm:w-[420px]">
+				<div className="p-4 flex-shrink-0">
+					<GlassCard className="p-3">
+						<SearchControls
+							filters={appliedUserFilters}
+							setFilters={setAppliedUserFilters}
+							placeholder="Search users..."
+							onOpenFilter={() => setIsUserFilterOpen(true)}
+							resetFilters={() => resetUserFilters(setDraftUserFilters, setAppliedUserFilters, defaultUserFilters)}
+						/>
+					</GlassCard>
+				</div>
 
-        return () => clearTimeout(delay);
-    }, [draftUserFilters.search]);
+				<div className="flex flex-1 flex-col p-4 min-h-0">
+					<SearchUsers users={users} totalUsers={totalUsers} totalUserPages={totalUserPages} setIsUserFilterOpen={setIsUserFilterOpen} filters={appliedUserFilters} setFilters={setAppliedUserFilters} selectedUser={null} setSelectedUser={() => {}} resetFilters={() => resetUserFilters(setDraftUserFilters, setAppliedUserFilters, defaultUserFilters)}/>
+				</div>
+			</LunarDrawer>
 
-    const [isUserFilterOpen,setIsUserFilterOpen] = useState(false);
-    const {users,totalUserPages,totalUsers} = useUsers(appliedUserFilters,"/api/users/search");
-
-    return (
-        <>
-            {/* backdrop */}
-            <LunarDrawer open={open} onClose={onClose} side="left" title="Search Panel" width="w-full sm:w-[420px]">
-                {/* search controls */}
-                <div className="p-4 flex-shrink-0">
-                    <GlassCard className="p-3">
-                        <SearchControls
-                            filters={appliedUserFilters}
-                            setFilters={setAppliedUserFilters}
-                            placeholder="Search users..."
-                            onOpenFilter={() => setIsUserFilterOpen(true)}
-                            resetFilters={resetUserFilters}
-                        />
-                    </GlassCard>
-                </div>
-
-                {/* content */}
-                <div className="flex flex-1 flex-col p-4 min-h-0">
-                    <SearchUsers
-                        users={users}
-                        totalUsers={totalUsers}
-                        totalUserPages={totalUserPages}
-                        setIsUserFilterOpen={setIsUserFilterOpen}
-                        filters={appliedUserFilters}
-                        setFilters={setAppliedUserFilters}
-                        selectedUser={null}                    
-                        setSelectedUser={() => {}}
-                        resetFilters={resetUserFilters}
-                    />
-                </div>
-            </LunarDrawer>
-
-            {/* filters */}
-            <LunarDrawer
-                open={isUserFilterOpen}
-                onClose={() => setIsUserFilterOpen(false)}
-                side="right"
-                title="User Filters"
-                width="400px"
-            >
+			<LunarDrawer open={isUserFilterOpen} onClose={() => setIsUserFilterOpen(false)} side="right" title="User Filters" width="400px">
 				<UserFilter
-                    filters={draftUserFilters}
-                    setFilters={setDraftUserFilters}
-                    onClose={() => setIsUserFilterOpen(false)}
-                    applyFilters={() => {
-						setAppliedUserFilters(prev => ({
-							...draftUserFilters,
-							search: prev.search,
-						}));
-						setIsUserFilterOpen(false);
-                    }}
-					resetFilters={() => {
-						setDraftUserFilters(defaultUserFilters);      
-						setAppliedUserFilters(defaultUserFilters);
-					}}
-					type="admin" 
-                />
-            </LunarDrawer>
-        </>
-    );
+					filters={draftUserFilters}
+					setFilters={setDraftUserFilters}
+					onClose={() => setIsUserFilterOpen(false)}
+					applyFilters={() =>
+						applyFilters(draftUserFilters, setAppliedUserFilters, setIsUserFilterOpen)
+					}
+					resetFilters={() =>
+						resetUserFilters(setDraftUserFilters, setAppliedUserFilters, defaultUserFilters)
+					}
+					type="admin"
+				/>
+			</LunarDrawer>
+		</>
+	);
+}
+
+/**
+*Custom hook that debounces search input to prevent excessive filter updates.
+*@param {string} search - The search input value.
+*@param {Function} setFilters - State setter function for filters.
+*/
+function useDebouncedSearch(search, setFilters) {
+	useEffect(() => {
+		const delay = setTimeout(() => {
+			setFilters((prev) => ({
+				...prev,
+				search,
+				page: 1,
+			}));
+		}, 300);
+
+		return () => clearTimeout(delay);
+	}, [search, setFilters]);
+}
+
+/**
+*Applies draft filters to the applied state and closes the filter modal.
+*@param {Object} draftFilters - The draft filter values to apply.
+*@param {Function} setAppliedFilters - State setter for applied filters.
+*@param {Function} setOpen - State setter to close the filter modal.
+*/
+function applyFilters(draftFilters, setAppliedFilters, setOpen) {
+	setAppliedFilters((prev) => ({
+		...draftFilters,
+		search: prev.search,
+	}));
+	setOpen(false);
+}
+
+/**
+*Resets both draft and applied filters to their default values.
+*@param {Function} setDraft - State setter for draft filters.
+*@param {Function} setApplied - State setter for applied filters.
+*@param {Object} defaults - The default filter values.
+*/
+function resetUserFilters(setDraft, setApplied, defaults) {
+	setDraft(defaults);
+	setApplied(defaults);
 }

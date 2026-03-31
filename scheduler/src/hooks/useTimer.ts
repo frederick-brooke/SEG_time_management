@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 type UseTimerProps = {		//type definition for props
   storageKey?: string;
@@ -18,153 +18,148 @@ type UseTimerProps = {		//type definition for props
  * - Providing formatted time (hours, minutes, seconds)
  * - Emitting tick updates via callback
  *
- * @param {UseTimerProps} props
- * @returns {Object} Timer state and control functions
+ *@param {UseTimerProps} props
+ *@returns {Object} Timer state and control functions
  */
 export function useTimer( {storageKey, onTick}: UseTimerProps = {}) {
-    const saveTimerState = (state) => {
-        //Saves the paused time within web browser for local persistance when refresh
-        localStorage.setItem(storageKey, JSON.stringify(state));
-    };
-
-    //loads timer state from local storage, for static access
-    const loadTimerState = () => {
-        const stored = localStorage.getItem(storageKey);
-        return stored ? JSON.parse(stored) : null;  //if JSON exists then parse it
-    };
-
-    // Stores the countdown values
-    const [hours, setHours] = useState(0);
-    const [minutes, setMinutes] = useState(0);
-    const [seconds, setSeconds] = useState(0);
-
-    const intervalRef = useRef(null);   //for clearing the leftover time 
-
-    const [isRunning, setIsRunning] = useState(false);  //tracks if timer is currently running
-    const [hasStarted, setHasStarted] = useState(false);    //tracks if timer has been started at least once before
-
-    const remainingMsRef = useRef(0);   //remaining miliseconds, referenced through refreshes
     const [remainingMs, setRemainingMs] = useState(0);
+    const [isRunning, setIsRunning] = useState(false);
+    const [hasStarted, setHasStarted] = useState(false);
 
-    const startTimer = (durationMs) => {
-        remainingMsRef.current = durationMs //initialise remaining time
+    const intervalRef = useRef<any>(null);
+    const remainingRef = useRef(0);
 
-        const endTime = Date.now() + durationMs;     
+    const update = useCallback((ms: number) => {
+        remainingRef.current = ms;
+        setRemainingMs(ms);
+        onTick?.(ms);
+    }, [onTick]);
 
-        setIsRunning(true); //update running states
-        setHasStarted(true);
-        // Clear existing timer if there is arleady one running
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-        }
-        //saves current state of the timer to local storage for persistance
-        saveTimerState({
-            endTime,
-            remainingMs: durationMs,
-            isRunning: true,
-        });
-
-        // Run every second
-        intervalRef.current = setInterval(() => {
-            // decrement the time by 1 second each call
-            remainingMsRef.current -= 1000;
-            setRemainingMs(remainingMsRef.current);
-
-            //stops timer when countdown reaches 0
-            if(remainingMsRef.current <= 0){
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-                remainingMsRef.current = 0;
-                setRemainingMs(0);
-            }
-
-            onTick?.(remainingMsRef.current);
-
-            const ms = remainingMsRef.current;     //current remaining time in miliseconds
-            //updaes the new time
-            setHours(Math.floor(ms / 3600000));
-            setMinutes(Math.floor((ms / 60000) % 60));
-            setSeconds(Math.floor((ms / 1000) % 60));
-        }, 1000);
-    }
-    //function for stopping and resetting the timer
-    const stopTimer = () => {
-        if(intervalRef.current){    //clear the interval if it already exists
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
-        //resets all timer states
-        setHours(0);
-        setMinutes(0);
-        setSeconds(0); 
-
-        localStorage.removeItem(storageKey); //remove timer state from local storage
-        setIsRunning(false);    //reset all of the running states
+    const stopTimer = useCallback(() => {
+        clear(intervalRef);
+        update(0);
+        setIsRunning(false);
         setHasStarted(false);
-    }
-    //function for pausing the running timer
-    const pauseTimer = () => {
-        //early exit if there is no timer currently running
+        if (storageKey) localStorage.removeItem(storageKey);
+    }, [update, storageKey]);
+
+    const tick = useCallback((endTime: number) => {
+        const ms = Math.max(0, endTime - Date.now());
+        update(ms);
+        if (ms === 0) stopTimer();
+    }, [update, stopTimer]);
+
+    const startTimer = useCallback((duration: number) => {
+        clear(intervalRef);
+        const endTime = Date.now() + duration;
+        setIsRunning(true);
+        setHasStarted(true);
+        write(storageKey, { endTime, remainingMs: duration, isRunning: true });
+        intervalRef.current = createInterval(() => tick(endTime));
+    }, [tick, storageKey]);
+
+    const pauseTimer = useCallback(() => {
         if (!intervalRef.current) return;
 
-        clearInterval(intervalRef.current);     //clear interval to stop the countdown
-        intervalRef.current = null;
-        //save pause state to local storage for persistance
-        saveTimerState({
-            endTime: null,
-            remainingMs: remainingMsRef.current,
-            isRunning: false,
-        });
-        //update the running state
+        clear(intervalRef);
         setIsRunning(false);
-    }
-    //function for resuming the paused timer
-    const resumeTimer = () => {
-        if(remainingMsRef.current <= 0) return; //exit if no timer exists
-        startTimer(remainingMsRef.current);     //restart timer with remaining time
-    }
-    //new second values to the 
-    const updateDisplay = (ms) => {
-        setHours(Math.floor(ms / 3600000));
-        setMinutes(Math.floor((ms / 60000) % 60));
-        setSeconds(Math.floor((ms / 1000) % 60));
-    };
 
-    const restoreFromState = (state) => {
-        const {endTime, remainingMs, isRunning} = state;    //break up the saved state
+        write(storageKey, { endTime: null, remainingMs: remainingRef.current, isRunning: false,});
+    }, [storageKey]);
 
-        if (isRunning && endTime) {
-            //if timer was running when saved then resume countdown
-            const msLeft = endTime - Date.now();
-            if (msLeft > 0) {
-                startTimer(msLeft);
-            }
-        } else if (!isRunning && remainingMs > 0) {
-            //if timer was paused when saved then restore the displayed values
-            remainingMsRef.current = remainingMs;
-            //update the displayed time values
-            setHasStarted(true);
-            updateDisplay(remainingMs);
-            setIsRunning(false);    //set as paused
+    const resumeTimer = useCallback(() => {
+        if (remainingRef.current <= 0) return;
+        startTimer(remainingRef.current);
+    }, [startTimer]);
+
+    const restore = useCallback((state: TimerState) => {
+        if (state.isRunning && state.endTime) {
+            const ms = state.endTime - Date.now();
+            if (ms > 0) return startTimer(ms);
         }
-    }
 
-    //resume logic to restore timer state on component mount
-    useEffect(() =>{
-        const state = loadTimerState();     //exit if no saved state
-        if(!state) return;
+        if (!state.isRunning && state.remainingMs > 0) { update(state.remainingMs); setHasStarted(true); setIsRunning(false);}
+    }, [startTimer, update]);
 
-        if (state) restoreFromState(state);        
-    }, []);
+    useEffect(() => { 
+		const state = read(storageKey);
+        if (!state) return;
+        restore(state);
+    }, [storageKey, restore]);
 
+    useEffect(() => () => clear(intervalRef), []);
+
+    const time = toTime(remainingMs);
+
+    return { time, isRunning, hasStarted, startTimer,  pauseTimer, resumeTimer, stopTimer, remainingMs,};
+}
+
+type TimerState = {
+    endTime: number | null;
+    remainingMs: number;
+    isRunning: boolean;
+};
+
+/**
+Safely parses a JSON string with error handling.
+*@param {string | null} value - The JSON string to parse.
+*@returns {TimerState | null} The parsed object or null if parsing fails.
+*/
+function parse(value: string | null): TimerState | null {
+    try { return value ? JSON.parse(value) : null; } catch { return null; }
+}
+
+/**
+*Reads a timer state from localStorage.
+*@param {string} [key] - The storage key to read from.
+*@returns {TimerState | null} The stored timer state or null if not found.
+*/
+function read(key?: string): TimerState | null {
+    if (!key) return null;
+    return parse(localStorage.getItem(key));
+}
+
+/**
+*Writes a timer state to localStorage.
+*@param {string | undefined} key - The storage key to write to.
+*@param {TimerState} state - The timer state to store.
+*/
+function write(key: string | undefined, state: TimerState) {
+    if (!key) return;
+    localStorage.setItem(key, JSON.stringify(state));
+}
+
+/**
+*Converts milliseconds to a time object with hours, minutes, and seconds.
+*@param {number} ms - The time in milliseconds.
+*@returns {Object} The formatted time object.
+*@returns {number} returns.hours - The number of hours.
+*@returns {number} returns.minutes - The number of minutes.
+*@returns {number} returns.seconds - The number of seconds.
+*/
+function toTime(ms: number) {
     return {
-        time: { hours, minutes, seconds },
-        isRunning,
-        hasStarted,
-        startTimer,
-        pauseTimer,
-        resumeTimer,
-        stopTimer,
-        remainingMs,
+        hours: Math.floor(ms / 3600000),
+        minutes: Math.floor((ms / 60000) % 60),
+        seconds: Math.floor((ms / 1000) % 60),
     };
+}
+
+/**
+*Creates a 1-second interval timer.
+*@param {() = void} cb - The callback function to execute each interval.
+*@returns {NodeJS.Timeout} The interval ID.
+*/
+function createInterval(cb: () => void) {
+    return setInterval(cb, 1000);
+}
+
+/**
+*Clears an interval and resets the ref to null.
+*@param {React.MutableRefObject<any>} ref - The ref containing the interval ID.
+*/
+function clear(ref: React.MutableRefObject<any>) {
+    if (!ref.current) return;
+    clearInterval(ref.current);
+    ref.current = null;
 }
