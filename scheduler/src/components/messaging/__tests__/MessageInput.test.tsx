@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/messaging/MessageInput.tsx
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MessageInput } from "../MessageInput";

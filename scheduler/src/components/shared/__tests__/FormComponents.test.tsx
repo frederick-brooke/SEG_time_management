@@ -1,12 +1,12 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FormField, Toggle, DayPicker, RecurrencePanel } from "../FormComponents"; 
 
 describe("Shared Form Components", () => {
-  // FormField Tests
+  // FormField: Validates label rendering and slot projection
   describe("FormField", () => {
-    it("renders the label text", () => {
+    it("renders the label text accurately", () => {
       render(
         <FormField label="Email Address">
           <input type="email" placeholder="test@example.com" />
@@ -15,7 +15,7 @@ describe("Shared Form Components", () => {
       expect(screen.getByText("Email Address")).toBeInTheDocument();
     });
 
-    it("renders its children correctly", () => {
+    it("projects its children into the component correctly", () => {
       render(
         <FormField label="Username">
           <input type="text" data-testid="child-input" />
@@ -25,82 +25,73 @@ describe("Shared Form Components", () => {
     });
   });
 
-  // Toggle Tests
+  // Toggle: Tests accessibility, state-based styling, and interaction
   describe("Toggle", () => {
-    it("renders the toggle label", () => {
+    it("renders the toggle label correctly", () => {
       render(<Toggle label="Enable Notifications" on={false} onToggle={jest.fn()} />);
       expect(screen.getByText("Enable Notifications")).toBeInTheDocument();
     });
 
-    it("applies the correct classes when 'on' is true", () => {
-      const { container } = render(<Toggle label="On State" on={true} onToggle={jest.fn()} />);
-      const toggleDiv = container.querySelector("label > div");
-      expect(toggleDiv).toHaveClass("bg-indigo-600");
-      expect(toggleDiv).not.toHaveClass("bg-gray-200");
+    it("reflects the 'on' state via ARIA attributes and classes", () => {
+      const { rerender } = render(<Toggle label="Status" on={true} onToggle={jest.fn()} />);
+      const toggle = screen.getByRole("switch");
+      
+      expect(toggle).toHaveAttribute("aria-checked", "true");
+      expect(toggle).toHaveClass("bg-indigo-600");
+
+      rerender(<Toggle label="Status" on={false} onToggle={jest.fn()} />);
+      expect(toggle).toHaveAttribute("aria-checked", "false");
+      expect(toggle).toHaveClass("bg-gray-200");
     });
 
-    it("applies the correct classes when 'on' is false", () => {
-      const { container } = render(<Toggle label="Off State" on={false} onToggle={jest.fn()} />);
-      const toggleDiv = container.querySelector("label > div");
-      expect(toggleDiv).toHaveClass("bg-gray-200");
-      expect(toggleDiv).not.toHaveClass("bg-indigo-600");
-    });
-
-    it("fires onToggle when the switch is clicked", async () => {
+    it("triggers onToggle when the switch or label is clicked", async () => {
       const user = userEvent.setup();
       const mockOnToggle = jest.fn();
-      const { container } = render(<Toggle label="Click Me" on={false} onToggle={mockOnToggle} />);
+      render(<Toggle label="Click Me" on={false} onToggle={mockOnToggle} />);
       
-      const toggleDiv = container.querySelector("label > div");
-      await user.click(toggleDiv!);
+      // Click the switch
+      await user.click(screen.getByRole("switch"));
+      // Click the label text
+      await user.click(screen.getByText("Click Me"));
       
-      expect(mockOnToggle).toHaveBeenCalledTimes(1);
+      expect(mockOnToggle).toHaveBeenCalledTimes(2);
     });
   });
 
-  // DayPicker Tests
+  // DayPicker: Validates selection logic and grid rendering
   describe("DayPicker", () => {
     const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-    it("renders all seven days of the week", () => {
+    it("renders all seven day options", () => {
       render(<DayPicker selected={[]} onChange={jest.fn()} />);
       DAYS.forEach((day) => {
         expect(screen.getByRole("button", { name: day })).toBeInTheDocument();
       });
     });
 
-    it("highlights selected days with active styling", () => {
-      render(<DayPicker selected={["Mon", "Wed"]} onChange={jest.fn()} />);
-      
-      const monButton = screen.getByRole("button", { name: "Mon" });
-      const tueButton = screen.getByRole("button", { name: "Tue" });
-
-      expect(monButton).toHaveClass("bg-indigo-600", "text-white");
-      expect(tueButton).toHaveClass("bg-white", "text-gray-600");
+    it("applies active styling to selected days", () => {
+      render(<DayPicker selected={["Mon"]} onChange={jest.fn()} />);
+      expect(screen.getByRole("button", { name: "Mon" })).toHaveClass("bg-indigo-600");
+      expect(screen.getByRole("button", { name: "Tue" })).toHaveClass("bg-white");
     });
 
-    it("adds a day to the array when an unselected day is clicked", async () => {
+    it("updates selection when a day is clicked", async () => {
       const user = userEvent.setup();
       const mockOnChange = jest.fn();
-      render(<DayPicker selected={["Mon"]} onChange={mockOnChange} />);
       
+      // Test Adding
+      const { rerender } = render(<DayPicker selected={["Mon"]} onChange={mockOnChange} />);
       await user.click(screen.getByRole("button", { name: "Wed" }));
-      
       expect(mockOnChange).toHaveBeenCalledWith(["Mon", "Wed"]);
-    });
 
-    it("removes a day from the array when a selected day is clicked", async () => {
-      const user = userEvent.setup();
-      const mockOnChange = jest.fn();
-      render(<DayPicker selected={["Mon", "Wed"]} onChange={mockOnChange} />);
-      
+      // Test Removing
+      rerender(<DayPicker selected={["Mon", "Wed"]} onChange={mockOnChange} />);
       await user.click(screen.getByRole("button", { name: "Mon" }));
-      
       expect(mockOnChange).toHaveBeenCalledWith(["Wed"]);
     });
   });
 
-  // RecurrencePanel Tests
+  // RecurrencePanel: Tests conditional logic and integration of sub-components
   describe("RecurrencePanel", () => {
     const baseProps = {
       type: "daily",
@@ -111,56 +102,35 @@ describe("Shared Form Components", () => {
       onUntil: jest.fn(),
     };
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
+    beforeEach(() => jest.clearAllMocks());
 
-    it("renders the default options and until date input", () => {
+    it("displays correct initial values for type and date", () => {
       render(<RecurrencePanel {...baseProps} />);
-      
-      // Select dropdown
-      const select = screen.getByRole("combobox");
-      expect(select).toHaveValue("daily");
-      
-      // Date input
-      const dateInput = screen.getByDisplayValue("2024-12-31");
-      expect(dateInput).toHaveAttribute("type", "date");
+      expect(screen.getByRole("combobox")).toHaveValue("daily");
+      expect(screen.getByLabelText(/until/i)).toHaveValue("2024-12-31");
     });
 
-    it("calls onType when a new recurrence type is selected", async () => {
+    it("triggers onType when the recurrence selection changes", async () => {
       const user = userEvent.setup();
       render(<RecurrencePanel {...baseProps} />);
-      
-      const select = screen.getByRole("combobox");
-      await user.selectOptions(select, "monthly");
-      
-      expect(baseProps.onType).toHaveBeenCalledWith("monthly");
+      await user.selectOptions(screen.getByRole("combobox"), "weekly");
+      expect(baseProps.onType).toHaveBeenCalledWith("weekly");
     });
 
-    it("calls onUntil when the date is changed", async () => {
-      const { container } = render(<RecurrencePanel {...baseProps} />);
-      const dateInput = container.querySelector('input[type="date"]');
+    it("triggers onUntil when the end date is modified", async () => {
+      const user = userEvent.setup();
+      render(<RecurrencePanel {...baseProps} />);
+      const dateInput = screen.getByLabelText(/until/i);
       
-      React.isValidElement(dateInput);
-      if (dateInput) {
-        import("@testing-library/react").then(({ fireEvent }) => {
-            fireEvent.change(dateInput, { target: { value: "2025-01-01" } });
-        });
-      }
-      
-      setTimeout(() => {
-          expect(baseProps.onUntil).toHaveBeenCalledWith("2025-01-01");
-      }, 0);
+      fireEvent.change(dateInput, { target: { value: "2025-01-01" } });
+      expect(baseProps.onUntil).toHaveBeenCalledWith("2025-01-01");
     });
 
-    it("does not render the DayPicker if type is not 'weekly'", () => {
-      render(<RecurrencePanel {...baseProps} type="daily" />);
+    it("toggles DayPicker visibility based on the recurrence type", () => {
+      const { rerender } = render(<RecurrencePanel {...baseProps} type="daily" />);
       expect(screen.queryByRole("button", { name: "Mon" })).not.toBeInTheDocument();
-    });
 
-    it("renders the DayPicker if type is 'weekly'", () => {
-      render(<RecurrencePanel {...baseProps} type="weekly" />);
-      // If DayPicker is rendered, "Mon" will be present
+      rerender(<RecurrencePanel {...baseProps} type="weekly" />);
       expect(screen.getByRole("button", { name: "Mon" })).toBeInTheDocument();
     });
   });
