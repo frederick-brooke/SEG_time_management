@@ -10,24 +10,29 @@ interface FriendLayerProps {
   userLocation: { lat: number; lng: number } | null;
 }
 
-// Icon for the current user
+/** Icon for the current user */
 const userIcon = new Icon({ iconUrl: USER_ICON_URL, iconSize: [38, 38] });
 
 /**
- * Create a custom icon for a friend based on their equipped avatar
+ * Create a Leaflet icon for a friend
+ * @param equippedAvatar Optional avatar string equipped by the friend
+ * @returns Leaflet Icon object
  */
 function getFriendIcon(equippedAvatar?: string): Icon {
-  const avatarUrl = equippedAvatar && AVATAR_IMAGES[equippedAvatar]
-    ? AVATAR_IMAGES[equippedAvatar]
-    : FRIEND_ICON_URL;
+  const avatarUrl =
+    equippedAvatar && AVATAR_IMAGES[equippedAvatar]
+      ? AVATAR_IMAGES[equippedAvatar]
+      : FRIEND_ICON_URL;
 
   return new Icon({ iconUrl: avatarUrl, iconSize: [32, 32] });
 }
 
 /**
- * Popup content for a single friend
+ * Renders the popup content for a friend marker
+ * @param friend Friend object
+ * @returns element for the popup
  */
-function FriendPopup({ friend }: { friend: Friend }) {
+function FriendPopup({ friend }: { friend: Friend }) { 
   return (
     <div className="text-center">
       {friend.pfp && (
@@ -49,12 +54,15 @@ function FriendPopup({ friend }: { friend: Friend }) {
 }
 
 /**
- * Renders the current user's position plus all friends as Leaflet markers.
+ * Renders the current user and friends as Leaflet markers
+ * @param friends List of friend objects
+ * @param userLocation Optional current user location
+ * @returns fragment containing markers
  */
-export function FriendLayer({ friends, userLocation }: FriendLayerProps) {
+export function FriendLayer({ friends, userLocation }: FriendLayerProps) { 
   return (
     <>
-      {/* Render current user marker if location is available */}
+      {/* Render current user marker */}
       {userLocation && (
         <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
           <Popup>
@@ -67,7 +75,7 @@ export function FriendLayer({ friends, userLocation }: FriendLayerProps) {
 
       {/* Render friend markers */}
       {friends.map((friend) => {
-        if (!friend.location) return null; // Skip friends without coordinates
+        if (!friend.location) return null;
 
         return (
           <Marker

@@ -19,18 +19,28 @@ interface SetLocationModalProps {
   initialHidden: boolean;
 }
 
-function MapCenterController({ location, shouldCenter }: { location: LatLng; shouldCenter: boolean }) {
+/**
+ * Controls map centering when location changes.
+ * Flies to the new location when shouldCenter is true.
+ */
+function MapCenterController({
+  location,
+  shouldCenter,
+}: {
+  location: LatLng;
+  shouldCenter: boolean;
+}) {
   const map = useMap();
-
   useEffect(() => {
-    if (shouldCenter) {
-      map.flyTo([location.lat, location.lng], map.getZoom(), { duration: 0.5 });
-    }
+    if (!shouldCenter) return;
+    map.flyTo([location.lat, location.lng], map.getZoom(), { duration: 0.5 });
   }, [location, shouldCenter, map]);
-
   return null;
 }
 
+/**
+ * Draggable marker that calls onPositionChange when dropped.
+ */
 function DraggableMarker({
   position,
   onPositionChange,
@@ -38,33 +48,78 @@ function DraggableMarker({
   position: LatLng;
   onPositionChange: (pos: LatLng) => void;
 }) {
-  const map = useMap();
   const markerRef = useRef<L.Marker>(null);
 
-  const customIcon = L.divIcon({
-    html: `<div style="font-size: 32px; display: flex; align-items: center; justify-content: center;">📍</div>`,
+  useEffect(() => {
+    if (!markerRef.current) return;
+    const handleDragEnd = () => {
+      const { lat, lng } = markerRef.current!.getLatLng();
+      onPositionChange({ lat, lng });
+    };
+    markerRef.current.on("dragend", handleDragEnd);
+    return () => { markerRef.current?.off("dragend", handleDragEnd); };
+  }, [onPositionChange]);
+
+  const icon = L.divIcon({
+    html: `<div style="font-size:32px;">📍</div>`,
     iconSize: [32, 32],
     className: "custom-emoji-icon",
   });
 
-  useEffect(() => {
-    if (!markerRef.current) return;
-
-    const handleDragEnd = () => {
-      const latLng = markerRef.current!.getLatLng();
-      onPositionChange({ lat: latLng.lat, lng: latLng.lng });
-    };
-
-    markerRef.current.on("dragend", handleDragEnd);
-
-    return () => {
-      markerRef.current?.off("dragend", handleDragEnd);
-    };
-  }, [onPositionChange]);
-
-  return <Marker ref={markerRef} position={[position.lat, position.lng]} draggable icon={customIcon} />;
+  return (
+    <Marker
+      ref={markerRef}
+      position={[position.lat, position.lng]}
+      draggable
+      icon={icon}
+    />
+  );
 }
 
+/**
+ * Extracts lat/lng from a GeoJSON feature returned by the location search API.
+ * Returns null if coordinates are missing.
+ */
+function extractCoords(feature: any): LatLng | null {
+  if (!feature?.geometry?.coordinates) return null;
+  return {
+    lng: parseFloat(feature.geometry.coordinates[0]),
+    lat: parseFloat(feature.geometry.coordinates[1]),
+  };
+}
+
+/**
+ * Calculates the pixel position for the suggestions dropdown
+ * relative to the search input element.
+ */
+function calculateDropdownStyle(input: HTMLInputElement) {
+  const rect = input.getBoundingClientRect();
+  return {
+    top: rect.bottom + window.scrollY + 4,
+    left: rect.left + window.scrollX,
+    width: rect.width,
+  };
+}
+
+/**
+ * Derives the initial map location from props and geolocation.
+ * Priority: initialLocation > userLocation > London fallback.
+ */
+function resolveInitialLocation(
+  initialLocation: LatLng | null,
+  userLocation: [number, number] | null
+): LatLng {
+  if (initialLocation) return initialLocation;
+  if (userLocation) return { lat: userLocation[0], lng: userLocation[1] };
+  return { lat: 51.505, lng: -0.09 };
+}
+
+/**
+ * Modal for setting and saving the user's map location.
+ *
+ * Allows the user to search for a location, drag a marker,
+ * use device geolocation, and toggle location visibility.
+ */
 export default function SetLocationModal({
   isOpen,
   onClose,
@@ -74,55 +129,50 @@ export default function SetLocationModal({
   const router = useRouter();
   const { userLocation } = useGeolocation();
   const { searchQuery, suggestions, handleLocationSearch } = useLocationSearch();
+
   const [location, setLocation] = useState<LatLng>(
-    initialLocation ?? (userLocation
-      ? { lat: userLocation[0], lng: userLocation[1] }
-      : { lat: 51.505, lng: -0.09 })
+    () => resolveInitialLocation(initialLocation, userLocation)
   );
   const [hidden, setHidden] = useState(initialHidden);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shouldCenterMap, setShouldCenterMap] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<any>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Handles selecting a suggestion from the dropdown.
+   * Updates the map marker and clears the search.
+   */
   const handleSelectSuggestion = (feature: any) => {
-    if (!feature?.geometry?.coordinates) return;
-
-    const lng = parseFloat(feature.geometry.coordinates[0]);
-    const lat = parseFloat(feature.geometry.coordinates[1]);
-
-    setLocation({ lat, lng });
+    const coords = extractCoords(feature);
+    if (!coords) return;
+    setLocation(coords);
     setShouldCenterMap(true);
     setTimeout(() => setShouldCenterMap(false), 100);
     handleLocationSearch("");
   };
 
+  /**
+   * Moves the marker to the user's current device location.
+   * Does nothing if geolocation is unavailable.
+   */
   const handleUseMyLocation = () => {
-    if (userLocation) {
-      setLocation({ lat: userLocation[0], lng: userLocation[1] });
-      setShouldCenterMap(true);
-      setTimeout(() => setShouldCenterMap(false), 100);
-    }
+    if (!userLocation) return;
+    setLocation({ lat: userLocation[0], lng: userLocation[1] });
+    setShouldCenterMap(true);
+    setTimeout(() => setShouldCenterMap(false), 100);
   };
 
-  useEffect(() => {
-    if (suggestions.length > 0 && inputRef.current) {
-      const rect = inputRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        top: rect.bottom + window.scrollY + 4,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-      });
-    }
-  }, [suggestions]);
-
+  /**
+   * Persists the selected location and visibility setting to the backend.
+   * Closes the modal and refreshes the page on success.
+   */
   const handleSave = async () => {
     if (!location) return;
-
     setIsSaving(true);
     setError(null);
-
     try {
       const result = await updateUserLocation({
         latitude: location.lat,
@@ -131,12 +181,10 @@ export default function SetLocationModal({
         country: null,
         locationHidden: hidden,
       });
-
       if (!result.success) {
         setError(result.error || "Failed to save location");
         return;
       }
-
       onClose();
       router.refresh();
     } catch (err) {
@@ -146,138 +194,87 @@ export default function SetLocationModal({
     }
   };
 
+  /** Recalculates dropdown position whenever suggestions change. */
+  useEffect(() => {
+    if (!inputRef.current || suggestions.length === 0) return;
+    setDropdownStyle(calculateDropdownStyle(inputRef.current));
+  }, [suggestions]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4">
-      <div className="bg-[#0a0f1d] rounded-xl border border-white/10 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#0a0f1d] rounded-xl border border-white/10 w-full max-w-2xl flex flex-col">
+
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex justify-between p-6 border-b border-white/10">
           <h2 className="text-xl font-bold text-white">Set Your Location</h2>
-          <button
-            onClick={onClose}
-            className="text-white/30 hover:text-white transition-colors"
-            aria-label="Close modal"
-          >
-            ✕
-          </button>
+          <button aria-label="Close modal" onClick={onClose}>✕</button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {/* Search Input */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-white/30 uppercase tracking-wider">
-              Search Location
-            </label>
-            <div className="relative">
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder="Search for a location..."
-                value={searchQuery}
-                onChange={(e) => handleLocationSearch(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-3 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-              <button
-                type="button"
-                onClick={handleUseMyLocation}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-blue-400 font-bold hover:text-blue-300 transition-colors"
-              >
-                📍 My Location
-              </button>
-            </div>
+        <div className="p-6 space-y-4">
 
-            {/* Suggestions Dropdown */}
-            {suggestions.length > 0 && dropdownStyle && (
-              <div
-                className="fixed z-[9999] bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl max-h-48 overflow-auto"
-                style={{ top: dropdownStyle.top, left: dropdownStyle.left, width: dropdownStyle.width }}
-              >
-                {suggestions.map((s: any, i: number) => (
-                  <button
-                    key={i}
-                    type="button"
-                    data-testid={`suggestion-${i}`}
-                    onClick={() => handleSelectSuggestion(s)}
-                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm border-b border-white/[0.06] last:border-0 transition-colors"
-                  >
-                    <span className="font-semibold text-white/80">{s.properties.name}</span>
-                    {s.properties.city && (
-                      <span className="text-white/30 ml-1">({s.properties.city})</span>
-                    )}
-                    <p className="text-xs text-white/30 truncate">{s.properties.display}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Search input */}
+          <input
+            ref={inputRef}
+            value={searchQuery}
+            onChange={(e) => handleLocationSearch(e.target.value)}
+            placeholder="Search for a location..."
+            className="w-full p-3 rounded-lg"
+          />
 
-          {/* Map */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-white/30 uppercase tracking-wider">
-              Adjust Pin
-            </label>
-            <div className="border border-white/10 rounded-lg overflow-hidden" style={{ height: "300px" }}>
-              <MapContainer
-                center={[location.lat, location.lng]}
-                zoom={12}
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <MapCenterController location={location} shouldCenter={shouldCenterMap} />
-                <DraggableMarker position={location} onPositionChange={setLocation} />
-              </MapContainer>
-            </div>
-          </div>
-
-          {/* Hide Location Toggle */}
-          <div className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-lg">
-            <label className="text-sm font-medium text-white">Hide location from friends</label>
-            <button
-              type="button"
-              aria-label="Hide location from friends"
-              onClick={() => setHidden(!hidden)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                hidden ? "bg-indigo-600" : "bg-white/10"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  hidden ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-              {error}
+          {/* Suggestions dropdown */}
+          {suggestions.length > 0 && dropdownStyle && (
+            <div style={dropdownStyle} className="fixed bg-[#1a1a24] rounded-xl">
+              {suggestions.map((s: any, i: number) => (
+                <button
+                  key={i}
+                  data-testid={`suggestion-${i}`}
+                  onClick={() => handleSelectSuggestion(s)}
+                >
+                  {s.properties.display ?? s.properties.name}
+                </button>
+              ))}
             </div>
           )}
+
+          {/* My Location button */}
+          <button onClick={handleUseMyLocation}>
+            📍 My Location
+          </button>
+
+          {/* Map */}
+          <MapContainer
+            center={[location.lat, location.lng]}
+            zoom={12}
+            style={{ height: 300 }}
+          >
+            <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <MapCenterController location={location} shouldCenter={shouldCenterMap} />
+            <DraggableMarker position={location} onPositionChange={setLocation} />
+          </MapContainer>
+
+          {/* Visibility toggle */}
+          <button
+            aria-label={hidden ? "Show location" : "Hide location"}
+            onClick={() => setHidden(!hidden)}
+          >
+            {hidden ? "Hidden" : "Visible"}
+          </button>
+
+          {/* Error message */}
+          {error && <div>{error}</div>}
         </div>
 
         {/* Footer */}
         <div className="flex gap-3 p-6 border-t border-white/10">
-          <button
-            onClick={onClose}
-            disabled={isSaving}
-            className="flex-1 px-4 py-2 rounded-lg border border-white/10 text-white hover:bg-white/5 transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
-          >
+          <button disabled={isSaving} onClick={onClose}>Cancel</button>
+          <button disabled={isSaving} onClick={handleSave}>
             {isSaving ? "Saving..." : "Save Location"}
           </button>
         </div>
+
       </div>
     </div>
   );
