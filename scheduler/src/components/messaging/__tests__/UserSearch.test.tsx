@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/messaging/UserSearch.tsx
 import React from "react";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import UserSearch from "../UserSearch";

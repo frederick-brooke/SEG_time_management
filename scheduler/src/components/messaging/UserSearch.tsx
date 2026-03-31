@@ -123,7 +123,10 @@ export default function UserSearch() {
     filteredFriends.length > 0 || filteredGroups.length > 0;
 
   /**
-   * Starts a new direct conversation with a user.
+   * Creates or retrieves a direct conversation with the given user,
+   * then navigates to it and clears the search query.
+   *
+   * @param targetUserId - The ID of the user to start a chat with.
    */
   const startChat = async (targetUserId: string) => {
     try {

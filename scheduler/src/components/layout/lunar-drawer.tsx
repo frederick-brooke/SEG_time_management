@@ -1,51 +1,48 @@
 "use client";
 
-export default function LunarDrawer({
-  open,
-  onClose,
-  side = "left",
-  width = "500px",
-  title,
-  children,
-}) {
-  const isLeft = side === "left";
+/**
+*Renders a customizable drawer/modal component that slides in from the left, right, or bottom.
+*@param {Object} props - Component props.
+*@param {boolean} props.open - Whether the drawer is visible.
+*@param {Function} props.onClose - Callback to close the drawer.
+*@param {string} [props.side="left"] - The side the drawer slides from ("left", "right", or "bottom").
+*@param {string} [props.title] - The title text displayed in the drawer header.
+*@param {string} [props.width="w-full sm:w-[420px]"] - Width classes for side drawers (ignored for bottom).
+*@param {React.ReactNode} props.children - The content to render inside the drawer.
+*@returns {JSX.Element|null} The drawer component or null if closed.
+*/
+export default function LunarDrawer({ open, onClose, side = "left", title, width = "w-full sm:w-[420px]", children }) {
+    if (!open) return null;
 
-  return (
-    <>
-      {/* backdrop */}
-      <div
-        onClick={onClose}
-        className={`fixed inset-0 z-8000 bg-black/20 backdrop-blur-sm transition-opacity duration-300
-          ${open ? "opacity-100" : "opacity-0 pointer-events-none"}
-        `}
-      />
+    const isBottom  = side.includes("bottom");
+    const isRight   = side.includes("right");
 
-      {/* drawer */}
-      <div
-        className={`fixed top-0 ${isLeft ? "left-0 border-r" : "right-0 border-l"} h-screen flex flex-col
-        bg-gradient-to-b from-[#020408] via-indigo-950 to-[#1a0b2e]
-        shadow-2xl z-9999 transform transition-transform duration-300 ease-out
-        ${
-          open
-            ? "translate-x-0"
-            : isLeft
-            ? "-translate-x-full"
-            : "translate-x-full"
-        }`}
-        style={{ width }}
-      >
-        {/* header */}
-        <div className="p-5 border-b border-white/10 flex-shrink-0">
-          <h2 className="lunar-header text-2xl font-semibold text-white tracking-wide">
-            {title}
-          </h2>
+    const positionCls = isBottom ? "inset-x-0 bottom-0 max-h-[85vh] rounded-t-3xl"  : isRight ? "inset-y-0 right-0" : "inset-y-0 left-0";
+
+    const sizeCls = isBottom ? "w-full" : width;
+
+    const justifyCls = isRight ? "justify-end" : "justify-start";
+
+    return (
+        <div className={`fixed inset-0 z-50 flex ${justifyCls} bg-black/60 backdrop-blur-sm`} onClick={onClose}>
+            <div className={`fixed ${positionCls} ${sizeCls} flex flex-col bg-[#111629]/80 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden`}
+                onClick={(e) => e.stopPropagation()}>
+
+                {isBottom && (
+                    <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+                        <div className="w-10 h-1 rounded-full bg-white/20" />
+                    </div>
+                )}
+
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
+                    <h2 className="lunar-header text-white font-semibold">{title}</h2>
+                    <button onClick={onClose} className="text-white/50 hover:text-white transition">✕</button>
+                </div>
+
+                <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+                    {children}
+                </div>
+            </div>
         </div>
-
-        {/* content */}
-        <div className="flex flex-1 flex-col p-4 min-h-0">
-          {children}
-        </div>
-      </div>
-    </>
-  );
+    );
 }

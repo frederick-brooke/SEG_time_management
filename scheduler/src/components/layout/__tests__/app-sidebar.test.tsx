@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { AppSidebar } from './app-sidebar';
+import { AppSidebar } from '../app-sidebar';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
