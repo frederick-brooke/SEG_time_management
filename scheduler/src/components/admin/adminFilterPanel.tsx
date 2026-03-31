@@ -1,6 +1,14 @@
 const inputCls  = "w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white";
 const selectCls = `${inputCls} focus:outline-none`;
+//single point of change for the UI
 
+/**
+*Renders a modal filter panel that slides in from the right side.
+*@param {Function} props.onClose - Callback to close the filter panel.
+*@param {Function} props.onReset - Callback to reset all filters.
+*@param {React.ReactNode} props.children - The filter content to render inside the panel.
+*@returns {JSX.Element} The filter panel component.
+*/
 export function FilterPanel({ onClose, onReset, children }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -18,6 +26,15 @@ export function FilterPanel({ onClose, onReset, children }) {
   );
 }
 
+/**
+*Renders a group of controls for sorting by field and order.
+*@param {string} props.sortBy - Current sort field value.
+*@param {string} props.order - Current sort order ("asc" or "desc").
+*@param {Array<{value: string, label: string}>} props.sortOptions - Available sort options.
+*@param {Function} props.onSortChange - Callback when sort field changes.
+*@param {Function} props.onOrderChange - Callback when sort order changes.
+*@returns {JSX.Element} The filter sort group component.
+*/
 export function FilterSortGroup({ sortBy, order, sortOptions, onSortChange, onOrderChange }) {
   return (
     <div className="space-y-3">
@@ -33,6 +50,15 @@ export function FilterSortGroup({ sortBy, order, sortOptions, onSortChange, onOr
   );
 }
 
+/**
+*Renders a date range filter with start and end date inputs.
+*@param {string} [props.label="Dates"] - The label for the date range group.
+*@param {string} props.startDate - Current start date value.
+*@param {string} props.endDate - Current end date value.
+*@param {Function} props.onStartChange - Callback when start date changes.
+*@param {Function} props.onEndChange - Callback when end date changes.
+*@returns {JSX.Element} The filter date range component.
+*/
 export function FilterDateRange({ label = "Dates", startDate, endDate, onStartChange, onEndChange }) {
   return (
     <div className="space-y-3">
@@ -43,6 +69,14 @@ export function FilterDateRange({ label = "Dates", startDate, endDate, onStartCh
   );
 }
 
+/**
+*Renders a group of toggle buttons for multi-select filtering.
+*@param {string} props.label - The label for the toggle group.
+*@param {Array<{value: string, label: string}>} props.options - Available toggle options.
+*@param {Function} props.isActive - Function that returns true if a value is currently active.
+*@param {Function} props.onToggle - Callback when a toggle button is clicked.
+*@returns {JSX.Element} The filter toggle group component.
+*/
 export function FilterToggleGroup({ label, options, isActive, onToggle }) {
   return (
     <div className="space-y-3">
@@ -59,6 +93,12 @@ export function FilterToggleGroup({ label, options, isActive, onToggle }) {
   );
 }
 
+/**
+*Renders action buttons for applying filters and closing the panel.
+*@param {Function} props.onApply - Callback when apply filters button is clicked.
+*@param {Function} props.onClose - Callback when close button is clicked.
+*@returns {JSX.Element} The filter actions component.
+*/
 export function FilterActions({ onApply, onClose }) {
   return (
     <div className="mt-auto space-y-3">
