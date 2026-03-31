@@ -33,11 +33,10 @@ interface CityValue {
 }
 
 interface CitySearchProps {
-  value: CityValue | null;
-  onChange: (city: CityValue | null) => void;
+  value?: { name: string; lat: number; lng: number };
+  onChange: (city: { name: string; lat: number; lng: number }) => void;
   placeholder?: string;
 }
-
 // Constants 
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
