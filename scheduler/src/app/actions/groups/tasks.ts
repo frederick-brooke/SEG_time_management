@@ -1,32 +1,39 @@
-'use server';
 
 /**
- * Group task service
- *
- * Handles creating, updating, deleting, and fetching group tasks.
+ * @file groupTaskActions.ts
+ * @description Handles creating, updating, deleting, and fetching group tasks.
  * Syncs tasks across members and tracks per-user completion/progress.
  */
 
-import { prisma } from "lib/prisma";
+'use server';
+
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "lib/auth";
+import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { requireSession, isGroupMember, generateGroupId } from "./utils";
 
-//group tasks
+/** * Strict interface for task creation to prevent runtime schema mismatches 
+ */
+interface GroupTaskInput {
+  title: string;
+  description?: string;
+  dueDate?: string | Date;
+  priority?: "Low" | "Medium" | "High";
+  duration?: number;
+  subtasks?: string[];
+  url?: string;
+}
 
 /**
- * Creates a task on every group member's task list, grouped by a shared groupTaskGroupId
- * Any member can create group tasks
- * @param {string} groupId - The group database ID
- * @param {object} taskData - Task fields (title, dueDate, priority, etc.)
- * @return {Promise<{ success: boolean; message?: string; error?: string }>}
+ * Creates a synchronized task for every member of a group.
+ * Uses a Database Transaction to ensure all members receive the task atomically.
  */
-export async function createGroupTask(groupId: string, taskData: any) {
+export async function createGroupTask(groupId: string, taskData: GroupTaskInput) {
   const session = await requireSession();
 
   if (!(await isGroupMember(groupId, session.user.id))) {
-    return { success: false, error: "You are not a member of this group" };
+    return { success: false, error: "Unauthorized: Member access required." };
   }
 
   const members = await prisma.groupMember.findMany({
@@ -34,60 +41,61 @@ export async function createGroupTask(groupId: string, taskData: any) {
     select: { userId: true },
   });
 
-  if (members.length === 0) return { success: false, error: "No members in group" };
+  if (members.length === 0) return { success: false, error: "Group has no members." };
 
   const groupTaskGroupId = generateGroupId();
 
-  await Promise.all(
-    members.map((member) =>
-      prisma.task.create({
-        data: {
-          userId: member.userId,
-          groupId,
-          isGroupTask: true,
-          groupTaskGroupId,
-          title: taskData.title,
-          description: taskData.description || null,
-          dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
-          priority: taskData.priority || "Low",
-          duration: taskData.duration || 0,
-          subtasks: taskData.subtasks || [],
-          url: taskData.url || null,
-          status: "todo",
-          completed: false,
-        },
-      })
-    )
-  );
+  try {
+    // Transaction ensures data integrity if a single create call fails
+    await prisma.$transaction(
+      members.map((member) =>
+        prisma.task.create({
+          data: {
+            userId: member.userId,
+            groupId,
+            isGroupTask: true,
+            groupTaskGroupId,
+            title: taskData.title,
+            description: taskData.description ?? null,
+            dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
+            priority: taskData.priority ?? "Low",
+            duration: taskData.duration ?? 0,
+            subtasks: taskData.subtasks ?? [],
+            url: taskData.url ?? null,
+            status: "todo",
+            completed: false,
+          },
+        })
+      )
+    );
 
-  revalidatePath(`/groups/${groupId}`);
-  return { success: true, message: `Task assigned to ${members.length} members` };
+    revalidatePath(`/groups/${groupId}`);
+    return { success: true, message: `Task assigned to ${members.length} members.` };
+  } catch (err) {
+    console.error("Group task creation failed:", err);
+    return { success: false, error: "Failed to distribute group tasks." };
+  }
 }
 
 /**
- * Updates all member copies of a group task by groupTaskGroupId
- * Any member can update group tasks
- * @param {string} groupTaskGroupId - The shared group ID for the task
- * @param {string} groupId - The group database ID
- * @param {object} taskData - Updated task fields
- * @return {Promise<{ success: boolean; error?: string }>}
+ * Updates core metadata across all instances of a group task.
  */
-export async function updateGroupTask(groupTaskGroupId: string, groupId: string, taskData: any) {
+export async function updateGroupTask(groupTaskGroupId: string, groupId: string, taskData: GroupTaskInput) {
   const session = await requireSession();
 
   if (!(await isGroupMember(groupId, session.user.id))) {
-    return { success: false, error: "You are not a member of this group" };
+    return { success: false, error: "Unauthorized" };
   }
 
   await prisma.task.updateMany({
     where: { groupTaskGroupId, groupId, isGroupTask: true },
     data: {
       title: taskData.title,
-      description: taskData.description || null,
+      description: taskData.description ?? null,
       dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
-      priority: taskData.priority || "Low",
-      duration: taskData.duration || 0,
-      url: taskData.url || null,
+      priority: taskData.priority ?? "Low",
+      duration: taskData.duration ?? 0,
+      url: taskData.url ?? null,
     },
   });
 
@@ -96,17 +104,13 @@ export async function updateGroupTask(groupTaskGroupId: string, groupId: string,
 }
 
 /**
- * Deletes all member copies of a group task by groupTaskGroupId
- * Any member can delete group tasks
- * @param {string} groupTaskGroupId - The shared group ID for the task
- * @param {string} groupId - The group database ID
- * @return {Promise<{ success: boolean; error?: string }>}
+ * Deletes all instances of a group task across all members.
  */
 export async function deleteGroupTask(groupTaskGroupId: string, groupId: string) {
   const session = await requireSession();
 
   if (!(await isGroupMember(groupId, session.user.id))) {
-    return { success: false, error: "You are not a member of this group" };
+    return { success: false, error: "Unauthorized" };
   }
 
   await prisma.task.deleteMany({
@@ -118,9 +122,7 @@ export async function deleteGroupTask(groupTaskGroupId: string, groupId: string)
 }
 
 /**
- * Gets the current user's group tasks — used for the personal completion view
- * @param {string} groupId - The group database ID
- * @return {Promise<Array>} - List of the current user's group tasks
+ * Gets the current user's group tasks — used for the personal completion view.
  */
 export async function getGroupTasks(groupId: string) {
   const session = await getServerSession(authOptions);
@@ -133,10 +135,7 @@ export async function getGroupTasks(groupId: string) {
 }
 
 /**
- * Gets deduplicated tasks with per-member completion progress
- * Returns one entry per task group with completed and in-progress member lists
- * @param {string} groupId - The group database ID
- * @return {Promise<Array>} - Task groups with progress data
+ * Aggregates group tasks into a deduplicated list with per-member progress tracking.
  */
 export async function getGroupTasksWithProgress(groupId: string) {
   const session = await getServerSession(authOptions);
@@ -145,7 +144,15 @@ export async function getGroupTasksWithProgress(groupId: string) {
   const allTasks = await prisma.task.findMany({
     where: { groupId, isGroupTask: true },
     include: {
-      user: { select: { id: true, username: true, fname: true, lname: true , pfp: true} },
+      user: { 
+        select: { 
+          id: true, 
+          username: true, 
+          fname: true, 
+          lname: true, 
+          pfp: true 
+        } 
+      },
     },
     orderBy: { dueDate: "asc" },
   });
@@ -160,7 +167,7 @@ export async function getGroupTasksWithProgress(groupId: string) {
     url: string | null;
     currentUserCompleted: boolean;
     completedMembers: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null }[];
-    inProgressMembers: { id: string; username: string; fname: string | null; lname: string |null; pfp: string | null }[];
+    inProgressMembers: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null }[];
     totalAssigned: number;
   }>();
 
@@ -201,13 +208,13 @@ export async function getGroupTasksWithProgress(groupId: string) {
 }
 
 /**
- * Marks the current user's copy of a group task as complete or incomplete
- * @param {string} groupTaskGroupId - The shared group task ID
- * @param {string} groupId - The group database ID
- * @param {boolean} completed - The new completion state
- * @return {Promise<{ success: boolean; error?: string }>}
+ * Toggles completion status for the current user's instance of a group task.
  */
-export async function toggleGroupTaskComplete(groupTaskGroupId: string, groupId: string, completed: boolean) {
+export async function toggleGroupTaskComplete(
+  groupTaskGroupId: string, 
+  groupId: string, 
+  completed: boolean
+) {
   const session = await requireSession();
 
   await prisma.task.updateMany({
