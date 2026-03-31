@@ -54,7 +54,7 @@ export default function ReportModal({ reportedUserId, reportedUsername, onClose 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <LunarCard
         variant="purple"
         className="w-full max-w-md p-6 space-y-5 hover:-translate-y-0" // disable lift on modal

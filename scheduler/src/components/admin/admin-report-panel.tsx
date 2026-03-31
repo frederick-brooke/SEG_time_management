@@ -17,135 +17,207 @@ import { useState } from "react";
  * @returns {JSX.Element|null} Report panel UI or null if no report
  */
 export default function ReportPanel({ report, onClose, fetchReports }) {
-	if (!report) return null;	 // Do not render if no report is selected
+	if (!report) return null;
 
-	const [showReportAction, setShowReportAction] = useState(null);		// Controls visibility of action modal
+	const [showReportAction, setShowReportAction] = useState(false);
 
-	/**
-	 * Handles user moderation actions (ban/unban).
-	 *
-	 * @param {Object} user - Target user
-	 * @param {"TEMP" | "PERMANENT" | "UNBAN"} type - Action type
-	 * @param {number|null} durationDays - Duration for temporary bans
-	 */
-	async function banUser(user, type, durationDays = null) {
+	async function handleBan(user, type, durationDays = null) {
 		if (!user?.id) {
-			alert(`Cannot ban user: user ID is missing.`);
+			alert("Cannot ban user: user ID is missing.");
 			return;
 		}
 
 		await fetch(`/api/admin/users/${user.id}/ban`, {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ type, durationDays, reportId: report.id  }),
+			body: JSON.stringify({ type, durationDays, reportId: report.id }),
 		});
 
-		if(type === "TEMP"){
-			alert(`User ${user.username} Temporarily Banned`);
-		} else if(type === "PERMANENT"){
-			alert(`User ${user.username} Permanently Banned`);
-		}
-		else{
-			alert(`User ${user.username} Unbanned`);
-		}
-
+		showBanAlert(user.username, type);
 		fetchReports();
 	}
-	//Determines styling based on report status.
-	const statusStyles = report.status === "RESOLVED" ? "bg-green-400/20 text-green-300" : report.status === "REJECTED" ? "bg-red-400/20 text-red-300" : "bg-yellow-400/20 text-yellow-300";
 
-    return (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-sm"
-            onClick={onClose}
-        >
-            <div
-                className="h-full w-96 flex flex-col bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                    <h3 className="lunar-header text-lg font-semibold text-white">Report Details</h3>
-                    <button onClick={onClose} className="text-white/50 hover:text-white transition">
-                        ✕
-                    </button>
-                </div>
+	return (
+		<div
+			className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-sm"
+			onClick={onClose}
+		>
+			<div
+				className="h-full w-96 flex flex-col bg-white/5 backdrop-blur-xl border-l border-white/10 shadow-2xl"
+				onClick={(e) => e.stopPropagation()}
+			>
+				<Header onClose={onClose} />
 
-            {/* Content */}
-            <div className="p-6 space-y-6 overflow-y-auto flex-1">
-                {/* Report Info */}
-                <div className="space-y-3">
-                    <div className="flex justify-between">
-                    	<span className="text-xs uppercase text-white/40 tracking-wider">Report ID</span>
-                    	<span className="font-medium text-white">{report.id}</span>
-                    </div>
+				<Content
+					report={report}
+					onTakeAction={() => setShowReportAction(true)}
+				/>
 
-                    <div className="flex justify-between">
-                    	<span className="text-xs uppercase text-white/40 tracking-wider">Reported User</span>
-                    	<span className="font-medium text-white">{report.reportedUser.username}</span>
-                    </div>
+				<Footer onClose={onClose} />
+			</div>
 
-                    <div className="flex justify-between">
-                    	<span className="text-xs uppercase text-white/40 tracking-wider">Reported By</span>
-                    	<span className="font-medium text-white">{report.reportedBy.username}</span>
-                    </div>
+			{showReportAction && (
+				<ReportActionModal
+					report={report}
+					onClose={() => setShowReportAction(false)}
+					banUser={handleBan}
+				/>
+			)}
+		</div>
+	);
+}
 
-                    <div className="flex justify-between items-center">
-                   		<span className="text-xs uppercase text-white/40 tracking-wider">Status</span>
-                   	 	<span className={`px-2 py-1 text-xs rounded-full font-medium ${statusStyles}`}>
-                    	    {report.status}
-                    	</span>
-                    </div>
+function showBanAlert(username, type) {
+	if (type === "TEMP") {
+		alert(`User ${username} Temporarily Banned`);
+	} else if (type === "PERMANENT") {
+		alert(`User ${username} Permanently Banned`);
+	} else {
+		alert(`User ${username} Unbanned`);
+	}
+}
 
-                    <div className="flex justify-between">
-                    	<span className="text-xs uppercase text-white/40 tracking-wider">Handled By</span>
-                    	<span className="font-medium text-white">{report.handledBy?.username ?? "Not handled yet"}</span>
-                    </div>
+function getStatusStyles(status) {
+	switch (status) {
+		case "RESOLVED":
+			return "bg-green-400/20 text-green-300";
+		case "REJECTED":
+			return "bg-red-400/20 text-red-300";
+		default:
+			return "bg-yellow-400/20 text-yellow-300";
+	}
+}
 
-                    {report.status === "RESOLVED" && report.reportedUser.isBanned && (
-						<div className="flex justify-between">
-							<span className="text-xs uppercase text-white/40 tracking-wider">Ban Expires</span>
-							<span className="font-medium text-white">
-							{report.reportedUser.banExpires
-								? new Date(report.reportedUser.banExpires).toLocaleString()
-								: "Permanent"}
-							</span>
-						</div>
-                    )}
-                </div>
+function Header({ onClose }) {
+	return (
+		<div className="p-6 border-b border-white/10 flex items-center justify-between">
+			<h3 className="lunar-header text-lg font-semibold text-white">
+				Report Details
+			</h3>
+			<button
+				onClick={onClose}
+				className="text-white/50 hover:text-white transition"
+			>
+				✕
+			</button>
+		</div>
+	);
+}
 
-                {/* Description */}
-                <div className="space-y-1">
-                    <p className="lunar-page-subtitle text-xs text-white/40 uppercase tracking-wider">Description</p>
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
-                    	{report.description}
-                    </div>
-                </div>
+function Content({ report, onTakeAction }) {
+	return (
+		<div className="p-6 space-y-6 overflow-y-auto flex-1">
+			<ReportInfo report={report} />
 
-                {/* Action Button */}
-                {!report.handledBy && (
-                    <button
-                    	onClick={() => setShowReportAction(true)}
-                    	className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
-                    >
-                    	Take Action
-                    </button>
-                )}
-            </div>
+			<Description text={report.description} />
 
-            {/* Close */}
-            <div className="p-6 border-t border-white/10">
-                <button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
-                    Close
-                </button>
-            </div>
-      </div>
+			{!report.handledBy && (
+				<ActionButton onClick={onTakeAction} />
+			)}
+		</div>
+	);
+}
 
-      {/* Report Action Modal */}
-      {showReportAction && (
-        <ReportActionModal report={report} onClose={() => setShowReportAction(false)} banUser={banUser} />
-      )}
-    </div>
-  );
+function Footer({ onClose }) {
+	return (
+		<div className="p-6 border-t border-white/10">
+			<button
+				onClick={onClose}
+				className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+			>
+				Close
+			</button>
+		</div>
+	);
+}
+
+function InfoRow({ label, value }) {
+	return (
+		<div className="flex justify-between">
+			<span className="text-xs uppercase text-white/40 tracking-wider">
+				{label}
+			</span>
+			<span className="font-medium text-white">{value}</span>
+		</div>
+	);
+}
+
+function StatusBadge({ status }) {
+	return (
+		<span
+			className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusStyles(
+				status
+			)}`}
+		>
+			{status}
+		</span>
+	);
+}
+
+function ReportInfo({ report }) {
+	return (
+		<div className="space-y-3">
+			<InfoRow label="Report ID" value={report.id} />
+			<InfoRow
+				label="Reported User"
+				value={report.reportedUser.username}
+			/>
+			<InfoRow
+				label="Reported By"
+				value={report.reportedBy.username}
+			/>
+
+			<div className="flex justify-between items-center">
+				<span className="text-xs uppercase text-white/40 tracking-wider">
+					Status
+				</span>
+				<StatusBadge status={report.status} />
+			</div>
+
+			<InfoRow
+				label="Handled By"
+				value={report.handledBy?.username ?? "Not handled yet"}
+			/>
+
+			{report.status === "RESOLVED" &&
+				report.reportedUser.isBanned && (
+					<InfoRow
+						label="Ban Expires"
+						value={
+							report.reportedUser.banExpires
+								? new Date(
+										report.reportedUser.banExpires
+								  ).toLocaleString()
+								: "Permanent"
+						}
+					/>
+				)}
+		</div>
+	);
+}
+
+function Description({ text }) {
+	return (
+		<div className="space-y-1">
+			<p className="lunar-page-subtitle text-xs text-white/40 uppercase tracking-wider">
+				Description
+			</p>
+			<div className="bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white/80">
+				{text}
+			</div>
+		</div>
+	);
+}
+
+function ActionButton({ onClick }) {
+	return (
+		<button
+			onClick={onClick}
+			className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition"
+		>
+			Take Action
+		</button>
+	);
 }
 
 /**
