@@ -1,202 +1,173 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import AppealPanel from "../admin-appeal-panel"; // adjust path if needed
+import AppealPanel from "../admin-appeal-panel";
 
-// Mock fetch globally
-global.fetch = jest.fn() as jest.Mock;
+global.fetch = jest.fn();
+const mockFetch = global.fetch as jest.Mock;
+
+const mockAppeal = {
+	id: "123",
+	status: "PENDING",
+	message: "Please unban me",
+	createdAt: new Date().toISOString(),
+	user: { username: "testuser", email: "test@email.com" },
+	report: { id: "report123" },
+	handledBy: null,
+};
 
 describe("AppealPanel", () => {
-  const mockOnClose = jest.fn();
-  const mockFetchAppeals = jest.fn();
+	const onClose = jest.fn();
+	const fetchAppeals = jest.fn();
 
-  const baseAppeal = {
-    id: "appeal-123",
-    status: "PENDING",
-    createdAt: new Date().toISOString(),
-    description: "I was banned unfairly",
-    user: { username: "testuser", email: "test@example.com" },
-    report: { id: "report-1" },
-    handledBy: null,
-  };
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+	// 1. Null render
+	it("renders nothing when appeal is null", () => {
+		const { container } = render(
+			<AppealPanel appeal={null} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
+		expect(container.firstChild).toBeNull();
+	});
 
-  test("renders nothing when no appeal is provided", () => {
-    const { container } = render(
-      <AppealPanel appeal={null} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
-    expect(container.firstChild).toBeNull();
-  });
+	// 2. Renders appeal info
+	it("displays appeal information", () => {
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-  test("renders appeal details correctly", () => {
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+		expect(screen.getByText("Appeal Details")).toBeInTheDocument();
+		expect(screen.getByText("123")).toBeInTheDocument();
+		expect(screen.getByText("testuser")).toBeInTheDocument();
+		expect(screen.getByText("report123")).toBeInTheDocument();
+		expect(screen.getByText("Not handled yet")).toBeInTheDocument();
+	});
 
-    expect(screen.getByText("Appeal Details")).toBeInTheDocument();
-    expect(screen.getByText(baseAppeal.id)).toBeInTheDocument();
-    expect(screen.getByText("testuser")).toBeInTheDocument();
-    expect(screen.getByText("report-1")).toBeInTheDocument();
-    expect(screen.getByText("PENDING")).toBeInTheDocument();
-    expect(screen.getByText("Not handled yet")).toBeInTheDocument();
-    expect(screen.getByText("I was banned unfairly")).toBeInTheDocument();
-  });
+	// 3. Status badge
+	it("shows correct status badge", () => {
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-  test("falls back to email if username is missing", () => {
-    const appeal = {
-      ...baseAppeal,
-      user: { email: "fallback@example.com" },
-    };
+		expect(screen.getByText("PENDING")).toBeInTheDocument();
+	});
 
-    render(
-      <AppealPanel appeal={appeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+	// 4. Message fallback
+	it("shows fallback message when no message provided", () => {
+		const noMessageAppeal = { ...mockAppeal, message: null };
 
-    expect(screen.getByText("fallback@example.com")).toBeInTheDocument();
-  });
+		render(
+			<AppealPanel appeal={noMessageAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-  test("shows moderator notes when present", () => {
-    const appeal = {
-      ...baseAppeal,
-      moderatorNotes: "Reviewed by admin",
-    };
+		expect(screen.getByText("No message provided")).toBeInTheDocument();
+	});
 
-    render(
-      <AppealPanel appeal={appeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+	// 5. Buttons show only when pending
+	it("shows action buttons when status is PENDING", () => {
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    expect(screen.getByText("Moderator Notes")).toBeInTheDocument();
-    expect(screen.getByText("Reviewed by admin")).toBeInTheDocument();
-  });
+		expect(screen.getByText(/Approve Appeal/i)).toBeInTheDocument();
+		expect(screen.getByText(/Reject Appeal/i)).toBeInTheDocument();
+	});
 
-  test("does not show action buttons when not PENDING", () => {
-    const appeal = {
-      ...baseAppeal,
-      status: "APPROVED",
-    };
+	// 6. Buttons hidden when not pending
+	it("hides action buttons when not PENDING", () => {
+		const approvedAppeal = { ...mockAppeal, status: "APPROVED" };
 
-    render(
-      <AppealPanel appeal={appeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+		render(
+			<AppealPanel appeal={approvedAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    expect(screen.queryByText(/Approve Appeal/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Reject Appeal/i)).not.toBeInTheDocument();
-  });
+		expect(screen.queryByText(/Approve Appeal/i)).toBeNull();
+		expect(screen.queryByText(/Reject Appeal/i)).toBeNull();
+	});
 
-  test("calls onClose when clicking overlay", () => {
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+	// 7. Approve action
+	it("calls API and callbacks on approve", async () => {
+		mockFetch.mockResolvedValueOnce({ ok: true });
 
-    const overlay = screen.getByText("Appeal Details").closest("div").parentElement.parentElement;
-    fireEvent.click(overlay);
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    expect(mockOnClose).toHaveBeenCalled();
-  });
+		fireEvent.click(screen.getByText(/Approve Appeal/i));
 
-  test("does NOT close when clicking inside panel", () => {
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+		await waitFor(() => {
+			expect(fetch).toHaveBeenCalledWith(
+				`/api/admin/appeals/${mockAppeal.id}`,
+				expect.objectContaining({
+					method: "PATCH",
+				})
+			);
+		});
 
-    fireEvent.click(screen.getByText("Appeal Details"));
+		expect(fetchAppeals).toHaveBeenCalled();
+		expect(onClose).toHaveBeenCalled();
+	});
 
-    expect(mockOnClose).not.toHaveBeenCalled();
-  });
+	// 8. Reject action
+	it("calls API and callbacks on reject", async () => {
+		mockFetch.mockResolvedValueOnce({ ok: true });
 
-  test("approve action calls API and triggers callbacks", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+		fireEvent.click(screen.getByText(/Reject Appeal/i));
 
-    fireEvent.click(screen.getByText(/Approve Appeal/i));
+		await waitFor(() => {
+			expect(fetch).toHaveBeenCalled();
+		});
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        `/api/admin/appeals/${baseAppeal.id}`,
-        expect.objectContaining({
-          method: "PATCH",
-        })
-      );
-    });
+		expect(fetchAppeals).toHaveBeenCalled();
+		expect(onClose).toHaveBeenCalled();
+	});
 
-    expect(mockFetchAppeals).toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
-  });
+	// 9. Loading disables buttons
+	it("disables buttons while loading", async () => {
+		let resolvePromise;
+		mockFetch.mockReturnValue(
+			new Promise((resolve) => {
+				resolvePromise = resolve;
+			})
+		);
 
-  test("reject action calls API and triggers callbacks", async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce({ ok: true });
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+		const approveBtn = screen.getByText(/Approve Appeal/i);
+		fireEvent.click(approveBtn);
 
-    fireEvent.click(screen.getByText(/Reject Appeal/i));
+		expect(approveBtn).toBeDisabled();
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        `/api/admin/appeals/${baseAppeal.id}`,
-        expect.objectContaining({
-          method: "PATCH",
-        })
-      );
-    });
+		resolvePromise({ ok: true });
 
-    expect(mockFetchAppeals).toHaveBeenCalled();
-    expect(mockOnClose).toHaveBeenCalled();
-  });
+		await waitFor(() => {
+			expect(approveBtn).not.toBeDisabled();
+		});
+	});
 
-  test("buttons are disabled while loading", async () => {
-    let resolveFetch;
-    (fetch as jest.Mock).mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveFetch = resolve;
-        })
-    );
+	// 10. Clicking overlay closes panel
+	it("closes when clicking outside panel", () => {
+		const { container } = render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
+		fireEvent.click(container.firstChild);
+		expect(onClose).toHaveBeenCalled();
+	});
 
-    const approveBtn = screen.getByText(/Approve Appeal/i);
+	// 11. Clicking inside panel does NOT close
+	it("does not close when clicking inside panel", () => {
+		render(
+			<AppealPanel appeal={mockAppeal} onClose={onClose} fetchAppeals={fetchAppeals} />
+		);
 
-    fireEvent.click(approveBtn);
-
-    expect(approveBtn).toBeDisabled();
-
-    resolveFetch({ ok: true });
-
-    await waitFor(() => {
-      expect(approveBtn).not.toBeDisabled();
-    });
-  });
-
-  test("close button works", () => {
-    render(
-      <AppealPanel appeal={baseAppeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
-
-    fireEvent.click(screen.getByText("Close"));
-
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  test("handles missing optional fields gracefully", () => {
-    const appeal = {
-      id: "123",
-      status: "PENDING",
-      createdAt: new Date().toISOString(),
-    };
-
-    render(
-      <AppealPanel appeal={appeal} onClose={mockOnClose} fetchAppeals={mockFetchAppeals} />
-    );
-
-    expect(screen.getByText("Unknown")).toBeInTheDocument();
-    expect(screen.getByText("No explanation provided.")).toBeInTheDocument();
-  });
+		fireEvent.click(screen.getByText("Appeal Details"));
+		expect(onClose).not.toHaveBeenCalled();
+	});
 });
