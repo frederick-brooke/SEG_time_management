@@ -1,7 +1,11 @@
+<<<<<<< HEAD
 /**
  * Global theme wrapper component.
  */
 import { StarField } from "@/components/landing/HeroSection";
+=======
+import StarField from "@/components/effects/starField"
+>>>>>>> 4f65f981e4de6fd0882eb251d05d25fd1c1536db
 
 /**
  * Wraps the application content in the standard Lunar visual theme.

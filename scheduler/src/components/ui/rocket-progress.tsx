@@ -10,18 +10,14 @@ interface RocketProgressProps {
 }
 
 interface Star {
-  id: number; left: number; top: number;
-  size: number; delay: number; duration: number;
+  id: number; left: number; top: number; size: number;
 }
-
 
 const STARS: Star[] = Array.from({ length: 40 }, (_, i) => ({
   id: i,
-  left: (i * 137.508) % 100, 
-  top: (i * 97.3) % 100,     
-  size: (i % 3) + 1,      
-  delay: (i * 0.37) % 4,     
-  duration: 2 + (i % 3),     
+  left: (i * 137.508) % 100,
+  top: (i * 97.3) % 100,
+  size: (i % 3) + 1,
 }));
 
 const easeIn5 = (t: number): number => t * t * t * t * t;
@@ -120,16 +116,22 @@ export function RocketProgress({ progress, height = 40, missionName = "MISSION S
         className={`relative w-full overflow-visible rounded-full bg-gradient-to-b from-[#070d1a] to-[#040810] border border-sky-400/[0.12] shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),0_0_20px_rgba(15,25,60,0.6)] ${burst ? "animate-lunar-burst" : ""}`}
         style={{ height }}
       >
-        {/* Decorative star-field rendered from the static STARS array */}
-        <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-          {STARS.map((s) => (
-            <div key={s.id} className="absolute rounded-full bg-white"
-              style={{ left: `${s.left}%`, top: `${s.top}%`, width: s.size, height: s.size,
-                opacity: 0.15, animationName: "star-twinkle", animationDuration: `${s.duration}s`,
-                animationDelay: `${s.delay}s`, animationIterationCount: "infinite",
-                animationTimingFunction: "ease-in-out" }} />
-          ))}
-        </div>
+        <canvas
+          className="absolute inset-0 w-full h-full rounded-full pointer-events-none"
+          ref={(canvas) => {
+            if (!canvas) return;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            STARS.forEach((s) => {
+              ctx.beginPath();
+              ctx.arc((s.left / 100) * canvas.width, (s.top / 100) * canvas.height, s.size / 2, 0, Math.PI * 2);
+              ctx.fillStyle = "rgba(255,255,255,0.15)";
+              ctx.fill();
+            });
+          }}
+        />
 
         <div className="absolute top-0 left-0 h-full rounded-full pointer-events-none blur-[6px] bg-gradient-to-r from-blue-700/25 to-sky-400/35"
           style={{ width: `${displayProgress}%` }} />

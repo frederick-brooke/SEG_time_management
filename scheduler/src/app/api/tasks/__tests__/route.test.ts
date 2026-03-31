@@ -1,12 +1,13 @@
+/**
+ * Testing for tasks api route.
+ */
+
 import { GET, POST } from "@/app/api/tasks/route";
 import { prisma } from "@/lib/prisma";
 import { addDays, addMonths } from "date-fns";
 
-// ---------------------------------------------------------------------------
-// Mock next/server — NextResponse.json is not available in the Jest/Node
-// environment because it depends on the Web Response API. We replace it with
-// a plain object that mimics the shape the tests (and route) expect.
-// ---------------------------------------------------------------------------
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: jest.fn((body: unknown, init?: { status?: number }) => ({
@@ -15,10 +16,6 @@ jest.mock("next/server", () => ({
     })),
   },
 }));
-
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
@@ -50,9 +47,7 @@ const mockCreate = prisma.task.create as jest.Mock;
 const mockEventFindUnique = prisma.event.findUnique as jest.Mock;
 const mockExamFindUnique = prisma.exam.findUnique as jest.Mock;
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 function makeRequest(url: string): Request {
   return { url } as unknown as Request;
@@ -64,10 +59,9 @@ function makePostRequest(body: unknown): Request {
   } as unknown as Request;
 }
 
-// ---------------------------------------------------------------------------
-// GET
-// ---------------------------------------------------------------------------
+// Tests
 
+// GET
 describe("GET /api/tasks", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -103,10 +97,7 @@ describe("GET /api/tasks", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// POST — single task creation
-// ---------------------------------------------------------------------------
-
+// POST
 describe("POST /api/tasks — single task", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -146,7 +137,7 @@ describe("POST /api/tasks — single task", () => {
           title: "My Task",
           priority: "High",
           category: "General",
-          examId: null, // "none" → null
+          examId: null,
         }),
       })
     );
@@ -225,10 +216,6 @@ describe("POST /api/tasks — single task", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// POST — bulk task creation
-// ---------------------------------------------------------------------------
-
 describe("POST /api/tasks — bulk creation", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -252,8 +239,6 @@ describe("POST /api/tasks — bulk creation", () => {
     expect(json.tasks).toHaveLength(2);
     expect(json.tasks[0].id).toBe("t1");
   });
-
-  // ── relativeMode: "custom" with customDate ─
 
   test("bulk: sets scheduledDate and scheduledTime when relativeMode=custom + scheduleTime=true", async () => {
     mockCreate.mockResolvedValue({ id: "t1" });
@@ -328,10 +313,8 @@ describe("POST /api/tasks — bulk creation", () => {
     const data = mockCreate.mock.calls[0][0].data;
     expect(data.scheduledDate).not.toBeNull();
     const d = data.scheduledDate as Date;
-    expect(d.getMonth()).toBe(8); // September (0-indexed)
+    expect(d.getMonth()).toBe(8);
   });
-
-  // ── relativeOffsetDays 
 
   test("bulk: computes date from non-recurring event + relativeOffsetDays", async () => {
     const eventStart = new Date("2025-10-10");
@@ -360,9 +343,8 @@ describe("POST /api/tasks — bulk creation", () => {
 
     const data = mockCreate.mock.calls[0][0].data;
     const sd = data.scheduledDate as Date;
-    // 10 Oct − 2 days = 8 Oct
     expect(sd.getDate()).toBe(8);
-    expect(sd.getMonth()).toBe(9); // October
+    expect(sd.getMonth()).toBe(9);
   });
 
   test("bulk: skips event lookup when eventId is absent even with relativeOffsetDays", async () => {
@@ -374,7 +356,6 @@ describe("POST /api/tasks — bulk creation", () => {
           title: "No Event",
           userId: "u1",
           relativeOffsetDays: -1,
-          // no eventId
         },
       ],
     };
@@ -409,8 +390,6 @@ describe("POST /api/tasks — bulk creation", () => {
     expect(data.scheduledDate).toBeNull();
   });
 
-  // ── recurring tasks ───
-
   test("bulk: sets scheduledDate from recurrence.startDate for recurring task", async () => {
     mockCreate.mockResolvedValue({ id: "t1" });
 
@@ -433,7 +412,7 @@ describe("POST /api/tasks — bulk creation", () => {
     const data = mockCreate.mock.calls[0][0].data;
     expect(data.scheduledDate).not.toBeNull();
     const sd = data.scheduledDate as Date;
-    expect(sd.getMonth()).toBe(10); // November
+    expect(sd.getMonth()).toBe(10);
     expect(sd.getDate()).toBe(1);
   });
 
@@ -445,7 +424,6 @@ describe("POST /api/tasks — bulk creation", () => {
         {
           title: "Unscheduled",
           userId: "u1",
-          // no relativeMode, no relativeOffsetDays, no isRecurring
         },
       ],
     };
@@ -471,9 +449,6 @@ describe("POST /api/tasks — bulk creation", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// computeTaskDateFromEvent — via bulk POST with different recurrence shapes
-// ---------------------------------------------------------------------------
 
 describe("computeTaskDateFromEvent — recurrence branches", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -504,22 +479,21 @@ describe("computeTaskDateFromEvent — recurrence branches", () => {
   test("non-recurring event: returns event start + offset", async () => {
     // Use local noon so setHours(0,0,0,0) always lands on the same calendar
     // date regardless of the test runner's UTC offset.
-    const base = new Date(2025, 6, 20, 12, 0, 0); // July 20, local noon
+    const base = new Date(2025, 6, 20, 12, 0, 0); // July 20 noon
     const event = { id: "evt1", start: base.toISOString(), recurrence: { type: "none" } };
     const date = await getScheduledDateForEvent(event, -3);
     expect(date).not.toBeNull();
-    // July 20 - 3 days = July 17 (local)
     expect(date!.getDate()).toBe(17);
-    expect(date!.getMonth()).toBe(6); // July (0-indexed)
+    expect(date!.getMonth()).toBe(6);
   });
 
   test("null recurrence treated as non-recurring", async () => {
-    const base = new Date(2025, 6, 20, 12, 0, 0); // July 20, local noon
+    const base = new Date(2025, 6, 20, 12, 0, 0); // July 20 noon
     const event = { id: "evt1", start: base.toISOString(), recurrence: null };
     const date = await getScheduledDateForEvent(event, 0);
     expect(date).not.toBeNull();
     expect(date!.getDate()).toBe(20);
-    expect(date!.getMonth()).toBe(6); // July
+    expect(date!.getMonth()).toBe(6);
   });
 
   test("daily recurrence: returns next occurrence >= today + offset", async () => {
@@ -568,8 +542,6 @@ describe("computeTaskDateFromEvent — recurrence branches", () => {
   });
 
   test("weekly recurrence with no matching days returns fallback", async () => {
-    // until is set to yesterday so no occurrence is ever within range,
-    // forcing the fallback path.
     const yesterday = addDays(new Date(), -1);
     const event = {
       id: "evt1",
@@ -577,18 +549,15 @@ describe("computeTaskDateFromEvent — recurrence branches", () => {
       recurrence: {
         type: "weekly",
         days: ["Mon"],
-        until: yesterday.toISOString(), // already past → loop exits
+        until: yesterday.toISOString(),
       },
     };
     const date = await getScheduledDateForEvent(event, 0);
-    // Fallback = event.start + offset; still a valid Date
     expect(date).not.toBeNull();
     expect(date).toBeInstanceOf(Date);
   });
 
   test("weekly with empty days array hits fallback/break", async () => {
-    // The `else { break }` branch inside the while loop for weekly is reached
-    // when recDays is empty or not an array.
     const event = {
       id: "evt1",
       start: new Date().toISOString(),
@@ -615,8 +584,6 @@ describe("computeTaskDateFromEvent — recurrence branches", () => {
   });
 
   test("relativeOffsetDays:null skips event branch (scheduledDate stays null)", async () => {
-    // The route guards the event-lookup branch with `t.relativeOffsetDays != null`,
-    // so a null offset means no date is computed and scheduledDate stays null.
     mockCreate.mockResolvedValue({ id: "t1" });
 
     const body = {
@@ -639,8 +606,7 @@ describe("computeTaskDateFromEvent — recurrence branches", () => {
   });
 
   test("relativeOffsetDays:0 passes 0 into computeTaskDateFromEvent (no offset applied)", async () => {
-    // This exercises the ?? 0 fallback inside computeTaskDateFromEvent when offset is 0.
-    const base = new Date(2025, 11, 25, 12, 0, 0); // Dec 25, local noon
+    const base = new Date(2025, 11, 25, 12, 0, 0); // Dec 25 noon
     const event = { id: "evt1", start: base.toISOString(), recurrence: { type: "none" } };
     mockEventFindUnique.mockResolvedValue(event);
     mockCreate.mockResolvedValue({ id: "t1" });
@@ -661,6 +627,6 @@ describe("computeTaskDateFromEvent — recurrence branches", () => {
     await POST(makePostRequest(body));
     const sd = mockCreate.mock.calls[0][0].data.scheduledDate as Date;
     expect(sd.getDate()).toBe(25);
-    expect(sd.getMonth()).toBe(11); // December
+    expect(sd.getMonth()).toBe(11);
   });
 });

@@ -8,7 +8,6 @@
 
 // Mocks
 
-// NextResponse.json is broken in Jest/JSDOM — replace with a plain Response
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: unknown, init?: ResponseInit) =>

@@ -1,8 +1,17 @@
+/**
+ * Task API route
+ * Handles task deletion and updates (PATCH/DELETE).
+ * Supports partial updates, completion tracking, and reward assignment.
+ */
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { awardTaskPoints, revokeTaskPoints } from "@/lib/points";
 
-// ── DELETE ─────────
+/**
+ * Deletes a task by id.
+ * Requires a valid task id in route params.
+ */
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -20,7 +29,11 @@ export async function DELETE(
   }
 }
 
-// ── PATCH 
+/**
+ * Updates a task by id.
+ * Supports partial updates, status changes, and exam linking.
+ * Awards or revokes points when completion state changes.
+ */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -71,7 +84,7 @@ export async function PATCH(
         ? new Date(body.scheduledTime)
         : null;
 
-    // ── progress field (from check-in partial completion) 
+    // Progress field (from check-in partial completion) 
     if (body.progress !== undefined) d.progress = body.progress ?? null;
 
     if (body.status !== undefined) {
