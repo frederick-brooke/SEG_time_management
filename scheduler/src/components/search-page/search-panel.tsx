@@ -65,7 +65,7 @@ export default function SearchPanel({ open, onClose }) {
     return (
         <>
             {/* backdrop */}
-            <LunarDrawer open={open} onClose={onClose} side="left" title="Search Panel">
+            <LunarDrawer open={open} onClose={onClose} side="left" title="Search Panel" width="w-full sm:w-[420px]">
                 {/* search controls */}
                 <div className="p-4 flex-shrink-0">
                     <GlassCard className="p-3">
