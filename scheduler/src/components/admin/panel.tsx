@@ -1,3 +1,5 @@
+import { IconX } from "@tabler/icons-react";
+
 /**
  * Panel
  *
@@ -16,8 +18,6 @@
  *
  * @returns {JSX.Element} Slide-over panel UI
  */
-import { IconX } from "@tabler/icons-react";
-
 export default function Panel({ open, onClose, title, children }){
     return (
 		// Backdrop (fades in/out, disables interaction when closed)

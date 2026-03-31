@@ -1,149 +1,201 @@
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ReportModal from "../report-modal";
 
-global.fetch = jest.fn();
+// Mock createPortal (render inline instead of real portal)
+jest.mock("react-dom", () => ({
+	...jest.requireActual("react-dom"),
+	createPortal: (node: any) => node,
+}));
+
+// Mock UI components
+jest.mock("@/components/ui/lunar-card", () => ({
+	LunarCard: ({ children }: any) => <div>{children}</div>,
+}));
+
+// Mock lucide icons
+jest.mock("lucide-react", () => ({
+	AlertTriangle: () => <div data-testid="icon-alert" />,
+	X: () => <div data-testid="icon-x" />,
+}));
+
+// Mock alert + fetch
 global.alert = jest.fn();
-console.error = jest.fn();
-
-const onClose = jest.fn();
-
-const setup = () => {
-  render(
-    <ReportModal
-      reportedUserId="123"
-      reportedUsername="testuser"
-      onClose={onClose}
-    />
-  );
-};
+global.fetch = jest.fn();
 
 describe("ReportModal", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+	const defaultProps = {
+		reportedUserId: "user123",
+		reportedUsername: "testuser",
+		onClose: jest.fn(),
+	};
 
-  test("renders modal content correctly", () => {
-    setup();
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-    expect(screen.getByText("Report User")).toBeInTheDocument();
-    expect(screen.getByText("@testuser")).toBeInTheDocument();
-    expect(screen.getByText("Submit Report")).toBeInTheDocument();
-  });
+	test("renders modal with username", () => {
+		render(<ReportModal {...defaultProps} />);
 
-  test("close button calls onClose", () => {
-    setup();
-    fireEvent.click(screen.getAllByRole("button")[0]);
-    expect(onClose).toHaveBeenCalled();
-  });
+		expect(screen.getByText("Report User")).toBeInTheDocument();
+		expect(screen.getByText(/@testuser/)).toBeInTheDocument();
+	});
 
-  test("cancel button calls onClose", () => {
-    setup();
-    fireEvent.click(screen.getByText("Cancel"));
-    expect(onClose).toHaveBeenCalled();
-  });
+	test("renders without username", () => {
+		render(<ReportModal {...defaultProps} reportedUsername="" />);
 
-  test("submit button disabled when no reason", () => {
-    setup();
-    expect(screen.getByText("Submit Report")).toBeDisabled();
-  });
+		expect(screen.queryByText(/@/)).not.toBeInTheDocument();
+	});
 
-  test("allows selecting reason and typing description", () => {
-    setup();
+	test("updates reason and description", () => {
+		render(<ReportModal {...defaultProps} />);
 
-    const select = screen.getByRole("combobox");
-    const textarea = screen.getByPlaceholderText(/provide more context/i);
+		const select = screen.getByRole("combobox");
+		const textarea = screen.getByRole("textbox");
 
-    fireEvent.change(select, { target: { value: "SPAM" } });
-    fireEvent.change(textarea, { target: { value: "details" } });
+		fireEvent.change(select, { target: { value: "SPAM" } });
+		fireEvent.change(textarea, { target: { value: "Details" } });
 
-    expect((select as HTMLSelectElement).value).toBe("SPAM");
-    expect((textarea as HTMLTextAreaElement).value).toBe("details");
-  });
+		expect(select).toHaveValue("SPAM");
+		expect(textarea).toHaveValue("Details");
+	});
 
-  test("successful submit calls API, alerts success, and closes", async () => {
-    (fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: async () => ({}),
-    });
+	test("submit button disabled when no reason", () => {
+		render(<ReportModal {...defaultProps} />);
 
-    setup();
+		const submitBtn = screen.getByText("Submit Report");
+		expect(submitBtn).toBeDisabled();
+	});
 
-    fireEvent.change(screen.getByRole("combobox"), {
-      target: { value: "SPAM" },
-    });
+	test("successful submission", async () => {
+		(fetch as jest.Mock).mockResolvedValue({
+			ok: true,
+			json: async () => ({}),
+		});
 
-    fireEvent.click(screen.getByText("Submit Report"));
+		render(<ReportModal {...defaultProps} />);
 
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/report", expect.any(Object));
-      expect(alert).toHaveBeenCalledWith("Report submitted successfully.");
-      expect(onClose).toHaveBeenCalled();
-    });
-  });
+		fireEvent.change(screen.getByRole("combobox"), {
+			target: { value: "SPAM" },
+		});
 
-  test("API error shows alert message", async () => {
-    (fetch as jest.Mock).mockResolvedValue({
-      ok: false,
-      json: async () => ({ error: "Bad request" }),
-    });
+		fireEvent.click(screen.getByText("Submit Report"));
 
-    setup();
+		await waitFor(() => {
+			expect(fetch).toHaveBeenCalled();
+		});
 
-    fireEvent.change(screen.getByRole("combobox"), {
-      target: { value: "SPAM" },
-    });
+		expect(global.alert).toHaveBeenCalledWith(
+			"Report submitted successfully."
+		);
 
-    fireEvent.click(screen.getByText("Submit Report"));
+		expect(defaultProps.onClose).toHaveBeenCalled();
+	});
 
-    await waitFor(() => {
-      expect(alert).toHaveBeenCalledWith("Bad request");
-    });
-  });
+	test("API error response", async () => {
+		(fetch as jest.Mock).mockResolvedValue({
+			ok: false,
+			json: async () => ({ error: "Bad request" }),
+		});
 
-  test("network error shows fallback alert and logs error", async () => {
-    (fetch as jest.Mock).mockRejectedValue(new Error("fail"));
+		render(<ReportModal {...defaultProps} />);
 
-    setup();
+		fireEvent.change(screen.getByRole("combobox"), {
+			target: { value: "SPAM" },
+		});
 
-    fireEvent.change(screen.getByRole("combobox"), {
-      target: { value: "SPAM" },
-    });
+		fireEvent.click(screen.getByText("Submit Report"));
 
-    fireEvent.click(screen.getByText("Submit Report"));
+		await waitFor(() => {
+			expect(global.alert).toHaveBeenCalledWith("Bad request");
+		});
 
-    await waitFor(() => {
-      expect(console.error).toHaveBeenCalled();
-      expect(alert).toHaveBeenCalledWith("Failed to submit report");
-    });
-  });
+		expect(defaultProps.onClose).not.toHaveBeenCalled();
+	});
 
-  test("shows loading state while submitting", async () => {
-    let resolveFetch: any;
+	test("API error fallback message", async () => {
+		(fetch as jest.Mock).mockResolvedValue({
+			ok: false,
+			json: async () => ({}),
+		});
 
-    (fetch as jest.Mock).mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          resolveFetch = resolve;
-        })
-    );
+		render(<ReportModal {...defaultProps} />);
 
-    setup();
+		fireEvent.change(screen.getByRole("combobox"), {
+			target: { value: "SPAM" },
+		});
 
-    fireEvent.change(screen.getByRole("combobox"), {
-      target: { value: "SPAM" },
-    });
+		fireEvent.click(screen.getByText("Submit Report"));
 
-    fireEvent.click(screen.getByText("Submit Report"));
+		await waitFor(() => {
+			expect(global.alert).toHaveBeenCalledWith(
+				"Something went wrong."
+			);
+		});
+	});
 
-    expect(screen.getByText("Submitting…")).toBeInTheDocument();
+	test("network error handling", async () => {
+		(fetch as jest.Mock).mockRejectedValue(new Error("fail"));
 
-    resolveFetch({
-      ok: true,
-      json: async () => ({}),
-    });
+		render(<ReportModal {...defaultProps} />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Submit Report")).toBeInTheDocument();
-    });
-  });
+		fireEvent.change(screen.getByRole("combobox"), {
+			target: { value: "SPAM" },
+		});
+
+		fireEvent.click(screen.getByText("Submit Report"));
+
+		await waitFor(() => {
+			expect(global.alert).toHaveBeenCalledWith(
+				"Failed to submit report"
+			);
+		});
+	});
+
+	test("loading state disables button and shows text", async () => {
+		let resolvePromise: any;
+
+		(fetch as jest.Mock).mockImplementation(
+			() =>
+				new Promise((resolve) => {
+					resolvePromise = resolve;
+				})
+		);
+
+		render(<ReportModal {...defaultProps} />);
+
+		fireEvent.change(screen.getByRole("combobox"), {
+			target: { value: "SPAM" },
+		});
+
+		fireEvent.click(screen.getByText("Submit Report"));
+
+		expect(screen.getByText("Submitting…")).toBeInTheDocument();
+
+		resolvePromise({
+			ok: true,
+			json: async () => ({}),
+		});
+
+		await waitFor(() => {
+			expect(global.alert).toHaveBeenCalled();
+		});
+	});
+
+	test("cancel button calls onClose", () => {
+		render(<ReportModal {...defaultProps} />);
+
+		fireEvent.click(screen.getByText("Cancel"));
+
+		expect(defaultProps.onClose).toHaveBeenCalled();
+	});
+
+	test("close icon calls onClose", () => {
+		render(<ReportModal {...defaultProps} />);
+
+		const buttons = screen.getAllByRole("button");
+		fireEvent.click(buttons[0]); // top-right X button
+
+		expect(defaultProps.onClose).toHaveBeenCalled();
+	});
 });

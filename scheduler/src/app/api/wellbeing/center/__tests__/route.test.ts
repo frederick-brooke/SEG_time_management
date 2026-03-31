@@ -1,6 +1,11 @@
+/**
+ * Testing for wellbeing/center api route
+ */
+
 import { GET } from "../route";
 
-// Mock NextResponse
+// Mocks
+
 jest.mock("next/server", () => ({
   NextResponse: {
     json: (data: any) => ({
@@ -10,12 +15,13 @@ jest.mock("next/server", () => ({
   },
 }));
 
+// Tests
+
 describe("GET /api/quote", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // helper to mock fetch
   const mockFetch = (responses: any[]) => {
     global.fetch = jest.fn();
 
@@ -24,7 +30,6 @@ describe("GET /api/quote", () => {
     });
   };
 
-  //Success case
   it("returns a valid quote", async () => {
     mockFetch([
       {
@@ -41,10 +46,9 @@ describe("GET /api/quote", () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
-  // Retry when no quoteText
   it("retries when quoteText is missing", async () => {
     mockFetch([
-      { ok: true, text: async () => JSON.stringify({}) }, // invalid
+      { ok: true, text: async () => JSON.stringify({}) },
       {
         ok: true,
         text: async () =>
@@ -59,7 +63,6 @@ describe("GET /api/quote", () => {
     expect(data.quote).toBe("Valid quote");
   });
 
-  // Reject long quotes
   it("rejects quotes longer than max_length", async () => {
     const longQuote = "a".repeat(200);
 
@@ -82,7 +85,6 @@ describe("GET /api/quote", () => {
     expect(data.quote).toBe("Short one");
   });
 
-  // Handle invalid JSON
   it("handles invalid JSON response", async () => {
     mockFetch([
       {
@@ -102,7 +104,6 @@ describe("GET /api/quote", () => {
     expect(data.quote).toBe("Recovered quote");
   });
 
-  //Handle failed fetch (res.ok = false)
   it("handles failed fetch responses", async () => {
     mockFetch([
       { ok: false },
@@ -119,11 +120,10 @@ describe("GET /api/quote", () => {
     expect(data.quote).toBe("Valid after fail");
   });
 
-  // Fallback after max attempts
   it("returns fallback quote after max attempts", async () => {
     const badResponse = {
       ok: true,
-      text: async () => JSON.stringify({}), // always invalid
+      text: async () => JSON.stringify({}),
     };
 
     mockFetch([

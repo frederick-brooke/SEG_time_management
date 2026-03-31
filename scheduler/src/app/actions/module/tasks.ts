@@ -13,8 +13,6 @@ import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
 import { requireSession, isModuleOwner, generateGroupId } from "./utils";
 
-//section module tasks
-
 /**
  * Creates a task on every module member's task list, grouped by a shared groupId.
  * Always creates a template copy for the creator so the task persists even with 0 members.

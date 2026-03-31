@@ -1,26 +1,34 @@
+/**
+ * Testing for user search api route
+ */
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { GET } from "./route";
+import { GET } from "../route";
 import { prisma } from "@/lib/prisma";
 
-//  Mocks 
+// Mocks 
+
 jest.mock("next-auth", () => ({ getServerSession: jest.fn() }));
+
 jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 jest.mock("@/lib/prisma", () => ({
   prisma: { friendRequest: { findMany: jest.fn() } },
 }));
+
 jest.mock("next/server", () => ({
   NextResponse: { json: jest.fn((body, init?) => ({ body, init })) },
 }));
 
-//  Fixtures 
+// Fixtures 
+
 const SESSION_USER = { id: "user-1" };
 
 const mockUser = (id: string) => ({
   id, username: `user_${id}`, fname: "Test", lname: "User", pfp: null,
 });
 
-/** Builds a mock friendRequest row. */
 const mockFriendRequest = (senderId: string, receiverId: string) => ({
   senderId,
   receiverId,
@@ -29,11 +37,11 @@ const mockFriendRequest = (senderId: string, receiverId: string) => ({
   receiver: mockUser(receiverId),
 });
 
-//  Setup 
+// Setup 
 
 beforeEach(() => jest.clearAllMocks());
 
-//  Unauthorised 
+// Tests
 
 describe("GET /api/friends — unauthorised", () => {
   test("returns 401 when there is no session", async () => {
@@ -58,8 +66,6 @@ describe("GET /api/friends — unauthorised", () => {
     expect(prisma.friendRequest.findMany).not.toHaveBeenCalled();
   });
 });
-
-// Authorised 
 
 describe("GET /api/friends — authorised", () => {
   beforeEach(() => {
@@ -99,8 +105,8 @@ describe("GET /api/friends — authorised", () => {
 
   test("handles a mix of sent and received friend requests", async () => {
     const requests = [
-      mockFriendRequest(SESSION_USER.id, "user-2"), // user is sender → return receiver
-      mockFriendRequest("user-3", SESSION_USER.id), // user is receiver → return sender
+      mockFriendRequest(SESSION_USER.id, "user-2"), // user is sender, return receiver
+      mockFriendRequest("user-3", SESSION_USER.id), // user is receiver, return sender
     ];
     (prisma.friendRequest.findMany as jest.Mock).mockResolvedValue(requests);
     await GET();

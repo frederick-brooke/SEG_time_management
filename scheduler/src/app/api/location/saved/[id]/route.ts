@@ -1,3 +1,10 @@
+/**
+ * Saved Location API
+ * DELETE: removes a user-owned saved location.
+ * PATCH: updates label for a user-owned saved location.
+ * Requires auth + ownership checks; wrapped in error handler.
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
@@ -21,7 +28,6 @@ async function getOwnedLocation(id: string, userId: string) {
   return location;
 }
 
-// Wraps a handler so unexpected throws always produce a 500 rather than
 function withErrorHandling(handler: Handler): Handler {
   return async (req, ctx) => {
     try {

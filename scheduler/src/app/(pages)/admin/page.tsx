@@ -48,7 +48,7 @@ export default function AdminPage() {
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
 
   // Report filter states
-  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12 };
+  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12, page:1 };
   const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
   const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
 

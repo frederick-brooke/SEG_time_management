@@ -1,3 +1,7 @@
+/**
+ * @file TaskForm.tsx
+ * @description An orchestrated form component for task lifecycle management, utilizing React Portals for modal rendering and atomic sub-components for field inputs.
+ */
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";

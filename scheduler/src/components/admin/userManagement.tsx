@@ -39,21 +39,25 @@ export default function UserManagement({
 			itemLabel="users"
 			searchable
 			renderItem={(user) => (
-				<li
-					key={user.id}
-					onClick={() => setSelectedUser(user)}
-					className={`px-3 py-2 rounded-lg cursor-pointer transition-all ${
-						user.isBanned
-						? "bg-red-100/10 text-red-300"
-						: "text-white hover:bg-white/20"
-					}`}
-					>
-					{user.username}
-				</li>
+				<UserListItem key={user.id} user={user} onSelect={setSelectedUser} />
 			)}
 			renderPanel={() => (
-				<UserPanel user={selectedUser} onClose={() => setSelectedUser(null)}/>
+				<UserPanelWrapper selectedUser={selectedUser} setSelectedUser={setSelectedUser}/>
 			)}
 		/>
+	);
+}
+
+function UserListItem({ user, onSelect }) {
+	return (
+		<li onClick={() => onSelect(user)} className={`px-3 py-2 rounded-lg cursor-pointer transition-all ${ user.isBanned ? "bg-red-100/10 text-red-300" : "text-white hover:bg-white/20"}`}>
+			{user.username}
+		</li>
+	);
+}
+
+function UserPanelWrapper({ selectedUser, setSelectedUser }) {
+	return (
+		<UserPanel user={selectedUser} onClose={() => setSelectedUser(null)}/>
 	);
 }

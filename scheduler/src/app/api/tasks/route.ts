@@ -1,11 +1,16 @@
+/**
+ * Tasks API route
+ * Handles fetching user tasks and creating new ones (single or bulk)
+ * including scheduling and event-based task generation
+ */
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { addDays, addWeeks, addMonths } from "date-fns";
 
-// ---------------------------------------------------------------------------
-// Compute the calendar date for a task linked to an event via relative offset.
-// e.g. offset = -1 means "1 day before" the next occurrence of the event.
-// ---------------------------------------------------------------------------
+/**
+ * Compute the calendar date for a task linked to an event via relative offset.
+ */
 function computeTaskDateFromEvent(event, relativeOffsetDays = 0) {
   const offset = relativeOffsetDays ?? 0;
 
@@ -17,7 +22,7 @@ function computeTaskDateFromEvent(event, relativeOffsetDays = 0) {
     return base;
   }
 
-  // Recurring: find the next occurrence on or after today
+  // Find the next occurrence on or after today
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const { type, days: recDays, until } = event.recurrence;
@@ -80,9 +85,10 @@ function computeTaskDateFromEvent(event, relativeOffsetDays = 0) {
   return fallback;
 }
 
-// ---------------------------------------------------------------------------
-// GET /api/tasks?userId=xxx
-// ---------------------------------------------------------------------------
+/**
+ * GET /api/tasks
+ * Fetches all tasks for a specific user, including related exam and event data.
+ */
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -102,72 +108,52 @@ export async function GET(request) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/tasks
-// ---------------------------------------------------------------------------
+/**
+ * POST /api/tasks
+ * Creates a single task or multiple tasks in bulk.
+ * Handles scheduling, recurrence, and event-based task generation logic.
+ */
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    // ── Bulk creation (event-linked tasks from EventForm) ───────
     if (body.tasks && Array.isArray(body.tasks)) {
       const created = await Promise.all(
         body.tasks.map(async (t) => {
           let scheduledDate = null;
           let scheduledTime = null;
-
-          // ── Step 1: figure out WHICH DATE this task belongs to ─
-          // This is determined by the relative option the user picked,
-          // regardless of whether they also picked a specific clock time.
-          let taskDate = null; // the calendar date (midnight), no time yet
+          let taskDate = null;
 
           if (t.relativeMode === "custom") {
-            // Custom date: user picked an explicit date (or range start)
             const src = t.customDate || t.customRangeStart;
             if (src) {
               taskDate = new Date(src);
               taskDate.setHours(0, 0, 0, 0);
             }
           } else if (t.relativeOffsetDays != null && t.eventId) {
-            // Relative to event: compute date from event occurrence + offset
             const event = await prisma.event.findUnique({ where: { id: t.eventId } });
             if (event) {
               taskDate = computeTaskDateFromEvent(event, t.relativeOffsetDays);
             }
           } else if (t.isRecurring && t.recurrence?.startDate) {
-            // Recurring task anchored to a start date
             taskDate = new Date(t.recurrence.startDate);
             taskDate.setHours(0, 0, 0, 0);
           }
 
-          // ── Step 2: apply the clock time if the user toggled it on ───────
           if (taskDate) {
-            // Always set scheduledDate to the computed date at midnight
             scheduledDate = new Date(taskDate);
             scheduledDate.setHours(0, 0, 0, 0);
 
             if (t.scheduleTime && t.specificTime) {
-              // User explicitly picked a clock time → set scheduledTime
-              // so the task appears on the calendar at that exact slot
               const [h, m] = t.specificTime.split(":").map(Number);
               scheduledTime = new Date(taskDate);
               scheduledTime.setHours(h, m, 0, 0);
             }
-            // If scheduleTime is false: scheduledDate is set (so the
-            // scheduler knows the target day) but scheduledTime is null,
-            // which means refreshUnscheduled() will pick it up because
-            // we filter on !t.scheduledDate in the panel — BUT we do want
-            // it to show as unscheduled, so we clear scheduledDate too.
-            // The relative offset is stored in relativeOffsetDays so the
-            // scheduler can use it when the user clicks "Schedule My Week".
             if (!t.scheduleTime) {
               scheduledDate = null;
               scheduledTime = null;
             }
           }
-
-          // If taskDate is null (nothing was configured), both stay null
-          // → task lands in Unscheduled Tasks panel.
 
           return prisma.task.create({
             data: {
@@ -197,7 +183,6 @@ export async function POST(request) {
       return NextResponse.json({ tasks: created });
     }
 
-    // ── Single task creation ─────
     let examCategory = null;
     if (body.examId && body.examId !== "none") {
       const exam = await prisma.exam.findUnique({ where: { id: body.examId }});

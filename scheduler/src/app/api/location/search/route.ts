@@ -1,3 +1,9 @@
+/**
+ * Geocoding API
+ * 
+ * Maps external API data into a simplified location format for the app.
+ */
+
 import { NextResponse } from "next/server";
 
 // Types
@@ -77,8 +83,10 @@ async function fetchGeocodeResults(
   return Promise.all([safeJson(ukRes), safeJson(globalRes)]);
 }
 
-// GET 
-
+/**
+ * GET
+ * Returns mapped, UK-prioritised location results for a search query.
+ */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

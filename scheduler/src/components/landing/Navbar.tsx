@@ -1,6 +1,13 @@
+/**
+ * Global navigation component for the public-facing landing page.
+ */
 "use client";
 import Link from "next/link";
 
+/**
+ * Renders the top navigation bar containing the application logo and primary call-to-action links.
+ * @returns {JSX.Element} The rendered navigation bar component.
+ */
 export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-8 py-4 bg-transparent">

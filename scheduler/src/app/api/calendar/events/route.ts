@@ -21,7 +21,21 @@ import {
   fetchAllGoogleEvents,
 } from "@/lib/calendar/googleSync";
 import { deleteEventNotifications } from "@/app/actions/calendar/calendarNotifications";
+import type { Event as PrismaEvent } from "@prisma/client";
 
+type Coords = Parameters<typeof calculateTravelTime>[0];
+
+type PatchBody = {
+  id: string;
+  mode: string;
+  originalDate?: string;
+  exceptionDate?: string;
+  startCoords?: Coords;
+  destCoords?: Coords;
+  transportMode?: "walking" | "cycling" | "driving";
+  travelDuration?: number | null;
+  [key: string]: any;
+};
 
 // Global lock to prevent multiple syncs running at once per server instance
 let isSyncing = false;
@@ -177,35 +191,47 @@ export async function PATCH(req: NextRequest) {
     if (!event)
       return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-    let travelDuration = clientTravelDuration;
-    if ((travelDuration === undefined || travelDuration === null) && startCoords && destCoords)
-      travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
-
-    const enrichedBody = { ...body, travelDuration };
-    
-    if (mode === "removeException" && body.exceptionDate) {
-      const updated = await prisma.event.update({
-        where: { id },
-        data: {
-          exceptions: {
-            set: (event.exceptions as string[]).filter(
-              (e) => new Date(e).toISOString() !== new Date(body.exceptionDate).toISOString()
-            ),
-          },
-        },
-      });
-      return NextResponse.json(updated);
-    }
-    const result =
-      mode === "single" && originalDate
-        ? await handleSingleInstanceUpdate(event, enrichedBody, session.user.id)
-        : await handleSeriesUpdate(event, enrichedBody, session.user.id);
-
+    const result = await processPatch(event, body, session.user.id);
     return NextResponse.json(result);
   } catch (e: any) {
     console.error("PATCH error:", e);
     return NextResponse.json({ message: e.message }, { status: 500 });
   }
+}
+
+/**
+ * Handles the core PATCH logic for a verified event.
+ * Auto-calculates travel duration from coords when not provided by the client.
+ *
+ * @param event - The verified Prisma event record belonging to the user.
+ * @param body - The parsed PATCH request body containing update fields and mode.
+ * @param userId - The authenticated user's ID, passed through to mutation handlers.
+ * @returns The updated event record, or the result of the single/series mutation.
+ */
+async function processPatch(event: PrismaEvent, body: PatchBody, userId: string) {
+  const { mode, originalDate, startCoords, destCoords, transportMode, travelDuration: clientTravelDuration, exceptionDate } = body;
+
+  if (mode === "removeException" && exceptionDate) {
+    return prisma.event.update({
+      where: { id: event.id },
+      data: {
+        exceptions: {
+          set: (event.exceptions as string[]).filter(
+            (e) => new Date(e).toISOString() !== new Date(exceptionDate).toISOString()
+          ),
+        },
+      },
+    });
+  }
+
+  let travelDuration = clientTravelDuration;
+  if ((travelDuration === undefined || travelDuration === null) && startCoords && destCoords)
+    travelDuration = await calculateTravelTime(startCoords, destCoords, transportMode);
+
+  const enrichedBody = { ...body, travelDuration };
+  return mode === "single" && originalDate
+    ? handleSingleInstanceUpdate(event, enrichedBody, userId)
+    : handleSeriesUpdate(event, enrichedBody, userId);
 }
 
 /**

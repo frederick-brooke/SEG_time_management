@@ -12,6 +12,7 @@ import { Trophy } from "lucide-react";
 import LeaderboardClient from "./LeaderboardClient";
 import { Timeframe } from "@/types/leaderboard";
 import { PageHeader } from "@/components/ui/page-header";
+import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 export default async function LeaderboardPage(props: {
   searchParams: Promise<{ timeframe?: string }>;
@@ -20,22 +21,24 @@ export default async function LeaderboardPage(props: {
   if (!session?.user?.email) redirect("/login");
 
   const { timeframe: rawTimeframe } = await props.searchParams;
-  const timeframe = (rawTimeframe ?? 'all') as Timeframe;
-  
+  const timeframe = (rawTimeframe ?? "all") as Timeframe;
+
   const leaderboard = await getFriendsLeaderboard(timeframe).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <div className="max-w-5xl w-full mx-auto px-6 py-12 space-y-8">
-
-        <PageHeader 
-          icon={<Trophy size={26} className="text-yellow-400" />} 
-          title="Friends Leaderboard" 
-          subtitle="See how you stack up against your network." 
+    <LunarThemeWrapper>
+      <div className="lunar-page">
+        <PageHeader
+          icon={<Trophy size={26} className="text-yellow-400" />}
+          title="Friends Leaderboard"
+          subtitle="See how you stack up against your network."
         />
-        
-        <LeaderboardClient initialData={leaderboard ?? []} currentTimeframe={timeframe} />
+
+        <LeaderboardClient
+          initialData={leaderboard ?? []}
+          currentTimeframe={timeframe}
+        />
       </div>
-    </div>
+    </LunarThemeWrapper>
   );
 }

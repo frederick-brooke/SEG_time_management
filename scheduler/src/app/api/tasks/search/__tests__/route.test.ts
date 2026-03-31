@@ -1,6 +1,12 @@
+/**
+ * Testing for search api route.
+ */
+
 import { GET } from "@/app/api/tasks/search/route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
+
+// Mocks
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
@@ -31,6 +37,8 @@ const mockSession = {
 function createRequest(url: string) {
   return new Request(url);
 }
+
+// Tests
 
 describe("Tasks GET API", () => {
   beforeEach(() => {

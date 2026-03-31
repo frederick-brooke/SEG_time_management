@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 const quote_link = "http://api.forismatic.com/api/1.0/"     
-const max_length = 150;     //quotes longer than 200 characters are rejected
-const max_attempts = 5;     //If more than 5 unsuccessful tries then show default instead
+const max_length = 150;     // Quotes longer than 200 characters are rejected
+const max_attempts = 5;     // If more than 5 unsuccessful tries then show default instead
 
 /**
  * Fetches a random quote from the external Forismatic API.
@@ -17,31 +17,32 @@ const max_attempts = 5;     //If more than 5 unsuccessful tries then show defaul
  */
 async function fetchQuote(key) {
     const params = new URLSearchParams({
-        //stores the parameter values needed to access the quote
+        // Stores the parameter values needed to access the quote
         method: "getQuote", 
         format: "json",
         lang: "en",
     });
 
     if(key !== undefined) {
-        params.append("key", key);  //constraint for access key definition
+        params.append("key", key);  // Constraint for access key definition
     }
 
+    // Get fresh data by disabling cache for each request
     const res = await fetch(`${quote_link}?${params.toString()}`, {
-        cache: "no-store",  //get fresh data by disabling cache for each request
+        cache: "no-store",
     });
 
-    if(!res.ok){
-        return null;    //check and return null if the request failed
+    if(!res.ok) {
+        return null;
     }
 
-    const text = await res.text();  //extracts raw data from returned response body
+    const text = await res.text();
 
-    try{
+    try {
         return JSON.parse(text);   
     }
-    catch{
-        return null;    //returns null and failure if JSON parsing invalid
+    catch {
+        return null;
     }
 }
 
@@ -57,28 +58,29 @@ async function fetchQuote(key) {
  * @returns {Promise<Response>} JSON response containing a valid quote
  */
 export async function GET() {
-    let key = Math.floor(Math.random() * 100000); //generates random key
+    let key = Math.floor(Math.random() * 100000); // Generates random key
 
-    //set 5 max attempts to fetch a valid quote
+    // Set 5 max attempts to fetch a valid quote
     for(let attempt = 0; attempt < max_attempts; attempt++){
-        const data = await fetchQuote(key);   //fetch data using current key
+        const data = await fetchQuote(key);
         if (!data || !data.quoteText) {
-            key++;      //if incorrect format then skip to the next key
+            key++;
             continue;   
         }       
 
-        const quote = data.quoteText || ""; //extracts the needed quote data
+        const quote = data.quoteText || "";
 
         if(quote.length <= max_length){
-            //must be less than 200 characters in length otherwise it is rejected
+            // Must be less than 200 characters in length otherwise it is rejected
             return NextResponse.json({quote});
         }
-        key++;  //look at the next quote in order until it meets conditions or attempts run out
+        key++;
     }
 
-    const quote = 'You can do this!';     //default fallback quote if nothing else works
+    // Default fallback quote
+    const quote = 'You can do this!';
     return new Response(
-        JSON.stringify({quote}),        //converts default quote into JSON string and returns it
+        JSON.stringify({quote}),
         {
             headers: { "Content-Type" : "application/json"}
         }
