@@ -80,8 +80,11 @@ export default function SearchPanel({ open, onClose }) {
 	);
 }
 
-/* ================= HELPERS ================= */
-
+/**
+*Custom hook that debounces search input to prevent excessive filter updates.
+*@param {string} search - The search input value.
+*@param {Function} setFilters - State setter function for filters.
+*/
 function useDebouncedSearch(search, setFilters) {
 	useEffect(() => {
 		const delay = setTimeout(() => {
@@ -96,6 +99,12 @@ function useDebouncedSearch(search, setFilters) {
 	}, [search, setFilters]);
 }
 
+/**
+*Applies draft filters to the applied state and closes the filter modal.
+*@param {Object} draftFilters - The draft filter values to apply.
+*@param {Function} setAppliedFilters - State setter for applied filters.
+*@param {Function} setOpen - State setter to close the filter modal.
+*/
 function applyFilters(draftFilters, setAppliedFilters, setOpen) {
 	setAppliedFilters((prev) => ({
 		...draftFilters,
@@ -104,6 +113,12 @@ function applyFilters(draftFilters, setAppliedFilters, setOpen) {
 	setOpen(false);
 }
 
+/**
+*Resets both draft and applied filters to their default values.
+*@param {Function} setDraft - State setter for draft filters.
+*@param {Function} setApplied - State setter for applied filters.
+*@param {Object} defaults - The default filter values.
+*/
 function resetUserFilters(setDraft, setApplied, defaults) {
 	setDraft(defaults);
 	setApplied(defaults);
