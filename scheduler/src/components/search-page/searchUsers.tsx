@@ -71,53 +71,31 @@ export default function SearchUsers({users,totalUsers, totalUserPages, setIsUser
 
                 {/* main content container with scroll */}
                 <div className="flex-1 flex flex-col gap-1 min-h-0 overflow-hidden">
-
-                    {/* recent users */}
-                    {filters.search === "" ? (
-                        recentUsers.length === 0 ? (
-                            <p className="lunar-page-subtitle text-gray-400 text-center mt-10">
-                                No recent searches
-                            </p>
-                        ) : (
-                            recentUsers.map((user) => (
-                                <div key={user.username} className="flex items-center justify-between">
-                                    <UserCard
-                                        user={user}
-                                        onClick={() => {
-                                            addRecentUser(user);
-                                            window.location.href = `/profile/${user.username}`;
-                                        }}
-                                    />
-
-                                    <button
-                                        onClick={() => {
-                                            removeRecentUser(user.username);
-                                            setRecentUsers(getRecentUsers());
-                                        }}
-                                        className="lunar-page-subtitle text-gray-400 hover:text-red-500 transition"
-                                    >
-                                        <IconX size={16} />
-                                    </button>
-                                </div>
-                            ))
-                        )
-                    ) : users.length === 0 ? (
-                        <p className="lunar-page-subtitle text-gray-400 text-center mt-10">
-                            No users found
-                        </p>
-                    ) : (
-                        users.map((user) => (
-                            <UserCard
-                                key={user.id}
-                                user={user}
-                                onClick={() => {
-                                addRecentUser(user);
-                                    window.location.assign(`/profile/${user.username}`);
-                                }}
-                            />
-                        ))
-                    )}
-                </div>
+					{filters.search === "" ? (
+						recentUsers.length === 0 ? (
+							<p className="lunar-page-subtitle text-gray-400 text-center mt-10">No recent searches</p>
+						) : (
+							recentUsers.map((user) => (
+								<UserCard
+									key={user.username}
+									user={user}
+									onClick={() => { addRecentUser(user); window.location.href = `/profile/${user.username}`; }}
+									onRemove={() => { removeRecentUser(user.username); setRecentUsers(getRecentUsers()); }}
+								/>
+							))
+						)
+					) : users.length === 0 ? (
+						<p className="lunar-page-subtitle text-gray-400 text-center mt-10">No users found</p>
+					) : (
+						users.map((user) => (
+							<UserCard
+								key={user.id}
+								user={user}
+								onClick={() => { addRecentUser(user); window.location.assign(`/profile/${user.username}`); }}
+							/>
+						))
+					)}
+				</div>
 
                 {/* pagination footer */}
                 {filters.search !== "" && users.length > 0 && (
