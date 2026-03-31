@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import type { Layer } from "leaflet";
@@ -10,7 +11,6 @@ interface UnifiedMapLayerProps {
   events: MapEvent[];
   savedLocations: SavedLocation[];
 }
-
 
 type EventPin = {
   kind: "event";
@@ -29,32 +29,12 @@ type SavedPin = {
 
 type Pin = EventPin | SavedPin;
 
+const SAVED_EMOJI: Record<string, string> = { HOME: "🏠", WORK: "🏢", FAVOURITE: "⭐" };
+const SAVED_COLOR: Record<string, string> = { HOME: "#10b981", WORK: "#3b82f6", FAVOURITE: "#f59e0b" };
 
-const SAVED_EMOJI: Record<string, string> = {
-  HOME: "🏠",
-  WORK: "🏢",
-  FAVOURITE: "⭐",
-};
-
-const SAVED_COLOR: Record<string, string> = {
-  HOME: "#10b981",
-  WORK: "#3b82f6",
-  FAVOURITE: "#f59e0b",
-};
-
-const SAVED_BG: Record<string, string> = {
-  HOME: "#ecfdf5",
-  WORK: "#eff6ff",
-  FAVOURITE: "#fffbeb",
-};
-
-const SAVED_BORDER: Record<string, string> = {
-  HOME: "#6ee7b7",
-  WORK: "#93c5fd",
-  FAVOURITE: "#fcd34d",
-};
-
-
+/**
+ * Convert lat/lng to pixel coordinates at a given zoom
+ */
 function toPixel(lat: number, lng: number, zoom: number) {
   const scale = Math.pow(2, zoom) * 256;
   const x = ((lng + 180) / 360) * scale;
@@ -63,17 +43,21 @@ function toPixel(lat: number, lng: number, zoom: number) {
   return { x, y };
 }
 
-function pixelDist(a: Pin, b: Pin, zoom: number): number {
+/**
+ * Pixel distance between two pins
+ */
+function pixelDist(a: Pin, b: Pin, zoom: number) {
   const pa = toPixel(a.lat, a.lng, zoom);
   const pb = toPixel(b.lat, b.lng, zoom);
-  return Math.sqrt(Math.pow(pa.x - pb.x, 2) + Math.pow(pa.y - pb.y, 2));
+  return Math.hypot(pa.x - pb.x, pa.y - pb.y);
 }
-
-// Group overlapping pins
 
 const PIXEL_THRESHOLD = 30;
 
-function groupPins(pins: Pin[], zoom: number): Pin[][] {
+/**
+ * Group pins that are closer than threshold
+ */
+function groupPins(pins: Pin[], zoom: number) {
   const used = new Set<number>();
   const groups: Pin[][] = [];
 
@@ -90,144 +74,96 @@ function groupPins(pins: Pin[], zoom: number): Pin[][] {
     }
     groups.push(group);
   }
-
   return groups;
 }
 
-
-function savedPinSvg(type: string): string {
-  const color = SAVED_COLOR[type] ?? "#6b7280";
-  const emoji = SAVED_EMOJI[type] ?? "📍";
-  return `
-    <div style="width:36px;height:44px;display:flex;flex-direction:column;align-items:center;">
-      <div style="
-        width:34px;height:34px;background:${color};border-radius:50% 50% 50% 0;
-        transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25);
-        border:2px solid white;display:flex;align-items:center;justify-content:center;">
-        <span style="transform:rotate(45deg);font-size:15px;line-height:1;">${emoji}</span>
-      </div>
-      <div style="width:2px;height:10px;background:${color};"></div>
-    </div>`;
-}
-
-
-function eventCard(pin: EventPin): string {
-  const event = pin.event;
-  const color = CATEGORY_COLORS[event.category] || "#6b7280";
-  const transportIcon = TRANSPORT_ICONS[event.transportMode || ""] || "";
-  const roleLabel = pin.role === "start" ? "Starting point" : "Destination";
-  return `
-    <div style="
-      border-radius:8px;border:1px solid ${color}40;
-      background:${color}10;padding:8px 10px;margin-bottom:6px;
-    ">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-        <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></div>
-        <strong style="font-size:12px;color:#111;">${event.title}</strong>
-        <span style="font-size:10px;color:#6b7280;margin-left:auto;">${event.category}</span>
-      </div>
-      <div style="font-size:11px;color:#374151;line-height:1.6;padding-left:16px;">
-        <div style="color:${color};font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.04em;">
-          ${roleLabel}
-        </div>
-        <div>📅 ${formatDate(event.start)}</div>
-        ${event.travelDuration ? `<div>${transportIcon} ${event.travelDuration} mins travel</div>` : ""}
-        ${event.startLocationName ? `<div>🔵 ${event.startLocationName}</div>` : ""}
-        ${event.destLocationName ? `<div>🔴 ${event.destLocationName}</div>` : ""}
-      </div>
-    </div>`;
-}
-
-function savedCard(pin: SavedPin): string {
-  const loc = pin.location;
-  return `
-    <div style="
-      display:flex;align-items:flex-start;gap:8px;padding:8px 10px;
-      border-radius:8px;background:${SAVED_BG[loc.type]};
-      border:1px solid ${SAVED_BORDER[loc.type]};margin-bottom:6px;
-    ">
-      <span style="font-size:18px;line-height:1;flex-shrink:0;">${SAVED_EMOJI[loc.type]}</span>
-      <div style="min-width:0;">
-        <div style="font-weight:700;font-size:12px;color:#111;">${loc.label}</div>
-        <div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.04em;">
-          ${loc.type === "FAVOURITE" ? "Saved Place" : loc.type}
-        </div>
-        <div style="font-size:10px;color:#9ca3af;margin-top:2px;
-          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">
-          ${loc.address}
-        </div>
-      </div>
-    </div>`;
-}
-
-function buildGroupPopup(group: Pin[]): string {
+/**
+ * Build popup HTML for a group of pins
+ */
+function buildGroupPopup(group: Pin[]) {
   const hasMultiple = group.length > 1;
-  const cards = group.map((pin) =>
-    pin.kind === "event" ? eventCard(pin) : savedCard(pin)
-  ).join("");
-
-  return `
-    <div style="font-family:system-ui,sans-serif;min-width:220px;max-width:300px;">
-      ${hasMultiple ? `
-        <div style="
-          font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;
-          letter-spacing:0.06em;padding-bottom:8px;margin-bottom:6px;
-          border-bottom:1px solid #f3f4f6;
-        ">📍 ${group.length} locations here</div>
-      ` : ""}
-      ${cards}
-    </div>`;
-}
-
-
-function groupIcon(group: Pin[]): { html: string; size: [number, number]; anchor: [number, number] } {
-  if (group.length === 1) {
-    const pin = group[0];
-    if (pin.kind === "saved") {
-      return { html: savedPinSvg(pin.location.type), size: [36, 44], anchor: [18, 44] };
+  const cards = group.map(pin => {
+    if (pin.kind === "event") {
+      const e = pin.event;
+      const color = CATEGORY_COLORS[e.category] || "#6b7280";
+      const transport = TRANSPORT_ICONS[e.transportMode || ""] || "";
+      const roleLabel = pin.role === "start" ? "Starting point" : "Destination";
+      return `
+        <div style="border:1px solid ${color}40;background:${color}10;padding:8px 10px;margin-bottom:6px;border-radius:8px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:${color}"></div>
+            <strong style="font-size:12px;color:#111;">${e.title}</strong>
+            <span style="font-size:10px;color:#6b7280;margin-left:auto;">${e.category}</span>
+          </div>
+          <div style="font-size:11px;color:#374151;padding-left:16px;line-height:1.6;">
+            <div style="color:${color};font-weight:600;font-size:10px;text-transform:uppercase;">${roleLabel}</div>
+            <div>📅 ${formatDate(e.start)}</div>
+            ${e.travelDuration ? `<div>${transport} ${e.travelDuration} mins travel</div>` : ""}
+            ${e.startLocationName ? `<div>🔵 ${e.startLocationName}</div>` : ""}
+            ${e.destLocationName ? `<div>🔴 ${e.destLocationName}</div>` : ""}
+          </div>
+        </div>`;
     } else {
-      const color = CATEGORY_COLORS[pin.event.category] || "#6b7280";
-      const label = pin.role === "start" ? pin.event.category : "D";
-      return { html: createPinSvg(color, label), size: [32, 42], anchor: [16, 42] };
+      const loc = pin.location;
+      return `
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:${SAVED_COLOR[loc.type]}20;margin-bottom:6px;">
+          <span style="font-size:18px;">${SAVED_EMOJI[loc.type]}</span>
+          <div style="min-width:0;">
+            <div style="font-weight:700;font-size:12px;color:#111;">${loc.label}</div>
+            <div style="font-size:10px;color:#6b7280;">${loc.type}</div>
+            <div style="font-size:10px;color:#9ca3af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">
+              ${loc.address}
+            </div>
+          </div>
+        </div>`;
     }
-  }
-
-  // Multiple — show a stacked badge pin using the first pin's colour
-  const first = group[0];
-  const color = first.kind === "saved"
-    ? SAVED_COLOR[first.location.type]
-    : CATEGORY_COLORS[first.event.category] || "#6b7280";
-
-  const emojis = group.slice(0, 3).map((p) => {
-    if (p.kind === "saved") return SAVED_EMOJI[p.location.type];
-    return p.role === "start" ? "📅" : "🔴";
   }).join("");
 
-  return {
-    html: `
-      <div style="position:relative;width:44px;height:52px;display:flex;flex-direction:column;align-items:center;">
-        <div style="
-          width:42px;height:42px;background:${color};border-radius:50% 50% 50% 0;
-          transform:rotate(-45deg);box-shadow:0 3px 10px rgba(0,0,0,0.3);
-          border:2px solid white;display:flex;align-items:center;justify-content:center;">
-          <span style="transform:rotate(45deg);font-size:11px;line-height:1;">${emojis}</span>
-        </div>
-        <div style="width:2px;height:10px;background:${color};"></div>
-        <div style="
-          position:absolute;top:-4px;right:0;
-          background:#ef4444;color:white;border-radius:9999px;
-          font-size:10px;font-weight:900;font-family:system-ui;
-          width:18px;height:18px;display:flex;align-items:center;justify-content:center;
-          border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
-          ${group.length}
-        </div>
-      </div>`,
-    size: [44, 52],
-    anchor: [22, 52],
-  };
+  return `<div style="font-family:system-ui,sans-serif;min-width:220px;max-width:300px;">
+    ${hasMultiple ? `<div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;padding-bottom:8px;margin-bottom:6px;border-bottom:1px solid #f3f4f6;">
+      📍 ${group.length} locations here
+    </div>` : ""}
+    ${cards}
+  </div>`;
 }
 
+/**
+ * Builds an SVG icon for a group of pins.
+ * Single pins show one emoji; groups show up to three emojis with a count badge.
+ */
+function groupIcon(group: Pin[]): { html: string; size: [number, number]; anchor: [number, number] } {
+  const count = group.length;
+  const first = group[0];
+  const color = first.kind === "saved"
+    ? SAVED_COLOR[first.location.type] || "#6b7280"
+    : CATEGORY_COLORS[first.event.category] || "#6b7280";
+  const emojis = count === 1
+    ? first.kind === "saved"
+      ? SAVED_EMOJI[first.location.type]
+      : (first.role === "start" ? "📅" : "🔴")
+    : group.slice(0, 3).map(p =>
+        p.kind === "saved" ? SAVED_EMOJI[p.location.type] : (p.role === "start" ? "📅" : "🔴")
+      ).join("");
 
+  const svg = `
+    <svg width="48" height="58" viewBox="0 0 48 58" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="22" r="20" fill="${color}" stroke="white" stroke-width="2.5"/>
+      <polygon points="24,54 14,36 34,36" fill="${color}"/>
+      <text x="24" y="29" font-size="18" text-anchor="middle"
+            dominant-baseline="middle" font-family="system-ui">${emojis}</text>
+      ${count > 1 ? `
+        <circle cx="42" cy="6" r="9" fill="#ef4444" stroke="white" stroke-width="2"/>
+        <text x="42" y="6" text-anchor="middle" dominant-baseline="middle"
+              fill="white" font-weight="900" font-size="10" font-family="system-ui">${count}</text>
+      ` : ""}
+    </svg>`;
+
+  return { html: svg, size: [48, 58], anchor: [24, 58] };
+}
+
+/**
+ * Render all events and saved locations on the map
+ */
 export function UnifiedMapLayer({ events, savedLocations }: UnifiedMapLayerProps) {
   const map = useMap();
   const layersRef = useRef<Layer[]>([]);
@@ -236,79 +172,52 @@ export function UnifiedMapLayer({ events, savedLocations }: UnifiedMapLayerProps
   useEffect(() => {
     if (!map) return;
 
-    function render() {
-      import("leaflet").then((L) => {
-        layersRef.current.forEach((l) => map.removeLayer(l));
-        layersRef.current = [];
+    async function render() {
+      const L = (await import("leaflet")).default;
+      layersRef.current.forEach(l => map.removeLayer(l));
+      layersRef.current = [];
 
-        const pins: Pin[] = [];
+      const pins: Pin[] = [];
+      events.forEach(e => {
+        if (e.startCoords) pins.push({ kind: "event", role: "start", event: e, lat: e.startCoords.lat, lng: e.startCoords.lng });
+        if (e.destinationCoords) pins.push({ kind: "event", role: "dest", event: e, lat: e.destinationCoords.lat, lng: e.destinationCoords.lng });
+      });
+      savedLocations.forEach(loc => pins.push({ kind: "saved", lat: loc.lat, lng: loc.lng, location: loc }));
 
-        events.forEach((event) => {
-          if (event.startCoords) {
-            pins.push({ kind: "event", role: "start", event, lat: event.startCoords.lat, lng: event.startCoords.lng });
-          }
-          if (event.destinationCoords) {
-            pins.push({ kind: "event", role: "dest", event, lat: event.destinationCoords.lat, lng: event.destinationCoords.lng });
-          }
-        });
+      if (pins.length === 0) return;
+      const zoom = map.getZoom();
+      const groups = groupPins(pins, zoom);
 
-        savedLocations.forEach((location) => {
-          pins.push({ kind: "saved", location, lat: location.lat, lng: location.lng });
-        });
-
-        if (pins.length === 0) return;
-
-        const zoom = map.getZoom();
-        const groups = groupPins(pins, zoom);        
-        events.forEach((event) => {
-          if (event.startCoords && event.destinationCoords) {
-            const color = CATEGORY_COLORS[event.category] || "#6b7280";
-            const line = L.polyline(
-              [
-                [event.startCoords.lat, event.startCoords.lng],
-                [event.destinationCoords.lat, event.destinationCoords.lng],
-              ],
-              { color, weight: 5, opacity: 0.8, dashArray: "8, 6" }
-            ).addTo(map);
-            layersRef.current.push(line);
-          }
-        });
-
-        groups.forEach((group) => {
-          const lat = group.reduce((s, p) => s + p.lat, 0) / group.length;
-          const lng = group.reduce((s, p) => s + p.lng, 0) / group.length;
-
-          const iconInfo = groupIcon(group);
-          const popup = buildGroupPopup(group);
-
-          const icon = L.divIcon({
-            html: iconInfo.html,
-            className: "",
-            iconSize: iconInfo.size,
-            iconAnchor: iconInfo.anchor,
-            popupAnchor: [0, -iconInfo.anchor[1]],
-          });
-
-          const marker = L.marker([lat, lng], { icon })
-            .addTo(map)
-            .bindPopup(popup, { maxWidth: 320 });
-
-          layersRef.current.push(marker);
-        });
-
-        if (!hasFitBounds.current) {
-          const allCoords = events.flatMap((e) => {
-            const pts: [number, number][] = [];
-            if (e.startCoords) pts.push([e.startCoords.lat, e.startCoords.lng]);
-            if (e.destinationCoords) pts.push([e.destinationCoords.lat, e.destinationCoords.lng]);
-            return pts;
-          });
-          if (allCoords.length > 1) {
-            map.fitBounds(allCoords, { padding: [40, 40] });
-          }
-          hasFitBounds.current = true;
+      // Draw polylines for events
+      events.forEach(e => {
+        if (e.startCoords && e.destinationCoords) {
+          const color = CATEGORY_COLORS[e.category] || "#6b7280";
+          const line = L.polyline([[e.startCoords.lat, e.startCoords.lng], [e.destinationCoords.lat, e.destinationCoords.lng]], { color, weight: 5, opacity: 0.8, dashArray: "8, 6" }).addTo(map);
+          layersRef.current.push(line);
         }
       });
+
+      // Draw markers
+      groups.forEach(group => {
+        const lat = group.reduce((s, p) => s + p.lat, 0) / group.length;
+        const lng = group.reduce((s, p) => s + p.lng, 0) / group.length;
+        const iconInfo = groupIcon(group);
+        const popup = buildGroupPopup(group);
+        const marker = L.marker([lat, lng] as [number, number], { icon: L.divIcon({ html: iconInfo.html, className: "", iconSize: iconInfo.size, iconAnchor: iconInfo.anchor, popupAnchor: [0, -iconInfo.anchor[1]] }) }).addTo(map).bindPopup(popup, { maxWidth: 320 });
+        layersRef.current.push(marker);
+      });
+
+      // Fit bounds once
+      if (!hasFitBounds.current) {
+        const allCoords = events.flatMap(e => {
+          const pts: [number, number][] = [];
+          if (e.startCoords) pts.push([e.startCoords.lat, e.startCoords.lng]);
+          if (e.destinationCoords) pts.push([e.destinationCoords.lat, e.destinationCoords.lng]);
+          return pts;
+        });
+        if (allCoords.length > 1) map.fitBounds(allCoords, { padding: [40, 40] });
+        hasFitBounds.current = true;
+      }
     }
 
     render();
@@ -318,7 +227,7 @@ export function UnifiedMapLayer({ events, savedLocations }: UnifiedMapLayerProps
     return () => {
       map.off("zoomend", render);
       window.removeEventListener("saved-locations-updated", render);
-      layersRef.current.forEach((l) => map.removeLayer(l));
+      layersRef.current.forEach(l => map.removeLayer(l));
       layersRef.current = [];
     };
   }, [map, events, savedLocations]);

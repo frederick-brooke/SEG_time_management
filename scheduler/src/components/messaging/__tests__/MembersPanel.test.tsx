@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/messaging/MembersPanel.tsx
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MembersPanel } from "../MembersPanel";

@@ -125,11 +125,22 @@ export async function syncGoogleCalendar(userId: string, now: number): Promise<v
   const calendar = await getGoogleCalendarClient(userId);
   if (!calendar) return;
 
-  const res = await calendar.events.list({
-    calendarId: "primary",
-    timeMin: new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    singleEvents: true,
-  });
+  let res;
+  try {
+    res = await calendar.events.list({
+      calendarId: "primary",
+      timeMin: new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      singleEvents: true,
+    });
+  } catch (err: any) {
+    if (err?.code === 403 || err?.status === 403) {
+      console.warn("Google Calendar sync skipped: token lacks calendar scope.");
+      return;
+    }
+    throw err;
+  }
+
+  if (!res) return;
 
   for (const ge of res.data.items || []) {
     await upsertGoogleEvent(ge, userId, true).catch((err) =>
