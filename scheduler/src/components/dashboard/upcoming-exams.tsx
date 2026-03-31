@@ -1,3 +1,9 @@
+/**
+ * @file upcoming-exams.tsx
+ * @description Displays exams due within 14 days. 
+ * Uses midnight normalization and memoization to ensure accurate, 
+ * high-performance date filtering and sorting.
+ */
 import Link from "next/link";
 import { useMemo } from "react";
 
