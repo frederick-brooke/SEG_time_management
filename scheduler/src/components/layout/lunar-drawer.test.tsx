@@ -4,75 +4,112 @@ import LunarDrawer from "./lunar-drawer";
 /**
  * Tests the LunarDrawer component's rendering, positioning logic, and interaction behavior.
  */
-describe("LunarDrawer Component", () => {
-  it("renders correctly when open on the left side", () => {
-    render(
-      <LunarDrawer open={true} onClose={jest.fn()} side="left" title="Test Drawer">
-        <div>Content</div>
-      </LunarDrawer>
-    );
+describe("LunarDrawer", () => {
+	const defaultProps = {
+		open: true,
+		onClose: jest.fn(),
+		title: "Test Drawer",
+		children: <div>Drawer Content</div>,
+	};
 
-    const drawer = screen.getByText("Test Drawer").closest("div")?.parentElement;
-    expect(drawer).toHaveClass("translate-x-0");
-    expect(drawer).toHaveClass("left-0");
-  });
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-  it("applies hidden classes when closed on the left side", () => {
-    const { container } = render(
-      <LunarDrawer open={false} onClose={jest.fn()} side="left" title="Closed">
-        <div />
-      </LunarDrawer>
-    );
+	test("returns null when closed", () => {
+		const { container } = render(
+			<LunarDrawer {...defaultProps} open={false} />
+		);
 
-    const drawer = container.querySelectorAll("div")[1];
-    expect(drawer).toHaveClass("-translate-x-full");
-  });
+		expect(container.firstChild).toBeNull();
+	});
 
-  it("renders correctly when open on the right side", () => {
-    const { container } = render(
-      <LunarDrawer open={true} onClose={jest.fn()} side="right" title="Right Drawer">
-        <div />
-      </LunarDrawer>
-    );
+	test("renders title and children", () => {
+		render(<LunarDrawer {...defaultProps} />);
 
-    const drawer = container.querySelectorAll("div")[1];
-    expect(drawer).toHaveClass("right-0");
-    expect(drawer).toHaveClass("translate-x-0");
-  });
+		expect(
+			screen.getByRole("heading", { name: "Test Drawer" })
+		).toBeInTheDocument();
 
-  it("applies hidden classes when closed on the right side", () => {
-    const { container } = render(
-      <LunarDrawer open={false} onClose={jest.fn()} side="right" title="Closed Right">
-        <div />
-      </LunarDrawer>
-    );
+		expect(screen.getByText("Drawer Content")).toBeInTheDocument();
+	});
 
-    const drawer = container.querySelectorAll("div")[1];
-    expect(drawer).toHaveClass("translate-x-full");
-  });
+	test("clicking overlay calls onClose", () => {
+		render(<LunarDrawer {...defaultProps} />);
 
-  it("calls onClose when the backdrop is clicked", () => {
-    const onCloseMock = jest.fn();
-    const { container } = render(
-      <LunarDrawer open={true} onClose={onCloseMock} title="Backdrop Test">
-        <div />
-      </LunarDrawer>
-    );
+		// overlay = outer div (first element)
+		const overlay = screen.getByRole("heading", {
+			name: "Test Drawer",
+		}).closest("div")!.parentElement!.parentElement!;
 
-    const backdrop = container.querySelectorAll("div")[0];
-    fireEvent.click(backdrop);
-    expect(onCloseMock).toHaveBeenCalledTimes(1);
-  });
+		fireEvent.click(overlay);
 
-  it("applies custom width style", () => {
-    const customWidth = "300px";
-    const { container } = render(
-      <LunarDrawer open={true} onClose={jest.fn()} width={customWidth} title="Width Test">
-        <div />
-      </LunarDrawer>
-    );
+		expect(defaultProps.onClose).toHaveBeenCalled();
+	});
 
-    const drawer = container.querySelectorAll("div")[1];
-    expect(drawer).toHaveStyle({ width: customWidth });
-  });
+	test("clicking inside drawer does NOT close", () => {
+		render(<LunarDrawer {...defaultProps} />);
+
+		const content = screen.getByText("Drawer Content");
+
+		fireEvent.click(content);
+
+		expect(defaultProps.onClose).not.toHaveBeenCalled();
+	});
+
+	test("close button calls onClose", () => {
+		render(<LunarDrawer {...defaultProps} />);
+
+		fireEvent.click(
+			screen.getByRole("button", { name: "✕" })
+		);
+
+		expect(defaultProps.onClose).toHaveBeenCalled();
+	});
+
+	test("renders right side drawer", () => {
+		const { container } = render(
+			<LunarDrawer {...defaultProps} side="right" />
+		);
+
+		expect(container.firstChild).toHaveClass("justify-end");
+	});
+
+	test("renders left side drawer (default)", () => {
+		const { container } = render(
+			<LunarDrawer {...defaultProps} side="left" />
+		);
+
+		expect(container.firstChild).toHaveClass("justify-start");
+	});
+
+	test("renders bottom drawer with handle", () => {
+		render(
+			<LunarDrawer {...defaultProps} side="bottom" />
+		);
+
+		// Bottom handle exists
+		expect(
+			document.querySelector(".w-10.h-1")
+		).toBeInTheDocument();
+	});
+
+	test("bottom drawer uses full width", () => {
+		const { container } = render(
+			<LunarDrawer {...defaultProps} side="bottom" />
+		);
+
+		expect(container.innerHTML).toContain("w-full");
+	});
+
+	test("custom width applied for side drawer", () => {
+		const { container } = render(
+			<LunarDrawer
+				{...defaultProps}
+				width="w-[500px]"
+			/>
+		);
+
+		expect(container.innerHTML).toContain("w-[500px]");
+	});
 });
