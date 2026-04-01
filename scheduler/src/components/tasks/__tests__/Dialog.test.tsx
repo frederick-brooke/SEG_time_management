@@ -1,78 +1,72 @@
 import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 
-// Mock Button (relative path so Jest can resolve it)
-const ButtonMock = jest.fn(({ children, variant }) => (
-  <Button data-testid="button" data-variant={variant || ""}>
+
+// Mocks
+
+const ButtonMock = jest.fn(({ children, variant, ...rest }) => (
+  <div data-testid="button" data-variant={variant || ""} {...rest}>
     {children}
-  </Button>
+  </div>
 ));
 
 jest.mock("../../ui/Button", () => ({
   __esModule: true,
-  Button: (props) => ButtonMock(props),
+  Button: (props: any) => ButtonMock(props),
 }));
 
-// Mock lucide icon
 jest.mock("lucide-react", () => ({
   __esModule: true,
   XIcon: () => <svg data-testid="xicon" />,
 }));
 
-// Mock Radix Dialog primitives
 jest.mock("@radix-ui/react-dialog", () => {
   const React = require("react");
 
-  const Root = ({ children, ...props }) => (
+  const Root = ({ children, ...props }: any) => (
     <div data-testid="radix-root" {...props}>
       {children}
     </div>
   );
 
-  const Trigger = ({ children, ...props }) => (
-    <Button data-testid="radix-trigger" {...props}>
+  const Trigger = ({ children, ...props }: any) => (
+    <button data-testid="radix-trigger" {...props}>
       {children}
-    </Button>
+    </button>
   );
 
-  const Portal = ({ children, ...props }) => (
-    <div data-testid="radix-portal" {...props}>
-      {children}
-    </div>
-  );
+  const Portal = ({ children }: any) => <>{children}</>;
 
-  const Close = ({ children, asChild, ...props }) => {
+  const Close = ({ children, asChild, ...props }: any) => {
     if (asChild) {
-      // AsChild means "just return the child", but we still want a wrapper marker
       return <div data-testid="radix-close-aschild">{children}</div>;
     }
     return (
-      <Button data-testid="radix-close" {...props}>
+      <button data-testid="radix-close" {...props}>
         {children}
-      </Button>
+      </button>
     );
   };
 
-  const Overlay = ({ children, ...props }) => (
-    <div data-testid="radix-overlay" {...props}>
+  const Overlay = ({ children, className, ...props }: any) => (
+    <div data-testid="radix-overlay" className={className} {...props}>
       {children}
     </div>
   );
 
-  const Content = ({ children, ...props }) => (
-    <div data-testid="radix-content" {...props}>
+  const Content = ({ children, className, ...props }: any) => (
+    <div data-testid="radix-content" className={className} {...props}>
       {children}
     </div>
   );
 
-  const Title = ({ children, ...props }) => (
+  const Title = ({ children, ...props }: any) => (
     <div data-testid="radix-title" {...props}>
       {children}
     </div>
   );
 
-  const Description = ({ children, ...props }) => (
+  const Description = ({ children, ...props }: any) => (
     <div data-testid="radix-description" {...props}>
       {children}
     </div>
@@ -91,7 +85,6 @@ jest.mock("@radix-ui/react-dialog", () => {
   };
 });
 
-// Import AFTER mocks (relative path)
 import {
   Dialog,
   DialogClose,
@@ -104,6 +97,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../ui/Dialog";
+
+import { Button } from "../../ui/Button";
+
+// Tests
 
 describe("components/ui/dialog", () => {
   beforeEach(() => {
@@ -139,7 +136,6 @@ describe("components/ui/dialog", () => {
     expect(screen.getByTestId("radix-root")).toBeInTheDocument();
     expect(screen.getByTestId("radix-trigger")).toHaveTextContent("Open");
 
-    // We rendered one explicit overlay + DialogContent renders another overlay internally
     const overlays = screen.getAllByTestId("radix-overlay");
     expect(overlays.length).toBeGreaterThanOrEqual(2);
     expect(overlays.some((el) => el.classList.contains("my-overlay"))).toBe(
@@ -153,7 +149,7 @@ describe("components/ui/dialog", () => {
     );
   });
 
-  it("DialogContent renders built-in close button when showCloseButton=true (covers line 138)", () => {
+  it("DialogContent renders built-in close button when showCloseButton=true", () => {
     render(
       <Dialog open>
         <DialogContent showCloseButton>
@@ -162,7 +158,6 @@ describe("components/ui/dialog", () => {
       </Dialog>,
     );
 
-    // Built-in close uses DialogPrimitive.Close (not asChild) and contains sr-only text "Close"
     expect(screen.getByTestId("radix-close")).toBeInTheDocument();
     expect(screen.getByText("Close")).toBeInTheDocument();
     expect(screen.getByTestId("xicon")).toBeInTheDocument();
@@ -177,12 +172,11 @@ describe("components/ui/dialog", () => {
       </Dialog>,
     );
 
-    // Close button inside content should not exist
     expect(screen.queryByTestId("radix-close")).not.toBeInTheDocument();
     expect(screen.queryByText("Close")).not.toBeInTheDocument();
   });
 
-  it("DialogFooter renders Close button via asChild when showCloseButton=true (covers lines 143-144)", () => {
+  it("DialogFooter renders Close button via asChild when showCloseButton=true", () => {
     render(
       <Dialog open>
         <DialogContent showCloseButton={false}>
@@ -193,16 +187,13 @@ describe("components/ui/dialog", () => {
       </Dialog>,
     );
 
-    // Radix close wrapper for asChild path exists
     expect(screen.getByTestId("radix-close-aschild")).toBeInTheDocument();
 
-    // Our mocked Button should have been used with variant="outline"
     expect(ButtonMock).toHaveBeenCalled();
     const props = ButtonMock.mock.calls[0][0];
     expect(props.variant).toBe("outline");
     expect(screen.getByTestId("button")).toHaveTextContent("Close");
 
-    // Also includes children we passed
     expect(screen.getByText("FooterChild")).toBeInTheDocument();
   });
 });
