@@ -85,12 +85,12 @@ export default function TravelSection({
       onStartNameChange(name);
       onStartCoordsChange({ lat, lng });
       setPendingStart({ lat, lng, address });
-      startSearch.handleLocationSearch(""); // Clear suggestions
+      startSearch.handleLocationSearch("");
     } else {
       onDestNameChange(name);
       onDestCoordsChange({ lat, lng });
       setPendingDest({ lat, lng, address });
-      destSearch.handleLocationSearch(""); // Clear suggestions
+      destSearch.handleLocationSearch("");
     }
   };
 
@@ -137,7 +137,7 @@ export default function TravelSection({
   return (
     <div className="space-y-4 border-t border-white/[0.06] pt-4 mt-4">
 
-      {/* ── Travel time mode toggle ── */}
+      {/* Travel time mode toggle */}
       <div>
         <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
           Travel Time

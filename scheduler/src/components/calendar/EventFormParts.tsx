@@ -1,11 +1,13 @@
 "use client";
-// src/components/calendar/EventFormParts.tsx
+
+/**
+ * Event Form Parts component
+ */
+
 import { useState } from "react";
 import { Button } from "../ui/Button";
 
-// ---------------------------------------------------------------------------
 // Constants
-// ---------------------------------------------------------------------------
 export type RelativeOption =
   | "3-before"
   | "2-before"
@@ -38,9 +40,7 @@ export function relativeTo(mode: RelativeOption) {
   return "after";
 }
 
-// ---------------------------------------------------------------------------
 // TaskPromptSection
-// ---------------------------------------------------------------------------
 import { LinkedTaskCard } from "./LinkedTaskCard";
 import { NewTaskForm } from "./NewTaskForm";
 

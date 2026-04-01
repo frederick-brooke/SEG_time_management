@@ -1,4 +1,7 @@
-//testing for components/dashboard/ComingUpSoon.tsx
+/**
+ * Testing for dashboard Coming Up Soon component
+ */
+
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ComingUpSoon } from "../ComingUpSoon";
 import { useTasks } from "@/hooks/useTasks";

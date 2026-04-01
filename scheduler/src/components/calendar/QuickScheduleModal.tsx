@@ -1,4 +1,9 @@
 "use client";
+
+/**
+ * Quick Schedule Modal component
+ */
+
 import { format } from "date-fns";
 import { Button } from "@/components/ui/Button";
 

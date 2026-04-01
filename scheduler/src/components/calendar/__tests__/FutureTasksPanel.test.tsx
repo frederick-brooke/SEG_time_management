@@ -1,9 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import FutureTasksPanel from "../FutureTasksPanel";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("@/lib/ui", () => ({
   PRIORITY_TEXT: {
@@ -17,9 +15,7 @@ jest.mock("date-fns", () => ({
   format: (_date: Date, _fmt: string) => "Apr 1",
 }));
 
-// ---------------------------------------------------------------------------
 // Fixtures
-// ---------------------------------------------------------------------------
 
 const basePatch = jest.fn();
 
@@ -49,9 +45,7 @@ const taskB = {
   scheduledDate: "2026-05-02",
 };
 
-// ---------------------------------------------------------------------------
 // Null render
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — null render", () => {
   it("renders nothing when futureTasks is empty", () => {
@@ -62,9 +56,7 @@ describe("FutureTasksPanel — null render", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Header
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — header", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -126,9 +118,7 @@ describe("FutureTasksPanel — header", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded panel — hidden when showFutureTasks is false
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — collapsed state", () => {
   it("does not show Auto-pick or I'll choose buttons when collapsed", () => {
@@ -140,9 +130,7 @@ describe("FutureTasksPanel — collapsed state", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded panel — mode buttons
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — expanded, mode buttons", () => {
   const expandedState = { ...baseState, showFutureTasks: true };
@@ -174,9 +162,7 @@ describe("FutureTasksPanel — expanded, mode buttons", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded panel — auto mode
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — auto mode", () => {
   const autoState = { ...baseState, showFutureTasks: true, futureModeAuto: true };
@@ -198,9 +184,7 @@ describe("FutureTasksPanel — auto mode", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded panel — manual mode / task rows
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — manual mode, task rows", () => {
   const manualState = {
@@ -271,9 +255,7 @@ describe("FutureTasksPanel — manual mode, task rows", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // toggleId logic via task row clicks
-// ---------------------------------------------------------------------------
 
 describe("FutureTasksPanel — toggleId via task row", () => {
   const manualState = {

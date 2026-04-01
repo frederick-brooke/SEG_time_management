@@ -1,3 +1,7 @@
+/**
+ * Testing for To Do List component
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
@@ -440,7 +444,6 @@ describe("ToDoList", () => {
       {
         id: "nostatus",
         title: "No Status Task",
-        // status intentionally missing
         dueDate: null,
         priority: "Low",
       },

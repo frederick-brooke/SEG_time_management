@@ -1,6 +1,8 @@
 "use client";
 
-// src/components/calendar/LinkedTaskCard.tsx
+/**
+ * Linked Task Card component
+ */
 
 import { useState, useEffect } from "react";
 import { Toggle, RecurrencePanel } from "@/components/shared/FormComponents";

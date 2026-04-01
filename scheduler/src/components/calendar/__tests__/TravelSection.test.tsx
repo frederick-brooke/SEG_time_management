@@ -8,7 +8,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import "@testing-library/jest-dom";
 import TravelSection from "../TravelSection";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("../LocationInput", () => ({
   __esModule: true,
@@ -510,7 +510,6 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── fetch error branch ─────
   describe("location search fetch error", () => {
     it("should clear suggestions when fetch returns non-ok response", async () => {
       jest.useFakeTimers();
@@ -524,7 +523,6 @@ describe("TravelSection", () => {
 
       await act(async () => jest.advanceTimersByTime(500));
 
-      // No suggestions rendered — fetch was called but returned not-ok
       expect(global.fetch).toHaveBeenCalled();
       jest.useRealTimers();
     });

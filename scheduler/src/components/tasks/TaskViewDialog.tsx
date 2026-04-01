@@ -1,6 +1,6 @@
 /**
  * @file TaskViewDialog.tsx
- * @description A read-only modal interface for inspecting task metadata, decoupled into atomic display units for Band 5 compliance.
+ * @description A read-only modal interface for inspecting task metadata.
  */
 
 'use client';
