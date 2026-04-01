@@ -5,7 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, LogIn, Loader2 } from "lucide-react";
-import BannedPage from "@/components/admin/ban-message-page";
+import BannedPage from "@/components/admin/BanMessagePage";
 
 interface FormInputProps {
   label: string;

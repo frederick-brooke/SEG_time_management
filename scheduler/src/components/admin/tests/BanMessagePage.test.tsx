@@ -4,7 +4,7 @@
  */
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import BannedPage from "../ban-message-page";
+import BannedPage from "../BanMessagePage";
 
 // Mock next-auth
 const updateMock = jest.fn();
@@ -20,14 +20,14 @@ jest.mock("next-auth/react", () => ({
 global.fetch = jest.fn();
 
 // Mock child components (keep simple + controllable)
-jest.mock("../banInfo", () => (props: any) => (
+jest.mock("../BanInfo", () => (props: any) => (
 	<div data-testid="ban-info">
 		<button onClick={props.onAppeal}>Appeal</button>
-		<span>{props.banInfo?.reason}</span>
+		<span>{props.BanInfo?.reason}</span>
 	</div>
 ));
 
-jest.mock("../appealForm", () => (props: any) => (
+jest.mock("../AppealForm", () => (props: any) => (
 	<div data-testid="appeal-form">
 		<span>Appeal Form</span>
 		<button onClick={props.onClose}>Close</button>

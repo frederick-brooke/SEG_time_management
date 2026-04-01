@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import AppealsManagement from "../appealManagement";
+import AppealsManagement from "../AppealManagement";
 
 // ---- Mocks ----
 jest.mock("framer-motion", () => ({
@@ -11,7 +11,7 @@ jest.mock("framer-motion", () => ({
 }));
 
 const mockAdminListSection = jest.fn();
-jest.mock("../admin-list-section", () => (props: any) => {
+jest.mock("../AdminListSection", () => (props: any) => {
   mockAdminListSection(props);
   return (
     <div>
@@ -30,7 +30,7 @@ jest.mock("../admin-list-section", () => (props: any) => {
   );
 });
 
-jest.mock("../admin-appeal-panel", () => (props: any) => (
+jest.mock("../AdminAppealPanel", () => (props: any) => (
   <div data-testid="appeal-panel">
     Panel for {props.appeal?.id}
     <button onClick={props.onClose}>Close Panel</button>

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import UserPanel from "../admin-user-panel";
+import UserPanel from "../AdminUserPanel";
 const baseUser = {
   username: "johndoe",
   email: "john@example.com",

@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import SetLocationModal from "../SetLocationModal";
 import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { useRouter } from "next/navigation";
-import { updateUserLocation } from "@/app/actions/update-user-location";
+import { updateUserLocation } from "@/app/actions/updateUserLocation";
 
 jest.mock("leaflet", () => ({
   divIcon: jest.fn(() => ({ options: {} })),
@@ -49,7 +49,7 @@ jest.mock("@/lib/map", () => ({
   useLocationSearch: jest.fn(),
 }));
 
-jest.mock("@/app/actions/update-user-location", () => ({
+jest.mock("@/app/actions/updateUserLocation", () => ({
   updateUserLocation: jest.fn(),
 }));
 

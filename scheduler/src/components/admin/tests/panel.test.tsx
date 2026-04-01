@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import Panel from "../panel";
+import Panel from "../Panel";
 
 // Mock the icon so it doesn't affect the DOM
 jest.mock("@tabler/icons-react", () => ({

@@ -4,7 +4,7 @@ import { Pencil, Star, Flag, UserPlus, UserCheck, Clock, UserMinus, X } from "lu
 import { useState, useTransition } from "react";
 import UserAvatar from "@/components/profile/UserAvatar";
 import { sendFriendRequest, removeFriend, cancelSentRequest } from "@/app/actions/profile/friends";
-import ReportModal from "@/components/admin/report-modal";
+import ReportModal from "@/components/admin/ReportModal";
 
 /**
  * Props for the ProfileHeader component.

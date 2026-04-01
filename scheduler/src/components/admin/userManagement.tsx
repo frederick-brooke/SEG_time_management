@@ -1,5 +1,5 @@
-import UserPanel from "@/components/admin/admin-user-panel";
-import AdminListSection from "./admin-list-section";
+import UserPanel from "@/components/admin/AdminUserPanel";
+import AdminListSection from "./AdminListSection";
 
 /**
 *Renders the user management interface with a list of users and a detail panel.

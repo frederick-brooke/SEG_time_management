@@ -6,16 +6,16 @@
  */
 
 import { useState } from "react";
-import UserFilter from "@/components/admin/user-filter-panel";
-import ReportFilter from "@/components/admin/report-filter-panel";
+import UserFilter from "@/components/admin/UserFilterPanel";
+import ReportFilter from "@/components/admin/ReportFilterPanel";
 import { useUsers } from "@/hooks/useUsers";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { useAdminAppeals } from "@/hooks/useAdminAppeals";
-import UserManagement from "@/components/admin/userManagement";
-import ReportManagement from "@/components/admin/reportManagement";
-import AppealsManagement from "@/components/admin/appealManagement";
-import AdminStatistics from "@/components/admin/admin-statistics";
-import AppealFilter from "@/components/admin/appeal-filter-panel";
+import UserManagement from "@/components/admin/UserManagement";
+import ReportManagement from "@/components/admin/ReportManagement";
+import AppealsManagement from "@/components/admin/AppealManagement";
+import AdminStatistics from "@/components/admin/AdminStatistics";
+import AppealFilter from "@/components/admin/AppealFilterPanel";
 
 // UI components
 import StarField from "@/components/effects/starField";

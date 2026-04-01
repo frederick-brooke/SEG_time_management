@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import ReportFilter from "../report-filter-panel";
+import ReportFilter from "../ReportFilterPanel";
 
 // ─── Types 
 

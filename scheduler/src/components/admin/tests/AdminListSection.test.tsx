@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import AdminListSection from "../admin-list-section";
+import AdminListSection from "../AdminListSection";
 // ── Mocks 
 
 jest.mock("lucide-react", () => ({

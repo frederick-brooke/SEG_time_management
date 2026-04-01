@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import AdminStatistics from "../admin-statistics";
+import AdminStatistics from "../AdminStatistics";
 
 // Mock the hook
 jest.mock("@/hooks/useAdminStats", () => ({

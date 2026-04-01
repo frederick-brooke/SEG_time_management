@@ -10,11 +10,11 @@ import { signOut } from "next-auth/react";
  * - Actions (appeal / sign out)
  * 
  * @param {Object} props
- * @param {Object} props.banInfo - Ban data from backend
+ * @param {Object} props.BanInfo - Ban data from backend
  * @param {Function} props.onAppeal - Opens appeal form
  */
-export default function BanInfo({ banInfo, onAppeal }) {
-	const isPermanent = !banInfo.expires;
+export default function BanInfo({ BanInfo, onAppeal }) {
+	const isPermanent = !BanInfo.expires;
 
 	return (
 		<>
@@ -34,7 +34,7 @@ export default function BanInfo({ banInfo, onAppeal }) {
 
 			<div className="border-t border-white/10" />
 
-			<BanDetails banInfo={banInfo} isPermanent={isPermanent} />
+			<BanDetails BanInfo={BanInfo} isPermanent={isPermanent} />
 
 			<WarningNote />
 
@@ -45,18 +45,18 @@ export default function BanInfo({ banInfo, onAppeal }) {
 
 /**
 *Renders ban details including reason and expiration information.
-*@param {Object} props.banInfo - The ban information object.
-*@param {string} props.banInfo.reason - The reason for the ban.
-*@param {string} props.banInfo.expires - The expiration date of the ban.
+*@param {Object} props.BanInfo - The ban information object.
+*@param {string} props.BanInfo.reason - The reason for the ban.
+*@param {string} props.BanInfo.expires - The expiration date of the ban.
 *@param {boolean} props.isPermanent - Whether the ban is permanent.
 *@returns {JSX.Element} The ban details component.
 */
-function BanDetails({ banInfo, isPermanent }) {
+function BanDetails({ BanInfo, isPermanent }) {
 	return (
 		<div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
 			<div>
 				<p className="text-[10px] text-white/30 uppercase mb-1">Reason</p>
-				<p className="text-sm text-white/80">{banInfo.reason}</p>
+				<p className="text-sm text-white/80">{BanInfo.reason}</p>
 			</div>
 
 			<div className="border-t border-white/10" />
@@ -64,7 +64,7 @@ function BanDetails({ banInfo, isPermanent }) {
 			<div>
 				<p className="text-[10px] text-white/30 uppercase mb-1">Ban Expires</p>
 				<p className={`text-sm font-semibold ${isPermanent ? "text-red-400" : "text-amber-400"}`}>
-					{isPermanent ? "Permanent" : new Date(banInfo.expires).toLocaleString()}
+					{isPermanent ? "Permanent" : new Date(BanInfo.expires).toLocaleString()}
 				</p>
 			</div>
 		</div>

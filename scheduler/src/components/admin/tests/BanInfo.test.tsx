@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import BanInfo from "../banInfo";
+import BanInfo from "../BanInfo";
 
 // Mock lucide icons
 jest.mock("lucide-react", () => ({
@@ -29,7 +29,7 @@ describe("BanInfo", () => {
 		render(
 			<BanInfo
 				{...baseProps}
-				banInfo={{ reason: "Violation", expires: null }}
+				BanInfo={{ reason: "Violation", expires: null }}
 			/>
 		);
 
@@ -41,7 +41,7 @@ describe("BanInfo", () => {
 		render(
 			<BanInfo
 				{...baseProps}
-				banInfo={{ reason: "Serious abuse", expires: null }}
+				BanInfo={{ reason: "Serious abuse", expires: null }}
 			/>
 		);
 
@@ -54,7 +54,7 @@ describe("BanInfo", () => {
 		render(
 			<BanInfo
 				{...baseProps}
-				banInfo={{
+				BanInfo={{
 					reason: "Spam",
 					expires: date.toISOString(),
 				}}
@@ -75,7 +75,7 @@ describe("BanInfo", () => {
 		render(
 			<BanInfo
 				{...baseProps}
-				banInfo={{ reason: "Test", expires: null }}
+				BanInfo={{ reason: "Test", expires: null }}
 			/>
 		);
 
@@ -88,7 +88,7 @@ describe("BanInfo", () => {
 		render(
 			<BanInfo
 				{...baseProps}
-				banInfo={{ reason: "Test", expires: null }}
+				BanInfo={{ reason: "Test", expires: null }}
 			/>
 		);
 
@@ -101,7 +101,7 @@ describe("BanInfo", () => {
 		render(
 			<BanInfo
 				{...baseProps}
-				banInfo={{ reason: "Test", expires: null }}
+				BanInfo={{ reason: "Test", expires: null }}
 			/>
 		);
 

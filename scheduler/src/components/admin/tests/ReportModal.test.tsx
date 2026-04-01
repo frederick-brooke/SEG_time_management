@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ReportModal from "../report-modal";
+import ReportModal from "../ReportModal";
 
 // Mock createPortal (render inline instead of real portal)
 jest.mock("react-dom", () => ({
