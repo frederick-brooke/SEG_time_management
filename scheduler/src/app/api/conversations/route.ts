@@ -118,8 +118,12 @@ export async function GET() {
   });
 
   const filtered = convs
+  .map((conversation) => ({
+    ...conversation,
+    participants: conversation.participants.filter((p) => p.user !== null),
+  }))
   .filter((conversation) => {
-    const participant = conversation.participants.find((participant) => participant.userId === session.user.id);
+    const participant = conversation.participants.find((p) => p.userId === session.user.id);
     return !participant?.deletedAt || (conversation.lastMessageAt && new Date(conversation.lastMessageAt) > new Date(participant.deletedAt));
   })
   .map((conversation) => {

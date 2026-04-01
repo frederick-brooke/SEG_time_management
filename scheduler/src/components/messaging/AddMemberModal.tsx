@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import { resolveAvatarSrc } from "@/lib/avatar";
 import Image from "next/image";
+import { Button } from "@/components/ui/Button";
 
 type Friend = {
   id: string;

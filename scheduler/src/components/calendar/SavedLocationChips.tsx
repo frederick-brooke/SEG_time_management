@@ -6,6 +6,7 @@
  */
 
 import { SavedLocation } from "hooks/useSavedLocations";
+import { Button } from "@/components/ui/Button";
 
 const TYPE_ICONS: Record<string, string> = {
   HOME: "🏠",
