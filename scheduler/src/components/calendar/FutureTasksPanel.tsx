@@ -3,6 +3,7 @@
 import type { ScheduleState } from "@/hooks/useSchedule";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import { format } from "date-fns";
+import { Button } from "../ui/Button";
 
 // ── Types 
 

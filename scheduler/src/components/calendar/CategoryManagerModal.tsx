@@ -6,6 +6,7 @@
  */
 
 import { useState } from "react";
+import { Button } from "../ui/Button";
 
 /**
  * Renders a single category row with inline edit and delete controls.

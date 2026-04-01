@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/Button";
 import { MapMode } from "@/lib/map";
 
 interface MapToggleProps {
@@ -31,10 +30,10 @@ interface ToggleButtonProps {
  */
 function ToggleButton({ label, emoji, count, active, onClick }: ToggleButtonProps) {
   return (
-    <Button
+    <button
       onClick={onClick}
       aria-pressed={active}
-      className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+      className={`justify-center h-9 relative flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
         active
           ? "bg-primary text-primary-foreground shadow-md"
           : "text-muted-foreground hover:text-foreground"
@@ -53,8 +52,8 @@ function ToggleButton({ label, emoji, count, active, onClick }: ToggleButtonProp
           {count}
         </span>
       )}
-    </Button>
-  );
+  </button>
+    );
 }
 
 /**

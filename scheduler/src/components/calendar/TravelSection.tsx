@@ -10,6 +10,8 @@ import { useState } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 import { useLocationSearch } from "@/lib/map";
 import LocationInput from "./LocationInput";
+import { Button } from "../ui/Button";
+import { Select } from "../ui/Select";
 
 interface TravelSectionProps {
   startLocationName: string;
@@ -227,7 +229,7 @@ export default function TravelSection({
               Mode of Transport
             </label>
             <div className="relative">
-              <Select
+              <select
                 value={transportMode}
                 onChange={(e) => onTransportModeChange(e.target.value as any)}
                 className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors appearance-none cursor-pointer pr-8"
@@ -235,7 +237,7 @@ export default function TravelSection({
                 <option value="walking" className="bg-[#1a1a24]">Walking</option>
                 <option value="cycling" className="bg-[#1a1a24]">Cycling</option>
                 <option value="driving" className="bg-[#1a1a24]">Driving</option>
-              </Select>
+              </select>
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
             </div>
           </div>

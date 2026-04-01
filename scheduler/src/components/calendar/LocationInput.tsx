@@ -8,6 +8,7 @@
 import { SavedLocation } from "hooks/useSavedLocations";
 import SavedLocationChips from "./SavedLocationChips";
 import SaveLocationModal from "./SaveLocationModal";
+import { Button } from "../ui/Button";
 
 interface PendingLocation {
   lat: number;

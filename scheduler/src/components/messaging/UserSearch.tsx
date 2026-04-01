@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { resolveAvatarSrc } from "@/lib/avatar";
 import { useSearchData } from "../../hooks/useSearchData";
+import { Button } from "@/components/ui/Button";
 
 type Friend = {
   id: string;

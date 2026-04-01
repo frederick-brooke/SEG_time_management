@@ -95,14 +95,14 @@ function SearchInput({ value, onChange, placeholder }) {
 *@returns {JSX.Element} The search button component.
 */
 function SearchButton() {
-	return (
-		<Button
-			type="submit"
-			className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-400 text-gray-950 font-semibold hover:scale-105 transition"
-		>
-			Search
-		</Button>
-	);
+    return (
+        <button
+            type="submit"
+            className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-400 text-gray-950 font-semibold hover:scale-105 transition"
+        >
+            Search
+        </button>
+    );
 }
 
 /**
@@ -112,15 +112,15 @@ function SearchButton() {
 *@returns {JSX.Element} The filter button component.
 */
 function FilterButton({ onClick }) {
-	return (
-		<Button
-			type="button"
-			onClick={onClick}
-			className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
-		>
-			Filter
-		</Button>
-	);
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
+        >
+            Filter
+        </button>
+    );
 }
 
 /**
@@ -130,14 +130,14 @@ function FilterButton({ onClick }) {
 *@returns {JSX.Element} The reset button component.
 */
 function ResetButton({ onClick }) {
-	return (
-		<Button
-			type="button"
-			onClick={onClick}
-			className="lunar-page-subtitle px-3 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 flex items-center gap-1 transition"
-		>
-			<FunnelXIcon size={16} />
-			Reset
-		</Button>
-	);
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="lunar-page-subtitle px-3 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 flex items-center gap-1 transition"
+        >
+            <FunnelXIcon size={16} />
+            Reset
+        </button>
+    );
 }

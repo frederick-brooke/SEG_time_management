@@ -10,6 +10,7 @@
 import TravelSection from "./TravelSection";
 import { TaskPromptSection } from "./EventFormParts";
 import { useEventForm } from "@/hooks/Events/useEventForm";
+import { Button } from "../ui/Button";
 
 
 export default function EventForm({
@@ -200,7 +201,7 @@ export default function EventForm({
         <div className="border-t border-white/[0.06] pt-4">
           <label className="text-xs font-bold text-white/30 uppercase">Repeat</label>
           <div className="relative mt-1">
-            <Select
+            <select
               value={f.recurrenceType}
               onChange={(e) => f.setRecurrenceType(e.target.value as any)}
               className={`${inputClass} appearance-none cursor-pointer pr-8`}
@@ -209,7 +210,7 @@ export default function EventForm({
               <option value="daily" className="bg-[#1a1a24]">Daily</option>
               <option value="weekly" className="bg-[#1a1a24]">Weekly</option>
               <option value="monthly" className="bg-[#1a1a24]">Monthly</option>
-            </Select>
+            </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
           </div>
           {f.recurrenceType !== "none" && (

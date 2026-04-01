@@ -140,9 +140,15 @@ const NotificationModal = ({
   const isAuthenticated                   = status === "authenticated";
 
   const fetchNotifications = useCallback(async () => {
-    const data = await getNotifications();
-    if (!data.error && data.notifications) {
-      setNotifications(data.notifications);
+    try {
+      const data = await getNotifications();
+      if (data.error) {
+        console.error("Failed to fetch notifications:", data.error);
+      } else if (data.notifications) {
+        setNotifications(data.notifications);
+      }
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
     }
   }, []);
 
@@ -163,8 +169,8 @@ const NotificationModal = ({
   };
 
   useEffect(() => {
-    if (isOpen && isAuthenticated) fetchNotifications();
-  }, [isOpen, isAuthenticated, fetchNotifications]);
+    if (isOpen) fetchNotifications();
+  }, [isOpen, fetchNotifications]);
 
   return (
     <div

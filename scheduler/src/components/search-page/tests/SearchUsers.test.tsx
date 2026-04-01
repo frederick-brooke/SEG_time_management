@@ -1,6 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import SearchUsers from "../SearchUsers";
-import { Button } from "@/components/ui/Button";
 
 // Mock UserPanel
 jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
@@ -9,13 +8,13 @@ jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
 
 // Mock UserCard
 jest.mock("../UserCards", () => (props: any) => (
-	<div data-testid="user-card">
-		<span>{props.user.username}</span>
-		<Button onClick={props.onClick}>open</Button>
-		{props.onRemove && (
-			<Button onClick={props.onRemove}>remove</Button>
-		)}
-	</div>
+    <div data-testid="user-card">
+        <span>{props.user.username}</span>
+        <button onClick={props.onClick}>open</button>
+        {props.onRemove && (
+            <button onClick={props.onRemove}>remove</button>
+        )}
+    </div>
 ));
 
 // Mock GlassCard
