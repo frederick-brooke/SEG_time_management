@@ -1,3 +1,7 @@
+/**
+ * Testing for Task Actions component.
+ */
+
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskActions } from "../TaskActions";
 
@@ -32,7 +36,7 @@ describe("TaskActions", () => {
     jest.clearAllMocks();
   });
 
-  // ─── Rendering ───────────────────────────────────────────────────────────────
+  // Rendering
 
   describe("default rendering", () => {
     it("renders all three action buttons by default", () => {
@@ -59,7 +63,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Visibility / Conditional Rendering ──────────────────────────────────────
+  // Visibility / Conditional Rendering
 
   describe("conditional rendering", () => {
     it("hides the Edit button when canEdit is false", () => {
@@ -99,7 +103,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Click Handlers ───────────────────────────────────────────────────────────
+  // Click Handlers
 
   describe("click handlers", () => {
     it("calls onView when the View button is clicked", () => {
@@ -139,7 +143,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Props ────────────────────────────────────────────────────────────────────
+  // Props
 
   describe("props", () => {
     it("applies a custom className to the wrapper div", () => {
@@ -153,7 +157,6 @@ describe("TaskActions", () => {
     it("passes strokeWidth to the Eye icon", () => {
       render(<TaskActions {...mockHandlers} strokeWidth={3} />);
 
-      // strokeWidth is filtered out by the mock but the component should not crash
       expect(screen.getByTestId("eye-icon")).toBeInTheDocument();
     });
 
@@ -162,7 +165,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Accessibility ────────────────────────────────────────────────────────────
+  // Accessibility
 
   describe("accessibility", () => {
     it("has descriptive title attributes on all buttons", () => {

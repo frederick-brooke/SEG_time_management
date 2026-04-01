@@ -1,3 +1,7 @@
+/**
+ * Task Actions component
+ */
+
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 

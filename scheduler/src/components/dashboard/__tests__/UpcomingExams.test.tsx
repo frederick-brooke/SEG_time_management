@@ -1,6 +1,9 @@
-//testing for components/dashboard/UpcomingExams.tsx
+/**
+ * Testing for Upcoming Exams component
+ */
+
 import { render, screen } from '@testing-library/react';
-import { UpcomingExams, getUpcomingExams } from '../UpcomingExams'; // Adjust import path as needed
+import { UpcomingExams, getUpcomingExams } from '../UpcomingExams';
 
 // Mocks Next.js Link to render as a standard anchor tag for straightforward DOM testing
 jest.mock('next/link', () => {

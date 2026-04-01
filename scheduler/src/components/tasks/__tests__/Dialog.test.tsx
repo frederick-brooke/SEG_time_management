@@ -1,6 +1,9 @@
+/**
+ * Testing for Dialog component.
+ */
+
 import React from "react";
 import { render, screen } from "@testing-library/react";
-
 
 // Mocks
 

@@ -1,3 +1,7 @@
+/**
+ * Task Card component
+ */
+
 import * as React from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/animate-ui/primitives/radix/Checkbox";
@@ -8,7 +12,7 @@ import { getPriorityStyle } from "@/lib/priority";
 import { LunarCard } from "../ui/LunarCard";
 
 /**
- * Renders the checklist of subtasks for a task card.//
+ * Renders the checklist of subtasks for a task card.
  * @param {Array} subtasks List of subtasks to display.
  * @param {boolean[]} checkedList Tracked check state for each subtask.
  * @param {Function} onSubtaskChange Callback triggered when a subtask checkbox changes.

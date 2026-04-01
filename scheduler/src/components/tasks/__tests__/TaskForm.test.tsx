@@ -1,8 +1,14 @@
+/**
+ * Testing for Task Form component.
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskForm } from "../TaskForm";
 import { Select } from "@/components/ui/Select";
+
+// Mocks
 
 jest.mock("../../ui/dialog", () => {
   const React = require("react");
@@ -131,6 +137,8 @@ jest.mock("../../ui/ToggleGroup", () => {
 
   return { ToggleGroup, ToggleGroupItem };
 });
+
+// Tests
 
 describe("TaskFormDialog", () => {
   const baseFormData = {

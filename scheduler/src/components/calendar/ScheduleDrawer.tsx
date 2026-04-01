@@ -1,5 +1,9 @@
 "use client";
-// src/components/calendar/ScheduleDrawer.tsx
+
+/**
+ * Schedule Drawer component
+ */
+
 import { format, addDays } from "date-fns";
 import {
   Drawer,

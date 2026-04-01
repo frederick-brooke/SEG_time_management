@@ -1,4 +1,9 @@
 "use client";
+
+/**
+ * Check in Modal component
+ */
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/Button"

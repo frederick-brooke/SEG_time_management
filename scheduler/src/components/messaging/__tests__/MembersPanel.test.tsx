@@ -1,4 +1,7 @@
-//tests for scheduler/src/components/messaging/MembersPanel.tsx
+/**
+ * Testing for Members Panel component.
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";

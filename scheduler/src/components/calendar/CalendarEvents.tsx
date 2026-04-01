@@ -1,7 +1,10 @@
 "use client";
 
+/**
+ * Component for the calendar events.
+ */
+
 import React, { useEffect, useState } from "react";
-import { LunarCard } from "../ui/LunarCard";
 
 export function CalendarEvents() {
     const [events, setEvents] = useState([]);

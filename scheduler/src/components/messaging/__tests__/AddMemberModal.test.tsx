@@ -1,4 +1,7 @@
-//test for scheduler/src/components/messaging/AddMemberModal.tsx
+/**
+ * Testing for Add Member Modal
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";

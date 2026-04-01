@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * To Do List component
+ */
+
 import * as React from "react";
 import { Progress } from "@/components/ui/Progress";
 import {

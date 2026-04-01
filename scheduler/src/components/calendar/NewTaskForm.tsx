@@ -1,6 +1,8 @@
 "use client";
 
-// src/components/calendar/NewTaskForm.tsx
+/**
+ * New Task Form component
+ */
 
 import { useState } from "react";
 import { Toggle, RecurrencePanel } from "@/components/shared/FormComponents";

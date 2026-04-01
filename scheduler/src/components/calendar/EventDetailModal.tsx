@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Event Detail Modal component
+ */
+
 import { format } from "date-fns";
 import { MapPin } from "lucide-react";
 import { TaskForm, type TaskFormData } from "@/components/tasks/TaskForm";

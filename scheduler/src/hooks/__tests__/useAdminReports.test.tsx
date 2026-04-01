@@ -1,7 +1,6 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { useAdminReports } from "../useAdminReports";
 
-// ── Fix 1: spyOn instead of assignment 
 const mockedFetch = jest
   .spyOn(global, "fetch")
   .mockImplementation(jest.fn()) as jest.MockedFunction<typeof fetch>;
@@ -21,7 +20,6 @@ describe("useAdminReports", () => {
   it("returns correct initial state", () => {
     mockedFetch.mockReturnValue(new Promise(() => {})); // freeze fetch
 
-    // Fix 2: stable reference outside renderHook
     const filters = { page: "1", limit: "10" };
     const { result } = renderHook(() => useAdminReports(filters));
 

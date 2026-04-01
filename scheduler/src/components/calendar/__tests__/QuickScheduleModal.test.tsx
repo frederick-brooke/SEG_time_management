@@ -1,9 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import QuickScheduleModal from "../QuickScheduleModal";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("date-fns", () => ({
   format: (_date: Date, fmt: string) =>
@@ -12,9 +10,7 @@ jest.mock("date-fns", () => ({
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true });
 
-// ---------------------------------------------------------------------------
 // Fixtures
-// ---------------------------------------------------------------------------
 
 const task = { id: "task-123", title: "Write unit tests" };
 
@@ -28,9 +24,7 @@ function renderModal(props = {}) {
   return render(<QuickScheduleModal {...defaultProps} {...props} />);
 }
 
-// ---------------------------------------------------------------------------
 // Rendering
-// ---------------------------------------------------------------------------
 
 describe("QuickScheduleModal — rendering", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -61,9 +55,7 @@ describe("QuickScheduleModal — rendering", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // onClose behaviour
-// ---------------------------------------------------------------------------
 
 describe("QuickScheduleModal — onClose", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -92,9 +84,7 @@ describe("QuickScheduleModal — onClose", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // handleSchedule — guard: missing inputs
-// ---------------------------------------------------------------------------
 
 describe("QuickScheduleModal — handleSchedule guard", () => {
   beforeEach(() => jest.clearAllMocks());
@@ -134,9 +124,7 @@ describe("QuickScheduleModal — handleSchedule guard", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // handleSchedule — successful submission
-// ---------------------------------------------------------------------------
 
 describe("QuickScheduleModal — handleSchedule success", () => {
   beforeEach(() => jest.clearAllMocks());
