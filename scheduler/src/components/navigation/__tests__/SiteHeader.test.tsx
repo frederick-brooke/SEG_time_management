@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { SiteHeader } from "../SiteHeader"; 
 
-// 1. Mock the child components to isolate the SiteHeader component
+
 jest.mock("components/ui/Button", () => ({
   Button: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -14,16 +14,15 @@ jest.mock("components/ui/separator", () => ({
 
 jest.mock("@/components/ui/sidebar", () => ({
   SidebarTrigger: ({ className }: any) => (
-    <Button data-testid="sidebar-trigger" className={className}>
+    <button data-testid="sidebar-trigger" className={className}>
       Trigger
-    </Button>
+    </button>
   ),
 }));
 
 describe("SiteHeader Component", () => {
   it("renders the header container successfully", () => {
     render(<SiteHeader />);
-    // The <header> HTML5 element has an implicit ARIA role of "banner"
     const headerElement = screen.getByRole("banner");
     expect(headerElement).toBeInTheDocument();
   });

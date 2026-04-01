@@ -13,7 +13,7 @@ jest.mock("@tabler/icons-react", () => ({
   ),
 }));
 
-jest.mock("../lunar-card", () => ({
+jest.mock("@/components/ui/LunarCard", () => ({
   LunarCard: ({
     children,
     className,
