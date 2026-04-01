@@ -25,7 +25,7 @@ export default function FriendStatCard({ friendCount, showFriends, onToggle }: F
   return (
     <Button
       onClick={onToggle}
-      className={`lunar-card flex flex-col justify-center items-center text-center transition-all hover:border-blue-500/30 ${
+      className={`w-full h-full aspect-square p-6 lunar-card flex flex-col justify-center items-center text-center transition-all hover:border-blue-500/30 ${
         showFriends ? "border-blue-400/50 bg-blue-500/10" : ""
       }`}
     >
