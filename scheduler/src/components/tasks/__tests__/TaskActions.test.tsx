@@ -1,6 +1,10 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskActions } from "../TaskActions";
 
+const Button = ({ children, ...props }: any) => (
+  <button {...props}>{children}</button>
+);
+
 // Mock lucide-react icons
 jest.mock("lucide-react", () => ({
   Eye: ({ strokeWidth, ...props }) => <svg data-testid="eye-icon" {...props} />,
@@ -154,7 +158,6 @@ describe("TaskActions", () => {
     });
 
     it("uses the default strokeWidth of 2 when not provided", () => {
-      // Component should render without errors using the default
       expect(() => render(<TaskActions {...mockHandlers} />)).not.toThrow();
     });
   });
