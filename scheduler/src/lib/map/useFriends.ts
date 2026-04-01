@@ -10,6 +10,16 @@ interface FriendsState {
 }
 
 /**
+ * Validates the API response and extracts friend data.
+ * Returns empty array for unauthenticated users (401), throws for other errors.
+ */
+export async function validateFriendsResponse(response: Response): Promise<Friend[]> {
+  if (response.ok) return response.json();
+  if (response.status === 401) return []; // Unauthenticated, use empty array
+  throw new Error(`Failed to fetch friends: ${response.status}`);
+}
+
+/**
  * Hook that fetches the user's friends from the API and returns the result.
  * Used by MapView to populate friend locations on the map.
  */
@@ -23,28 +33,19 @@ export function useFriends(): FriendsState {
       try {
         setLoading(true);
         setError(null);
-
         const response = await fetch("/api/friends");
-        if (!response.ok) {
-          if (response.status === 401) {
-            // User not authenticated, just use empty friends array
-            setFriends([]);
-            return;
-          }
-          throw new Error(`Failed to fetch friends: ${response.status}`);
-        }
-
-        const friendsData = await response.json();
+        const friendsData = await validateFriendsResponse(response);
         setFriends(friendsData);
       } catch (err) {
         console.error("Error fetching friends:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch friends");
-        setFriends([]); // Fallback to empty array
+        const message = err instanceof Error ? err.message : "Failed to fetch friends";
+        setError(message);
+        setFriends([]);
       } finally {
         setLoading(false);
       }
     };
-
+    
     fetchFriends();
   }, []);
 

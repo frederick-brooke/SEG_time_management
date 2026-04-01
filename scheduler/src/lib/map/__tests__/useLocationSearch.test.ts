@@ -3,7 +3,7 @@
  */
 
 import { renderHook, waitFor, act } from "@testing-library/react";
-import { useLocationSearch } from "../useLocationSearch";
+import { useLocationSearch, performLocationSearch, executeSearch } from "../useLocationSearch";
 
 describe("useLocationSearch", () => {
   beforeEach(() => {
@@ -222,5 +222,297 @@ describe("useLocationSearch", () => {
 
       expect(unmount).toBeDefined();
     });
+  });
+});
+
+describe("performLocationSearch", () => {
+  const mockSuggestion = {
+    geometry: { coordinates: [-0.127, 51.507] },
+    properties: { name: "London", city: "London", display: "London, UK" },
+  };
+
+  it("returns parsed suggestions array on success", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([mockSuggestion]),
+      })
+    ) as any;
+
+    const result = await performLocationSearch("london");
+    expect(result).toEqual([mockSuggestion]);
+    expect(global.fetch).toHaveBeenCalledWith(
+      `/api/location/search?q=${encodeURIComponent("london")}`
+    );
+  });
+
+  it("returns empty array for successful response with null data", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(null),
+      })
+    ) as any;
+
+    const result = await performLocationSearch("london");
+    expect(result).toEqual([]);
+  });
+
+  it("returns empty array for successful response with empty array", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      })
+    ) as any;
+
+    const result = await performLocationSearch("london");
+    expect(result).toEqual([]);
+  });
+
+  it("returns parsed suggestions with multiple results", async () => {
+    const multipleSuggestions = [
+      mockSuggestion,
+      {
+        ...mockSuggestion,
+        properties: { ...mockSuggestion.properties, name: "London, Ontario" },
+      },
+    ];
+
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(multipleSuggestions),
+      })
+    ) as any;
+
+    const result = await performLocationSearch("london");
+    expect(result).toEqual(multipleSuggestions);
+    expect(result).toHaveLength(2);
+  });
+
+  it("throws error for 400 bad request", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 400,
+      })
+    ) as any;
+
+    await expect(performLocationSearch("london")).rejects.toThrow(
+      "Location search failed"
+    );
+  });
+
+  it("throws error for 404 not found", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 404,
+      })
+    ) as any;
+
+    await expect(performLocationSearch("london")).rejects.toThrow(
+      "Location search failed"
+    );
+  });
+
+  it("throws error for 500 server error", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+      })
+    ) as any;
+
+    await expect(performLocationSearch("london")).rejects.toThrow(
+      "Location search failed"
+    );
+  });
+
+  it("throws error for network failure", async () => {
+    const networkError = new Error("Network timeout");
+    global.fetch = jest.fn(() => Promise.reject(networkError)) as any;
+
+    await expect(performLocationSearch("london")).rejects.toThrow(
+      "Network timeout"
+    );
+  });
+
+  it("encodes special characters in query parameter", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      })
+    ) as any;
+
+    await performLocationSearch("Café & Restaurant");
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      `/api/location/search?q=${encodeURIComponent("Café & Restaurant")}`
+    );
+  });
+
+  it("encodes spaces correctly in query parameter", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      })
+    ) as any;
+
+    await performLocationSearch("New York");
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      `/api/location/search?q=${encodeURIComponent("New York")}`
+    );
+  });
+
+  it("handles non-array response by returning empty array", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ some: "object" }),
+      })
+    ) as any;
+
+    const result = await performLocationSearch("london");
+    expect(result).toEqual([]);
+  });
+
+  it("handles undefined response data", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(undefined),
+      })
+    ) as any;
+
+    const result = await performLocationSearch("london");
+    expect(result).toEqual([]);
+  });
+});
+
+describe("executeSearch", () => {
+  const mockSuggestion = {
+    geometry: { coordinates: [-0.127, 51.507] },
+    properties: { name: "London", city: "London", display: "London, UK" },
+  };
+
+  beforeEach(() => {
+    global.fetch = jest.fn();
+  });
+
+  it("updates state with suggestions on success", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([mockSuggestion]),
+      })
+    ) as any;
+
+    const setSuggestions = jest.fn();
+    const setError = jest.fn();
+    const setLoading = jest.fn();
+
+    await executeSearch("london", setSuggestions, setError, setLoading);
+
+    expect(setSuggestions).toHaveBeenCalledWith([mockSuggestion]);
+    expect(setError).toHaveBeenCalledWith(null);
+    expect(setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it("clears suggestions and sets error on API failure", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+      })
+    ) as any;
+
+    const setSuggestions = jest.fn();
+    const setError = jest.fn();
+    const setLoading = jest.fn();
+
+    await executeSearch("london", setSuggestions, setError, setLoading);
+
+    expect(setSuggestions).toHaveBeenCalledWith([]);
+    expect(setError).toHaveBeenCalledWith("Location search failed");
+    expect(setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it("handles network errors with error message", async () => {
+    const networkError = new Error("Network timeout");
+    global.fetch = jest.fn(() => Promise.reject(networkError)) as any;
+
+    const setSuggestions = jest.fn();
+    const setError = jest.fn();
+    const setLoading = jest.fn();
+
+    await executeSearch("london", setSuggestions, setError, setLoading);
+
+    expect(setSuggestions).toHaveBeenCalledWith([]);
+    expect(setError).toHaveBeenCalledWith("Network timeout");
+    expect(setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it("handles non-Error exceptions gracefully", async () => {
+    global.fetch = jest.fn(() => Promise.reject("String error")) as any;
+
+    const setSuggestions = jest.fn();
+    const setError = jest.fn();
+    const setLoading = jest.fn();
+
+    await executeSearch("london", setSuggestions, setError, setLoading);
+
+    expect(setSuggestions).toHaveBeenCalledWith([]);
+    expect(setError).toHaveBeenCalledWith("Search error");
+    expect(setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it("updates state with empty suggestions array on success", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([]),
+      })
+    ) as any;
+
+    const setSuggestions = jest.fn();
+    const setError = jest.fn();
+    const setLoading = jest.fn();
+
+    await executeSearch("xyz", setSuggestions, setError, setLoading);
+
+    expect(setSuggestions).toHaveBeenCalledWith([]);
+    expect(setError).toHaveBeenCalledWith(null);
+    expect(setLoading).toHaveBeenCalledWith(false);
+  });
+
+  it("always calls setLoading(false) even if setSuggestions throws", async () => {
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([mockSuggestion]),
+      })
+    ) as any;
+
+    const setSuggestions = jest
+      .fn()
+      .mockImplementation(() => {
+        throw new Error("State update failed");
+      });
+    const setError = jest.fn();
+    const setLoading = jest.fn();
+
+    // Even if setSuggestions throws, setLoading should still be called
+    try {
+      await executeSearch("london", setSuggestions, setError, setLoading);
+    } catch {
+      // Expected to throw
+    }
+
+    expect(setLoading).toHaveBeenCalledWith(false);
   });
 });
