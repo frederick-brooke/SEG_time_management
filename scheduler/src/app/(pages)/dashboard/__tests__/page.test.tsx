@@ -3,6 +3,7 @@
  */
 
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { Button } from "@/components/ui/Button";
 
 let mockErrorParam: string | null = null;
 let mockWellbeingOpen = false;
@@ -64,11 +65,11 @@ jest.mock("@tabler/icons-react", () =>
   new Proxy({}, { get: (_: any, name: string) => function MockIcon() { return null; } })
 );
 
-jest.mock("components/dashboard/upcoming-exams", () => ({
+jest.mock("components/dashboard/UpcomingExams", () => ({
   UpcomingExams: () => <div>UpcomingExams</div>,
 }));
 
-jest.mock("@/components/dashboard/coming-up-soon", () => ({
+jest.mock("@/components/dashboard/ComingUpSoon", () => ({
   ComingUpSoon: () => <div>ComingUpSoon</div>,
 }));
 
@@ -83,7 +84,7 @@ jest.mock("@/components/wellbeing/wellbeing_panel", () => ({
   default: ({ children, open, onClose }: any) => (
     <div>
       {open && <div data-testid="panel-open" />}
-      <button onClick={onClose}>ClosePanel</button>
+      <Button onClick={onClose}>ClosePanel</Button>
       {children}
     </div>
   ),

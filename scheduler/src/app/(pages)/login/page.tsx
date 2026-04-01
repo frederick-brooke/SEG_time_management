@@ -5,7 +5,8 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, LogIn, Loader2 } from "lucide-react";
-import BannedPage from "@/components/admin/ban-message-page";
+import BannedPage from "@/components/admin/BanMessagePage";
+import { Button } from "@/components/ui/Button";
 
 interface FormInputProps {
   label: string;
@@ -248,14 +249,14 @@ function LoginHeader() {
  */
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <button
+    <Button
       type="submit"
       disabled={isPending}
       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:pointer-events-none"
     >
       {isPending && <Loader2 size={18} className="animate-spin" />}
       {isPending ? "Authenticating..." : "Initiate Launch"}
-    </button>
+    </Button>
   );
 }
 

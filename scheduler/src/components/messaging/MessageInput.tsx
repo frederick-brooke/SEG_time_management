@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { Button } from "../ui/Button";
 
 type Props = {
   value: string;
@@ -45,7 +46,7 @@ export function MessageInput({ value, sending, onChange, onKeyDown, onSend }: Pr
           rows={1}
           className="flex-1 bg-transparent outline-none text-sm resize-none overflow-y-auto max-h-[120px] leading-[1.5] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)]"
         />
-        <button
+        <Button
           onClick={onSend}
           disabled={sending || !value.trim()}
           className={`text-sm font-medium transition-colors disabled:opacity-30 pb-0.5 ${
@@ -55,7 +56,7 @@ export function MessageInput({ value, sending, onChange, onKeyDown, onSend }: Pr
           }`}
         >
           Send
-        </button>
+        </Button>
       </div>
     </div>
   );

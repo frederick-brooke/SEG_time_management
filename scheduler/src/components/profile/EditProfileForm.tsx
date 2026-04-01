@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { X } from "lucide-react";
 import { useFormStatus } from "react-dom";
@@ -54,13 +55,13 @@ function FormInput({ id, label, defaultValue, isTextArea = false }: FormInputPro
 function SubmitButton({ text, loadingText }: { text: string; loadingText: string }) {
   const { pending } = useFormStatus();
   return (
-    <button
+    <Button
       type="submit"
       disabled={pending}
       className={`lunar-button-primary ${pending ? "opacity-50 cursor-not-allowed" : ""}`}
     >
       {pending ? loadingText : text}
-    </button>
+    </Button>
   );
 }
 
@@ -74,9 +75,9 @@ export default function EditProfileForm({ profile, onClose }: EditProfileFormPro
     <div className="lunar-card p-6 mt-2 animate-in fade-in slide-in-from-top-2">
       <div className="flex justify-between items-center mb-6">
         <h3 className="lunar-label">Edit Details</h3>
-        <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+        <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
           <X size={16} />
-        </button>
+        </Button>
       </div>
 
       <form action={updateProfile} className="space-y-4" onSubmit={() => setTimeout(onClose, 500)}>

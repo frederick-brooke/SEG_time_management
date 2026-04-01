@@ -11,6 +11,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import UserSearch from "components/messaging/UserSearch";
 import ConversationList from "components/messaging/ConversationList";
+import { Button } from "@/components/ui/Button";
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);
@@ -66,12 +67,12 @@ export default function MessagesLayout({ children }: { children: React.ReactNode
           <main className="flex-1 flex flex-col overflow-hidden min-w-0">
             {isMobile && conversationId && (
               <div className="shrink-0 px-3 py-2 border-b border-white/[0.06]">
-                <button
+                <Button
                   onClick={() => router.push("/messages")}
                   className="flex items-center gap-1.5 text-sm transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
                 >
                   ← Back
-                </button>
+                </Button>
               </div>
             )}
             <div className="flex-1 flex flex-col overflow-hidden min-h-0">

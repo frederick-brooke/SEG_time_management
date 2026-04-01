@@ -65,13 +65,13 @@ export default function LocationInput({
           {label}
         </label>
         {showCurrentLocation && onUseCurrentLocation && (
-          <button
+          <Button
             type="button"
             onClick={onUseCurrentLocation}
             className="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors"
           >
             📍 Use My Location
-          </button>
+          </Button>
         )}
       </div>
 
@@ -86,21 +86,21 @@ export default function LocationInput({
           className={`flex-1 ${inputClass}`}
         />
         {pending && (
-          <button
+          <Button
             type="button"
             onClick={onOpenSaveModal}
             className="shrink-0 px-2 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-lg border border-amber-500/20 font-bold transition-all"
             title="Save this location"
           >
             ⭐
-          </button>
+          </Button>
         )}
       </div>
 
       {suggestions.length > 0 && (
         <div className="absolute z-[100] w-full bg-[#1a1a24] border border-white/10 rounded-xl shadow-2xl mt-1 max-h-48 overflow-auto">
           {suggestions.map((s: any, i: number) => (
-            <button
+            <Button
               key={i}
               type="button"
               onClick={() => onSelectSuggestion(s)}
@@ -111,7 +111,7 @@ export default function LocationInput({
                 <span className="text-white/30 ml-1">({s.properties.city})</span>
               )}
               <p className="text-xs text-white/30 truncate">{s.properties.display}</p>
-            </button>
+            </Button>
           ))}
         </div>
       )}

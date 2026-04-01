@@ -7,7 +7,7 @@ import Page from "../page";
 
 //  Mocks 
 
-jest.mock("@/components/admin/ban-message-page", () => ({
+jest.mock("@/components/admin/BanMessagePage", () => ({
   __esModule: true,
   default: () => <div data-testid="banned-page" />,
 }));

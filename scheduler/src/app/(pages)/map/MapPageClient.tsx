@@ -11,6 +11,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import MapView from "@/components/map/MapView";
 import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
+import { Button } from "@/components/ui/Button";
 
 const SetLocationModal = dynamic(
   () => import("@/components/map/SetLocationModal").then((mod) => mod.default),
@@ -52,12 +53,12 @@ export default function MapPageClient({
         </div>
         <div className="w-full lg:w-72 shrink-0 space-y-4">
           <SavedLocationsPanel />
-          <button
+          <Button
             onClick={() => setIsLocationModalOpen(true)}
             className="w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
           >
             📍 Set Your Location
-          </button>
+          </Button>
 
           {/* Location Visibility Info */}
           <div className="bg-white/5 border border-white/10 rounded-lg p-4">

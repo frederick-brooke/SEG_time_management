@@ -1,6 +1,8 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskForm } from "../TaskForm";
+import { Select } from "@/components/ui/Select";
 
 /**
  * Mock shadcn/Radix wrappers via RELATIVE PATHS so Jest doesn't need alias config.
@@ -70,18 +72,18 @@ jest.mock("../../ui/label", () => {
   };
 });
 
-jest.mock("../../ui/button", () => {
+jest.mock("../../ui/Button", () => {
   const React = require("react");
   return {
     Button: ({ children, onClick, buttonType = "button" }) => (
-      <button type={buttonType as "button"} onClick={onClick}>
+      <Button type={buttonType as "button"} onClick={onClick}>
         {children}
-      </button>
+      </Button>
     ),
   };
 });
 
-jest.mock("../../ui/select", () => {
+jest.mock("../../ui/Select", () => {
   const React = require("react");
 
   return {
@@ -121,9 +123,9 @@ jest.mock("../../ui/toggle-group", () => {
 
   function ToggleGroupItem({ value, children, __onValueChange }) {
     return (
-      <button type="button" onClick={() => __onValueChange(value)}>
+      <Button type="button" onClick={() => __onValueChange(value)}>
         {children}
-      </button>
+      </Button>
     );
   }
 

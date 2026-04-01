@@ -41,7 +41,7 @@ export function Toggle({ on, onToggle, label }: ToggleProps) {
   return (
     <div className="flex items-center gap-2 select-none">
       {/* V.4.2 Polish: Semantic button with ARIA attributes instead of a clickable div */}
-      <button
+      <Button
         type="button"
         role="switch"
         aria-checked={on}
@@ -55,7 +55,7 @@ export function Toggle({ on, onToggle, label }: ToggleProps) {
             on ? "left-5" : "left-0.5"
           }`}
         />
-      </button>
+      </Button>
       <span className="text-xs font-semibold text-gray-600 cursor-pointer" onClick={onToggle}>
         {label}
       </span>
@@ -86,7 +86,7 @@ export function DayPicker({ selected, onChange }: DayPickerProps) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {DAYS.map((day) => (
-        <button
+        <Button
           key={day}
           type="button"
           onClick={() => toggle(day)}
@@ -97,7 +97,7 @@ export function DayPicker({ selected, onChange }: DayPickerProps) {
           }`}
         >
           {day}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -136,7 +136,7 @@ export function RecurrencePanel({
 }: RecurrencePanelProps) {
   return (
     <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-      <select
+      <Select
         value={type}
         onChange={(e) => onType(e.target.value)}
         className="w-full border border-gray-200 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-400"
@@ -146,7 +146,7 @@ export function RecurrencePanel({
             {o.label}
           </option>
         ))}
-      </select>
+      </Select>
       
       {type === "weekly" && <DayPicker selected={days} onChange={onDays} />}
       

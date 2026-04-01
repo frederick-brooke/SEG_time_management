@@ -97,7 +97,7 @@ export default async function MapPage() {
   const serialisedEvents = events.map(serialiseEvent);
 
   return (
-    <main className="container mx-auto p-6 lg:p-8">
+    <main className="lunar-page">
       <PageHeader count={serialisedEvents.length} />
       <MapPageClient
         events={serialisedEvents}
@@ -118,7 +118,10 @@ function PageHeader({ count }: { count: number }) {
         <h1 className="lunar-page-title">Map</h1>
         <p className="lunar-page-subtitle">{getEventCountLabel(count)}</p>
       </div>
-      <a href="/calendar" className="text-sm text-blue-600 font-semibold hover:underline">
+      <a
+        href="/calendar"
+        className="text-sm text-blue-600 font-semibold hover:underline"
+      >
         ← Back to Calendar
       </a>
     </div>

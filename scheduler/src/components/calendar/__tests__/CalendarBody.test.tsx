@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CalendarBody from "../CalendarBody";
@@ -41,26 +42,26 @@ jest.mock("react-big-calendar", () => ({
     return (
       <div data-testid="rbc-calendar">
         {events.map((ev: any) => (
-          <button
+          <Button
             key={ev.id}
             data-testid={`event-${ev.id}`}
             onClick={() => onSelectEvent(ev)}
           >
             {ev.title}
-          </button>
+          </Button>
         ))}
-        <button
+        <Button
           data-testid="select-slot"
           onClick={() => onSelectSlot({ start: new Date("2024-06-03") })}
         >
           Select Slot
-        </button>
-        <button
+        </Button>
+        <Button
           data-testid="navigate"
           onClick={() => onNavigate(new Date("2024-06-10"))}
         >
           Navigate
-        </button>
+        </Button>
       </div>
     );
   },

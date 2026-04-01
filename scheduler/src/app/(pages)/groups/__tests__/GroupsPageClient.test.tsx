@@ -5,6 +5,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import GroupsPageClient from '../GroupsPageClient';
 import '@testing-library/jest-dom';
+import { Button } from "@/components/ui/Button";
 
 // Mocks
 
@@ -17,8 +18,8 @@ jest.mock('@/components/groups/CreateGroup', () => ({
   __esModule: true,
   default: ({ onSuccess, onClose }: any) => (
     <div data-testid="create-modal">
-      <button onClick={onSuccess} data-testid="create-modal-trigger">Mock Create</button>
-      <button onClick={onClose} data-testid="close-modal-trigger">Mock Close</button>
+      <Button onClick={onSuccess} data-testid="create-modal-trigger">Mock Create</Button>
+      <Button onClick={onClose} data-testid="close-modal-trigger">Mock Close</Button>
     </div>
   ),
 }));

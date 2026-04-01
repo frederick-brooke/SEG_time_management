@@ -49,7 +49,7 @@ function CategoryRow({
           </span>
         )}
         {editing ? (
-          <button
+          <Button
             onClick={() => {
               if (!name.trim()) return;
               if (color === "#000000") {
@@ -72,22 +72,22 @@ function CategoryRow({
             className="text-xs bg-white text-gray-900 px-3 py-1 rounded-lg font-bold hover:bg-white/90 transition-all"
           >
             Save
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             onClick={() => setEditing(true)}
             className="text-xs text-white/30 hover:text-white/70 transition-colors"
           >
             Edit
-          </button>
+          </Button>
         )}
         {canDelete && (
-          <button
+          <Button
             onClick={() => onDelete(cat.id)}
             className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
           >
             Delete
-          </button>
+          </Button>
         )}
       </div>
       {error && <p className="text-xs text-red-400 pl-11">{error}</p>}
@@ -123,7 +123,7 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
           onChange={(e) => setName(e.target.value)}
           className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
         />
-        <button
+        <Button
           onClick={() => {
             if (!name.trim()) return;
             if (color === "#000000") {
@@ -146,7 +146,7 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
           className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold hover:bg-indigo-500 transition-all"
         >
           Add
-        </button>
+        </Button>
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
@@ -178,12 +178,12 @@ export default function CategoryManagerModal({
         className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
+        <Button
           onClick={onClose}
           className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
         >
           ✕
-        </button>
+        </Button>
         <h3 className="text-2xl font-black mb-6 text-white">Categories</h3>
 
         <div className="flex flex-col gap-3 mb-6">

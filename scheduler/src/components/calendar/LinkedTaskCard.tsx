@@ -18,7 +18,7 @@ function RelativePicker({
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {RELATIVE_OPTIONS.map((opt) => (
-        <button
+        <Button
           key={opt.key}
           type="button"
           onClick={() => onChange(opt.key)}
@@ -29,7 +29,7 @@ function RelativePicker({
           }`}
         >
           {opt.label}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -191,18 +191,18 @@ export function LinkedTaskCard({
             )}
           </div>
         </div>
-        <button
+        <Button
           onClick={() => setExpanded((p) => !p)}
           className="text-xs text-white/30 hover:text-white/70 px-2 transition-colors"
         >
           {expanded ? "▲" : "▼"}
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => onRemove(index)}
           className="text-red-400/60 hover:text-red-400 text-lg leading-none transition-colors"
         >
           ✕
-        </button>
+        </Button>
       </div>
 
       {expanded && (

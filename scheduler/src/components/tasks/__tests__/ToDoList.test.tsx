@@ -1,7 +1,8 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { ToDoList } from "../to-do-list";
+import { ToDoList } from "../ToDoList";
 
 const mockUseTasks = jest.fn();
 jest.mock("@/hooks/useTasks", () => ({
@@ -53,18 +54,18 @@ jest.mock("../../tasks/TaskColumn", () => ({
 
       {tasks[0] ? (
         <div>
-          <button type="button" onClick={() => onToggle(tasks[0].id)}>
+          <Button type="button" onClick={() => onToggle(tasks[0].id)}>
             toggle-first
-          </button>
-          <button type="button" onClick={() => onView(tasks[0])}>
+          </Button>
+          <Button type="button" onClick={() => onView(tasks[0])}>
             view-first
-          </button>
-          <button type="button" onClick={() => onEdit(tasks[0].id)}>
+          </Button>
+          <Button type="button" onClick={() => onEdit(tasks[0].id)}>
             edit-first
-          </button>
-          <button type="button" onClick={() => onDelete(tasks[0].id)}>
+          </Button>
+          <Button type="button" onClick={() => onDelete(tasks[0].id)}>
             delete-first
-          </button>
+          </Button>
         </div>
       ) : null}
     </div>
@@ -75,12 +76,12 @@ jest.mock("../TaskForm", () => ({
   TaskForm: ({ isOpen, onOpenChange, onSubmit }) => (
     <div data-testid="task-form-dialog">
       <div data-testid="form-open">{String(isOpen)}</div>
-      <button type="button" onClick={() => onOpenChange(false)}>
+      <Button type="button" onClick={() => onOpenChange(false)}>
         close-form
-      </button>
-      <button type="button" onClick={onSubmit}>
+      </Button>
+      <Button type="button" onClick={onSubmit}>
         submit-form
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -90,9 +91,9 @@ jest.mock("../../tasks/TaskViewDialog", () => ({
     <div data-testid="task-view-dialog">
       <div data-testid="view-open">{String(isOpen)}</div>
       <div data-testid="view-title">{task ? task.title : ""}</div>
-      <button type="button" onClick={onClose}>
+      <Button type="button" onClick={onClose}>
         close-view
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -101,12 +102,12 @@ jest.mock("../../tasks/DeleteTaskDialog", () => ({
   DeleteTaskDialog: ({ isOpen, onConfirm, onCancel }) => (
     <div data-testid="delete-task-dialog">
       <div data-testid="delete-open">{String(isOpen)}</div>
-      <button type="button" onClick={onConfirm}>
+      <Button type="button" onClick={onConfirm}>
         confirm-delete
-      </button>
-      <button type="button" onClick={onCancel}>
+      </Button>
+      <Button type="button" onClick={onCancel}>
         cancel-delete
-      </button>
+      </Button>
     </div>
   ),
 }));

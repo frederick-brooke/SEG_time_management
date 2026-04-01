@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MessagesLayout from "../layout";
 import { useParams, useRouter } from "next/navigation";
@@ -32,7 +33,7 @@ jest.mock("components/messaging/ConversationList", () => ({
 
 // Helpers
 
-import { useSidebar } from "components/ui/sidebar";
+import { useSidebar } from "@/components/ui/Sidebar";
 
 const mockPush = jest.fn();
 

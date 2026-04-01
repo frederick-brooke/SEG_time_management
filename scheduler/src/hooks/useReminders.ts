@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 /**
  * Custom hook for managing individual reminder timers.
@@ -14,98 +14,127 @@ import { useState, useEffect, useRef } from "react";
  *
  * @returns {Object} Reminder state and control functions
  */
-export function useReminders( {id, onFire} ) {
-    const storage_key = `reminder:${id}`; 	// reminder config
-    const [durationMs, setDurationMs] = useState(null); 	// separate reminder timer
+export function useReminders({ id, onFire }) {
+    const key = `reminder:${id}`;
+
+    const [durationMs, setDurationMs] = useState(null);
     const [enabled, setEnabled] = useState(false);
-    const reminderTimeoutRef = useRef(null);    //after how much time the modal fires off
     const [remainingMs, setRemainingMs] = useState(null);
-    const reminderIntervalRef = useRef(null);   //diff between end and new time each second
-    // clear timer safely
-    const clearReminderTimer = () => {
-        if (reminderTimeoutRef.current) {
-            clearTimeout(reminderTimeoutRef.current);
-            reminderTimeoutRef.current = null;
-        }
 
-        if (reminderIntervalRef.current) {
-            clearInterval(reminderIntervalRef.current);
-            reminderIntervalRef.current = null;
-        }
-    };
-    // start reminder timer
-    const startReminderTimer = (durationMs) => {
-        clearReminderTimer();
+    const timeoutRef = useRef(null);
+    const intervalRef = useRef(null);
 
-        const fireAt = Date.now() + durationMs;
-        setRemainingMs(durationMs);
-
-        reminderIntervalRef.current = setInterval(() => {
-            const left = fireAt - Date.now();
-            setRemainingMs(Math.max(0, left));
-        }, 1000);
-
-        reminderTimeoutRef.current = setTimeout(() => {
-            setEnabled(false);
-            onFire?.();
-        }, durationMs);
-    };
-    //restore on mount
-    useEffect(() => {
-        const raw = localStorage.getItem(storage_key);
-        if (!raw) return;
-
-        const { durationMs, enabled, fireAt } = JSON.parse(raw);
-
-        setDurationMs(durationMs);
-
-        if (enabled && fireAt > Date.now()) {
-            setEnabled(true);
-            startReminderTimer(fireAt - Date.now());
-        }
+    /** Clears timers */
+    const clear = useCallback(() => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        timeoutRef.current = null;
+        intervalRef.current = null;
     }, []);
 
-    //persist on change
+    /** Disables reminder */
+    const disable = useCallback(() => { clear(); setEnabled(false); setRemainingMs(null); }, [clear]);
+
+    /** Starts timer */
+    const start = useCallback((duration) => {
+        clear();
+        const fireAt = Date.now() + duration;
+
+        setRemainingMs(duration);
+        intervalRef.current = createInterval(fireAt, setRemainingMs);
+
+        timeoutRef.current = createTimeout(duration, () => { disable(); onFire?.(); });
+    }, [clear, disable, onFire]);
+
+    /** Toggles reminder */
+    const toggleReminder = useCallback(() => {
+        if (durationMs === null) return;
+        if (!enabled) { setEnabled(true); start(durationMs); return; }
+        disable();
+    }, [durationMs, enabled, start, disable]);
+
+    /** Restore state */
+    useEffect(() => {
+        const data = read(key);
+        if (!data) return;
+
+        setDurationMs(data.durationMs);
+        if (!shouldResume(data)) return;
+
+        setEnabled(true);
+        start(data.fireAt - Date.now());
+    }, [key, start]);
+
+    /** Persist state */
     useEffect(() => {
         if (durationMs === null) return;
 
-        const fireAt = enabled ? Date.now() + durationMs : null;
+        write(key, { durationMs, enabled, fireAt: enabled ? Date.now() + durationMs : null, });
+    }, [key, durationMs, enabled]);
 
-        localStorage.setItem(
-            storage_key,
-            JSON.stringify({ durationMs, enabled, fireAt })
-        );
-    }, [durationMs, enabled]);
+    /** Cleanup */
+    useEffect(() => clear, [clear]);
+    return { enabled, durationMs, setDurationMs, remainingMs, toggleReminder,  disable, };
+}
 
-    // toggle button click
-    const handleToggleClick = () => {
-        // no time selected → open modal
-        if (durationMs === null) {
-            return;
-        }
+/**
+ * Safely parses JSON.
+ * @param {string | null} value
+ * @returns {any | null}
+ */
+function parse(value) {
+    try { return JSON.parse(value); } catch { return null; }
+}
 
-        // toggle reminder
-        if (enabled) {
-            clearReminderTimer();
-            setEnabled(false);
-            setRemainingMs(null);
-        } else {
-            setEnabled(true);
-            startReminderTimer(durationMs);
-        }
-    };
+/**
+ * Reads from storage.
+ * @param {string} key
+ * @returns {{ durationMs: number, enabled: boolean, fireAt: number | null } | null}
+ */
+function read(key) {
+    return parse(localStorage.getItem(key));
+}
 
-    // cleanup on unmount
-    useEffect(() => {
-        return () => clearReminderTimer();
-    }, []);
+/**
+ * Writes to storage.
+ * @param {string} key
+ * @param {object} value
+ */
+function write(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
 
-    return {
-        enabled, durationMs, setDurationMs, startReminderTimer, handleToggleClick, remainingMs,
-        disable: () => {
-            clearReminderTimer();
-            setEnabled(false);
-            setRemainingMs(null);
-        },
-    };
+/**
+ * Determines if reminder should resume.
+ * @param {{ enabled: boolean, fireAt: number | null }} data
+ * @returns {boolean}
+ */
+function shouldResume({ enabled, fireAt }) {
+    if (!enabled) return false;
+    if (!fireAt) return false;
+    if (fireAt <= Date.now()) return false;
+    return true;
+}
+
+/**
+ * Creates interval timer.
+ * @param {number} fireAt
+ * @param {(ms: number) = void} onTick
+ * @returns {number}
+ */
+function createInterval(fireAt, onTick) {
+    return setInterval(() => {
+        const remaining = fireAt - Date.now();
+        onTick(Math.max(0, remaining));
+    }, 1000);
+}
+
+/**
+ * Creates timeout.
+ * @param {number} duration
+ * @param {() = void} onFire
+ * @returns {number}
+ */
+function createTimeout(duration, onFire) {
+    return setTimeout(onFire, duration);
 }

@@ -2,18 +2,19 @@
 
 /**
  * @file UserSearch.tsx
- * @description Search component that allows users to find friends and group conversations.
- * 
- * Provides real-time filtering of friends and groups based on user input (minimum 2 characters),
- * and allows starting a new direct chat or navigating to an existing group conversation.
- * 
+ * @description Search component for finding friends and group conversations.
+ *
+ * Responsibilities:
+ * - Delegates data fetching to useSearchData hook
+ * - Filters results based on query (min 2 chars)
+ * - Handles navigation for chats and groups
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { resolveAvatarSrc } from "@/lib/avatar";
-
+import { useSearchData } from "../../hooks/useSearchData";
 
 type Friend = {
   id: string;
@@ -30,29 +31,96 @@ type GroupConversation = {
   participants: { user: { id: string; username: string } }[];
 };
 
+/**
+ * Renders a reusable search result row.
+ */
+function SearchResultItem({
+  avatar,
+  primary,
+  secondary,
+  onClick,
+}: {
+  avatar: React.ReactNode;
+  primary: string;
+  secondary: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.04]"
+    >
+      {avatar}
+      <div className="text-left">
+        <p className="text-sm font-medium text-[rgba(220,225,255,0.85)]">
+          {primary}
+        </p>
+        <p className="text-xs text-[rgba(148,163,255,0.4)]">
+          {secondary}
+        </p>
+      </div>
+    </Button>
+  );
+}
+
+/**
+ * Avatar renderer to remove duplication.
+ */
+function Avatar({
+  src,
+  fallback,
+  alt,
+}: {
+  src: string | null;
+  fallback: string;
+  alt: string;
+}) {
+  const resolved = resolveAvatarSrc(src);
+
+  if (resolved) {
+    return (
+      <Image
+        src={resolved}
+        alt={alt}
+        width={32}
+        height={32}
+        className="rounded-full"
+      />
+    );
+  }
+
+  return (
+    <div className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.8)]">
+      {fallback}
+    </div>
+  );
+}
+
 export default function UserSearch() {
   const [query, setQuery] = useState("");
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [groups, setGroups] = useState<GroupConversation[]>([]);
+  const { friends, groups } = useSearchData();
   const router = useRouter();
 
-  useEffect(() => {
-    fetch("/api/user/search").then((r) => r.json()).then(setFriends);
-    fetch("/api/conversations")
-      .then((r) => r.json())
-      .then((data) => setGroups(data.filter((c: GroupConversation) => c.isGroup)));
-  }, []);
+  const normalizedQuery = query.toLowerCase();
 
-  // Only show results after 2 characters to avoid noisy single-letter matches
-  const filteredFriends = query.length < 2 ? [] : friends.filter((f) =>
-    `${f.fname ?? ""} ${f.lname ?? ""} ${f.username}`.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredFriends =
+    query.length < 2
+      ? []
+      : friends.filter((f: Friend) =>
+          `${f.fname ?? ""} ${f.lname ?? ""} ${f.username}`
+            .toLowerCase()
+            .includes(normalizedQuery)
+        );
 
-  const filteredGroups = query.length < 2 ? [] : groups.filter((g) =>
-    g.name?.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredGroups =
+    query.length < 2
+      ? []
+      : groups.filter((g: GroupConversation) =>
+          g.name?.toLowerCase().includes(normalizedQuery)
+        );
 
-  const hasResults = filteredFriends.length > 0 || filteredGroups.length > 0;
+  const hasResults =
+    filteredFriends.length > 0 || filteredGroups.length > 0;
 
   /**
    * Creates or retrieves a direct conversation with the given user,
@@ -61,16 +129,31 @@ export default function UserSearch() {
    * @param targetUserId - The ID of the user to start a chat with.
    */
   const startChat = async (targetUserId: string) => {
-    const res = await fetch("/api/conversations/new", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ targetUserId }),
-    });
-    const convo = await res.json();
-    setQuery("");
-    router.push(`/messages/${convo.id}`);
+    try {
+      const res = await fetch("/api/conversations/new", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId }),
+      });
+
+      if ("ok" in res && !res.ok) {
+        throw new Error("Failed to start conversation");
+      }
+      
+      const convo = await res.json();
+
+      if (!convo?.id) throw new Error("Invalid conversation response");
+
+      setQuery("");
+      router.push(`/messages/${convo.id}`);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
+  /**
+   * Navigates to an existing group conversation.
+   */
   const openGroup = (groupId: string) => {
     setQuery("");
     router.push(`/messages/${groupId}`);
@@ -87,11 +170,11 @@ export default function UserSearch() {
       />
 
       {query.length >= 2 && (
-        <div
-          className="absolute top-full mt-1 w-full rounded-xl z-50 overflow-hidden bg-[rgba(12,16,32,0.98)] border border-white/[0.08] backdrop-blur-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)]"
-        >
+        <div className="absolute top-full mt-1 w-full rounded-xl z-50 overflow-hidden bg-[rgba(12,16,32,0.98)] border border-white/[0.08] backdrop-blur-xl shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
           {!hasResults && (
-            <p className="text-xs px-4 py-3 text-[rgba(148,163,255,0.35)]">No results found</p>
+            <p className="text-xs px-4 py-3 text-[rgba(148,163,255,0.35)]">
+              No results found
+            </p>
           )}
 
           {filteredFriends.length > 0 && (
@@ -99,28 +182,20 @@ export default function UserSearch() {
               <p className="text-xs font-medium px-4 pt-2 pb-1 uppercase tracking-wide text-[rgba(148,163,255,0.35)]">
                 Friends
               </p>
-              {filteredFriends.map((friend) => (
-                <button
-                  key={friend.id}
-                  onClick={() => startChat(friend.id)}
-                  className="w-full flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.04]"
-                >
-                  {resolveAvatarSrc(friend.pfp) ? (
-                    <Image src={resolveAvatarSrc(friend.pfp)!} alt={friend.username} width={32} height={32} className="rounded-full" />
-                  ) : (
-                    <div
-                      className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center bg-[rgba(88,101,242,0.2)] text-[rgba(148,163,255,0.8)]"
-                    >
-                      {friend.username[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="text-left">
-                    <p className="text-sm font-medium text-[rgba(220,225,255,0.85)]">
-                      {friend.fname} {friend.lname}
-                    </p>
-                    <p className="text-xs text-[rgba(148,163,255,0.4)]">@{friend.username}</p>
-                  </div>
-                </button>
+              {filteredFriends.map((f: Friend) => (
+                <SearchResultItem
+                  key={f.id}
+                  onClick={() => startChat(f.id)}
+                  avatar={
+                    <Avatar
+                      src={f.pfp}
+                      fallback={f.username[0].toUpperCase()}
+                      alt={f.username}
+                    />
+                  }
+                  primary={`${f.fname ?? ""} ${f.lname ?? ""}`.trim()}
+                  secondary={`@${f.username}`}
+                />
               ))}
             </>
           )}
@@ -130,22 +205,20 @@ export default function UserSearch() {
               <p className="text-xs font-medium px-4 pt-2 pb-1 uppercase tracking-wide text-[rgba(148,163,255,0.35)]">
                 Groups
               </p>
-              {filteredGroups.map((group) => (
-                <button
-                  key={group.id}
-                  onClick={() => openGroup(group.id)}
-                  className="w-full flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.04]"
-                >
-                  <div
-                    className="w-8 h-8 rounded-full text-xs font-semibold flex items-center justify-center bg-[rgba(139,92,246,0.2)] text-[rgba(167,139,250,0.8)]"
-                  >
-                    {group.name?.[0]?.toUpperCase() ?? "G"}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-medium text-[rgba(220,225,255,0.85)]">{group.name}</p>
-                    <p className="text-xs text-[rgba(148,163,255,0.4)]">{group.participants.length} members</p>
-                  </div>
-                </button>
+              {filteredGroups.map((g: GroupConversation) => (
+                <SearchResultItem
+                  key={g.id}
+                  onClick={() => openGroup(g.id)}
+                  avatar={
+                    <Avatar
+                      src={null}
+                      fallback={g.name?.[0]?.toUpperCase() ?? "G"}
+                      alt={g.name ?? "group"}
+                    />
+                  }
+                  primary={g.name ?? ""}
+                  secondary={`${g.participants.length} members`}
+                />
               ))}
             </>
           )}

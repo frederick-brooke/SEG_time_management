@@ -17,7 +17,7 @@ jest.mock("@/components/admin/report-modal", () => ({
   __esModule: true,
   default: ({ onClose }: any) => (
     <div data-testid="report-modal">
-      <button onClick={onClose}>Close Report</button>
+      <Button onClick={onClose}>Close Report</Button>
     </div>
   ),
 }));

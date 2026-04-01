@@ -3,9 +3,9 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MapPageClient from "../MapPageClient";
-
 
 // Mocks
 
@@ -44,9 +44,9 @@ jest.mock("@/components/map/SetLocationModal", () => ({
       data-initial-location={JSON.stringify(initialLocation)}
     >
       {isOpen && (
-        <button data-testid="modal-close-btn" onClick={onClose}>
+        <Button data-testid="modal-close-btn" onClick={onClose}>
           Close
-        </button>
+        </Button>
       )}
     </div>
   ),

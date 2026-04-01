@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import dynamic from "next/dynamic";
 import { MapEvent, useFriends } from "@/lib/map";
 
@@ -26,7 +27,7 @@ interface MapViewProps {
  */
 function LoadingPlaceholder({ message }: { message: string }){
   return (
-    <div className="flex items-center justify-center h-[600px] bg-gray-50 rounded-lg">
+    <div className="flex items-center justify-center h-full min-h-[600px] bg-gray-50 rounded-lg">
       <p className="text-gray-500">{message}</p>
     </div>
   );
@@ -79,7 +80,7 @@ function MapView({
   }
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       {error && <ErrorBanner message={error} />}
 
       <CombinedMapDynamic
