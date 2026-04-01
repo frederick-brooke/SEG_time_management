@@ -52,13 +52,11 @@ export default function ReminderContainer({
         id,
         onFire: () => {
             setIsFiredOpen(true);
-            setWellbeingOpen(false);
         },
     });
 
     const openSettings = useCallback(() => {
         setIsSettingsOpen(true);
-        setWellbeingOpen(false);
     }, [setWellbeingOpen]);
 
     const closeSettings = useCallback(() => {
