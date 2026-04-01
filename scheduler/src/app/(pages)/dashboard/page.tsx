@@ -200,25 +200,29 @@ function DashboardContent() {
         </main>
       </LunarThemeWrapper>
 
-      {/* Floating wellbeing button */}
-      {wellbeingVisible && (
-        <div className="group fixed bottom-6 right-6 z-[900]">
-          <button
-            onClick={() => {
-              setWellbeingOpen(true);
-              setWellbeingVisible(false);
-            }}
-            className="relative flex h-16 w-16 items-center justify-center rounded-full ..."
-            aria-label="Open wellbeing panel"
-          >
-            <IconMoonStars className="relative w-7 h-7" />
-          </button>
+		{/* Floating wellbeing button */}
+		<div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50">
+			{wellbeingVisible && (
+				<div className="group relative flex items-center">
 
-          <span className="pointer-events-none absolute right-20 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 ...">
-            Wellbeing
-          </span>
-        </div>
-      )}
+					{/* Tooltip */}
+					<span suppressHydrationWarning className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-sm text-white/80 opacity-0 translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
+						Wellbeing
+					</span>
+
+					{/* Button wrapper for pulse */}
+					<div className="relative">
+						{/* Pulse ring */}
+						<span className="absolute inset-0 rounded-full bg-purple-500/30 animate-ping"></span>
+
+						{/* Button */}
+						<button onClick={() => { setWellbeingOpen(true); setWellbeingVisible(false); }} className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-400 shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all duration-200" aria-label="Open wellbeing panel">
+							<IconMoonStars className="w-6 h-6 text-white" />
+						</button>
+					</div>
+				</div>
+			)}
+		</div>
     </>
   );
 }
