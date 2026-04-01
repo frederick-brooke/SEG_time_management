@@ -8,9 +8,8 @@ import { MAP_HEIGHT } from "@/lib/map/constants";
  * Props for the LocationController component.
  */
 interface LocationControllerProps {
-  /** The latitude and longitude to center the map on */
   center: [number, number];
-  zoom: number;
+  zoom?: number;  
 }
 
 /**
@@ -32,7 +31,7 @@ export function LocationController({ center, zoom }: LocationControllerProps) {
 
     // Only pan if a valid center is provided
     if (Array.isArray(center) && center.length === 2) {
-      map.setView(center, zoom);
+      map.panTo(center);
     } else {
       console.warn("Invalid center provided to LocationController:", center);
     }
