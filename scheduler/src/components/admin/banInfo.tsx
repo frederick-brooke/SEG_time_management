@@ -1,5 +1,6 @@
 import { AlertTriangle, ShieldOff, X } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { Button } from "@/components/ui/Button";
 
 /**
  * BanInfo
@@ -95,13 +96,13 @@ function WarningNote() {
 function ActionButtons({ onAppeal }) {
 	return (
 		<div className="flex flex-col gap-2 pt-1">
-			<button onClick={onAppeal} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-bold">
+			<Button onClick={onAppeal} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-bold">
 				Submit Appeal
-			</button>
+			</Button>
 
-			<button onClick={() => signOut({ callbackUrl: "/login" })} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-white/5 text-white/60 text-sm">
+			<Button onClick={() => signOut({ callbackUrl: "/login" })} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-white/5 text-white/60 text-sm">
 				Sign Out
-			</button>
+			</Button>
 		</div>
 	);
 }

@@ -1,12 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import { NavUser } from "../NavUser";
 import { useSidebar } from "@/components/ui/Sidebar";
+import { Button } from "@/components/ui/Button";
 
 // 1. Mock the Sidebar components and hook
 jest.mock("@/components/ui/sidebar", () => ({
   SidebarMenu: ({ children }: { children: React.ReactNode }) => <div data-testid="sidebar-menu">{children}</div>,
   SidebarMenuItem: ({ children }: { children: React.ReactNode }) => <div data-testid="sidebar-menu-item">{children}</div>,
-  SidebarMenuButton: ({ children }: { children: React.ReactNode }) => <button data-testid="sidebar-menu-button">{children}</button>,
+  SidebarMenuButton: ({ children }: { children: React.ReactNode }) => <Button data-testid="sidebar-menu-button">{children}</Button>,
   useSidebar: jest.fn(),
 }));
 

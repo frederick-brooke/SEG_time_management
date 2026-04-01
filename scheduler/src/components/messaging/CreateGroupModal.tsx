@@ -76,7 +76,7 @@ export function CreateGroupModal({
       >
         <h2 className="text-lg font-semibold mb-4 text-[rgba(220,225,255,0.9)]">New Group Chat</h2>
 
-        <Input
+        <input
           className="w-full rounded-lg px-3 py-2 mb-4 text-sm outline-none transition-colors bg-white/[0.05] border border-white/[0.08] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)] focus:border-[rgba(99,111,255,0.4)]"
           placeholder="Group name (e.g. Dream Team)"
           value={name}
@@ -88,11 +88,11 @@ export function CreateGroupModal({
           className="space-y-1 max-h-52 overflow-y-auto mb-4 rounded-lg p-2 border border-white/[0.06]"
         >
           {friends.map((u) => (
-            <Label
+            <label
               key={u.id}
               className="flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-white/[0.04]"
             >
-              <Input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="accent-indigo-500" />
+              <input type="checkbox" checked={selected.includes(u.id)} onChange={() => toggle(u.id)} className="accent-indigo-500" />
               {resolveAvatarSrc (u.pfp) ? (
                 <Image src={resolveAvatarSrc(u.pfp)!} alt={u.username} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
               ) : (
@@ -103,7 +103,7 @@ export function CreateGroupModal({
                 </div>
               )}
               <span className="text-sm text-[rgba(200,210,230,0.8)]">{u.fname?.trim() || u.username}</span>
-            </Label>
+            </label>
           ))}
         </div>
 
@@ -117,7 +117,7 @@ export function CreateGroupModal({
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             A group with these members already exists. Open it instead?{" "}
-            <button
+            <Button
               className="underline font-medium ml-1 text-[rgba(255,200,80,0.9)]"
               onClick={() => {
                 setDuplicate(false);
@@ -132,24 +132,24 @@ export function CreateGroupModal({
               }}
             >
               Open
-            </button>
+            </Button>
           </div>
         )}
 
         <div className="flex justify-end gap-2">
-          <button
+          <Button
             onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg transition-colors border border-white/[0.08] text-[rgba(148,163,255,0.6)] hover:bg-white/[0.04]"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleCreate}
             disabled={!name.trim() || selected.length === 0 || loading}
             className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40 bg-gradient-to-br from-[rgba(88,101,242,0.8)] to-[rgba(139,92,246,0.7)] text-[rgba(230,235,255,0.95)]"
           >
             {loading ? "Creating..." : "Create Group"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

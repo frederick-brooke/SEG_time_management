@@ -27,7 +27,7 @@ export default function Panel({ open, onClose, title, children }){
 				<div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">{title}</h2>
 					{/* Close button */}
-                    <button onClick={onClose}> <IconX/> </button>
+                    <Button onClick={onClose}> <IconX/> </Button>
                 </div>
 
                 {children}	{/* Dynamic panel content */}

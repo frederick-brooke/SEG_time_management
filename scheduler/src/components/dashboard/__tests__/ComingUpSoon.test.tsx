@@ -2,6 +2,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ComingUpSoon } from "../ComingUpSoon";
 import { useTasks } from "@/hooks/useTasks";
+import { Button } from "@/components/ui/Button";
 
 jest.mock("@/hooks/useTasks", () => ({
   useTasks: jest.fn(),
@@ -21,12 +22,12 @@ jest.mock("../../tasks/TaskCard", () => ({
 jest.mock("../../tasks/TaskForm", () => ({
   TaskForm: ({ onOpenChange }: any) => (
     <div data-testid="task-form">
-      <button data-testid="form-open" onClick={() => onOpenChange(true)}>
+      <Button data-testid="form-open" onClick={() => onOpenChange(true)}>
         Open Form
-      </button>
-      <button data-testid="form-close" onClick={() => onOpenChange(false)}>
+      </Button>
+      <Button data-testid="form-close" onClick={() => onOpenChange(false)}>
         Close Form
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -37,12 +38,12 @@ jest.mock("../../tasks/TaskViewDialog", () => ({
     isOpen ? (
       <div data-testid="task-view-dialog">
         <span>{task.title}</span>
-        <button data-testid="dialog-close" onClick={onClose}>
+        <Button data-testid="dialog-close" onClick={onClose}>
           Close
-        </button>
-        <button data-testid="dialog-edit" onClick={() => onEdit(task.id)}>
+        </Button>
+        <Button data-testid="dialog-edit" onClick={() => onEdit(task.id)}>
           Edit
-        </button>
+        </Button>
       </div>
     ) : null,
 }));

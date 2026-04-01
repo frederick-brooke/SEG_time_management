@@ -27,11 +27,11 @@ export default function ReminderPicker({ onConfirm, initialDuration }){
 
     return (
         <div>
-            <Input type="time" step="1" value={timeInput} onChange={(e) => setTimeInput(e.target.value)} />
+            <input type="time" step="1" value={timeInput} onChange={(e) => setTimeInput(e.target.value)} />
 
-            <button onClick={handleSubmit} className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10">
+            <Button onClick={handleSubmit} className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10">
                 Set Time
-            </button>
+            </Button>
         </div>
     );
 }

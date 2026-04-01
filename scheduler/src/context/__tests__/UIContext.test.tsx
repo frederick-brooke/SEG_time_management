@@ -16,11 +16,11 @@ function TestComponent() {
     <div>
       <p data-testid="state">{wellbeingOpen ? "open" : "closed"}</p>
 
-      <button
+      <Button
         onClick={() => setWellbeingOpen((prev) => !prev)}
       >
         toggle
-      </button>
+      </Button>
     </div>
   );
 }

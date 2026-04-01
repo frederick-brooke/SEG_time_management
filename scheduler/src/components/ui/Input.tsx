@@ -1,4 +1,4 @@
-// src/components/ui/Input.tsx
+// src/components/ui/input.tsx
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +8,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export function Input({ className, type = "text", ...props }: InputProps) {
   return (
-    <Input
+    <input
       type={type}
       data-slot="input"
       className={cn(

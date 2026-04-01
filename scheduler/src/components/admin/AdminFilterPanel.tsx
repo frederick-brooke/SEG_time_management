@@ -16,9 +16,9 @@ export function FilterPanel({ onClose, onReset, children }) {
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="lunar-header text-lg font-semibold text-white">Filters</h3>
-          <button onClick={onReset} className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition">
+          <Button onClick={onReset} className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white hover:bg-white/10 transition">
             Reset
-          </button>
+          </Button>
         </div>
         {children}
       </div>
@@ -38,7 +38,7 @@ export function FilterPanel({ onClose, onReset, children }) {
 export function FilterSortGroup({ sortBy, order, sortOptions, onSortChange, onOrderChange }) {
   return (
     <div className="space-y-3">
-      <Label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">Sorting</Label>
+      <label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">Sorting</label>
       <Select value={sortBy} onChange={(e) => onSortChange(e.target.value)} className={selectCls}>
         {sortOptions.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
       </Select>
@@ -63,8 +63,8 @@ export function FilterDateRange({ label = "Dates", startDate, endDate, onStartCh
   return (
     <div className="space-y-3">
       <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">{label}</p>
-      <Input type="date" value={startDate} onChange={(e) => onStartChange(e.target.value)} className={inputCls} />
-      <Input type="date" value={endDate}   onChange={(e) => onEndChange(e.target.value)}   className={inputCls} />
+      <input type="date" value={startDate} onChange={(e) => onStartChange(e.target.value)} className={inputCls} />
+      <input type="date" value={endDate}   onChange={(e) => onEndChange(e.target.value)}   className={inputCls} />
     </div>
   );
 }
@@ -83,10 +83,10 @@ export function FilterToggleGroup({ label, options, isActive, onToggle }) {
       <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">{label}</p>
       <div className="flex flex-col gap-2">
         {options.map(({ value, label }) => (
-          <button key={value} onClick={() => onToggle(value)}
+          <Button key={value} onClick={() => onToggle(value)}
             className={`px-3 py-2 rounded-lg text-left transition ${isActive(value) ? "bg-blue-300 text-gray-900" : "bg-white/5 text-white/70 hover:bg-white/10"}`}>
             {label}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -102,12 +102,12 @@ export function FilterToggleGroup({ label, options, isActive, onToggle }) {
 export function FilterActions({ onApply, onClose }) {
   return (
     <div className="mt-auto space-y-3">
-      <button onClick={onApply} className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition">
+      <Button onClick={onApply} className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-300 text-gray-900 font-medium hover:scale-[1.02] transition">
         Apply Filters
-      </button>
-      <button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+      </Button>
+      <Button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
         Close
-      </button>
+      </Button>
     </div>
   );
 }

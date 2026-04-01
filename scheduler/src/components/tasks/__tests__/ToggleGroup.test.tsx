@@ -18,9 +18,9 @@ jest.mock("@radix-ui/react-toggle-group", () => {
   );
 
   const Item = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button data-testid="radix-item" type="button" {...props}>
+    <Button data-testid="radix-item" type="button" {...props}>
       {children}
-    </button>
+    </Button>
   );
 
   return {

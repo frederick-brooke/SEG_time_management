@@ -39,12 +39,12 @@ function Header({ onClose }) {
 			<h3 className="lunar-header text-lg font-semibold text-white">
 				User Details
 			</h3>
-			<button
+			<Button
 				onClick={onClose}
 				className="text-white/50 hover:text-white transition"
 			>
 				✕
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -185,12 +185,12 @@ function StatCard({ label, value }) {
 function Footer({ onClose }) {
 	return (
 		<div className="lunar-page-subtitle p-6 border-white/10 border-t mt-auto">
-			<button
+			<Button
 				onClick={onClose}
 				className="w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
 			>
 				Close
-			</button>
+			</Button>
 		</div>
 	);
 }

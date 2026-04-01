@@ -5,7 +5,6 @@ import { PanelLeftIcon } from "lucide-react";
 
 import { cn } from "lib/utils";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Separator } from "@/components/ui/Separator";
 import {
   Sheet,
@@ -225,7 +224,7 @@ export function SidebarInset({ className, ...props }: SidebarInsetProps) {
 
 export function SidebarInput({ className, type = "text", ...props }: SidebarInputProps) {
   return (
-    <Input
+    <input
       data-slot="sidebar-input"
       data-sidebar="input"
       type={type}

@@ -5,8 +5,7 @@ import { useTimer } from "@/hooks/useTimer";
 
 import Reminders from "@/components/wellbeing/Reminders";
 import GlassCard from "../ui/GlassCard";
-import { Label } from "../ui/Label";
-import { Input } from "../ui/Input";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Timer
@@ -143,11 +142,11 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
                     {!hasStarted ? (
                         <div className="flex flex-col items-center gap-3">
-                            <Label className="lunar-label text-blue-400 text-sm mb-1">
+                            <label className="lunar-label text-blue-400 text-sm mb-1">
                                 Session Duration
-                            </Label>
+                            </label>
 
-                            <Input
+                            <input
                                 type="time"
                                 step="1"
                                 value={timeInput}
@@ -158,7 +157,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
                             {/* Quick Preset Buttons */}
                             <div className="flex gap-2 flex-wrap justify-center mt-2">
                                 {[15, 25, 45].map((m) => (
-                                    <button
+                                    <Button
                                         key={m}
                                         onClick={() =>
                                             setTimeInput(`00:${String(m).padStart(2, "0")}:00`)
@@ -166,7 +165,7 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
                                         className="lunar-button-ghost text-xs"
                                     >
                                         {m} min
-                                    </button>
+                                    </Button>
                                 ))}
                             </div>
                         </div>
@@ -188,39 +187,39 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
                 {/* Timer Buttons */}
                 <div className="flex gap-4 p-4 flex-wrap justify-center">
                     {!hasStarted && (
-                        <button
+                        <Button
                             onClick={submitTime}
                             className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
                         >
                             Start Focus
-                        </button>
+                        </Button>
                     )}
 
                     {isRunning && (
-                        <button
+                        <Button
                             onClick={pauseTimer}
                             className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
                         >
                             Pause Session
-                        </button>
+                        </Button>
                     )}
 
                     {hasStarted && !isRunning && (
-                        <button
+                        <Button
                             onClick={resumeTimer}
                             className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
                         >
                             Resume Focus
-                        </button>
+                        </Button>
                     )}
 
                     {hasStarted && (
-                        <button
+                        <Button
                             onClick={stopTimer}
                             className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
                         >
                             End Session
-                        </button>
+                        </Button>
                     )}
                 </div>
             </GlassCard>

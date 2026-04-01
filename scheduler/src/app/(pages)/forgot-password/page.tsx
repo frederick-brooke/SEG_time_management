@@ -68,8 +68,8 @@ export default function ForgotPasswordPage() {
           {status !== "success" ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">Email Address</Label>
-                <Input
+                <label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">Email Address</label>
+                <input
                   type="email"
                   required
                   value={email}
@@ -79,13 +79,13 @@ export default function ForgotPasswordPage() {
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={status === "sending"}
                 className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-all disabled:opacity-50"
               >
                 {status === "sending" ? "Sending..." : "Send Reset Link"}
-              </button>
+              </Button>
             </form>
           ) : (
             <Link href="/login" className="w-full inline-block bg-white/5 hover:bg-white/10 text-white text-center font-semibold py-3.5 rounded-xl transition-all">

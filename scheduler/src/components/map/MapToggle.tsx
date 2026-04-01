@@ -30,7 +30,7 @@ interface ToggleButtonProps {
  */
 function ToggleButton({ label, emoji, count, active, onClick }: ToggleButtonProps) {
   return (
-    <button
+    <Button
       onClick={onClick}
       aria-pressed={active}
       className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
@@ -52,7 +52,7 @@ function ToggleButton({ label, emoji, count, active, onClick }: ToggleButtonProp
           {count}
         </span>
       )}
-    </button>
+    </Button>
   );
 }
 

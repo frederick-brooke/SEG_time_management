@@ -28,7 +28,7 @@ export default function SearchNavItem() {
 		{/* Search icon */}
 		<IconSearch className="lunar-page-subtitle text-white/70" />
 		{/* Search input */}
-		<Input
+		<input
 			type="text"
 			value={query}
 			onChange={(e) => setQuery(e.target.value)}

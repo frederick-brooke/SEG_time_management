@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { Button } from "@/components/ui/Button";
 
 // --- Mock Button so we can assert variant/size/asChild ---
 const ButtonMock = jest.fn(({ variant, size, asChild, children }) => (
@@ -13,7 +14,7 @@ const ButtonMock = jest.fn(({ variant, size, asChild, children }) => (
   </div>
 ));
 
-jest.mock("../../ui/button", () => ({
+jest.mock("../../ui/Button", () => ({
   __esModule: true,
   Button: (props) => ButtonMock(props),
 }));
@@ -29,9 +30,9 @@ jest.mock("@radix-ui/react-alert-dialog", () => {
   );
 
   const Trigger = ({ children, ...props }) => (
-    <button data-testid="radix-trigger" {...props}>
+    <Button data-testid="radix-trigger" {...props}>
       {children}
-    </button>
+    </Button>
   );
 
   const Portal = ({ children }) => (
@@ -63,15 +64,15 @@ jest.mock("@radix-ui/react-alert-dialog", () => {
   );
 
   const Action = ({ children, ...props }) => (
-    <button data-testid="radix-action" {...props}>
+    <Button data-testid="radix-action" {...props}>
       {children}
-    </button>
+    </Button>
   );
 
   const Cancel = ({ children, ...props }) => (
-    <button data-testid="radix-cancel" {...props}>
+    <Button data-testid="radix-cancel" {...props}>
       {children}
-    </button>
+    </Button>
   );
 
   return {

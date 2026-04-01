@@ -14,9 +14,9 @@ jest.mock("../SavedLocationChips", () => ({
   default: ({ locations, onSelect }: any) => (
     <div data-testid="saved-location-chips">
       {locations.map((loc: any) => (
-        <button key={loc.id} onClick={() => onSelect(loc)}>
+        <Button key={loc.id} onClick={() => onSelect(loc)}>
           {loc.label}
-        </button>
+        </Button>
       ))}
     </div>
   ),
@@ -27,8 +27,8 @@ jest.mock("../SaveLocationModal", () => ({
   default: ({ address, onSave, onClose }: any) => (
     <div data-testid="save-location-modal">
       <span>{address}</span>
-      <button onClick={() => onSave("Home", "HOME")}>Save</button>
-      <button onClick={onClose}>Close Modal</button>
+      <Button onClick={() => onSave("Home", "HOME")}>Save</Button>
+      <Button onClick={onClose}>Close Modal</Button>
     </div>
   ),
 }));

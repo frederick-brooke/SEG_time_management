@@ -22,7 +22,7 @@ jest.mock("@/components/ui/drawer", () => ({
   DrawerTitle: ({ children }: any) => <h1>{children}</h1>,
   DrawerDescription: ({ children }: any) => <p>{children}</p>,
   DrawerFooter: ({ children }: any) => <div>{children}</div>,
-  DrawerClose: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
+  DrawerClose: ({ children, onClick }: any) => <Button onClick={onClick}>{children}</Button>,
 }));
 
 // ── Helpers ────────

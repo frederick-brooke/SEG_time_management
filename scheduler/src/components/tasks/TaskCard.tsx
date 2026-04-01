@@ -24,7 +24,7 @@ function SubtaskList({ subtasks, checkedList, onSubtaskChange }: {
         <div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
           {subtasks.map((sub, i) => (
             <div key={i} className="flex items-center gap-1.5 group">
-              <Input 
+              <input 
                 type="checkbox" 
                 checked={checkedList[i] || false}
                 className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 

@@ -40,7 +40,7 @@ export default function AppealForm({ reportId, onClose }) {
 		<>
 			<div className="flex justify-between">
 				<h2 className="lunar-header text-lg text-white">Submit Appeal</h2>
-				<button onClick={onClose}><X /></button>
+				<Button onClick={onClose}><X /></Button>
 			</div>
 
 			<textarea
@@ -50,10 +50,10 @@ export default function AppealForm({ reportId, onClose }) {
 			/>
 
 			<div className="flex justify-end gap-2">
-				<button onClick={onClose}>Cancel</button>
-				<button onClick={handleSubmit} disabled={!description || loading}>
+				<Button onClick={onClose}>Cancel</Button>
+				<Button onClick={handleSubmit} disabled={!description || loading}>
 					{loading ? "Submitting…" : "Submit Appeal"}
-				</button>
+				</Button>
 			</div>
 		</>
 	);

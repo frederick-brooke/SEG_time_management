@@ -18,14 +18,14 @@ export default function ExamFormDialog(props) {
 
     return (
         <div>
-            <button
+            <Button
                 onClick={() => setIsOpen(true)}
                 className={props.editingExam
                     ? "lunar-button-ghost"
                     : "lunar-button-primary"}
             >
                 {props.editingExam ? "Edit Details" : "+ Add Exam"} {/* Dynamic label */}
-            </button>
+            </Button>
 
             {isOpen && (
                 <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm">

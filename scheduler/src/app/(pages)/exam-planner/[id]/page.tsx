@@ -12,7 +12,6 @@ import { ToDoList } from "@/components/tasks/ToDoList";
 import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/app/actions/examActions";
 import { Button } from "@/components/ui/Button";
 import { Calendar } from "@/components/ui/Calendar";
-import { Input } from "@/components/ui/Input";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
@@ -27,14 +26,14 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
     return (
         <div key={index} className="flex flex-col gap-2 p-3 border rounded-xl bg-[#111629]/60 relative">
             <div className="flex gap-2">
-                <Input
+                <input
                     className="flex-1 lunar-input"
                     placeholder="Topic Name"
                     value={topic.title}
                     onChange={(e) => onUpdate(index, 'title', e.target.value)}
                 />
                 <div className="flex items-center gap-1 bg-[#111629]/60 border rounded-lg px-2">
-                    <Input
+                    <input
                         type="number"
                         className="w-10 lunar-input"
                         min="1"
@@ -49,7 +48,7 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
                     <span className="text-[10px] text-muted-foreground font-bold">MINS</span>
                 </div>
             </div>
-            <Input
+            <input
                 className="w-full lunar-input"
                 placeholder="Resource URL (optional)"
                 value={topic.url}

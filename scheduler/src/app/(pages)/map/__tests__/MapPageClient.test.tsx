@@ -44,9 +44,9 @@ jest.mock("@/components/map/SetLocationModal", () => ({
       data-initial-location={JSON.stringify(initialLocation)}
     >
       {isOpen && (
-        <button data-testid="modal-close-btn" onClick={onClose}>
+        <Button data-testid="modal-close-btn" onClick={onClose}>
           Close
-        </button>
+        </Button>
       )}
     </div>
   ),

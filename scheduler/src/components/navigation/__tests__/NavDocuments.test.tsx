@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { NavDocuments } from "../NavDocuments"; 
 import { useSidebar } from "@/components/ui/Sidebar";
+import { Button } from "@/components/ui/Button";
 
 // 1. Mock the icons
 jest.mock("@tabler/icons-react", () => ({
@@ -16,7 +17,7 @@ jest.mock("components/ui/dropdown-menu", () => ({
   DropdownMenu: ({ children }: any) => <div data-testid="dropdown-menu">{children}</div>,
   DropdownMenuTrigger: ({ children, asChild }: any) => {
     if (asChild) return <>{children}</>;
-    return <button>{children}</button>;
+    return <Button>{children}</Button>;
   },
   DropdownMenuContent: ({ children, side, align, className }: any) => (
     <div data-testid="dropdown-content" data-side={side} data-align={align} className={className}>
@@ -39,10 +40,10 @@ jest.mock("@/components/ui/sidebar", () => ({
   SidebarMenuItem: ({ children }: any) => <li>{children}</li>,
   SidebarMenuButton: ({ children, asChild, className }: any) => {
     if (asChild) return <>{children}</>;
-    return <button className={className} data-testid="sidebar-menu-button">{children}</button>;
+    return <Button className={className} data-testid="sidebar-menu-button">{children}</Button>;
   },
   SidebarMenuAction: ({ children, className }: any) => (
-    <button data-testid="sidebar-menu-action" className={className}>{children}</button>
+    <Button data-testid="sidebar-menu-action" className={className}>{children}</Button>
   ),
   useSidebar: jest.fn(),
 }));

@@ -26,16 +26,16 @@ jest.mock("../EventFormParts", () => ({
 
 jest.mock("@/components/shared/FormComponents", () => ({
   Toggle: ({ on, onToggle, label }: any) => (
-    <button data-testid={`toggle-${label}`} onClick={onToggle}>
+    <Button data-testid={`toggle-${label}`} onClick={onToggle}>
       {label}: {on ? "on" : "off"}
-    </button>
+    </Button>
   ),
   RecurrencePanel: ({ type, onType, onDays, onUntil }: any) => (
     <div data-testid="recurrence-panel">
-      <button onClick={() => onType("daily")}>Set Daily</button>
-      <button onClick={() => onType("weekly")}>Set Weekly</button>
-      <button onClick={() => onDays(["Mon"])}>Set Days</button>
-      <button onClick={() => onUntil("2026-12-01")}>Set Until</button>
+      <Button onClick={() => onType("daily")}>Set Daily</Button>
+      <Button onClick={() => onType("weekly")}>Set Weekly</Button>
+      <Button onClick={() => onDays(["Mon"])}>Set Days</Button>
+      <Button onClick={() => onUntil("2026-12-01")}>Set Until</Button>
       <span>{type}</span>
     </div>
   ),

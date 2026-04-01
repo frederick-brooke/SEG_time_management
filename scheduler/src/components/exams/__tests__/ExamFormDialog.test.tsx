@@ -1,12 +1,13 @@
 //test for components/exams/ExamFormDialog.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
 import ExamFormDialog from "../ExamFormDialog";
+import { Button } from "@/components/ui/Button";
 
 // Mocks the underlying form to isolate dialog open/close logic
 jest.mock("../ExamForm", () => {
     const React = require("react");
     return function MockExamForm({ onSuccess }) {
-        return <button onClick={onSuccess}>MockSubmit</button>;
+        return <Button onClick={onSuccess}>MockSubmit</Button>;
     };
 });
 

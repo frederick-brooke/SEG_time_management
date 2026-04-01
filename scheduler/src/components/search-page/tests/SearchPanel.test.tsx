@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import SearchPanel from "../SearchPanel";
+import { Button } from "@/components/ui/Button";
 
 jest.useFakeTimers();
 
@@ -13,12 +14,12 @@ jest.mock("@/hooks/useUsers", () => ({
 }));
 
 jest.mock("@/components/search-page/SearchControls", () => (props: any) => (
-  <button
+  <Button
     data-testid="open-filter"
     onClick={props.onOpenFilter}
   >
     Open Filter
-  </button>
+  </Button>
 ));
 
 jest.mock("@/components/search-page/searchUsers", () => () => (
@@ -27,12 +28,12 @@ jest.mock("@/components/search-page/searchUsers", () => () => (
 
 jest.mock("@/components/admin/UserFilterPanel", () => (props: any) => (
   <div>
-    <button
+    <Button
       data-testid="apply-filters"
       onClick={props.applyFilters}
     >
       Apply
-    </button>
+    </Button>
   </div>
 ));
 
@@ -40,7 +41,7 @@ jest.mock("@/components/layout/LunarDrawer", () => (props: any) =>
   props.open ? (
     <div data-testid={`drawer-${props.side}`}>
       {props.children}
-      <button onClick={props.onClose}>Close</button>
+      <Button onClick={props.onClose}>Close</Button>
     </div>
   ) : null
 );

@@ -80,7 +80,7 @@ function updateFilters(value, setFilters) {
 */
 function SearchInput({ value, onChange, placeholder }) {
 	return (
-		<Input
+		<input
 			type="text"
 			placeholder={placeholder}
 			value={value}
@@ -96,12 +96,12 @@ function SearchInput({ value, onChange, placeholder }) {
 */
 function SearchButton() {
 	return (
-		<button
+		<Button
 			type="submit"
 			className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-400 text-gray-950 font-semibold hover:scale-105 transition"
 		>
 			Search
-		</button>
+		</Button>
 	);
 }
 
@@ -113,13 +113,13 @@ function SearchButton() {
 */
 function FilterButton({ onClick }) {
 	return (
-		<button
+		<Button
 			type="button"
 			onClick={onClick}
 			className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
 		>
 			Filter
-		</button>
+		</Button>
 	);
 }
 
@@ -131,13 +131,13 @@ function FilterButton({ onClick }) {
 */
 function ResetButton({ onClick }) {
 	return (
-		<button
+		<Button
 			type="button"
 			onClick={onClick}
 			className="lunar-page-subtitle px-3 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 flex items-center gap-1 transition"
 		>
 			<FunnelXIcon size={16} />
 			Reset
-		</button>
+		</Button>
 	);
 }

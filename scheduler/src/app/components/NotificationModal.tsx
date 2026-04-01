@@ -79,13 +79,13 @@ function NotificationRow({ notification, onDismiss }: {
           {formatTime(notification.createdAt)}
         </span>
       </div>
-      <button
+      <Button
         onClick={() => onDismiss(notification.id)}
         className="flex-shrink-0 p-2 hover:bg-gray-200 rounded transition-colors"
         aria-label="Dismiss notification"
       >
         <X className="w-4 h-4 text-gray-400" />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -107,14 +107,14 @@ function EmptyState({ onRefresh, isRefreshing }: {
       </div>
       <p className="text-gray-600 font-medium">No notifications</p>
       <p className="text-sm text-gray-500 mt-1">You're all caught up!</p>
-      <button
+      <Button
         onClick={onRefresh}
         className={`mt-6 px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${
           isRefreshing ? "bg-blue-800" : "bg-blue-600 hover:bg-blue-700"
         }`}
       >
         Refresh
-      </button>
+      </Button>
     </div>
   );
 }
@@ -186,9 +186,9 @@ const NotificationModal = ({
             <h2 className="lunar-header">Notifications</h2>
             <p className="lunar-label">{notifications.length} notifications</p>
           </div>
-          <button onClick={handleShowModal} className="text-white/40 hover:text-white" aria-label="Close modal">
+          <Button onClick={handleShowModal} className="text-white/40 hover:text-white" aria-label="Close modal">
             <X className="w-6 h-6 text-gray-500" />
-          </button>
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto notification-scroll">
@@ -209,16 +209,16 @@ const NotificationModal = ({
 
         {notifications.length > 0 && (
           <div className="border-t border-white/10 p-4 bg-black-20 flex gap-3 justify-end rounded-b-lg">
-            <button onClick={handleClearAll} className="lunar-label">
+            <Button onClick={handleClearAll} className="lunar-label">
               <Trash2 className="text-white" />
               Clear All
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleShowModal}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
             >
               Close
-            </button>
+            </Button>
           </div>
         )}
       </div>

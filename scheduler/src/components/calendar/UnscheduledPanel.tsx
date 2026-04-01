@@ -228,18 +228,18 @@ export default function UnscheduledPanel({
                   {log.taskIds.length} task{log.taskIds.length !== 1 ? "s" : ""}
                 </p>
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={() => onEditLog(log)}
                     className="flex-1 text-xs py-1.5 rounded-lg font-bold transition-all bg-[rgba(148,163,255,0.12)] text-[rgba(148,163,255,0.9)] border border-[rgba(148,163,255,0.2)] hover:bg-[rgba(148,163,255,0.2)]"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => onDeleteLog(log.id)}
                     className="flex-1 text-xs py-1.5 rounded-lg font-bold transition-all bg-[rgba(239,68,68,0.08)] text-red-400 border border-[rgba(239,68,68,0.18)] hover:bg-[rgba(239,68,68,0.15)]"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

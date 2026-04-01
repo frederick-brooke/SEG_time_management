@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 const pushMock = jest.fn();
 
@@ -11,15 +11,15 @@ jest.mock("lucide-react", () =>
   new Proxy({}, { get: () => () => null })
 );
 
-jest.mock("components/ui/button", () => ({
+jest.mock("components/ui/Button", () => ({
   Button: ({ children, onClick, ...rest }: any) => (
-    <button onClick={onClick} {...rest}>{children}</button>
+    <Button onClick={onClick} {...rest}>{children}</Button>
   ),
 }));
 
 jest.mock("components/animate-ui/primitives/radix/checkbox", () => ({
   Checkbox: ({ checked, onCheckedChange, id }: any) => (
-    <Input
+    <input
       type="checkbox"
       id={id}
       checked={checked}
@@ -32,9 +32,9 @@ jest.mock("components/animate-ui/primitives/radix/checkbox", () => ({
 jest.mock("@/components/tasks/TaskActions", () => ({
   TaskActions: ({ onView, onEdit, onDelete, canDelete }: any) => (
     <div>
-      <button onClick={onView}>View</button>
-      <button onClick={onEdit}>Edit</button>
-      {canDelete && <button onClick={onDelete}>Delete</button>}
+      <Button onClick={onView}>View</Button>
+      <Button onClick={onEdit}>Edit</Button>
+      {canDelete && <Button onClick={onDelete}>Delete</Button>}
     </div>
   ),
 }));

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { AppSidebar } from '../AppSidebar';
+import { Button } from "@/components/ui/Button";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ jest.mock('../ui/ToastContainer', () => ({
       {toasts.map((t: any) => (
         <div key={t.id} data-testid={`toast-${t.id}`}>
           {t.title}
-          <button onClick={() => onDismiss(t.id)}>dismiss</button>
+          <Button onClick={() => onDismiss(t.id)}>dismiss</Button>
         </div>
       ))}
     </div>
@@ -55,7 +56,7 @@ jest.mock('@/app/components/NotificationModal', () => ({
   default: ({ isOpen, handleShowModal }: any) =>
     isOpen ? (
       <div data-testid="notif-modal">
-        <button onClick={handleShowModal}>close</button>
+        <Button onClick={handleShowModal}>close</Button>
       </div>
     ) : null,
 }));
@@ -65,7 +66,7 @@ jest.mock('@/components/search-page/SearchPanel', () => ({
   default: ({ open, onClose }: any) =>
     open ? (
       <div data-testid="search-panel">
-        <button onClick={onClose}>close search</button>
+        <Button onClick={onClose}>close search</Button>
       </div>
     ) : null,
 }));

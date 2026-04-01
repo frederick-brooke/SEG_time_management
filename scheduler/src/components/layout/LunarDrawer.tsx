@@ -36,7 +36,7 @@ export default function LunarDrawer({ open, onClose, side = "left", title, width
 
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 flex-shrink-0">
                     <h2 className="lunar-header text-white font-semibold">{title}</h2>
-                    <button onClick={onClose} className="text-white/50 hover:text-white transition">✕</button>
+                    <Button onClick={onClose} className="text-white/50 hover:text-white transition">✕</Button>
                 </div>
 
                 <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">

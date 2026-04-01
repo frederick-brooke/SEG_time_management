@@ -31,7 +31,7 @@ jest.mock("@/components/ui/reminderModal", () => ({
       <div>
         <span>{title}</span>
         <span>{children}</span>
-        <button onClick={onClose}>close</button>
+        <Button onClick={onClose}>close</Button>
       </div>
     ) : null,
 }));

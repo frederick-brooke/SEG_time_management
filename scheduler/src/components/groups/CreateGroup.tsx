@@ -93,9 +93,9 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
             </h2>
             <p className="lunar-value text-xs mt-1">Add friends to start collaborating</p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         {error && (
@@ -106,10 +106,10 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5 flex-1 flex flex-col min-h-0">
           <div className="shrink-0">
-            <Label className="lunar-label flex items-center gap-1">
+            <label className="lunar-label flex items-center gap-1">
               Group Name <span className="text-red-400">*</span>
-            </Label>
-            <Input
+            </label>
+            <input
               type="text"
               required
               maxLength={100}
@@ -121,9 +121,9 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
           </div>
 
           <div className="shrink-0">
-            <Label className="lunar-label flex items-center gap-1">
+            <label className="lunar-label flex items-center gap-1">
               Description <span className="text-white/30 lowercase">(optional)</span>
-            </Label>
+            </label>
             <textarea
               rows={2}
               maxLength={300}
@@ -135,14 +135,14 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
           </div>
 
           <div className="flex-1 flex flex-col min-h-0">
-            <Label className="lunar-label flex items-center gap-1 shrink-0">
+            <label className="lunar-label flex items-center gap-1 shrink-0">
               Add Friends <span className="text-red-400">*</span>
               {selectedIds.size > 0 && (
                 <span className="ml-auto text-[10px] text-blue-400 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">
                   {selectedIds.size} selected
                 </span>
               )}
-            </Label>
+            </label>
 
             {isLoadingFriends ? (
               <p className="text-xs text-white/40 py-4 text-center font-medium">Loading friends...</p>
@@ -165,21 +165,21 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
           </div>
 
           <div className="flex gap-3 pt-2 shrink-0">
-            <button
+            <Button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50 py-3"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting || isLoadingFriends}
               className="flex-1 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:cursor-not-allowed py-3 text-xs"
             >
               {isSubmitting ? "Creating..." : "Create Group"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -197,7 +197,7 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
  */
 function FriendOption({ friend, isSelected, onToggle }: { friend: Friend, isSelected: boolean, onToggle: () => void }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onToggle}
       className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left border ${
@@ -230,6 +230,6 @@ function FriendOption({ friend, isSelected, onToggle }: { friend: Friend, isSele
           <Check size={12} className="text-white" />
         </div>
       )}
-    </button>
+    </Button>
   );
 }

@@ -150,13 +150,13 @@ export default function ConversationList() {
     <>
       <div className="flex items-center justify-between px-3 pt-3 pb-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-[rgba(148,163,255,0.35)]">Messages</p>
-        <button
+        <Button
           onClick={() => setShowModal(true)}
           className="text-xs font-medium flex items-center gap-1 transition-colors text-[rgba(148,163,255,0.6)] hover:text-[rgba(148,163,255,0.9)]"
           title="New group chat"
         >
           <span className="text-base leading-none">+</span> Group
-        </button>
+        </Button>
       </div>
 
       <div className="flex flex-col gap-1 p-2">

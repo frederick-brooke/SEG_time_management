@@ -16,10 +16,10 @@ import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={name} className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
+      <label htmlFor={name} className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
         {label}
-      </Label>
-      <Input
+      </label>
+      <input
         type={type}
 		id={name}
         name={name}
@@ -127,9 +127,9 @@ export function ResetPasswordContent() {
           required
         />
 
-        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">
+        <Button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">
           {status === "sending" ? "Saving..." : "Save Password"}
-        </button>
+        </Button>
       </form>
     </div>
   );

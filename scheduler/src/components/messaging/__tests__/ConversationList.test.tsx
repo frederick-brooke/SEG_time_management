@@ -57,8 +57,8 @@ jest.mock("@/components/messaging/CreateGroupModal", () => ({
     onCreated: (conv: { id: string }) => void;
   }) => (
     <div data-testid="create-group-modal">
-      <button onClick={onClose}>Close</button>
-      <button onClick={() => onCreated({ id: "new-conv-id" })}>Create</button>
+      <Button onClick={onClose}>Close</Button>
+      <Button onClick={() => onCreated({ id: "new-conv-id" })}>Create</Button>
     </div>
   ),
 }));
@@ -77,8 +77,8 @@ jest.mock("../ConversationRow", () => ({
     onDeleted: (id: string) => void;
   }) => (
     <div data-testid={`conversation-row-${convo.id}`} data-active={String(isActive)}>
-      <button onClick={() => onNavigate(convo.id)}>Navigate</button>
-      <button onClick={() => onDeleted(convo.id)}>Delete</button>
+      <Button onClick={() => onNavigate(convo.id)}>Navigate</Button>
+      <Button onClick={() => onDeleted(convo.id)}>Delete</Button>
       <span>{convo.lastMessage}</span>
     </div>
   ),
@@ -364,7 +364,7 @@ describe("ConversationList", () => {
         onCreated: (conv: { id: string }) => void;
       }) => (
         <div data-testid="create-group-modal">
-          <button onClick={() => onCreated({ id: "conv-1" })}>Create Duplicate</button>
+          <Button onClick={() => onCreated({ id: "conv-1" })}>Create Duplicate</Button>
         </div>
       ),
     }));

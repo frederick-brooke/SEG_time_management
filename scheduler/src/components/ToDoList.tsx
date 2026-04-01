@@ -18,7 +18,6 @@ import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/hooks/useTasks";
 import { useTaskFilters } from "../hooks/useTaskFilters";
 import { getPriorityStyle } from "../lib/priority";
-import { Input } from "./ui/Input";
 
 interface ToDoListProps {
   userId: string;
@@ -137,7 +136,7 @@ export function ToDoList({ userId, exams = [], filterExamId = null, highlightId 
       {/* Search Bar */}
       <div className="px-0 mb-10">
         <div className="mt-4">
-            <Input
+            <input
               placeholder="Search Tasks"
               className="w-full max-w-sm p-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-white placeholder:text-white/20 focus:ring-blue-500/40 transition-all backdrop-blur-md outline-none"
               value={searchQuery}

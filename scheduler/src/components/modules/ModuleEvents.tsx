@@ -58,16 +58,16 @@ function EventRow({ event, isOwner, onEdit, onDelete }: {
 
       {isOwner && (
         <div className="flex items-center gap-1 shrink-0">
-          <button onClick={onEdit}
+          <Button onClick={onEdit}
             className="p-1.5 text-white/30 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
             title="Edit event" data-testid="edit-event-btn">
             <Pencil size={14} />
-          </button>
-          <button onClick={onDelete}
+          </Button>
+          <Button onClick={onDelete}
             className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
             title="Delete event" data-testid="delete-event-btn">
             <Trash2 size={14} />
-          </button>
+          </Button>
         </div>
       )}
     </div>

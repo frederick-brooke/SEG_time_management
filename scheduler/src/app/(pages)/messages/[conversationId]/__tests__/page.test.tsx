@@ -25,8 +25,8 @@ jest.mock("@/components/messaging/GroupHeader", () => ({
     <div data-testid="group-header">
       <span data-testid="group-name">{name}</span>
       <span data-testid="participant-count">{participantCount}</span>
-      <button onClick={onToggleMembers}>Toggle Members</button>
-      <button onClick={onLeave}>Leave</button>
+      <Button onClick={onToggleMembers}>Toggle Members</Button>
+      <Button onClick={onLeave}>Leave</Button>
     </div>
   ),
 }));
@@ -37,10 +37,10 @@ jest.mock("@/components/messaging/MembersPanel", () => ({
       {participants.map((p: any) => (
         <span key={p.userId} data-testid={`member-${p.userId}`}>{p.user.username}</span>
       ))}
-      <button onClick={() => onRemove("user-2", "bob")}>Remove Bob</button>
-      <button onClick={() => onPromote("user-2", "member")}>Promote Bob</button>
-      <button onClick={() => onPromote("user-2", "admin")}>Demote Bob</button>
-      <button onClick={onAddMember}>Add Member</button>
+      <Button onClick={() => onRemove("user-2", "bob")}>Remove Bob</Button>
+      <Button onClick={() => onPromote("user-2", "member")}>Promote Bob</Button>
+      <Button onClick={() => onPromote("user-2", "admin")}>Demote Bob</Button>
+      <Button onClick={onAddMember}>Add Member</Button>
     </div>
   ),
 }));
@@ -48,8 +48,8 @@ jest.mock("@/components/messaging/MembersPanel", () => ({
 jest.mock("@/components/messaging/AddMemberModal", () => ({
   AddMemberModal: ({ onClose, onAdded }: any) => (
     <div data-testid="add-member-modal">
-      <button onClick={onClose}>Close Modal</button>
-      <button onClick={onAdded}>Member Added</button>
+      <Button onClick={onClose}>Close Modal</Button>
+      <Button onClick={onAdded}>Member Added</Button>
     </div>
   ),
 }));
@@ -60,9 +60,9 @@ jest.mock("@/components/messaging/MessageBubble", () => ({
       {showDateDivider && <div data-testid="date-divider">{dateDividerLabel}</div>}
       <span data-testid={`content-${msg.id}`}>{msg.content}</span>
       {isMe && <span data-testid={`is-me-${msg.id}`}>mine</span>}
-      <button data-testid={`avatar-${msg.id}`} onClick={() => onAvatarClick?.(msg.sender.username)}>
+      <Button data-testid={`avatar-${msg.id}`} onClick={() => onAvatarClick?.(msg.sender.username)}>
         Avatar
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -76,9 +76,9 @@ jest.mock("@/components/messaging/MessageInput", () => ({
         onChange={onChange}
         onKeyDown={onKeyDown}
       />
-      <button data-testid="send-btn" onClick={onSend} disabled={sending}>
+      <Button data-testid="send-btn" onClick={onSend} disabled={sending}>
         {sending ? "Sending" : "Send"}
-      </button>
+      </Button>
     </div>
   ),
 }));

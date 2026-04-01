@@ -209,14 +209,14 @@ export default function SetLocationModal({
         {/* Header */}
         <div className="flex justify-between p-6 border-b border-white/10">
           <h2 className="text-xl font-bold text-white">Set Your Location</h2>
-          <button aria-label="Close modal" onClick={onClose}>✕</button>
+          <Button aria-label="Close modal" onClick={onClose}>✕</Button>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-4">
 
           {/* Search input */}
-          <Input
+          <input
             ref={inputRef}
             value={searchQuery}
             onChange={(e) => handleLocationSearch(e.target.value)}
@@ -228,21 +228,21 @@ export default function SetLocationModal({
           {suggestions.length > 0 && dropdownStyle && (
             <div style={dropdownStyle} className="fixed bg-[#1a1a24] rounded-xl">
               {suggestions.map((s: any, i: number) => (
-                <button
+                <Button
                   key={i}
                   data-testid={`suggestion-${i}`}
                   onClick={() => handleSelectSuggestion(s)}
                 >
                   {s.properties.display ?? s.properties.name}
-                </button>
+                </Button>
               ))}
             </div>
           )}
 
           {/* My Location button */}
-          <button onClick={handleUseMyLocation}>
+          <Button onClick={handleUseMyLocation}>
             📍 My Location
-          </button>
+          </Button>
 
           {/* Map */}
           <MapContainer
@@ -256,12 +256,12 @@ export default function SetLocationModal({
           </MapContainer>
 
           {/* Visibility toggle */}
-          <button
+          <Button
             aria-label={hidden ? "Show location" : "Hide location"}
             onClick={() => setHidden(!hidden)}
           >
             {hidden ? "Hidden" : "Visible"}
-          </button>
+          </Button>
 
           {/* Error message */}
           {error && <div>{error}</div>}
@@ -269,10 +269,10 @@ export default function SetLocationModal({
 
         {/* Footer */}
         <div className="flex gap-3 p-6 border-t border-white/10">
-          <button disabled={isSaving} onClick={onClose}>Cancel</button>
-          <button disabled={isSaving} onClick={handleSave}>
+          <Button disabled={isSaving} onClick={onClose}>Cancel</Button>
+          <Button disabled={isSaving} onClick={handleSave}>
             {isSaving ? "Saving..." : "Save Location"}
-          </button>
+          </Button>
         </div>
 
       </div>

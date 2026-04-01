@@ -3,12 +3,12 @@ import { render, screen } from "@testing-library/react";
 
 // Mock Button (relative path so Jest can resolve it)
 const ButtonMock = jest.fn(({ children, variant }) => (
-  <button data-testid="button" data-variant={variant || ""}>
+  <Button data-testid="button" data-variant={variant || ""}>
     {children}
-  </button>
+  </Button>
 ));
 
-jest.mock("../../ui/button", () => ({
+jest.mock("../../ui/Button", () => ({
   __esModule: true,
   Button: (props) => ButtonMock(props),
 }));
@@ -30,9 +30,9 @@ jest.mock("@radix-ui/react-dialog", () => {
   );
 
   const Trigger = ({ children, ...props }) => (
-    <button data-testid="radix-trigger" {...props}>
+    <Button data-testid="radix-trigger" {...props}>
       {children}
-    </button>
+    </Button>
   );
 
   const Portal = ({ children, ...props }) => (
@@ -47,9 +47,9 @@ jest.mock("@radix-ui/react-dialog", () => {
       return <div data-testid="radix-close-aschild">{children}</div>;
     }
     return (
-      <button data-testid="radix-close" {...props}>
+      <Button data-testid="radix-close" {...props}>
         {children}
-      </button>
+      </Button>
     );
   };
 
@@ -126,7 +126,7 @@ describe("components/ui/dialog", () => {
             </DialogHeader>
 
             <DialogFooter className="my-footer" showCloseButton={false}>
-              <button type="button">Child</button>
+              <Button type="button">Child</Button>
             </DialogFooter>
 
             <DialogClose>CloseX</DialogClose>

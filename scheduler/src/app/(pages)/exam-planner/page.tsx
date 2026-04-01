@@ -13,6 +13,7 @@ import { getMyExams, deleteExam } from "@/app/actions/examActions";
 import ExamFormDialog from "@/components/exams/ExamFormDialog";
 import Link from "next/link";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import { Button } from "@/components/ui/Button";
 
 /**
  * The dashboard for exam planning.
@@ -133,12 +134,12 @@ export default function ExamPlannerPage() {
                         );
                       }}
                     />
-                    <button
+                    <Button
                       onClick={() => handleDelete(exam.id)}
                       className="text-xs font-bold text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-500/10"
                     >
                       Delete Exam
-                    </button>
+                    </Button>
                   </div>
                 </div>
               );

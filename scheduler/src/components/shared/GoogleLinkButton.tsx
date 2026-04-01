@@ -11,18 +11,18 @@ export default function GoogleLinkButton({ isConnected }: { isConnected: boolean
             Google Calendar Connected
           </span>
         </div>
-        <button
+        <Button
           onClick={() => signIn("google", { callbackUrl: "/calendar" })}
           className="text-xs text-white/30 hover:text-white/50 transition-colors text-left px-1"
         >
           Having sync issues? Reconnect →
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <button
+    <Button
       onClick={() => signIn("google", { callbackUrl: "/calendar" })}
       className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all"
     >
@@ -30,6 +30,6 @@ export default function GoogleLinkButton({ isConnected }: { isConnected: boolean
       <span className="text-sm font-medium text-white/60">
         Link Google Calendar
       </span>
-    </button>
+    </Button>
   );
 }

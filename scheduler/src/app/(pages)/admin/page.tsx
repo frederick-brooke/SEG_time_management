@@ -157,23 +157,23 @@ export default function AdminPage() {
                 <GlassCard>
                   {/* Tabs header title */}
                   <div className="flex border-b mb-4">
-                    <button
+                    <Button
                       onClick={() => setCurrentTab("reports")}
                       className={`lunar-page-subtitle px-4 py-2 font-medium ${
                         currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
                       }`}
                     >
                       Reports
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       onClick={() => setCurrentTab("appeals")}
                       className={`lunar-page-subtitle px-4 py-2 font-medium ${
                         currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
                       }`}
                     >
                       Appeals
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Render the active tab */}

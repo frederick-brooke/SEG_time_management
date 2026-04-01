@@ -18,7 +18,7 @@ function RelativePicker({
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {RELATIVE_OPTIONS.map((opt) => (
-        <button
+        <Button
           key={opt.key}
           type="button"
           onClick={() => onChange(opt.key)}
@@ -29,7 +29,7 @@ function RelativePicker({
           }`}
         >
           {opt.label}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -50,20 +50,20 @@ function CustomDatePicker({
 }: any) {
   return (
     <div className="p-3 bg-white/5 rounded-xl border border-indigo-500/20 flex flex-col gap-2">
-      <Label className="flex items-center gap-2 cursor-pointer text-xs text-white/50">
-        <Input
+      <label className="flex items-center gap-2 cursor-pointer text-xs text-white/50">
+        <input
           type="checkbox"
           checked={useRange}
           onChange={(e) => setUseRange(e.target.checked)}
           className="accent-indigo-500"
         />
         <span>Use a date range</span>
-      </Label>
+      </label>
       {useRange ? (
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <Label className="text-xs text-white/30">From</Label>
-            <Input
+            <label className="text-xs text-white/30">From</label>
+            <input
               type="date"
               value={rangeStart}
               onChange={(e) => setRangeStart(e.target.value)}
@@ -71,8 +71,8 @@ function CustomDatePicker({
             />
           </div>
           <div>
-            <Label className="text-xs text-white/30">To</Label>
-            <Input
+            <label className="text-xs text-white/30">To</label>
+            <input
               type="date"
               value={rangeEnd}
               onChange={(e) => setRangeEnd(e.target.value)}
@@ -82,8 +82,8 @@ function CustomDatePicker({
         </div>
       ) : (
         <div>
-          <Label className="text-xs text-white/30">Date</Label>
-          <Input
+          <label className="text-xs text-white/30">Date</label>
+          <input
             type="date"
             value={customDate}
             onChange={(e) => setCustomDate(e.target.value)}
@@ -191,26 +191,26 @@ export function LinkedTaskCard({
             )}
           </div>
         </div>
-        <button
+        <Button
           onClick={() => setExpanded((p) => !p)}
           className="text-xs text-white/30 hover:text-white/70 px-2 transition-colors"
         >
           {expanded ? "▲" : "▼"}
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => onRemove(index)}
           className="text-red-400/60 hover:text-red-400 text-lg leading-none transition-colors"
         >
           ✕
-        </button>
+        </Button>
       </div>
 
       {expanded && (
         <div className="border-t border-white/[0.06] p-3 flex flex-col gap-3 bg-black/20">
           <div>
-            <Label className="text-xs font-bold text-white/30 uppercase mb-1.5 block">
+            <label className="text-xs font-bold text-white/30 uppercase mb-1.5 block">
               Schedule relative to event
-            </Label>
+            </label>
             <RelativePicker value={mode} onChange={setMode} />
           </div>
           {mode === "custom" && (
@@ -225,7 +225,7 @@ export function LinkedTaskCard({
               label="Schedule for a specific time?"
             />
             {scheduleTime ? (
-              <Input
+              <input
                 type="time"
                 value={specificTime}
                 onChange={(e) => setSpecificTime(e.target.value)}

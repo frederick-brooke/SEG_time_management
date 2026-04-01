@@ -12,7 +12,7 @@ import {
   deleteModuleTask,
   deleteModuleEvent,
 } from "@/app/actions/module";
-
+import { Button } from "@/components/ui/Button";
 
 // Mocks
 const mockRefresh = jest.fn();
@@ -34,9 +34,9 @@ jest.mock("@/components/modules/ModuleHeader", () => ({
   __esModule: true,
   default: ({ onOpenTaskModal, onOpenEventModal, onOpenSettings }: any) => (
     <div data-testid="module-header">
-      <button onClick={onOpenTaskModal}>Header - Create Task</button>
-      <button onClick={onOpenEventModal}>Header - Create Event</button>
-      <button onClick={onOpenSettings}>Header - Settings</button>
+      <Button onClick={onOpenTaskModal}>Header - Create Task</Button>
+      <Button onClick={onOpenEventModal}>Header - Create Event</Button>
+      <Button onClick={onOpenSettings}>Header - Settings</Button>
     </div>
   ),
 }));
@@ -50,8 +50,8 @@ jest.mock("@/components/modules/ModuleEvents", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="module-events">
-      <button onClick={() => onEdit({ id: "e1", title: "Test Event" })}>Event - Edit</button>
-      <button onClick={() => onDelete("event-grp-1")}>Event - Delete</button>
+      <Button onClick={() => onEdit({ id: "e1", title: "Test Event" })}>Event - Edit</Button>
+      <Button onClick={() => onDelete("event-grp-1")}>Event - Delete</Button>
     </div>
   ),
 }));
@@ -60,8 +60,8 @@ jest.mock("@/components/modules/ModuleTasks", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
     <div data-testid="module-tasks">
-      <button onClick={() => onEdit({ moduleTaskGroupId: "t1", title: "Test Task", duration: 90 })}>Task - Edit</button>
-      <button onClick={() => onDelete("task-grp-1")}>Task - Delete</button>
+      <Button onClick={() => onEdit({ moduleTaskGroupId: "t1", title: "Test Task", duration: 90 })}>Task - Edit</Button>
+      <Button onClick={() => onDelete("task-grp-1")}>Task - Delete</Button>
     </div>
   ),
 }));
@@ -70,8 +70,8 @@ jest.mock("@/components/modules/ModuleSettingsModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="settings-modal">
-      <button onClick={onClose}>Close Settings</button>
-      <button onClick={onSuccess}>Success Settings</button>
+      <Button onClick={onClose}>Close Settings</Button>
+      <Button onClick={onSuccess}>Success Settings</Button>
     </div>
   ),
 }));
@@ -80,8 +80,8 @@ jest.mock("@/components/modules/ModuleEventModal", () => ({
   __esModule: true,
   default: ({ onClose, onSuccess }: any) => (
     <div data-testid="event-modal">
-      <button onClick={onClose}>Close Event Modal</button>
-      <button onClick={onSuccess}>Success Event Modal</button>
+      <Button onClick={onClose}>Close Event Modal</Button>
+      <Button onClick={onSuccess}>Success Event Modal</Button>
     </div>
   ),
 }));
@@ -90,10 +90,10 @@ jest.mock("@/components/tasks/TaskForm", () => ({
   __esModule: true,
   TaskForm: ({ onOpenChange, onSubmit, onFormChange }: any) => (
     <div data-testid="task-modal">
-      <button onClick={() => onOpenChange(false)}>Close Task Modal</button>
-      <button onClick={onSubmit}>Submit Task Modal</button>
-      <button onClick={() => onFormChange({ name: "New Task Name" })}>Simulate Typing Name</button>
-      <button onClick={() => onFormChange({ name: "Complex Task", subtasks: "Part 1, Part 2, " })}>Simulate Subtasks</button>
+      <Button onClick={() => onOpenChange(false)}>Close Task Modal</Button>
+      <Button onClick={onSubmit}>Submit Task Modal</Button>
+      <Button onClick={() => onFormChange({ name: "New Task Name" })}>Simulate Typing Name</Button>
+      <Button onClick={() => onFormChange({ name: "Complex Task", subtasks: "Part 1, Part 2, " })}>Simulate Subtasks</Button>
     </div>
   ),
 }));

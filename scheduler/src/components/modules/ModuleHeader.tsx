@@ -90,41 +90,41 @@ export default function ModuleHeader({
           
           {/* Owner Only Actions */}
           {isOwner && (
-            <button onClick={onOpenSettings} className="lunar-button-ghost flex items-center gap-2">
+            <Button onClick={onOpenSettings} className="lunar-button-ghost flex items-center gap-2">
               <Settings size={14} /> Settings
-            </button>
+            </Button>
           )}
 
           {/* Owner or Admin Actions */}
           {isOwnerOrAdmin && (
             <>
-              <button 
+              <Button 
                 onClick={onOpenTaskModal} 
                 className="lunar-button-primary flex items-center gap-2 !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
               >
                 <ListTodo size={14} /> Create Task
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={onOpenEventModal} 
                 className="lunar-button-primary flex items-center gap-2 !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
               >
                 <Calendar size={14} /> Create Event
-              </button>
+              </Button>
             </>
           )}
 
           {/* Owner Only PIN Copy */}
           {isOwner && module.joinPin && (
-            <button onClick={copyPin} className="lunar-button-ghost flex items-center gap-2">
+            <Button onClick={copyPin} className="lunar-button-ghost flex items-center gap-2">
               <Copy size={14} /> {copied ? 'Copied!' : 'Copy PIN'}
-            </button>
+            </Button>
           )}
 
           {/* Admins & Members (Anyone who is NOT the Owner) can leave */}
           {!isOwner && (
-            <button onClick={handleLeave} className="flex items-center gap-2 lunar-item-error px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-colors">
+            <Button onClick={handleLeave} className="flex items-center gap-2 lunar-item-error px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-colors">
               <LogOut size={14} /> Leave Module
-            </button>
+            </Button>
           )}
         </div>
       </div>

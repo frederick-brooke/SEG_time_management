@@ -45,21 +45,21 @@ export default function QuickScheduleModal({
         className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-sm relative shadow-[0_0_0_1px_rgba(255,255,255,0.05),_0_32px_64px_rgba(0,0,0,0.6)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
+        <Button
           onClick={onClose}
           className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
         >
           ✕
-        </button>
+        </Button>
         <h3 className="text-xl font-black mb-1 text-white">Schedule Task</h3>
         <p className="text-sm text-white/40 mb-5 font-medium truncate">
           {task.title}
         </p>
         <div className="mb-4">
-          <Label className="text-xs font-bold text-white/30 uppercase">
+          <label className="text-xs font-bold text-white/30 uppercase">
             Date
-          </Label>
-          <Input
+          </label>
+          <input
             type="date"
             id="quick-schedule-date"
             defaultValue={format(new Date(), "yyyy-MM-dd")}
@@ -67,22 +67,22 @@ export default function QuickScheduleModal({
           />
         </div>
         <div className="mb-6">
-          <Label className="text-xs font-bold text-white/30 uppercase">
+          <label className="text-xs font-bold text-white/30 uppercase">
             Time
-          </Label>
-          <Input
+          </label>
+          <input
             type="time"
             id="quick-schedule-time"
             defaultValue={format(new Date(), "HH:mm")}
             className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
           />
         </div>
-        <button
+        <Button
           onClick={handleSchedule}
           className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all"
         >
           Schedule Task
-        </button>
+        </Button>
       </div>
     </div>
   );

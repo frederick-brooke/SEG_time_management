@@ -86,9 +86,9 @@ function Header({ onClose }) {
 			<h3 className="lunar-header text-lg font-semibold text-white">
 				Report Details
 			</h3>
-			<button onClick={onClose} className="text-white/50 hover:text-white transition" >
+			<Button onClick={onClose} className="text-white/50 hover:text-white transition" >
 				✕
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -117,9 +117,9 @@ function Content({ report, onTakeAction }) {
 function Footer({ onClose }) {
 	return (
 		<div className="p-6 border-t border-white/10">
-			<button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+			<Button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
 				Close
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -198,9 +198,9 @@ function Description({ text }) {
 */
 function ActionButton({ onClick }) {
 	return (
-		<button onClick={onClick} className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition">
+		<Button onClick={onClick} className="lunar-page-subtitle w-full py-2 rounded-xl bg-blue-400 text-gray-900 font-medium hover:scale-[1.02] transition">
 			Take Action
-		</button>
+		</Button>
 	);
 }
 
@@ -222,19 +222,19 @@ function ReportActionModal( {report, onClose, banUser} ) {
                 <textarea placeholder="Reasoning (Optional)" className="w-full bg-white/5 border border-white/10 text-white/80 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"/>
 				{/* Action buttons */}
                 <div className="space-y-2">
-                    <button onClick={() => banUser(report.reportedUser, "TEMP", 7)} className="w-full py-2 rounded-xl bg-yellow-400 text-gray-900 font-medium hover:scale-[1.02] transition">
+                    <Button onClick={() => banUser(report.reportedUser, "TEMP", 7)} className="w-full py-2 rounded-xl bg-yellow-400 text-gray-900 font-medium hover:scale-[1.02] transition">
                         Temporary Ban (7 days)
-                    </button>
-                    <button onClick={() => banUser(report.reportedUser, "PERMANENT")} className="w-full py-2 rounded-xl bg-red-400 text-gray-900 font-medium hover:scale-[1.02] transition" disabled={!report.reportedUser?.id}>
+                    </Button>
+                    <Button onClick={() => banUser(report.reportedUser, "PERMANENT")} className="w-full py-2 rounded-xl bg-red-400 text-gray-900 font-medium hover:scale-[1.02] transition" disabled={!report.reportedUser?.id}>
                         Permanent Ban
-                    </button>
-                    <button onClick={() => banUser(report.reportedUser, "UNBAN")} className="w-full py-2 rounded-xl bg-green-400 text-gray-900 font-medium hover:scale-[1.02] transition">
+                    </Button>
+                    <Button onClick={() => banUser(report.reportedUser, "UNBAN")} className="w-full py-2 rounded-xl bg-green-400 text-gray-900 font-medium hover:scale-[1.02] transition">
                         Unban
-                    </button>
+                    </Button>
                 </div>
-                <button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+                <Button onClick={onClose} className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
                     Cancel
-                </button>
+                </Button>
             </div>
         </div>
     );

@@ -67,15 +67,15 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
               <code className="text-3xl font-mono font-black text-blue-400 tracking-wider drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
                 {joinPin}
               </code>
-              <button onClick={copyPin} className="lunar-button-primary text-xs">
+              <Button onClick={copyPin} className="lunar-button-primary text-xs">
                 Copy
-              </button>
+              </Button>
             </div>
           </div>
 
-          <button onClick={onClose} className="lunar-button-ghost w-full">
+          <Button onClick={onClose} className="lunar-button-ghost w-full">
             Done
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -87,15 +87,15 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
       <div className="lunar-card p-6 max-w-md w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="lunar-header">Create New Module</h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         <form action={handleSubmit} className="space-y-4">
           <div>
-            <Label className="lunar-label">Module Name <span className="text-red-400">*</span></Label>
-            <Input
+            <label className="lunar-label">Module Name <span className="text-red-400">*</span></label>
+            <input
               type="text" name="name" required maxLength={100}
               placeholder="e.g., Computer Science 101"
               className="lunar-input w-full p-3 rounded-xl mt-1"
@@ -103,7 +103,7 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
           </div>
 
           <div>
-            <Label className="lunar-label">Description</Label>
+            <label className="lunar-label">Description</label>
             <textarea
               name="description" rows={3} maxLength={500}
               placeholder="Optional description..."
@@ -112,8 +112,8 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
           </div>
 
           <div>
-            <Label className="lunar-label">Max Members</Label>
-            <Input
+            <label className="lunar-label">Max Members</label>
+            <input
               type="number" name="maxMembers" min={2} max={100} defaultValue={50}
               className="lunar-input w-full p-3 rounded-xl mt-1"
             />
@@ -125,14 +125,14 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
           )}
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={isPending}
+            <Button type="button" onClick={onClose} disabled={isPending}
               className="flex-1 lunar-button-ghost disabled:opacity-50">
               Cancel
-            </button>
-            <button type="submit" disabled={isPending}
+            </Button>
+            <Button type="submit" disabled={isPending}
               className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isPending ? "Creating..." : "Create"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

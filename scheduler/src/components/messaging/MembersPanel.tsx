@@ -104,7 +104,7 @@ function MemberRow({
   return (
     <div className="flex items-center justify-between gap-2">
       {/* Profile link */}
-      <button
+      <Button
         onClick={() => router.push(`/profile/${participant.user.username}`)}
         className="flex items-center gap-2 min-w-0 transition-opacity hover:opacity-75"
       >
@@ -126,24 +126,24 @@ function MemberRow({
             Admin
           </span>
         )}
-      </button>
+      </Button>
 
       {isAdmin && !isSelf && (
         <div className="flex items-center gap-2 shrink-0">
-          <button
+          <Button
             onClick={() => onPromote(participant.userId, participant.role)}
             className="text-xs font-medium transition-colors text-[rgba(148,163,255,0.5)] hover:text-[rgba(148,163,255,0.9)]"
           >
             {participant.role === "admin" ? "Remove admin" : "Make admin"}
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() =>
               onRemove(participant.userId, participant.user.username)
             }
             className="text-xs font-medium transition-colors text-[rgba(255,100,100,0.5)] hover:text-[rgba(255,100,100,0.85)]"
           >
             Remove
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -166,12 +166,12 @@ export function MembersPanel({
         </p>
 
         {isAdmin && (
-          <button
+          <Button
             onClick={onAddMember}
             className="text-xs font-medium transition-colors text-[rgba(148,163,255,0.6)] hover:text-[rgba(148,163,255,0.9)]"
           >
             + Add member
-          </button>
+          </Button>
         )}
       </div>
 

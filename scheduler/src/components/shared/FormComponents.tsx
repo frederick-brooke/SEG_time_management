@@ -18,9 +18,9 @@ interface FormFieldProps {
 export function FormField({ label, children }: FormFieldProps) {
   return (
     <div>
-      <Label className="text-xs font-bold text-gray-400 uppercase block mb-1">
+      <label className="text-xs font-bold text-gray-400 uppercase block mb-1">
         {label}
-      </Label>
+      </label>
       <div>{children}</div>
     </div>
   );
@@ -41,7 +41,7 @@ export function Toggle({ on, onToggle, label }: ToggleProps) {
   return (
     <div className="flex items-center gap-2 select-none">
       {/* V.4.2 Polish: Semantic button with ARIA attributes instead of a clickable div */}
-      <button
+      <Button
         type="button"
         role="switch"
         aria-checked={on}
@@ -55,7 +55,7 @@ export function Toggle({ on, onToggle, label }: ToggleProps) {
             on ? "left-5" : "left-0.5"
           }`}
         />
-      </button>
+      </Button>
       <span className="text-xs font-semibold text-gray-600 cursor-pointer" onClick={onToggle}>
         {label}
       </span>
@@ -86,7 +86,7 @@ export function DayPicker({ selected, onChange }: DayPickerProps) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {DAYS.map((day) => (
-        <button
+        <Button
           key={day}
           type="button"
           onClick={() => toggle(day)}
@@ -97,7 +97,7 @@ export function DayPicker({ selected, onChange }: DayPickerProps) {
           }`}
         >
           {day}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -152,12 +152,12 @@ export function RecurrencePanel({
       
       <div>
         {/* 1. ADDED htmlFor="until-date" HERE */}
-        <Label htmlFor="until-date" className="text-xs font-bold text-gray-400 block mb-1">
+        <label htmlFor="until-date" className="text-xs font-bold text-gray-400 block mb-1">
           Until
-        </Label>
+        </label>
         
         {/* 2. ADDED id="until-date" HERE */}
-        <Input
+        <input
           id="until-date"
           type="date"
           value={until}

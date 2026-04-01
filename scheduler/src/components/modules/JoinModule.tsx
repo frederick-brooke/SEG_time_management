@@ -59,15 +59,15 @@ export default function JoinModule({ onClose, onSuccess }: JoinModuleProps) {
       <div className="lunar-card p-6 max-w-md w-full">
         <div className="flex items-center justify-between mb-6">
           <h2 className="lunar-header">Join Module</h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label className="lunar-label">Enter Join PIN</Label>
-            <Input
+            <label className="lunar-label">Enter Join PIN</label>
+            <input
               type="text"
               value={pin}
               onChange={handlePinChange}
@@ -86,14 +86,14 @@ export default function JoinModule({ onClose, onSuccess }: JoinModuleProps) {
           )}
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={isPending}
+            <Button type="button" onClick={onClose} disabled={isPending}
               className="flex-1 lunar-button-ghost disabled:opacity-50">
               Cancel
-            </button>
-            <button type="submit" disabled={isPending || pin.length !== 6}
+            </Button>
+            <Button type="submit" disabled={isPending || pin.length !== 6}
               className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isPending ? "Joining..." : "Join"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

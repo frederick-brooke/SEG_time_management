@@ -187,19 +187,19 @@ const LobbyView = ({ ctrl }: { ctrl: ReturnType<typeof useGameController> }) => 
 
     <div className="grid grid-cols-3 gap-4 mb-8">
       {(Object.entries(DIFFICULTY_CONFIG) as [Difficulty, typeof DIFFICULTY_CONFIG[Difficulty]][]).map(([key, c]) => (
-        <button key={key} onClick={() => ctrl.setDifficulty(key)} className={`relative rounded-2xl p-5 border-2 text-left transition-all ${ctrl.difficulty === key ? "border-yellow-400 bg-yellow-400/10" : "border-white/10 bg-white/5 hover:border-white/30"}`}>
+        <Button key={key} onClick={() => ctrl.setDifficulty(key)} className={`relative rounded-2xl p-5 border-2 text-left transition-all ${ctrl.difficulty === key ? "border-yellow-400 bg-yellow-400/10" : "border-white/10 bg-white/5 hover:border-white/30"}`}>
           <p className="font-black text-white text-lg mb-3">{c.label}</p>
           <div className="space-y-1 text-xs text-gray-400"><p>🃏 {c.pairs} pairs</p><p>⏱ {c.timeLimit}s</p><p>💰 {c.cost} coins</p></div>
           {ctrl.difficulty === key && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-yellow-400" />}
-        </button>
+        </Button>
       ))}
     </div>
 
     {ctrl.error && <div className="mb-4 text-red-400 font-bold bg-red-500/10 rounded-xl px-4 py-3">{ctrl.error}</div>}
     
-    <button onClick={ctrl.startGame} disabled={ctrl.isProcessing || ctrl.balance < ctrl.cfg.cost} className={`w-full py-4 rounded-2xl font-black text-lg transition-all ${ctrl.balance < ctrl.cfg.cost ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-yellow-400 text-gray-900 hover:bg-yellow-300"}`}>
+    <Button onClick={ctrl.startGame} disabled={ctrl.isProcessing || ctrl.balance < ctrl.cfg.cost} className={`w-full py-4 rounded-2xl font-black text-lg transition-all ${ctrl.balance < ctrl.cfg.cost ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-yellow-400 text-gray-900 hover:bg-yellow-300"}`}>
       {ctrl.isProcessing ? "Launching..." : ctrl.balance < ctrl.cfg.cost ? `Need ${ctrl.cfg.cost} coins` : `🚀 Launch — ${ctrl.cfg.cost} coins`}
-    </button>
+    </Button>
   </div>
 );
 
@@ -223,9 +223,9 @@ const PlayingView = ({ ctrl }: { ctrl: ReturnType<typeof useGameController> }) =
       </div>
       <div className={`grid ${ctrl.difficulty === "hard" ? "grid-cols-6" : "grid-cols-4"} gap-3`}>
         {ctrl.cards.map((c, idx) => (
-          <button key={c.id} onClick={() => ctrl.onCardClick(idx)} className={`aspect-square rounded-2xl text-3xl font-bold transition-all duration-300 select-none ${c.matched ? "bg-emerald-500/20 border-emerald-500/50 scale-95" : c.flipped ? "bg-white/20 border-white/40 scale-105" : "bg-white/5 border-white/10 hover:bg-white/10 hover:scale-105 border-2"}`}>
+          <Button key={c.id} onClick={() => ctrl.onCardClick(idx)} className={`aspect-square rounded-2xl text-3xl font-bold transition-all duration-300 select-none ${c.matched ? "bg-emerald-500/20 border-emerald-500/50 scale-95" : c.flipped ? "bg-white/20 border-white/40 scale-105" : "bg-white/5 border-white/10 hover:bg-white/10 hover:scale-105 border-2"}`}>
             {c.flipped || c.matched ? c.symbol : "🌑"}
-          </button>
+          </Button>
         ))}
       </div>
     </div>
@@ -253,8 +253,8 @@ const ResultView = ({ ctrl }: { ctrl: ReturnType<typeof useGameController> }) =>
       </div>
 
       <div className="flex gap-3 w-full">
-        <button onClick={() => ctrl.setPhase("lobby")} className="flex-1 py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20">Lobby</button>
-        <button onClick={ctrl.startGame} disabled={ctrl.isProcessing || ctrl.balance < ctrl.cfg.cost} className="flex-1 py-3 rounded-xl bg-yellow-400 text-gray-900 font-black hover:bg-yellow-300 disabled:opacity-50">Play Again</button>
+        <Button onClick={() => ctrl.setPhase("lobby")} className="flex-1 py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20">Lobby</Button>
+        <Button onClick={ctrl.startGame} disabled={ctrl.isProcessing || ctrl.balance < ctrl.cfg.cost} className="flex-1 py-3 rounded-xl bg-yellow-400 text-gray-900 font-black hover:bg-yellow-300 disabled:opacity-50">Play Again</Button>
       </div>
     </div>
   );

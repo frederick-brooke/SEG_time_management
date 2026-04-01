@@ -8,11 +8,11 @@ describe('Drawer component', () => {
 
     render(
       <Drawer>
-        <button data-testid="drawer-open">Open</button>
+        <Button data-testid="drawer-open">Open</Button>
         <div data-testid="drawer-content">
           <h2 data-testid="drawer-title">Title</h2>
           <p data-testid="drawer-description">Description</p>
-          <button data-testid="drawer-close">Close</button>
+          <Button data-testid="drawer-close">Close</Button>
         </div>
       </Drawer>
     )

@@ -17,7 +17,7 @@ jest.mock("../TravelSection", () => ({
 jest.mock("../EventFormParts", () => ({
   TaskPromptSection: ({ onFinish }: any) => (
     <div data-testid="task-prompt">
-      <button onClick={onFinish}>Finish</button>
+      <Button onClick={onFinish}>Finish</Button>
     </div>
   ),
 }));

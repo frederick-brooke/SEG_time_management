@@ -137,12 +137,12 @@ export default function TravelSection({
 
       {/* ── Travel time mode toggle ── */}
       <div>
-        <Label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
+        <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
           Travel Time
-        </Label>
+        </label>
         <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl mb-4">
           {(["auto", "manual"] as const).map((m) => (
-            <button
+            <Button
               key={m}
               type="button"
               onClick={() => onTravelTimeModeChange(m)}
@@ -153,14 +153,14 @@ export default function TravelSection({
               }`}
             >
               {m === "auto" ? "• Auto-calculate •" : "• Enter manually •"}
-            </button>
+            </Button>
           ))}
         </div>
 
         {/* Manual input */}
         {travelTimeMode === "manual" && (
           <div className="flex items-center gap-3">
-            <Input
+            <input
               type="number"
               min={0}
               max={600}
@@ -223,9 +223,9 @@ export default function TravelSection({
 
           {/* Transport mode */}
           <div>
-            <Label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-1">
+            <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-1">
               Mode of Transport
-            </Label>
+            </label>
             <div className="relative">
               <Select
                 value={transportMode}

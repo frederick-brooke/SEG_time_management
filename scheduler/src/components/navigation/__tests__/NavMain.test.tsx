@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NavMain } from "../NavMain"; 
+import { Button } from "@/components/ui/Button";
 
 // 1. Mock Next.js Link
 jest.mock("next/link", () => {
@@ -31,9 +32,9 @@ jest.mock("@/components/ui/sidebar", () => ({
       });
     }
     return (
-      <button onClick={onClick} className={className} data-testid="sidebar-menu-button">
+      <Button onClick={onClick} className={className} data-testid="sidebar-menu-button">
         {children}
-      </button>
+      </Button>
     );
   },
 }));

@@ -46,12 +46,12 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
 					<h3 className="lunar-header text-lg font-semibold text-white">
 						Appeal Details
 					</h3>
-					<button
+					<Button
 						onClick={onClose}
 						className="text-white/50 hover:text-white transition"
 					>
 						✕
-					</button>
+					</Button>
 				</div>
 
 				{/* Content */}
@@ -88,12 +88,12 @@ export default function AppealPanel({appeal, onClose,fetchAppeals,}) {
 
 				{/* Footer */}
 				<div className="p-6 border-t border-white/10">
-					<button
+					<Button
 						onClick={onClose}
 						className="lunar-page-subtitle w-full py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
 					>
 						Close
-					</button>
+					</Button>
 				</div>
 			</div>
 		</div>
@@ -127,21 +127,21 @@ function AppealActions({ status, onApprove, onReject, loading }) {
 
 	return (
 		<div className="space-y-2">
-			<button
+			<Button
 				onClick={onApprove}
 				disabled={loading}
 				className="w-full py-2 rounded-xl bg-green-400 text-gray-900 font-medium"
 			>
 				Approve Appeal & Lift Ban
-			</button>
+			</Button>
 
-			<button
+			<Button
 				onClick={onReject}
 				disabled={loading}
 				className="w-full py-2 rounded-xl bg-red-400 text-gray-900 font-medium"
 			>
 				Reject Appeal
-			</button>
+			</Button>
 		</div>
 	);
 }

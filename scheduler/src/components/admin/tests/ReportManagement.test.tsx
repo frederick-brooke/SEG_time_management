@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import ReportManagement from "../ReportManagement";
+import { Button } from "@/components/ui/Button";
 
 jest.mock("framer-motion", () => ({
   motion: {
@@ -19,7 +20,7 @@ jest.mock("../AdminListSection", () => (props: any) => {
 
 jest.mock("@/components/admin/AdminReportPanel", () => (props: any) => (
   <div data-testid="report-panel">
-    <button onClick={props.onClose}>ClosePanel</button>
+    <Button onClick={props.onClose}>ClosePanel</Button>
   </div>
 ));
 

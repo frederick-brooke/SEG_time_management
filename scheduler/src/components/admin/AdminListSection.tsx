@@ -100,13 +100,13 @@ function Header({ title, searchable, onFilterOpen }) {
 */
 function FilterButton({ onClick }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
       className="lunar-page-subtitle px-4 py-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition"
     >
       Filter
-    </button>
+    </Button>
   );
 }
 
@@ -124,7 +124,7 @@ function FilterButton({ onClick }) {
 function SearchForm({inputValue, setInputValue, onSubmit, onReset, onFilterOpen, itemLabel,}) {
 	return (
 		<form onSubmit={onSubmit} className="flex items-center gap-2 mb-4 flex-shrink-0">
-		<Input
+		<input
 			type="text"
 			placeholder={`Search ${itemLabel}...`}
 			value={inputValue}
@@ -132,15 +132,15 @@ function SearchForm({inputValue, setInputValue, onSubmit, onReset, onFilterOpen,
 			className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-blue-300/50 w-full max-w-sm"
 		/>
 
-		<button type="submit" className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition">
+		<Button type="submit" className="lunar-page-subtitle px-4 py-2 rounded-xl bg-blue-300 text-gray-950 font-medium hover:scale-105 transition">
 			Search
-		</button>
+		</Button>
 
 		<FilterButton onClick={onFilterOpen} />
 
-		<button type="button" onClick={onReset} className="lunar-page-subtitle p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
+		<Button type="button" onClick={onReset} className="lunar-page-subtitle p-2 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition">
 			<FunnelXIcon size={18} />
-		</button>
+		</Button>
 		</form>
 	);
 }
@@ -209,25 +209,25 @@ function PaginationBar({ page, totalPages, setFilters }) {
 
 	return (
 		<div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10 flex-shrink-0">
-			<button
+			<Button
 				disabled={page === 1}
 				onClick={() => setFilters((prev) => ({ ...prev, page: (prev.page ?? 1) - 1, })) }
 				className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
 			>
 				Previous
-			</button>
+			</Button>
 
 			<span className="text-sm text-white/60">
 				Page {page} of {totalPages}
 			</span>
 
-			<button
+			<Button
 				disabled={page === totalPages}
 				onClick={() => setFilters((prev) => ({...prev, page: (prev.page ?? 1) + 1,}))}
 				className="px-3 py-1 border rounded-lg bg-white/5 text-white/70 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
 			>
 				Next
-			</button>
+			</Button>
 		</div>
 	);
 }

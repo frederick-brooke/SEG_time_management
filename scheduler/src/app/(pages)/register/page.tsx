@@ -11,10 +11,10 @@ import { validatePassword } from "@/lib/password";
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
+      <label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
         {label}
-      </Label>
-      <Input
+      </label>
+      <input
         type={type}
         name={name}
         value={value}
@@ -128,13 +128,13 @@ export default function RegisterPage() {
             <FormInput label="Confirm Password" type="password" name="confirmPassword" value={confirmPassword} onChange={(e: any) => setConfirmPassword(e.target.value)} placeholder="••••••••" required />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? "Preparing Launch..." : "Create Account"}
-          </button>
+          </Button>
 
           <div className="mt-8 pt-6 border-t border-white/10 text-center text-sm">
             <div className="text-white/40">

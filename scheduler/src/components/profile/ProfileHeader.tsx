@@ -49,9 +49,9 @@ export default function ProfileHeader({ profile, isOwnProfile, onEditToggle, lev
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-green-500/20 text-green-400 rounded border border-green-500/30 text-xs font-semibold">
             <UserCheck size={14} /><span>Friends</span>
           </div>
-          <button onClick={() => handleAction(removeFriend, 'Remove this friend?')} disabled={isPending} className={`flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/20 text-red-400 rounded border border-red-500/30 text-xs font-semibold transition-colors ${isPending ? "opacity-50" : "hover:bg-red-500/30"}`}>
+          <Button onClick={() => handleAction(removeFriend, 'Remove this friend?')} disabled={isPending} className={`flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/20 text-red-400 rounded border border-red-500/30 text-xs font-semibold transition-colors ${isPending ? "opacity-50" : "hover:bg-red-500/30"}`}>
             <UserMinus size={12} /><span>{isPending ? "..." : "Remove"}</span>
-          </button>
+          </Button>
         </div>
       );
     }
@@ -61,9 +61,9 @@ export default function ProfileHeader({ profile, isOwnProfile, onEditToggle, lev
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-yellow-500/20 text-yellow-400 rounded border border-yellow-500/30 text-xs font-semibold">
             <Clock size={14} /><span>Pending</span>
           </div>
-          <button onClick={() => handleAction(cancelSentRequest)} disabled={isPending} className={`flex items-center gap-1 px-2.5 py-1.5 bg-white/10 text-white/70 rounded border border-white/20 text-xs font-semibold ${isPending ? "opacity-50" : "hover:bg-white/20"}`}>
+          <Button onClick={() => handleAction(cancelSentRequest)} disabled={isPending} className={`flex items-center gap-1 px-2.5 py-1.5 bg-white/10 text-white/70 rounded border border-white/20 text-xs font-semibold ${isPending ? "opacity-50" : "hover:bg-white/20"}`}>
             <X size={12} /><span>Cancel</span>
-          </button>
+          </Button>
         </div>
       );
     }
@@ -75,9 +75,9 @@ export default function ProfileHeader({ profile, isOwnProfile, onEditToggle, lev
       );
     }
     return (
-      <button onClick={() => handleAction(sendFriendRequest)} disabled={isPending} className={`flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded border border-blue-500/30 text-xs font-semibold transition-colors ${isPending ? "opacity-50" : "hover:bg-blue-500/30"}`}>
+      <Button onClick={() => handleAction(sendFriendRequest)} disabled={isPending} className={`flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded border border-blue-500/30 text-xs font-semibold transition-colors ${isPending ? "opacity-50" : "hover:bg-blue-500/30"}`}>
         <UserPlus size={14} /><span>{isPending ? "Sending..." : "Add Friend"}</span>
-      </button>
+      </Button>
     );
   };
 
@@ -105,13 +105,13 @@ export default function ProfileHeader({ profile, isOwnProfile, onEditToggle, lev
           <div className="flex items-center gap-2 mt-1.5">
             <p className="text-gray-400 font-medium text-sm">@{profile.username}</p>
             {isOwnProfile && (
-              <button
+              <Button
                 onClick={onEditToggle}
                 className="text-gray-500 hover:text-white transition-colors"
                 title="Edit Profile"
               >
                 <Pencil size={12} />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -132,9 +132,9 @@ export default function ProfileHeader({ profile, isOwnProfile, onEditToggle, lev
         <div className="flex items-center gap-3 flex-wrap">
           {renderFriendAction()}
           {!isOwnProfile && (
-            <button onClick={() => setShowReport(true)} className="flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-400 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-red-500/20">
+            <Button onClick={() => setShowReport(true)} className="flex items-center gap-1 px-2 py-1 bg-red-500/10 text-red-400 rounded text-[10px] font-bold uppercase tracking-wider hover:bg-red-500/20">
               <Flag size={10} /> Report
-            </button>
+            </Button>
           )}
           <span className="text-xs text-gray-500 font-medium">Joined {formatDate(profile.createdAt)}</span>
         </div>

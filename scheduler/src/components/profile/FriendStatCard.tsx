@@ -22,7 +22,7 @@ interface FriendStatCardProps {
  */
 export default function FriendStatCard({ friendCount, showFriends, onToggle }: FriendStatCardProps) {
   return (
-    <button
+    <Button
       onClick={onToggle}
       className={`lunar-card flex flex-col justify-center items-center text-center transition-all hover:border-blue-500/30 ${
         showFriends ? "border-blue-400/50 bg-blue-500/10" : ""
@@ -39,6 +39,6 @@ export default function FriendStatCard({ friendCount, showFriends, onToggle }: F
       <span className="lunar-label mt-2 flex items-center justify-center gap-1 text-white/60">
         Friends {showFriends ? <ChevronUp size={14} className="text-blue-400" /> : <ChevronDown size={14} className="text-blue-400" />}
       </span>
-    </button>
+    </Button>
   );
 }

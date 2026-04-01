@@ -26,9 +26,9 @@ jest.mock("@/components/ui/glassCard", () => ({
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/ui/button", () => ({
+jest.mock("@/components/ui/Button", () => ({
   Button: ({ children, ...props }: any) => (
-    <button {...props}>{children}</button>
+    <Button {...props}>{children}</Button>
   ),
 }));
 
@@ -39,7 +39,7 @@ jest.mock("@/components/ui/reminderModal", () => ({
       <div>
         <h1>{title}</h1>
         {children}
-        <button onClick={onClose}>close</button>
+        <Button onClick={onClose}>close</Button>
       </div>
     ) : null,
 }));
@@ -47,7 +47,7 @@ jest.mock("@/components/ui/reminderModal", () => ({
 jest.mock("../reminder_timer_picker", () => ({
   __esModule: true,
   default: ({ onConfirm }: any) => (
-    <button onClick={() => onConfirm(5000)}>confirm</button>
+    <Button onClick={() => onConfirm(5000)}>confirm</Button>
   ),
 }));
 

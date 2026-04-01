@@ -80,24 +80,24 @@ export default function GroupSettingsModal({ group, onClose, onSuccess }: GroupS
           <h2 className="lunar-header flex items-center gap-2">
             <Settings size={18} className="text-white/40"/> Group Settings
           </h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         {/* Section 1: Details Form */}
         <form onSubmit={handleUpdateDetails} className="space-y-4 mb-8">
           <div>
-            <Label className="lunar-label">Group Name</Label>
-            <Input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="lunar-input w-full p-3 mt-1" />
+            <label className="lunar-label">Group Name</label>
+            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="lunar-input w-full p-3 mt-1" />
           </div>
           <div>
-            <Label className="lunar-label">Description</Label>
+            <label className="lunar-label">Description</label>
             <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="lunar-input w-full p-3 mt-1 resize-none" />
           </div>
-          <button type="submit" disabled={isSubmitting} className="w-full py-3 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50">
+          <Button type="submit" disabled={isSubmitting} className="w-full py-3 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50">
             {isSubmitting ? "Saving..." : "Save Details"}
-          </button>
+          </Button>
         </form>
 
         <hr className="border-t lunar-divider mb-6" />
@@ -124,13 +124,13 @@ export default function GroupSettingsModal({ group, onClose, onSuccess }: GroupS
                       {friend.fname || friend.username}
                     </p>
                   </div>
-                  <button 
+                  <Button 
                     onClick={() => handleAddFriend(friend.id)}
                     disabled={addingFriendId === friend.id}
                     className="shrink-0 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 bg-white/10 border border-white/20 text-white rounded-lg hover:bg-white/20 transition-colors disabled:opacity-50"
                   >
                     {addingFriendId === friend.id ? "Adding..." : "Add"}
-                  </button>
+                  </Button>
                 </div>
               ))
             )}

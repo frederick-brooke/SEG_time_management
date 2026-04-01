@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { CATEGORY_COLORS } from "@/lib/ui";
 import styles from "./CalendarBody.module.css";
 import searchStyles from "./SearchBar.module.css";
+import { Button } from "@/components/ui/Button";
 
 interface Props {
   localizer: any;
@@ -207,17 +208,17 @@ export default function CalendarBody({
                 <p className={searchStyles.undoText}>Event deleted</p>
               </div>
               <div className={searchStyles.undoActions}>
-                <button onClick={onUndo} className={searchStyles.undoButton}>
+                <Button onClick={onUndo} className={searchStyles.undoButton}>
                   <span className={searchStyles.undoArrow}>↺</span> Undo
-                </button>
-                <button onClick={onUndoDismiss} className={searchStyles.undoDismiss}>
+                </Button>
+                <Button onClick={onUndoDismiss} className={searchStyles.undoDismiss}>
                   ✕
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
             <div className={searchStyles.searchContainer} ref={searchRef}>
-              <Input
+              <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
@@ -238,15 +239,15 @@ export default function CalendarBody({
                 </svg>
               </div>
               {searchQuery && (
-                <button onClick={onSearchClear} className={searchStyles.searchClear}>
+                <Button onClick={onSearchClear} className={searchStyles.searchClear}>
                   ✕
-                </button>
+                </Button>
               )}
               {showSearchResults && (
                 <div className={searchStyles.searchDropdown}>
                   {realSearchResults.length > 0 ? (
                     realSearchResults.map((ev) => (
-                      <button
+                      <Button
                         key={ev.occurrenceId || ev.id}
                         onClick={() => onSearchResultClick(ev)}
                         className={searchStyles.searchResultItem}
@@ -267,7 +268,7 @@ export default function CalendarBody({
                             {ev.isRecurring && " · Recurring"}
                           </div>
                         </div>
-                      </button>
+                      </Button>
                     ))
                   ) : (
                     <div className={searchStyles.searchEmpty}>No matching events</div>

@@ -73,24 +73,24 @@ function AvatarActionButtons({
 }) {
   if (isEquipped) {
     return (
-      <button onClick={onUnequip} disabled={isPending} className="text-xs font-bold text-white/60 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors disabled:opacity-50">
+      <Button onClick={onUnequip} disabled={isPending} className="text-xs font-bold text-white/60 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors disabled:opacity-50">
         Unequip
-      </button>
+      </Button>
     );
   }
 
   if (item.owned) {
     return (
-      <button onClick={() => onEquip(item.id)} disabled={isPending} className="text-xs font-bold text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/30 hover:bg-blue-500/20 transition-colors disabled:opacity-50">
+      <Button onClick={() => onEquip(item.id)} disabled={isPending} className="text-xs font-bold text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/30 hover:bg-blue-500/20 transition-colors disabled:opacity-50">
         Equip
-      </button>
+      </Button>
     );
   }
 
   return (
-    <button onClick={() => onPurchase(item.id)} disabled={isPending || !item.canAfford} className={`text-xs font-bold px-4 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${item.canAfford ? "bg-white text-gray-900 hover:bg-white/90" : "bg-white/5 text-white/30 border border-white/10"}`}>
+    <Button onClick={() => onPurchase(item.id)} disabled={isPending || !item.canAfford} className={`text-xs font-bold px-4 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${item.canAfford ? "bg-white text-gray-900 hover:bg-white/90" : "bg-white/5 text-white/30 border border-white/10"}`}>
       {item.canAfford ? "Buy" : "Too expensive"}
-    </button>
+    </Button>
   );
 }
 

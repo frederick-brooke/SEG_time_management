@@ -2,7 +2,7 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import { Label } from "../Label"; 
+import { Label } from "../label"; 
 
 jest.mock("lib/utils", () => ({
   cn: (...classes: (string | undefined | null | false)[]) =>
@@ -20,27 +20,27 @@ function getLabel() {
 
 describe("Label", () => {
   it("renders without crashing", () => {
-    render(<Label className="">Email</Label>);
+    render(<label className="">Email</label>);
     expect(screen.getByText("Email")).toBeInTheDocument();
   });
 
   it("has data-slot='label'", () => {
-    render(<Label className="">Username</Label>);
+    render(<label className="">Username</label>);
     expect(getLabel()).toBeInTheDocument();
   });
 
-  it("renders as a <Label> element", () => {
-    render(<Label className="">Password</Label>);
+  it("renders as a <label> element", () => {
+    render(<label className="">Password</label>);
     expect(getLabel().tagName).toBe("LABEL");
   });
 
   it("renders children correctly", () => {
-    render(<Label className="">Remember me</Label>);
+    render(<label className="">Remember me</label>);
     expect(screen.getByText("Remember me")).toBeInTheDocument();
   });
 
   it("applies the base utility classes", () => {
-    render(<Label className="">Base</Label>);
+    render(<label className="">Base</label>);
     const label = getLabel();
     expect(label.className).toContain("flex");
     expect(label.className).toContain("items-center");
@@ -52,43 +52,43 @@ describe("Label", () => {
   });
 
   it("merges a custom className", () => {
-    render(<Label className="my-custom-class">Custom</Label>);
+    render(<label className="my-custom-class">Custom</label>);
     expect(getLabel().className).toContain("my-custom-class");
   });
 
   it("custom className is appended alongside base classes", () => {
-    render(<Label className="text-red-500">Custom</Label>);
+    render(<label className="text-red-500">Custom</label>);
     const label = getLabel();
     expect(label.className).toContain("text-red-500");
     expect(label.className).toContain("text-sm"); 
   });
 
   it("forwards the htmlFor prop to the underlying label", () => {
-    render(<Label className="" htmlFor="email-input">Email</Label>);
+    render(<label className="" htmlFor="email-input">Email</label>);
     expect(getLabel()).toHaveAttribute("for", "email-input");
   });
 
   it("associates with an input via htmlFor", () => {
     render(
       <>
-        <Label className="" htmlFor="name">Name</Label>
-        <Input id="name" />
+        <label className="" htmlFor="name">Name</label>
+        <input id="name" />
       </>
     );
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
   });
 
   it("forwards arbitrary HTML attributes", () => {
-    render(<Label className="" data-testid="my-label">Test</Label>);
+    render(<label className="" data-testid="my-label">Test</label>);
     expect(screen.getByTestId("my-label")).toBeInTheDocument();
   });
 
   it("renders child elements, not just strings", () => {
     render(
-      <Label className="">
+      <label className="">
         <span data-testid="icon" />
         With icon
-      </Label>
+      </label>
     );
     expect(screen.getByTestId("icon")).toBeInTheDocument();
     expect(screen.getByText("With icon")).toBeInTheDocument();

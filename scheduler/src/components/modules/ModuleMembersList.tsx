@@ -97,7 +97,7 @@ export default function ModuleMembersList({ members, isOwner, moduleId, currentU
 
   return (
     <div className="lunar-card mb-6">
-      <button
+      <Button
         onClick={() => setShowMembers((v) => !v)}
         className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors rounded-[2rem]"
       >
@@ -108,7 +108,7 @@ export default function ModuleMembersList({ members, isOwner, moduleId, currentU
           ? <ChevronUp size={18} className="text-white/50" />
           : <ChevronDown size={18} className="text-white/50" />
         }
-      </button>
+      </Button>
 
       {showMembers && (
         <div className="px-6 pb-6 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -142,7 +142,7 @@ export default function ModuleMembersList({ members, isOwner, moduleId, currentU
                     <RoleBadge role={member.role} />
                     <div className="flex items-center gap-1">
                       {canManageRole && (
-                        <button
+                        <Button
                           onClick={() => handleRoleChange(member.user.id, member.role)}
                           disabled={updatingId === member.user.id}
                           className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg transition-colors disabled:opacity-50 ${
@@ -152,17 +152,17 @@ export default function ModuleMembersList({ members, isOwner, moduleId, currentU
                           }`}
                         >
                           {updatingId === member.user.id ? "..." : member.role === 'ADMIN' ? "Remove Admin" : "Make Admin"}
-                        </button>
+                        </Button>
                       )}
                       {canRemove && (
-                        <button
+                        <Button
                           onClick={() => handleRemove(member.user.id)}
                           disabled={updatingId === member.user.id}
                           className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
                           title="Remove Member"
                         >
                           <UserMinus size={14} />
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

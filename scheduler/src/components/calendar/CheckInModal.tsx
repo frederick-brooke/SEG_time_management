@@ -154,12 +154,12 @@ export default function CheckInModal({ onDone }: CheckInModalProps) {
                   { key: "partial",   label: "⏳ Partial", active: "bg-amber-500 text-white border-amber-500" },
                   { key: "missed",    label: "❌ Missed",  active: "bg-red-500   text-white border-red-500"   },
                 ] as const).map(({ key, label, active }) => (
-                  <button key={key} onClick={() => setEntry(task.taskId, { status: key })}
+                  <Button key={key} onClick={() => setEntry(task.taskId, { status: key })}
                     className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                       task.status === key ? active : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
                     }`}>
                     {label}
-                  </button>
+                  </Button>
                 ))}
               </div>
 
@@ -170,7 +170,7 @@ export default function CheckInModal({ onDone }: CheckInModalProps) {
                     <span>How much did you complete?</span>
                     <span className="font-bold">{task.progress}%</span>
                   </div>
-                  <Input type="range" min="5" max="95" step="5"
+                  <input type="range" min="5" max="95" step="5"
                     value={task.progress}
                     onChange={(e) => setEntry(task.taskId, { progress: Number(e.target.value) })}
                     className="w-full accent-amber-500" />
@@ -193,14 +193,14 @@ export default function CheckInModal({ onDone }: CheckInModalProps) {
               Mark all {tasks.length} tasks to continue
             </p>
           )}
-          <button onClick={handleSubmit} disabled={!allAnswered || saving}
+          <Button onClick={handleSubmit} disabled={!allAnswered || saving}
             className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-40 disabled:cursor-not-allowed">
             {saving ? "Saving…" : "Submit Check-in"}
-          </button>
-          <button onClick={() => { setVisible(false); onDone([]); }}
+          </Button>
+          <Button onClick={() => { setVisible(false); onDone([]); }}
             className="w-full mt-2 text-sm text-gray-400 hover:text-gray-600 py-2">
             Remind me later
-          </button>
+          </Button>
         </div>
       </div>
     </div>

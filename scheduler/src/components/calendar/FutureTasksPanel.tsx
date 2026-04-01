@@ -115,7 +115,7 @@ export default function FutureTasksPanel({
         <div className="p-4 border-t border-purple-500/20">
           <div className="flex gap-2 mb-3">
             {(["auto", "manual"] as const).map((m) => (
-              <button
+              <Button
                 key={m}
                 onClick={() => patch({ futureModeAuto: m === "auto" })}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
@@ -125,7 +125,7 @@ export default function FutureTasksPanel({
                 }`}
               >
                 {m === "auto" ? "✨ Auto-pick" : "✋ I'll choose"}
-              </button>
+              </Button>
             ))}
           </div>
 

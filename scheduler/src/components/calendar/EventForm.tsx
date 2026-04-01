@@ -52,18 +52,18 @@ export default function EventForm({
           This overlaps with another event. Proceed?
         </p>
         <div className="flex flex-col gap-3 w-full">
-          <button
+          <Button
             onClick={() => f.saveEvent(f.pendingPayload)}
             className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold hover:bg-amber-400 transition-all"
           >
             Ignore & Save
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => f.setShowConflict(false)}
             className="w-full bg-white/5 border border-white/10 text-white/60 p-3 rounded-xl font-bold hover:bg-white/10 transition-all"
           >
             Go Back
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -101,7 +101,7 @@ export default function EventForm({
       {initialEvent && f.isRecurringEv && !f.isGoogle && (
         <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl">
           {(["single", "series"] as const).map((m) => (
-            <button
+            <Button
               key={m}
               type="button"
               onClick={() => f.setEditMode(m)}
@@ -114,12 +114,12 @@ export default function EventForm({
               }`}
             >
               {m === "single" ? "Move Only This Day" : "Edit Entire Series"}
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
-      <Input
+      <input
         type="text"
         placeholder="Event Title"
         value={f.title}
@@ -138,10 +138,10 @@ export default function EventForm({
       />
       
       <div>
-        <Label className="text-xs font-bold text-white/30 uppercase">Category</Label>
+        <label className="text-xs font-bold text-white/30 uppercase">Category</label>
         <div className="flex flex-wrap gap-2 mt-2">
           {f.categories.map((cat: any) => (
-            <button
+            <Button
               key={cat.id}
               type="button"
               disabled={f.isGoogle}
@@ -154,22 +154,22 @@ export default function EventForm({
               style={{ backgroundColor: cat.color }}
             >
               {cat.name}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-xs font-bold text-white/30 uppercase">Start</Label>
-          <Input
+          <label className="text-xs font-bold text-white/30 uppercase">Start</label>
+          <input
             type="date"
             value={f.startDate}
             onChange={(e) => f.setStartDate(e.target.value)}
             disabled={f.isGoogle}
             className={`${inputClass} mt-1`}
           />
-          <Input
+          <input
             type="time"
             value={f.startTime}
             onChange={(e) => f.setStartTime(e.target.value)}
@@ -178,15 +178,15 @@ export default function EventForm({
           />
         </div>
         <div>
-          <Label className="text-xs font-bold text-white/30 uppercase">End</Label>
-          <Input
+          <label className="text-xs font-bold text-white/30 uppercase">End</label>
+          <input
             type="date"
             value={f.endDate}
             onChange={(e) => f.setEndDate(e.target.value)}
             disabled={f.isGoogle}
             className={`${inputClass} mt-1`}
           />
-          <Input
+          <input
             type="time"
             value={f.endTime}
             onChange={(e) => f.setEndTime(e.target.value)}
@@ -198,7 +198,7 @@ export default function EventForm({
 
       {!f.isGoogle && f.editMode === "series" && (
         <div className="border-t border-white/[0.06] pt-4">
-          <Label className="text-xs font-bold text-white/30 uppercase">Repeat</Label>
+          <label className="text-xs font-bold text-white/30 uppercase">Repeat</label>
           <div className="relative mt-1">
             <Select
               value={f.recurrenceType}
@@ -217,8 +217,8 @@ export default function EventForm({
               {f.recurrenceType === "weekly" && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                    <Label key={day} className="flex items-center gap-1 cursor-pointer">
-                      <Input
+                    <label key={day} className="flex items-center gap-1 cursor-pointer">
+                      <input
                         type="checkbox"
                         checked={f.recurrenceDays.includes(day)}
                         onChange={(e) =>
@@ -231,12 +231,12 @@ export default function EventForm({
                         className="accent-indigo-500"
                       />
                       <span className="text-xs text-white/50">{day}</span>
-                    </Label>
+                    </label>
                   ))}
                 </div>
               )}
-              <Label className="text-xs text-white/30">Until</Label>
-              <Input
+              <label className="text-xs text-white/30">Until</label>
+              <input
                 type="date"
                 value={f.recurrenceUntil}
                 onChange={(e) => f.setRecurrenceUntil(e.target.value)}
@@ -264,23 +264,23 @@ export default function EventForm({
         onManualTravelTimeChange={f.setManualTravelTime}
       />
 
-      <button
+      <Button
         type="submit"
         disabled={f.isGoogle || f.isCalculating}
         className={`w-full p-3 rounded-xl font-bold transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 ${submitBtnClass}`}
       >
         {f.isCalculating && <span className="animate-spin text-lg">⏳</span>}
         {submitLabel}
-      </button>
+      </Button>
 
       {initialEvent && !f.isGoogle && (
-        <button
+        <Button
           type="button"
           onClick={() => f.handleDelete(onSuccess)}
           className="w-full mt-2 p-3 rounded-xl font-bold text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/15 transition-all"
         >
           {f.editMode === "single" ? "Delete This Day Only" : "Delete Entire Event"}
-        </button>
+        </Button>
       )}
     </form>
   );

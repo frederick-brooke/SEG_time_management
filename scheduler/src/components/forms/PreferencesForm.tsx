@@ -121,10 +121,10 @@ function RangeField({ label, value, min, max, step, ticks, onChange }: {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <Label className="text-xs font-bold text-gray-400 uppercase">{label}</Label>
+        <label className="text-xs font-bold text-gray-400 uppercase">{label}</label>
         <span className="text-sm font-bold text-indigo-600">{value} min</span>
       </div>
-      <Input
+      <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(parseInt(e.target.value))}
         className="w-full accent-indigo-600"
@@ -160,10 +160,10 @@ function WorkHoursSection({ prefs, onChange }: {
       <div className="grid grid-cols-2 gap-4">
         {(["workStartTime", "workEndTime"] as const).map((field) => (
           <div key={field}>
-            <Label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
+            <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
               {field === "workStartTime" ? "Start time" : "End time"}
-            </Label>
-            <Input
+            </label>
+            <input
               type="time" value={prefs[field]}
               onChange={(e) => onChange(field, e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
@@ -177,16 +177,16 @@ function WorkHoursSection({ prefs, onChange }: {
         </p>
       )}
       <div>
-        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Days off</Label>
+        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Days off</label>
         <div className="flex gap-2">
           {DAYS.map((day) => (
-            <button key={day} type="button" onClick={() => onToggleDay(day)}
+            <Button key={day} type="button" onClick={() => onToggleDay(day)}
               className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                 prefs.daysOff.includes(day)
                   ? "bg-red-500 text-white border-red-500"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
               }`}
-            >{day}</button>
+            >{day}</Button>
           ))}
         </div>
         {prefs.daysOff.length > 0 && (
@@ -220,16 +220,16 @@ function SessionsSection({ prefs, onChange }: {
         onChange={(val) => onChange("breakLength", val)}
       />
       <div>
-        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Breaks per day</Label>
+        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Breaks per day</label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <button key={n} type="button" onClick={() => onChange("breaksPerDay", n)}
+            <Button key={n} type="button" onClick={() => onChange("breaksPerDay", n)}
               className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${
                 prefs.breaksPerDay === n
                   ? "bg-indigo-600 text-white border-indigo-600"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               }`}
-            >{n}</button>
+            >{n}</Button>
           ))}
         </div>
       </div>
@@ -250,10 +250,10 @@ function TaskSection({ prefs, onChange }: {
     <section className="bg-white rounded-2xl border p-6 flex flex-col gap-5">
       <h3 className="font-black text-gray-900">Task Preferences</h3>
       <div>
-        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Task ordering</Label>
+        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Task ordering</label>
         <div className="flex flex-col gap-2">
           {TASK_ORDER_OPTIONS.map(({ value, label, desc }) => (
-            <Label key={value}
+            <label key={value}
               className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                 prefs.taskOrder === value ? "border-indigo-400 bg-indigo-50" : "border-gray-100 hover:border-gray-300"
               }`}
@@ -263,7 +263,7 @@ function TaskSection({ prefs, onChange }: {
               }`}>
                 {prefs.taskOrder === value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <Input type="radio" className="hidden" name="taskOrder" value={value}
+              <input type="radio" className="hidden" name="taskOrder" value={value}
                 checked={prefs.taskOrder === value}
                 onChange={(e) => onChange("taskOrder", e.target.value)}
                 aria-label={label}
@@ -272,22 +272,22 @@ function TaskSection({ prefs, onChange }: {
                 <p className="text-sm font-semibold text-gray-800">{label}</p>
                 <p className="text-xs text-gray-400">{desc}</p>
               </div>
-            </Label>
+            </label>
           ))}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Max tasks per day</Label>
-          <Input type="number" value={prefs.maxTasksPerDay} min="1" max="20"
+          <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Max tasks per day</label>
+          <input type="number" value={prefs.maxTasksPerDay} min="1" max="20"
             onChange={(e) => onChange("maxTasksPerDay", parseInt(e.target.value))}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
           />
         </div>
         <div>
-          <Label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Default duration</Label>
+          <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Default duration</label>
           <div className="relative">
-            <Input type="number" value={prefs.defaultTaskDuration} min="15" max="240"
+            <input type="number" value={prefs.defaultTaskDuration} min="15" max="240"
               onChange={(e) => onChange("defaultTaskDuration", parseInt(e.target.value))}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 pr-12"
             />
@@ -312,16 +312,16 @@ function RemindersSection({ reminderDays, onChange }: {
     <section className="bg-white rounded-2xl border p-6 flex flex-col gap-4">
       <h3 className="font-black text-gray-900">Reminders</h3>
       <div>
-        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Remind me before deadlines</Label>
+        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Remind me before deadlines</label>
         <div className="flex gap-2 flex-wrap">
           {[0, 1, 2, 3, 5, 7, 14].map((n) => (
-            <button key={n} type="button" onClick={() => onChange(n)}
+            <Button key={n} type="button" onClick={() => onChange(n)}
               className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
                 reminderDays === n
                   ? "bg-indigo-600 text-white border-indigo-600"
                   : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
               }`}
-            >{n === 0 ? "Day of" : `${n}d before`}</button>
+            >{n === 0 ? "Day of" : `${n}d before`}</Button>
           ))}
         </div>
       </div>
@@ -390,11 +390,11 @@ export default function PreferencesForm({ userId, onSaved }: PreferencesFormProp
       <TaskSection prefs={prefs} onChange={onChange} />
       <RemindersSection reminderDays={prefs.reminderDays} onChange={(val) => onChange("reminderDays", val)} />
       <div className="flex items-center gap-4">
-        <button onClick={onSave} disabled={saving}
+        <Button onClick={onSave} disabled={saving}
           className="px-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saving ? "Saving…" : "Save Preferences"}
-        </button>
+        </Button>
         {saved && (
           <span className="text-sm text-green-600 font-semibold flex items-center gap-1.5">
             <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-[10px]">✓</span>

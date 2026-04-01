@@ -36,7 +36,7 @@ function EditInput({
 }) {
   return (
     <div className="flex gap-1.5">
-      <Input
+      <input
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         onKeyDown={(e) => {
@@ -46,12 +46,12 @@ function EditInput({
         autoFocus
         className="flex-1 border rounded-lg px-2 py-1 text-sm text-black"
       />
-      <button
+      <Button
         onClick={onSave}
         className="px-2 bg-indigo-600 text-white rounded-lg text-xs"
       >
         ✓
-      </button>
+      </Button>
     </div>
   );
 }
@@ -85,18 +85,18 @@ function ActionButtons({
   return (
     <div className="flex gap-1">
       {!editing && (
-        <button title="Rename" onClick={onEdit} className="p-1 text-xs">
+        <Button title="Rename" onClick={onEdit} className="p-1 text-xs">
           ✏️
-        </button>
+        </Button>
       )}
-      <button
+      <Button
         title="Remove"
         onClick={onDelete}
         disabled={deleting}
         className="p-1 text-xs"
       >
         🗑️
-      </button>
+      </Button>
     </div>
   );
 }
@@ -166,13 +166,13 @@ function SuggestionButton({
   onPick: (s: any) => void;
 }) {
   return (
-    <button
+    <Button
       type="button"
       onMouseDown={(e) => { e.preventDefault(); onPick(suggestion); }}
       className="w-full text-left px-3 py-2 hover:bg-blue-50 text-sm text-gray-700"
     >
       {suggestion.properties.name}
-    </button>
+    </Button>
   );
 }
 
@@ -257,7 +257,7 @@ function AddLocationForm({
       <p className="text-xs font-bold text-gray-400 uppercase">Add a location</p>
 
       <div className="relative">
-        <Input
+        <input
           placeholder="Search address…"
           value={query}
           onChange={(e) => search(e.target.value)}
@@ -274,7 +274,7 @@ function AddLocationForm({
 
       {selected && (
         <>
-          <Input
+          <input
             placeholder="Give this location a name…"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
@@ -282,18 +282,18 @@ function AddLocationForm({
           />
           <div className="flex gap-1">
             {(["HOME", "WORK", "FAVOURITE"] as const).map((t) => (
-              <button key={t} onClick={() => setType(t)} className="flex-1 text-xs">
+              <Button key={t} onClick={() => setType(t)} className="flex-1 text-xs">
                 {TYPE_ICONS[t]} {TYPE_LABELS[t]}
-              </button>
+              </Button>
             ))}
           </div>
-          <button
+          <Button
             onClick={handleSave}
             disabled={saving || !label.trim()}
             className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save Location"}
-          </button>
+          </Button>
         </>
       )}
     </div>
@@ -332,7 +332,7 @@ export function SavedLocationsPanel({
 
   return (
     <div className="bg-white rounded-xl border shadow-sm">
-      <button
+      <Button
         onClick={() => setCollapsed((p) => !p)}
         className="w-full p-3 flex justify-between"
       >
@@ -343,7 +343,7 @@ export function SavedLocationsPanel({
           </span>
         </span>
         <span>{collapsed ? "▼" : "▲"}</span>
-      </button>
+      </Button>
 
       {!collapsed && (
         <div className="p-3 flex flex-col gap-2">

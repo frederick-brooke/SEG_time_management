@@ -128,9 +128,9 @@ function Header({ username, onClose }) {
 				</div>
 			</div>
 
-			<button onClick={onClose}>
+			<Button onClick={onClose}>
 				<X className="w-4 h-4" />
-			</button>
+			</Button>
 		</div>
 	);
 }
@@ -157,9 +157,9 @@ function InfoText() {
 function ReasonSelect({ value, onChange }) {
 	return (
 		<div>
-			<Label className="text-xs text-white/60 uppercase mb-2 block">
+			<label className="text-xs text-white/60 uppercase mb-2 block">
 				Reason
-			</Label>
+			</label>
 			<Select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
@@ -185,9 +185,9 @@ function ReasonSelect({ value, onChange }) {
 function DescriptionInput({ value, onChange }) {
 	return (
 		<div>
-			<Label className="text-xs text-white/60 uppercase mb-2 block">
+			<label className="text-xs text-white/60 uppercase mb-2 block">
 				Additional details
-			</Label>
+			</label>
 			<textarea
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
@@ -210,20 +210,20 @@ function DescriptionInput({ value, onChange }) {
 function ActionButtons({ onClose, onSubmit, disabled, loading }) {
 	return (
 		<div className="flex justify-end gap-2 pt-1">
-			<button
+			<Button
 				onClick={onClose}
 				className="lunar-page-subtitle px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white/80 text-sm transition-all"
 			>
 				Cancel
-			</button>
+			</Button>
 
-			<button
+			<Button
 				onClick={onSubmit}
 				disabled={disabled}
 				className="lunar-page-subtitle px-5 py-2 rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_28px_rgba(239,68,68,0.45)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all"
 			>
 				{loading ? "Submitting…" : "Submit Report"}
-			</button>
+			</Button>
 		</div>
 	);
 }

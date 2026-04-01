@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import SearchUsers from "../SearchUsers";
+import { Button } from "@/components/ui/Button";
 
 // Mock UserPanel
 jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
@@ -10,9 +11,9 @@ jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
 jest.mock("../UserCards", () => (props: any) => (
 	<div data-testid="user-card">
 		<span>{props.user.username}</span>
-		<button onClick={props.onClick}>open</button>
+		<Button onClick={props.onClick}>open</Button>
 		{props.onRemove && (
-			<button onClick={props.onRemove}>remove</button>
+			<Button onClick={props.onRemove}>remove</Button>
 		)}
 	</div>
 ));

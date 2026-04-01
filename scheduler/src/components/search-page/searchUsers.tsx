@@ -125,9 +125,9 @@ function Header({ isSearching, hasRecent, onClear }) {
 			</p>
 
 			{!isSearching && hasRecent && (
-				<button onClick={onClear} className="lunar-page-subtitle text-sm text-red-400 hover:text-red-500 transition" >
+				<Button onClick={onClear} className="lunar-page-subtitle text-sm text-red-400 hover:text-red-500 transition" >
 					Clear All
-				</button>
+				</Button>
 			)}
 		</div>
 	);
@@ -186,23 +186,23 @@ function SearchResults({ users }) {
 function Pagination({ filters, setFilters, start, end, totalUsers, totalPages }) {
 	return (
 		<div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center text-white/70 text-sm">
-			<button
+			<Button
 				disabled={filters.page === 1}
 				onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 })) }
 				className="lunar-page-subtitle px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
 			>
 				Previous
-			</button>
+			</Button>
 
 			<span> {start}-{end} of {totalUsers} </span>
 
-			<button
+			<Button
 				disabled={filters.page === totalPages}
 				onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 })) }
 				className="lunar-page-subtitle px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
 			>
 				Next
-			</button>
+			</Button>
 		</div>
 	);
 }

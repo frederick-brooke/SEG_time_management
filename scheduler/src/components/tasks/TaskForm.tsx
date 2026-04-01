@@ -2,9 +2,6 @@
  * @file TaskForm.tsx
  * @description An orchestrated form component for task lifecycle management, utilizing React Portals for modal rendering and atomic sub-components for field inputs.
  */
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { Button } from "@/components/ui/Button";
 import {
   Select,
   SelectContent,
@@ -12,11 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-import { ToggleGroup, ToggleGroupItem } from "../ui/ToggleGroup";
-import { LunarCard } from "../ui/LunarCard";
 import { X } from "lucide-react";
-import { createPortal } from "react-dom";
 import React from "react";
+import { createPortal } from "react-dom";
+import { LunarCard } from "../ui/LunarCard";
+import { ToggleGroup, ToggleGroupItem } from "../ui/ToggleGroup";
+import { Button } from "@/components/ui/Button";
 
 // 1. Define and export the missing TaskFormData interface
 export interface TaskFormData {
@@ -102,8 +100,8 @@ export function TaskForm({
 
             <div className="grid gap-2 py-2">
               <div className="grid gap-2">
-                <Label htmlFor="task-name" className="lunar-label">Task Name</Label>
-                <Input
+                <label htmlFor="task-name" className="lunar-label">Task Name</label>
+                <input
                   id="task-name"
                   type="text"
                   placeholder="Enter task name"
@@ -114,8 +112,8 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="task-description" className="lunar-label">Task Description</Label>
-                <Input
+                <label htmlFor="task-description" className="lunar-label">Task Description</label>
+                <input
                   id="task-description"
                   type="text"
                   placeholder="Enter task description"
@@ -126,8 +124,8 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="task-due-date" className="lunar-label">Due Date</Label>
-                <Input
+                <label htmlFor="task-due-date" className="lunar-label">Due Date</label>
+                <input
                   id="task-due-date"
                   type="date"
                   value={formData.dueDate ? new Date(formData.dueDate).toISOString().split('T')[0]: ""}
@@ -137,9 +135,9 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="task-url" className="lunar-label">Study Resource URL</Label>
+                <label htmlFor="task-url" className="lunar-label">Study Resource URL</label>
                 <div className="flex gap-2">
-                  <Input
+                  <input
                     id="task-url"
                     type="text"
                     placeholder="No URL attached"
@@ -159,8 +157,8 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="subtasks" className="lunar-label">Subtasks (comma separated)</Label>
-                <Input
+                <label htmlFor="subtasks" className="lunar-label">Subtasks (comma separated)</label>
+                <input
                   id="subtasks"
                   type="text"
                   placeholder="e.g. Research, Edit"
@@ -171,7 +169,7 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label className="lunar-label">Time Estimate</Label>
+                <label className="lunar-label">Time Estimate</label>
                 <div className="flex gap-2">
                   <Select
                     value={formData.durationHours}
@@ -224,7 +222,7 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="exam-link" className="lunar-label">Link to Exam (Optional)</Label>
+                <label htmlFor="exam-link" className="lunar-label">Link to Exam (Optional)</label>
                 <Select
                   value={formData.examId || "none"}
                   onValueChange={(value) => onFormChange({ examId: value })}                
@@ -244,7 +242,7 @@ export function TaskForm({
               </div>
 
               <div className="grid gap-2">
-                <Label className="lunar-label">Task Priority</Label>
+                <label className="lunar-label">Task Priority</label>
                 <ToggleGroup
                   type="single"
                   value={formData.priority}

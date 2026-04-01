@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
 import { Delete } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
@@ -15,20 +16,20 @@ jest.mock("../../ui/AlertDialog", () => {
     return (
       <div data-testid="alert-dialog-root">
         {/* Expose onOpenChange to test the !open && onCancel() branch */}
-        <button
+        <Button
           type="button"
           data-testid="simulate-open-change-true"
           onClick={() => onOpenChange(true)}
         >
           simulate-open
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           data-testid="simulate-open-change-false"
           onClick={() => onOpenChange(false)}
         >
           simulate-close
-        </button>
+        </Button>
         {children}
       </div>
     );
@@ -51,16 +52,16 @@ jest.mock("../../ui/AlertDialog", () => {
   }
   function AlertDialogCancel({ children, onClick }) {
     return (
-      <button type="button" onClick={onClick}>
+      <Button type="button" onClick={onClick}>
         {children}
-      </button>
+      </Button>
     );
   }
   function AlertDialogAction({ children, onClick }) {
     return (
-      <button type="button" onClick={onClick}>
+      <Button type="button" onClick={onClick}>
         {children}
-      </button>
+      </Button>
     );
   }
 

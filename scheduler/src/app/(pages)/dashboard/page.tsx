@@ -143,17 +143,17 @@ function DashboardContent() {
               {/* Actions */}
               <div className="flex items-center gap-3">
                 {!googleConnected && (
-                  <button onClick={handleLinkGoogle} className="lunar-button-primary">
+                  <Button onClick={handleLinkGoogle} className="lunar-button-primary">
                     Connect Google Calendar
-                  </button>
+                  </Button>
                 )}
 
-                <button
+                <Button
                   onClick={() => signOut({ callbackUrl: "/login" })}
                   className="bg-white/5 text-white/60 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-white/10 backdrop-blur-md"
                 >
                   Sign Out
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -219,13 +219,13 @@ function DashboardContent() {
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-40 transition" />
 
                 {/* Button */}
-                <button
+                <Button
                     onClick={() => { setWellbeingOpen(true); setWellbeingVisible(false); }}
                     className="relative flex h-16 w-16 items-center justify-center rounded-full bg-indigo-950 backdrop-blur-xl border border-white/10 text-red-300 shadow-[0_0_25px_rgba(168,85,247,0.45),0_0_60px_rgba(59,130,246,0.25)] hover:scale-110 hover:text-pink-300 hover:shadow-[0_0_35px_rgba(236,72,153,0.55),0_0_80px_rgba(168,85,247,0.35)] transition-all duration-300 animate-[pulse_4s_ease-in-out_infinite]"
                     aria-label="Open wellbeing panel"
                 >
                     <IconMoonStars className="relative w-7 h-7" />
-                </button>
+                </Button>
             </div>
 
         </div>

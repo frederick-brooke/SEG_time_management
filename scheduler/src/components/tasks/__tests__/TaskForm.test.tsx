@@ -1,9 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskForm } from "../TaskForm";
-import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Mock shadcn/Radix wrappers via RELATIVE PATHS so Jest doesn't need alias config.
@@ -46,7 +45,7 @@ jest.mock("../../ui/dialog", () => {
   };
 });
 
-jest.mock("../../ui/Input", () => {
+jest.mock("../../ui/input", () => {
   const React = require("react");
   return {
     Input: ({ id, value, onChange, placeholder, type = "text" }) => (
@@ -66,20 +65,20 @@ jest.mock("react-dom", () => ({
   createPortal: (node: React.ReactNode) => node,
 }));
 
-jest.mock("../../ui/Label", () => {
+jest.mock("../../ui/label", () => {
   const React = require("react");
   return {
     Label: ({ htmlFor, children }) => <label htmlFor={htmlFor}>{children}</label>,
   };
 });
 
-jest.mock("../../ui/button", () => {
+jest.mock("../../ui/Button", () => {
   const React = require("react");
   return {
     Button: ({ children, onClick, buttonType = "button" }) => (
-      <button type={buttonType as "button"} onClick={onClick}>
+      <Button type={buttonType as "button"} onClick={onClick}>
         {children}
-      </button>
+      </Button>
     ),
   };
 });
@@ -124,9 +123,9 @@ jest.mock("../../ui/toggle-group", () => {
 
   function ToggleGroupItem({ value, children, __onValueChange }) {
     return (
-      <button type="button" onClick={() => __onValueChange(value)}>
+      <Button type="button" onClick={() => __onValueChange(value)}>
         {children}
-      </button>
+      </Button>
     );
   }
 

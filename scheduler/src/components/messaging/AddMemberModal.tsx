@@ -121,7 +121,7 @@ export function AddMemberModal({
             </p>
           )}
           {friends.map((f) => (
-            <button
+            <Button
               key={f.id}
               onClick={() => handleAdd(f.id)}
               disabled={loading}
@@ -134,17 +134,17 @@ export function AddMemberModal({
               <span className="ml-auto text-xs font-medium text-[rgba(148,163,255,0.6)]">
                 {loading ? "Adding…" : "Add"}
               </span>
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="flex justify-end mt-4">
-          <button
+          <Button
             onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg transition-colors border border-white/[0.08] text-[rgba(148,163,255,0.6)] hover:bg-white/[0.04]"
           >
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </div>

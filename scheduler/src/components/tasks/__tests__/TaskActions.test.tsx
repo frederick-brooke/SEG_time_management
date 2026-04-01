@@ -9,11 +9,11 @@ jest.mock("lucide-react", () => ({
 }));
 
 // Mock Button component
-jest.mock("components/ui/button", () => ({
+jest.mock("components/ui/Button", () => ({
   Button: ({ children, onClick, title, className, ...props }) => (
-    <button onClick={onClick} title={title} className={className} {...props}>
+    <Button onClick={onClick} title={title} className={className} {...props}>
       {children}
-    </button>
+    </Button>
   ),
 }));
 

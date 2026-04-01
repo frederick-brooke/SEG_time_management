@@ -42,14 +42,14 @@ export default function UserCard({ user, onClick, onRemove }: { user: any; onCli
 					)}
 				</div>
 				
-				<button className="ml-auto flex-shrink-0 text-xs px-3 py-0.5 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition">
+				<Button className="ml-auto flex-shrink-0 text-xs px-3 py-0.5 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition">
                     View
-                </button>
+                </Button>
 
 				{onRemove && (
-                    <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="ml-auto flex-shrink-0 text-gray-400 hover:text-red-500 transition">
+                    <Button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="ml-auto flex-shrink-0 text-gray-400 hover:text-red-500 transition">
                         <IconX size={16} />
-                    </button>
+                    </Button>
                 )}
 			</div>
 		</GlassCard>

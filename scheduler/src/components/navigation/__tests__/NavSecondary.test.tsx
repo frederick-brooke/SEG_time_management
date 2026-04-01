@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { NavSecondary } from "../NavSecondary"; 
+import { NavSecondary } from "../NavSecondary";
+import { Button } from "@/components/ui/Button";
 
 // 1. Mock the Sidebar components
 jest.mock("@/components/ui/sidebar", () => ({
@@ -15,9 +16,9 @@ jest.mock("@/components/ui/sidebar", () => ({
   SidebarMenuButton: ({ children, asChild, ...props }: any) => {
     if (asChild) return <>{children}</>;
     return (
-      <button data-testid="sidebar-menu-button" {...props}>
+      <Button data-testid="sidebar-menu-button" {...props}>
         {children}
-      </button>
+      </Button>
     );
   },
 }));

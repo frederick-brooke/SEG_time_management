@@ -46,7 +46,7 @@ function SearchResultItem({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
       className="w-full flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/[0.04]"
     >
@@ -59,7 +59,7 @@ function SearchResultItem({
           {secondary}
         </p>
       </div>
-    </button>
+    </Button>
   );
 }
 
@@ -161,7 +161,7 @@ export default function UserSearch() {
 
   return (
     <div className="relative">
-      <Input
+      <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

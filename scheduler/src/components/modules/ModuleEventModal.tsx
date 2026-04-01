@@ -148,34 +148,34 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
               {isEditing ? "Changes apply to all members' calendars" : "Added to all members' calendars"}
             </p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {/* Title */}
           <div>
-            <Label className="lunar-label">Event Title <span className="text-red-400">*</span></Label>
-            <Input type="text" required placeholder="e.g. Midterm Exam, Guest Lecture"
+            <label className="lunar-label">Event Title <span className="text-red-400">*</span></label>
+            <input type="text" required placeholder="e.g. Midterm Exam, Guest Lecture"
               value={formData.title} onChange={(e) => handleChange({ title: e.target.value })}
               className="lunar-input w-full p-3 rounded-xl mt-1" />
           </div>
 
           {/* Location */}
           <div>
-            <Label className="lunar-label flex items-center gap-1">
+            <label className="lunar-label flex items-center gap-1">
               <MapPin size={12} /> Location / Destination
-            </Label>
-            <Input type="text" placeholder="e.g. Room 101, Main Library"
+            </label>
+            <input type="text" placeholder="e.g. Room 101, Main Library"
               value={formData.destLocationName} onChange={(e) => handleChange({ destLocationName: e.target.value })}
               className="lunar-input w-full p-3 rounded-xl mt-1" />
           </div>
 
           {/* Description */}
           <div>
-            <Label className="lunar-label">Description</Label>
+            <label className="lunar-label">Description</label>
             <textarea rows={2} placeholder="Optional description..."
               value={formData.description} onChange={(e) => handleChange({ description: e.target.value })}
               className="lunar-input w-full p-3 rounded-xl mt-1 resize-none" />
@@ -183,17 +183,17 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
 
           {/* Category */}
           <div>
-            <Label className="lunar-label">Category</Label>
+            <label className="lunar-label">Category</label>
             <div className="flex flex-wrap gap-2 mt-1">
               {CATEGORIES.map((cat) => (
-                <button key={cat} type="button" onClick={() => handleChange({ category: cat })}
+                <Button key={cat} type="button" onClick={() => handleChange({ category: cat })}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
                     formData.category === cat
                       ? "border-blue-500 bg-blue-500/20 text-blue-400"
                       : "border-white/10 bg-white/5 text-white/40 hover:border-white/20"
                   }`}>
                   {cat}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -201,20 +201,20 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
           {/* Start / End */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="lunar-label mb-2">Start</Label>
-              <Input type="date" required value={formData.startDate}
+              <label className="lunar-label mb-2">Start</label>
+              <input type="date" required value={formData.startDate}
                 onChange={(e) => handleChange({ startDate: e.target.value })}
                 className="lunar-input w-full p-2 rounded-xl mb-2" />
-              <Input type="time" required value={formData.startTime}
+              <input type="time" required value={formData.startTime}
                 onChange={(e) => handleChange({ startTime: e.target.value })}
                 className="lunar-input w-full p-2 rounded-xl" />
             </div>
             <div>
-              <Label className="lunar-label mb-2">End</Label>
-              <Input type="date" required value={formData.endDate}
+              <label className="lunar-label mb-2">End</label>
+              <input type="date" required value={formData.endDate}
                 onChange={(e) => handleChange({ endDate: e.target.value })}
                 className="lunar-input w-full p-2 rounded-xl mb-2" />
-              <Input type="time" required value={formData.endTime}
+              <input type="time" required value={formData.endTime}
                 onChange={(e) => handleChange({ endTime: e.target.value })}
                 className="lunar-input w-full p-2 rounded-xl" />
             </div>
@@ -225,14 +225,14 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
           )}
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={isSubmitting}
+            <Button type="button" onClick={onClose} disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50">
               Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting}
+            </Button>
+            <Button type="submit" disabled={isSubmitting}
               className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Create Event"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

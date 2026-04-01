@@ -58,13 +58,13 @@ function MemberProgressBadge({ count, members, label, color }: {
 
   return (
     <div className="relative inline-block">
-      <button
+      <Button
         onClick={() => setOpen((v) => !v)}
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider transition-colors ${styles.badge}`}
       >
         <span className={`w-1.5 h-1.5 rounded-full ${styles.dot}`} />
         {count} {label}
-      </button>
+      </Button>
       {open && members.length > 0 && (
         <div className="absolute bottom-full mb-2 left-0 z-20 bg-[#111629] border border-white/20 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] p-3 min-w-[160px] animate-in fade-in slide-in-from-bottom-2">
           <p className="lunar-label mb-2 text-white/80">{label}</p>
@@ -154,16 +154,16 @@ function OwnerTaskRow({ task, onEdit, onDelete }: {
         </div>
       </div>
       <div className="flex items-center gap-1 shrink-0">
-        <button onClick={onEdit}
+        <Button onClick={onEdit}
           className="p-1.5 text-white/30 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
           data-testid="edit-task-btn">
           <Pencil size={14} />
-        </button>
-        <button onClick={onDelete}
+        </Button>
+        <Button onClick={onDelete}
           className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
           data-testid="delete-task-btn">
           <Trash2 size={14} />
-        </button>
+        </Button>
       </div>
     </div>
   );

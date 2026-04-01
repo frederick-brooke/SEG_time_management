@@ -92,8 +92,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             )}
 
             <div>
-                <Label className="lunar-label">Exam Title</Label>
-                <Input 
+                <label className="lunar-label">Exam Title</label>
+                <input 
                     name="title" 
                     defaultValue={editingExam?.title || ""}
                     required
@@ -101,8 +101,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 />
             </div>
             <div>
-                <Label className="lunar-label">Exam Date</Label>
-                <Input 
+                <label className="lunar-label">Exam Date</label>
+                <input 
                     name="examDate" 
                     type="date" 
                     defaultValue={editingExam ? new Date(editingExam.examDate).toISOString().split('T')[0] : ""}
@@ -112,8 +112,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <Label className="lunar-label">Start Time</Label>
-                    <Input
+                    <label className="lunar-label">Start Time</label>
+                    <input
                         name="startTime"
                         type="time"
                         defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
@@ -122,8 +122,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                     />
                 </div>
                 <div>
-                    <Label className="lunar-label">End Time</Label>
-                    <Input
+                    <label className="lunar-label">End Time</label>
+                    <input
                         name="endTime"
                         type="time"
                         defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
@@ -133,8 +133,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 </div>    
             </div>
             <div>
-                <Label className="lunar-label">Daily Study Goal (mins)</Label>
-                <Input 
+                <label className="lunar-label">Daily Study Goal (mins)</label>
+                <input 
                     name="maxTimePerDay" 
                     type="number" 
                     defaultValue={editingExam?.maxTimePerDay || ""}
@@ -143,21 +143,21 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 />                        
             </div>
             <div className="flex justify-end gap-3 pt-4">
-                <button 
+                <Button 
                     type="button" 
                     onClick={onSuccess} 
                     disabled={isPending}
                     className="text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                 >
                     Cancel
-                </button>
-                <button 
+                </Button>
+                <Button 
                     type="submit" 
                     disabled={isPending}
                     className="lunar-button-primary"
                 >
                     {isPending? "Saving..." : editingExam ? "Update Settings" : "Save Exam"}
-                </button>            
+                </Button>            
             </div>
         </form>
     );

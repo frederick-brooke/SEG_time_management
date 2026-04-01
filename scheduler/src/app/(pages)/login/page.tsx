@@ -34,10 +34,10 @@ function FormInput({
 }: FormInputProps) {
   return (
     <div className="group flex flex-col">
-      <Label className="text-xs font-bold tracking-wider text-white/60 uppercase mb-2 group-focus-within:text-blue-400 transition-colors">
+      <label className="text-xs font-bold tracking-wider text-white/60 uppercase mb-2 group-focus-within:text-blue-400 transition-colors">
         {label}
-      </Label>
-      <Input
+      </label>
+      <input
         type={type}
         name={name}
         value={value}
@@ -248,14 +248,14 @@ function LoginHeader() {
  */
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <button
+    <Button
       type="submit"
       disabled={isPending}
       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:pointer-events-none"
     >
       {isPending && <Loader2 size={18} className="animate-spin" />}
       {isPending ? "Authenticating..." : "Initiate Launch"}
-    </button>
+    </Button>
   );
 }
 

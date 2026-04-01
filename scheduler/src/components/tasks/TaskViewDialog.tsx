@@ -7,7 +7,6 @@
 
 import { useRouter } from "next/navigation"; 
 import { useState } from "react";
-import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { X, CheckCircle2 } from "lucide-react"; 
 import { LunarCard } from "../ui/LunarCard";
@@ -98,14 +97,14 @@ export function TaskViewDialog({
         {/* Data Rows */}
         <div className="space-y-4 py-4">
           <div>
-            <Label className="lunar-label">Description</Label>
+            <label className="lunar-label">Description</label>
             <p className="lunar-value">
               {task.description || "No description provided"}
             </p>
           </div>
 
           <div>
-            <Label className="lunar-label">Priority</Label>
+            <label className="lunar-label">Priority</label>
             <p className="lunar-value mt-1">
               <span className={`text-xs px-2 py-1 rounded-full border font-bold uppercase tracking-wider ${getPriorityStyle?.(task.priority) ?? ""}`}>
                 {task.priority || "None"}
@@ -114,7 +113,7 @@ export function TaskViewDialog({
           </div>
 
           <div>
-            <Label className="lunar-label">Estimated Time</Label>
+            <label className="lunar-label">Estimated Time</label>
             <p className="lunar-value">
               {task.duration > 0
                 ? `${Math.floor(task.duration / 60)}h ${task.duration % 60}m`
@@ -123,7 +122,7 @@ export function TaskViewDialog({
           </div>
 
           <div className="space-y-1">
-            <Label className="lunar-label">Study Resource</Label>
+            <label className="lunar-label">Study Resource</label>
             {task.url ? (
               <a
                 href={task.url}
@@ -140,7 +139,7 @@ export function TaskViewDialog({
           </div>
 
           <div>
-            <Label className="lunar-label">Due Date</Label>
+            <label className="lunar-label">Due Date</label>
             <p className="lunar-value">
               {task.dueDate
                 ? new Date(task.dueDate).toLocaleDateString("en-GB", {
@@ -153,14 +152,14 @@ export function TaskViewDialog({
           </div>
 
           <div className="grid gap-1">
-            <Label className="lunar-label">Linked Exams</Label>
+            <label className="lunar-label">Linked Exams</label>
             <p className="lunar-value">
               {task.exam?.title || "Not linked to an exam"}
             </p>
           </div>
 
           <div>
-            <Label className="lunar-label">Subtasks</Label>
+            <label className="lunar-label">Subtasks</label>
             <ul className="list-disc list-inside text-sm text-white/50 mt-1 space-y-1">
               {task.subtasks?.length > 0 ? (
                 task.subtasks.map((sub: string, index: number) => (
