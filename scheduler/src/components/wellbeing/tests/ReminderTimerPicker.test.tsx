@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import ReminderPicker from "../reminder_timer_picker";
+import ReminderPicker from "../ReminderTimerPicker";
 
 describe("ReminderPicker", () => {
   test("uses default time when initialDuration is null", () => {

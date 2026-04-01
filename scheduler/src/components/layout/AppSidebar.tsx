@@ -44,7 +44,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/Sidebar";
 
 import Link from "next/link";
 import SearchPanel from "@/components/search-page/SearchPanel";

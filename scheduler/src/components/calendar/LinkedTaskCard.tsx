@@ -50,20 +50,20 @@ function CustomDatePicker({
 }: any) {
   return (
     <div className="p-3 bg-white/5 rounded-xl border border-indigo-500/20 flex flex-col gap-2">
-      <label className="flex items-center gap-2 cursor-pointer text-xs text-white/50">
-        <input
+      <Label className="flex items-center gap-2 cursor-pointer text-xs text-white/50">
+        <Input
           type="checkbox"
           checked={useRange}
           onChange={(e) => setUseRange(e.target.checked)}
           className="accent-indigo-500"
         />
         <span>Use a date range</span>
-      </label>
+      </Label>
       {useRange ? (
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs text-white/30">From</label>
-            <input
+            <Label className="text-xs text-white/30">From</Label>
+            <Input
               type="date"
               value={rangeStart}
               onChange={(e) => setRangeStart(e.target.value)}
@@ -71,8 +71,8 @@ function CustomDatePicker({
             />
           </div>
           <div>
-            <label className="text-xs text-white/30">To</label>
-            <input
+            <Label className="text-xs text-white/30">To</Label>
+            <Input
               type="date"
               value={rangeEnd}
               onChange={(e) => setRangeEnd(e.target.value)}
@@ -82,8 +82,8 @@ function CustomDatePicker({
         </div>
       ) : (
         <div>
-          <label className="text-xs text-white/30">Date</label>
-          <input
+          <Label className="text-xs text-white/30">Date</Label>
+          <Input
             type="date"
             value={customDate}
             onChange={(e) => setCustomDate(e.target.value)}
@@ -208,9 +208,9 @@ export function LinkedTaskCard({
       {expanded && (
         <div className="border-t border-white/[0.06] p-3 flex flex-col gap-3 bg-black/20">
           <div>
-            <label className="text-xs font-bold text-white/30 uppercase mb-1.5 block">
+            <Label className="text-xs font-bold text-white/30 uppercase mb-1.5 block">
               Schedule relative to event
-            </label>
+            </Label>
             <RelativePicker value={mode} onChange={setMode} />
           </div>
           {mode === "custom" && (
@@ -225,7 +225,7 @@ export function LinkedTaskCard({
               label="Schedule for a specific time?"
             />
             {scheduleTime ? (
-              <input
+              <Input
                 type="time"
                 value={specificTime}
                 onChange={(e) => setSpecificTime(e.target.value)}

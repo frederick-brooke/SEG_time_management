@@ -9,7 +9,7 @@ describe("Shared Form Components", () => {
     it("renders the label text accurately", () => {
       render(
         <FormField label="Email Address">
-          <input type="email" placeholder="test@example.com" />
+          <Input type="email" placeholder="test@example.com" />
         </FormField>
       );
       expect(screen.getByText("Email Address")).toBeInTheDocument();
@@ -18,7 +18,7 @@ describe("Shared Form Components", () => {
     it("projects its children into the component correctly", () => {
       render(
         <FormField label="Username">
-          <input type="text" data-testid="child-input" />
+          <Input type="text" data-testid="child-input" />
         </FormField>
       );
       expect(screen.getByTestId("child-input")).toBeInTheDocument();

@@ -9,12 +9,12 @@
 import { useState, useEffect } from "react";
 import { Check, ChevronsUpDown, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import {
   Command, CommandEmpty, CommandGroup,
   CommandInput, CommandItem, CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+} from "@/components/ui/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 
 // Types 
 

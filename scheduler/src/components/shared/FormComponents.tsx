@@ -18,9 +18,9 @@ interface FormFieldProps {
 export function FormField({ label, children }: FormFieldProps) {
   return (
     <div>
-      <label className="text-xs font-bold text-gray-400 uppercase block mb-1">
+      <Label className="text-xs font-bold text-gray-400 uppercase block mb-1">
         {label}
-      </label>
+      </Label>
       <div>{children}</div>
     </div>
   );
@@ -136,7 +136,7 @@ export function RecurrencePanel({
 }: RecurrencePanelProps) {
   return (
     <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-      <select
+      <Select
         value={type}
         onChange={(e) => onType(e.target.value)}
         className="w-full border border-gray-200 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-400"
@@ -146,18 +146,18 @@ export function RecurrencePanel({
             {o.label}
           </option>
         ))}
-      </select>
+      </Select>
       
       {type === "weekly" && <DayPicker selected={days} onChange={onDays} />}
       
       <div>
         {/* 1. ADDED htmlFor="until-date" HERE */}
-        <label htmlFor="until-date" className="text-xs font-bold text-gray-400 block mb-1">
+        <Label htmlFor="until-date" className="text-xs font-bold text-gray-400 block mb-1">
           Until
-        </label>
+        </Label>
         
         {/* 2. ADDED id="until-date" HERE */}
-        <input
+        <Input
           id="until-date"
           type="date"
           value={until}

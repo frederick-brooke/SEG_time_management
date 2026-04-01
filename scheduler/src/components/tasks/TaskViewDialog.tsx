@@ -7,10 +7,10 @@
 
 import { useRouter } from "next/navigation"; 
 import { useState } from "react";
-import { Label } from "components/ui/label";
-import { Button } from "components/ui/button";
+import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 import { X, CheckCircle2 } from "lucide-react"; 
-import { LunarCard } from "../ui/lunar-card";
+import { LunarCard } from "../ui/LunarCard";
 
 interface TaskViewDialogProps {
   task: any | null;
@@ -80,9 +80,9 @@ export function TaskViewDialog({
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {/* Close Button */}
-        <button onClick={onClose} className="absolute top-5 right-6 text-white/40 hover:text-white">
+        <Button onClick={onClose} className="absolute top-5 right-6 text-white/40 hover:text-white">
           <X size={20} />
-        </button>
+        </Button>
 
         {/* Title */}
         <div className="mb-6">

@@ -68,22 +68,22 @@ export default function ModuleSettingsModal({ module, onClose, onSuccess }: Modu
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="lunar-label">Module Name</label>
-            <input type="text" required value={formData.name}
+            <Label className="lunar-label">Module Name</Label>
+            <Input type="text" required value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className="lunar-input w-full p-3 rounded-xl mt-1" />
           </div>
 
           <div>
-            <label className="lunar-label">Description</label>
+            <Label className="lunar-label">Description</Label>
             <textarea rows={3} value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className="lunar-input w-full p-3 rounded-xl mt-1 resize-none" />
           </div>
 
           <div>
-            <label className="lunar-label">Max Members</label>
-            <input type="number" min={module.memberCount} max={100} required value={formData.maxMembers}
+            <Label className="lunar-label">Max Members</Label>
+            <Input type="number" min={module.memberCount} max={100} required value={formData.maxMembers}
               onChange={(e) => setFormData({ ...formData, maxMembers: parseInt(e.target.value) || module.memberCount })}
               className="lunar-input w-full p-3 rounded-xl mt-1" />
             <p className="text-[10px] text-white/30 mt-1 font-medium">

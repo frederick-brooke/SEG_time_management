@@ -7,7 +7,7 @@ import {
   AvatarBadge as AvatarBadgeBase,
   AvatarGroup as AvatarGroupBase,
   AvatarGroupCount as AvatarGroupCountBase,
-} from "@/components/ui/avatar";
+} from "@/components/ui/Avatar";
 
 // Cast to permissive FC types so tests don't need to supply className every time
 const Avatar = AvatarBase as React.FC<React.HTMLAttributes<HTMLElement> & { size?: string }>;

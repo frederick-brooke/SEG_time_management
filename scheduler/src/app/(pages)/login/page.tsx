@@ -34,10 +34,10 @@ function FormInput({
 }: FormInputProps) {
   return (
     <div className="group flex flex-col">
-      <label className="text-xs font-bold tracking-wider text-white/60 uppercase mb-2 group-focus-within:text-blue-400 transition-colors">
+      <Label className="text-xs font-bold tracking-wider text-white/60 uppercase mb-2 group-focus-within:text-blue-400 transition-colors">
         {label}
-      </label>
-      <input
+      </Label>
+      <Input
         type={type}
         name={name}
         value={value}

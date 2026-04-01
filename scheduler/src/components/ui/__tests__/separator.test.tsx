@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { Separator } from "../separator"; 
+import { Separator } from "../Separator"; 
 
 describe("Separator Component", () => {
   it("renders correctly with default props", () => {

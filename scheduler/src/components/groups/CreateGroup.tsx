@@ -106,10 +106,10 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
 
         <form onSubmit={handleSubmit} className="space-y-5 flex-1 flex flex-col min-h-0">
           <div className="shrink-0">
-            <label className="lunar-label flex items-center gap-1">
+            <Label className="lunar-label flex items-center gap-1">
               Group Name <span className="text-red-400">*</span>
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               required
               maxLength={100}
@@ -121,9 +121,9 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
           </div>
 
           <div className="shrink-0">
-            <label className="lunar-label flex items-center gap-1">
+            <Label className="lunar-label flex items-center gap-1">
               Description <span className="text-white/30 lowercase">(optional)</span>
-            </label>
+            </Label>
             <textarea
               rows={2}
               maxLength={300}
@@ -135,14 +135,14 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
           </div>
 
           <div className="flex-1 flex flex-col min-h-0">
-            <label className="lunar-label flex items-center gap-1 shrink-0">
+            <Label className="lunar-label flex items-center gap-1 shrink-0">
               Add Friends <span className="text-red-400">*</span>
               {selectedIds.size > 0 && (
                 <span className="ml-auto text-[10px] text-blue-400 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">
                   {selectedIds.size} selected
                 </span>
               )}
-            </label>
+            </Label>
 
             {isLoadingFriends ? (
               <p className="text-xs text-white/40 py-4 text-center font-medium">Loading friends...</p>

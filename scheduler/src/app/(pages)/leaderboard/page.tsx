@@ -11,7 +11,7 @@ import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
 import { Trophy } from "lucide-react";
 import LeaderboardClient from "./LeaderboardClient";
 import { Timeframe } from "@/types/leaderboard";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/PageHeader";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 export default async function LeaderboardPage(props: {

@@ -2,7 +2,7 @@ import * as React from "react"
 import { render } from "@testing-library/react"
 import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
-import { Toaster } from "../sonner" 
+import { Toaster } from "@/components/ui/Sonner" 
 
 // 1. Mock the next-themes hook
 jest.mock("next-themes", () => ({

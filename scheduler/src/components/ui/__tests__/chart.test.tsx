@@ -7,7 +7,7 @@ import {
   ChartLegendContent,
   ChartStyle,
   type ChartConfig,
-} from "../chart"; 
+} from "@/components/ui/Chart"; 
 
 // Mocks
 

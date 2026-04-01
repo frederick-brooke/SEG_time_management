@@ -93,7 +93,7 @@ export async function executeSearch(
  * const { searchQuery, suggestions, handleLocationSearch } = useLocationSearch();
  *
  * return (
- *   <input
+ *   <Input
  *     value={searchQuery}
  *     onChange={(e) => handleLocationSearch(e.target.value)}
  *     placeholder="Search location..."

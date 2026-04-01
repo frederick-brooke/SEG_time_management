@@ -2,7 +2,7 @@ import * as React from "react";
 import { render, screen, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import { RocketProgress } from "../rocket-progress"; 
+import { RocketProgress } from "../RocketProgress"; 
 
 // Mocks & global setup
 

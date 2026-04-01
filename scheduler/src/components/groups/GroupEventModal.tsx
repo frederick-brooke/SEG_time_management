@@ -165,10 +165,10 @@ export default function GroupEventModal({
 
           {/* Title */}
           <div>
-            <label className="lunar-label flex items-center gap-1">
+            <Label className="lunar-label flex items-center gap-1">
               Event Title <span className="text-red-400">*</span>
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               required
               placeholder="e.g. Group Study, Movie Night"
@@ -180,10 +180,10 @@ export default function GroupEventModal({
 
           {/* Location / Destination */}
           <div>
-            <label className="lunar-label flex items-center gap-1">
+            <Label className="lunar-label flex items-center gap-1">
               <MapPin size={12} className="text-white/40" /> Location / Destination
-            </label>
-            <input 
+            </Label>
+            <Input 
               type="text" 
               placeholder="e.g. Student Union, Coffee Shop" 
               value={formData.destLocationName} 
@@ -194,7 +194,7 @@ export default function GroupEventModal({
 
           {/* Description */}
           <div>
-            <label className="lunar-label">Description</label>
+            <Label className="lunar-label">Description</Label>
             <textarea
               rows={3}
               placeholder="Optional description..."
@@ -206,7 +206,7 @@ export default function GroupEventModal({
 
           {/* Category */}
           <div>
-            <label className="lunar-label mb-2 block">Category</label>
+            <Label className="lunar-label mb-2 block">Category</Label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -228,20 +228,20 @@ export default function GroupEventModal({
           {/* Start / End */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="lunar-label">Start</label>
-              <input type="date" required value={formData.startDate}
+              <Label className="lunar-label">Start</Label>
+              <Input type="date" required value={formData.startDate}
                 onChange={(e) => handleChange({ startDate: e.target.value })}
                 className="lunar-input w-full p-2 mb-2" />
-              <input type="time" required value={formData.startTime}
+              <Input type="time" required value={formData.startTime}
                 onChange={(e) => handleChange({ startTime: e.target.value })}
                 className="lunar-input w-full p-2" />
             </div>
             <div>
-              <label className="lunar-label">End</label>
-              <input type="date" required value={formData.endDate}
+              <Label className="lunar-label">End</Label>
+              <Input type="date" required value={formData.endDate}
                 onChange={(e) => handleChange({ endDate: e.target.value })}
                 className="lunar-input w-full p-2 mb-2" />
-              <input type="time" required value={formData.endTime}
+              <Input type="time" required value={formData.endTime}
                 onChange={(e) => handleChange({ endTime: e.target.value })}
                 className="lunar-input w-full p-2" />
             </div>

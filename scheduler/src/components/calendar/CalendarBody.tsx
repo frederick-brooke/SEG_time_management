@@ -217,7 +217,7 @@ export default function CalendarBody({
             </div>
           ) : (
             <div className={searchStyles.searchContainer} ref={searchRef}>
-              <input
+              <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}

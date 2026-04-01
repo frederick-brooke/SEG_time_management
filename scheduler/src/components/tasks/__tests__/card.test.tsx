@@ -9,9 +9,9 @@ import {
   CardAction,
   CardDescription,
   CardContent,
-} from "../../ui/card";
+} from "../../ui/Card";
 
-describe("components/ui/card", () => {
+describe("components/ui/Card", () => {
   it("renders all card primitives and forwards className/props", () => {
     render(
       <Card data-testid="card-root" className="root-class">

@@ -2,18 +2,18 @@
  * @file TaskForm.tsx
  * @description An orchestrated form component for task lifecycle management, utilizing React Portals for modal rendering and atomic sub-components for field inputs.
  */
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { LunarCard } from "../ui/lunar-card";
+} from "@/components/ui/Select";
+import { ToggleGroup, ToggleGroupItem } from "../ui/ToggleGroup";
+import { LunarCard } from "../ui/LunarCard";
 import { X } from "lucide-react";
 import { createPortal } from "react-dom";
 import React from "react";
@@ -85,9 +85,9 @@ export function TaskForm({
               onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
-            <button onClick={() => onOpenChange(false)} className="lunar-close-button">
+            <Button onClick={() => onOpenChange(false)} className="lunar-close-button">
               <X size={20} />
-            </button>
+            </Button>
 
             <div className="mb-8">
               <h3 className="lunar-header">

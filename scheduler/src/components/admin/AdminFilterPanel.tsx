@@ -38,14 +38,14 @@ export function FilterPanel({ onClose, onReset, children }) {
 export function FilterSortGroup({ sortBy, order, sortOptions, onSortChange, onOrderChange }) {
   return (
     <div className="space-y-3">
-      <label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">Sorting</label>
-      <select value={sortBy} onChange={(e) => onSortChange(e.target.value)} className={selectCls}>
+      <Label className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">Sorting</Label>
+      <Select value={sortBy} onChange={(e) => onSortChange(e.target.value)} className={selectCls}>
         {sortOptions.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-      </select>
-      <select value={order} onChange={(e) => onOrderChange(e.target.value)} className={selectCls}>
+      </Select>
+      <Select value={order} onChange={(e) => onOrderChange(e.target.value)} className={selectCls}>
         <option value="asc">Ascending</option>
         <option value="desc">Descending</option>
-      </select>
+      </Select>
     </div>
   );
 }
@@ -63,8 +63,8 @@ export function FilterDateRange({ label = "Dates", startDate, endDate, onStartCh
   return (
     <div className="space-y-3">
       <p className="lunar-page-subtitle text-xs uppercase text-white/40 tracking-wider">{label}</p>
-      <input type="date" value={startDate} onChange={(e) => onStartChange(e.target.value)} className={inputCls} />
-      <input type="date" value={endDate}   onChange={(e) => onEndChange(e.target.value)}   className={inputCls} />
+      <Input type="date" value={startDate} onChange={(e) => onStartChange(e.target.value)} className={inputCls} />
+      <Input type="date" value={endDate}   onChange={(e) => onEndChange(e.target.value)}   className={inputCls} />
     </div>
   );
 }

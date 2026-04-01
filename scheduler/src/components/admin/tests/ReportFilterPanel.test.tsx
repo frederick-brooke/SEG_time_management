@@ -51,7 +51,7 @@ function runUpdater(
   return updater(state);
 }
 
-/** Return all <input type="date"> elements currently in the document. */
+/** Return all <Input type="date"> elements currently in the document. */
 function getDateInputs(): HTMLInputElement[] {
   return screen
     .getAllByDisplayValue(/.?/)

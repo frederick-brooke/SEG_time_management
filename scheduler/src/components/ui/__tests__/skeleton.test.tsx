@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { Skeleton } from "../skeleton"; 
+import { Skeleton } from "../Skeleton"; 
 
 describe("Skeleton Component", () => {
   it("renders correctly in the document", () => {

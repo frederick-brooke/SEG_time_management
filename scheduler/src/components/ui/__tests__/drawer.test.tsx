@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Drawer } from '../drawer' 
+import { Drawer } from '../Drawer' 
 
 describe('Drawer component', () => {
   test('renders Drawer and opens correctly', async () => {

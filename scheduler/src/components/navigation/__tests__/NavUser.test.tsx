@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { NavUser } from "../NavUser";
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/Sidebar";
 
 // 1. Mock the Sidebar components and hook
 jest.mock("@/components/ui/sidebar", () => ({

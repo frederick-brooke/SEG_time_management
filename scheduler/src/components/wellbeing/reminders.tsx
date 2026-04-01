@@ -2,7 +2,7 @@
 //component containing the toggle and modal view
 import { IconLock, IconLockOff, IconDroplet } from "@tabler/icons-react";
 
-import ReminderContainer from "./reminder_display";
+import ReminderContainer from "./ReminderDisplay";
 
 /**
  * RemindersProps

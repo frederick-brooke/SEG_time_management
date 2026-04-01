@@ -10,7 +10,7 @@ import {
   TableRow,
   TableCell,
   TableCaption,
-} from "../table"; 
+} from "@/components/ui/Table"; 
 
 describe("Table Components", () => {
   it("renders a complete table structure correctly", () => {

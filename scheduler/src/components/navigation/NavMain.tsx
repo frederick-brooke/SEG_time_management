@@ -6,7 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/Sidebar"
 import Link from "next/link"
 
 export function NavMain({ items, label, onNotifClick, unreadCount = 0, unreadMessageCount = 0, onSearchClick }) {

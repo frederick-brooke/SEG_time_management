@@ -216,7 +216,7 @@ export default function SetLocationModal({
         <div className="p-6 space-y-4">
 
           {/* Search input */}
-          <input
+          <Input
             ref={inputRef}
             value={searchQuery}
             onChange={(e) => handleLocationSearch(e.target.value)}

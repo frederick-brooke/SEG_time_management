@@ -56,10 +56,10 @@ export default function QuickScheduleModal({
           {task.title}
         </p>
         <div className="mb-4">
-          <label className="text-xs font-bold text-white/30 uppercase">
+          <Label className="text-xs font-bold text-white/30 uppercase">
             Date
-          </label>
-          <input
+          </Label>
+          <Input
             type="date"
             id="quick-schedule-date"
             defaultValue={format(new Date(), "yyyy-MM-dd")}
@@ -67,10 +67,10 @@ export default function QuickScheduleModal({
           />
         </div>
         <div className="mb-6">
-          <label className="text-xs font-bold text-white/30 uppercase">
+          <Label className="text-xs font-bold text-white/30 uppercase">
             Time
-          </label>
-          <input
+          </Label>
+          <Input
             type="time"
             id="quick-schedule-time"
             defaultValue={format(new Date(), "HH:mm")}

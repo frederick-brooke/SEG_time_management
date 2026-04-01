@@ -1,6 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskForm } from "../TaskForm";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Label } from "@/components/ui/Label";
 
 /**
  * Mock shadcn/Radix wrappers via RELATIVE PATHS so Jest doesn't need alias config.
@@ -43,7 +46,7 @@ jest.mock("../../ui/dialog", () => {
   };
 });
 
-jest.mock("../../ui/input", () => {
+jest.mock("../../ui/Input", () => {
   const React = require("react");
   return {
     Input: ({ id, value, onChange, placeholder, type = "text" }) => (
@@ -63,7 +66,7 @@ jest.mock("react-dom", () => ({
   createPortal: (node: React.ReactNode) => node,
 }));
 
-jest.mock("../../ui/label", () => {
+jest.mock("../../ui/Label", () => {
   const React = require("react");
   return {
     Label: ({ htmlFor, children }) => <label htmlFor={htmlFor}>{children}</label>,
@@ -81,7 +84,7 @@ jest.mock("../../ui/button", () => {
   };
 });
 
-jest.mock("../../ui/select", () => {
+jest.mock("../../ui/Select", () => {
   const React = require("react");
 
   return {

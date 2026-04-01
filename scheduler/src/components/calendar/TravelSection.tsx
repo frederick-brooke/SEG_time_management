@@ -137,9 +137,9 @@ export default function TravelSection({
 
       {/* ── Travel time mode toggle ── */}
       <div>
-        <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
+        <Label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
           Travel Time
-        </label>
+        </Label>
         <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl mb-4">
           {(["auto", "manual"] as const).map((m) => (
             <button
@@ -160,7 +160,7 @@ export default function TravelSection({
         {/* Manual input */}
         {travelTimeMode === "manual" && (
           <div className="flex items-center gap-3">
-            <input
+            <Input
               type="number"
               min={0}
               max={600}
@@ -223,11 +223,11 @@ export default function TravelSection({
 
           {/* Transport mode */}
           <div>
-            <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-1">
+            <Label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-1">
               Mode of Transport
-            </label>
+            </Label>
             <div className="relative">
-              <select
+              <Select
                 value={transportMode}
                 onChange={(e) => onTransportModeChange(e.target.value as any)}
                 className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors appearance-none cursor-pointer pr-8"
@@ -235,7 +235,7 @@ export default function TravelSection({
                 <option value="walking" className="bg-[#1a1a24]">Walking</option>
                 <option value="cycling" className="bg-[#1a1a24]">Cycling</option>
                 <option value="driving" className="bg-[#1a1a24]">Driving</option>
-              </select>
+              </Select>
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
             </div>
           </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconHeartSpark } from "@tabler/icons-react";
-import { LunarCard } from "./lunar-card";
+import { LunarCard } from "./LunarCard";
 
 export default function ReminderModal({ open, onClose, title, children }) {
   const [portalRoot, setPortalRoot] = useState(null);

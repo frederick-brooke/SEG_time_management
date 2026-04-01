@@ -161,7 +161,7 @@ export default function UserSearch() {
 
   return (
     <div className="relative">
-      <input
+      <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}

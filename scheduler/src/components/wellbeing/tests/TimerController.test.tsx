@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { act } from "react";
-import TimerController from "../timer_controller";
+import TimerController from "../TimerController";
 import React from "react";
 
 // ---- Mocks ----

@@ -28,7 +28,7 @@ jest.mock("../LocationInput", () => ({
   }: any) => (
     <div data-testid={`location-input-${label.toLowerCase().replace(/\s+/g, "-")}`}>
       <span>{label}</span>
-      <input
+      <Input
         placeholder={placeholder}
         value={value}
         onChange={(e) => onSearchChange(e.target.value)}

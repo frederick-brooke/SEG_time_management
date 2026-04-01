@@ -68,8 +68,8 @@ export default function ForgotPasswordPage() {
           {status !== "success" ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">Email Address</label>
-                <input
+                <Label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">Email Address</Label>
+                <Input
                   type="email"
                   required
                   value={email}

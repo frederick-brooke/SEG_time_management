@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { Select } from "react-day-picker";
 
 /**
  * Sorts leaderboard users based on a specified sorting key.
@@ -165,7 +166,7 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Calendar size={13} className="text-white/30" />
-            <select
+            <Select
               value={localTimeframe}
               onChange={handleTimeframeChange}
               disabled={isPending}
@@ -175,10 +176,10 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
               <option value="week">This Week</option>
               <option value="month">This Month</option>
               <option value="all">All Time</option>
-            </select>
+            </Select>
           </div>
 
-          <select
+          <Select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortKey)}
             className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 lunar-label !mb-0 text-white/60 outline-none cursor-pointer hover:bg-white/[0.08] transition-colors appearance-none"
@@ -186,7 +187,7 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
             <option value="streak">By Streak</option>
             <option value="focusTime">By Focus Time</option>
             <option value="completionRate">By Completion</option>
-          </select>
+          </Select>
         </div>
       </div>
 

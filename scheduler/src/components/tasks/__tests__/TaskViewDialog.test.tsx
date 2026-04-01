@@ -60,7 +60,7 @@ jest.mock("../../ui/dialog", () => {
   };
 });
 
-jest.mock("../../ui/label", () => {
+jest.mock("../../ui/Label", () => {
   const React = require("react");
   return {
     Label: ({ children, className }) => (

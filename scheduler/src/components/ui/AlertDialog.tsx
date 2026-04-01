@@ -4,7 +4,7 @@ import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 
 import { cn } from "lib/utils";
-import { Button, type buttonVariants } from "components/ui/button";
+import { Button, type buttonVariants } from "@/components/ui/Button";
 import { type VariantProps } from "class-variance-authority";
 
 // Derive the exact variant/size types directly from the Button's CVA config

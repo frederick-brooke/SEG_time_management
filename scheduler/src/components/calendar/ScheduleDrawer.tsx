@@ -9,7 +9,7 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerClose,
-} from "@/components/ui/drawer";
+} from "@/components/ui/Drawer";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import type { ScheduleState } from "@/hooks/useSchedule";
 import FutureTasksPanel from "./FutureTasksPanel";
@@ -107,7 +107,7 @@ function BreakSettings({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="text-xs text-white/30 mb-1">Work session (mins)</p>
-            <input
+            <Input
               type="number"
               min={15}
               max={240}
@@ -121,7 +121,7 @@ function BreakSettings({
           </div>
           <div>
             <p className="text-xs text-white/30 mb-1">Break length (mins)</p>
-            <input
+            <Input
               type="number"
               min={5}
               max={60}
@@ -273,7 +273,7 @@ export default function ScheduleDrawer({
             <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest mb-2">
               {state.scheduleMode === "day" ? "Day" : "Week Starting"}
             </p>
-            <input
+            <Input
               type="date"
               value={
                 state.scheduleMode === "day"

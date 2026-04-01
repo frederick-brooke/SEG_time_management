@@ -19,8 +19,8 @@ import AppealFilter from "@/components/admin/AppealFilterPanel";
 
 // UI components
 import StarField from "@/components/effects/StarField";
-import GlowBackground from "@/components/ui/glowBackground";
-import GlassCard from "@/components/ui/glassCard";
+import GlowBackground from "@/components/ui/GlowBackground";
+import GlassCard from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 

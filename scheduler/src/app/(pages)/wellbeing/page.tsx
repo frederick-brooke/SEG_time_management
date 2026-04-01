@@ -1,5 +1,5 @@
-import QuoteBlock from "@/components/wellbeing/quote_block";
-import TimerController from "components/wellbeing/timer_controller";
+import QuoteBlock from "@/components/wellbeing/QuoteBlock";
+import TimerController from "@/components/wellbeing/TimerController";
 
 /**
  * WellbeingPage Component

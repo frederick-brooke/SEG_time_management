@@ -121,10 +121,10 @@ function RangeField({ label, value, min, max, step, ticks, onChange }: {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="text-xs font-bold text-gray-400 uppercase">{label}</label>
+        <Label className="text-xs font-bold text-gray-400 uppercase">{label}</Label>
         <span className="text-sm font-bold text-indigo-600">{value} min</span>
       </div>
-      <input
+      <Input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(parseInt(e.target.value))}
         className="w-full accent-indigo-600"
@@ -160,10 +160,10 @@ function WorkHoursSection({ prefs, onChange }: {
       <div className="grid grid-cols-2 gap-4">
         {(["workStartTime", "workEndTime"] as const).map((field) => (
           <div key={field}>
-            <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
+            <Label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">
               {field === "workStartTime" ? "Start time" : "End time"}
-            </label>
-            <input
+            </Label>
+            <Input
               type="time" value={prefs[field]}
               onChange={(e) => onChange(field, e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
@@ -177,7 +177,7 @@ function WorkHoursSection({ prefs, onChange }: {
         </p>
       )}
       <div>
-        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Days off</label>
+        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Days off</Label>
         <div className="flex gap-2">
           {DAYS.map((day) => (
             <button key={day} type="button" onClick={() => onToggleDay(day)}
@@ -220,7 +220,7 @@ function SessionsSection({ prefs, onChange }: {
         onChange={(val) => onChange("breakLength", val)}
       />
       <div>
-        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Breaks per day</label>
+        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Breaks per day</Label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5, 6].map((n) => (
             <button key={n} type="button" onClick={() => onChange("breaksPerDay", n)}
@@ -250,10 +250,10 @@ function TaskSection({ prefs, onChange }: {
     <section className="bg-white rounded-2xl border p-6 flex flex-col gap-5">
       <h3 className="font-black text-gray-900">Task Preferences</h3>
       <div>
-        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Task ordering</label>
+        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Task ordering</Label>
         <div className="flex flex-col gap-2">
           {TASK_ORDER_OPTIONS.map(({ value, label, desc }) => (
-            <label key={value}
+            <Label key={value}
               className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                 prefs.taskOrder === value ? "border-indigo-400 bg-indigo-50" : "border-gray-100 hover:border-gray-300"
               }`}
@@ -263,7 +263,7 @@ function TaskSection({ prefs, onChange }: {
               }`}>
                 {prefs.taskOrder === value && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
               </div>
-              <input type="radio" className="hidden" name="taskOrder" value={value}
+              <Input type="radio" className="hidden" name="taskOrder" value={value}
                 checked={prefs.taskOrder === value}
                 onChange={(e) => onChange("taskOrder", e.target.value)}
                 aria-label={label}
@@ -272,22 +272,22 @@ function TaskSection({ prefs, onChange }: {
                 <p className="text-sm font-semibold text-gray-800">{label}</p>
                 <p className="text-xs text-gray-400">{desc}</p>
               </div>
-            </label>
+            </Label>
           ))}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Max tasks per day</label>
-          <input type="number" value={prefs.maxTasksPerDay} min="1" max="20"
+          <Label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Max tasks per day</Label>
+          <Input type="number" value={prefs.maxTasksPerDay} min="1" max="20"
             onChange={(e) => onChange("maxTasksPerDay", parseInt(e.target.value))}
             className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400"
           />
         </div>
         <div>
-          <label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Default duration</label>
+          <Label className="text-xs font-bold text-gray-400 uppercase mb-1.5 block">Default duration</Label>
           <div className="relative">
-            <input type="number" value={prefs.defaultTaskDuration} min="15" max="240"
+            <Input type="number" value={prefs.defaultTaskDuration} min="15" max="240"
               onChange={(e) => onChange("defaultTaskDuration", parseInt(e.target.value))}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 pr-12"
             />
@@ -312,7 +312,7 @@ function RemindersSection({ reminderDays, onChange }: {
     <section className="bg-white rounded-2xl border p-6 flex flex-col gap-4">
       <h3 className="font-black text-gray-900">Reminders</h3>
       <div>
-        <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Remind me before deadlines</label>
+        <Label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Remind me before deadlines</Label>
         <div className="flex gap-2 flex-wrap">
           {[0, 1, 2, 3, 5, 7, 14].map((n) => (
             <button key={n} type="button" onClick={() => onChange(n)}

@@ -170,7 +170,7 @@ export default function CheckInModal({ onDone }: CheckInModalProps) {
                     <span>How much did you complete?</span>
                     <span className="font-bold">{task.progress}%</span>
                   </div>
-                  <input type="range" min="5" max="95" step="5"
+                  <Input type="range" min="5" max="95" step="5"
                     value={task.progress}
                     onChange={(e) => setEntry(task.taskId, { progress: Number(e.target.value) })}
                     className="w-full accent-amber-500" />

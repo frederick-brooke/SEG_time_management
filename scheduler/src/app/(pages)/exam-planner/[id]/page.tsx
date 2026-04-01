@@ -10,8 +10,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ToDoList } from "@/components/tasks/ToDoList";
 import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/app/actions/examActions";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/Button";
+import { Calendar } from "@/components/ui/Calendar";
+import { Input } from "@/components/ui/Input";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
@@ -26,14 +27,14 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
     return (
         <div key={index} className="flex flex-col gap-2 p-3 border rounded-xl bg-[#111629]/60 relative">
             <div className="flex gap-2">
-                <input
+                <Input
                     className="flex-1 lunar-input"
                     placeholder="Topic Name"
                     value={topic.title}
                     onChange={(e) => onUpdate(index, 'title', e.target.value)}
                 />
                 <div className="flex items-center gap-1 bg-[#111629]/60 border rounded-lg px-2">
-                    <input
+                    <Input
                         type="number"
                         className="w-10 lunar-input"
                         min="1"
@@ -48,7 +49,7 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
                     <span className="text-[10px] text-muted-foreground font-bold">MINS</span>
                 </div>
             </div>
-            <input
+            <Input
                 className="w-full lunar-input"
                 placeholder="Resource URL (optional)"
                 value={topic.url}
@@ -56,12 +57,12 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
             />
             {/* Circular X button to delete a topic */}
             {showRemove && (
-            <button 
+            <Button 
                 onClick={() => onRemove(index)}
                 className="flex items-center justify-center shrink-0 w-6 h-6 rouded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-colors text-[10px]"
             >
                 x
-            </button>
+            </Button>
         )}
     </div>
     );

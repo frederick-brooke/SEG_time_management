@@ -66,8 +66,8 @@ export default function JoinModule({ onClose, onSuccess }: JoinModuleProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="lunar-label">Enter Join PIN</label>
-            <input
+            <Label className="lunar-label">Enter Join PIN</Label>
+            <Input
               type="text"
               value={pin}
               onChange={handlePinChange}

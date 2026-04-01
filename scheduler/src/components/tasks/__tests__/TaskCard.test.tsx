@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { Input } from "@/components/ui/Input";
 
 const pushMock = jest.fn();
 
@@ -18,7 +19,7 @@ jest.mock("components/ui/button", () => ({
 
 jest.mock("components/animate-ui/primitives/radix/checkbox", () => ({
   Checkbox: ({ checked, onCheckedChange, id }: any) => (
-    <input
+    <Input
       type="checkbox"
       id={id}
       checked={checked}

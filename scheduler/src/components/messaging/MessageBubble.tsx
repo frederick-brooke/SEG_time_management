@@ -133,7 +133,7 @@ function ReportModal({
         </h2>
 
         <div className="relative mb-3">
-          <select
+          <Select
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             className={`w-full rounded-lg px-3 py-2 pr-8 text-sm outline-none appearance-none bg-white/[0.05] border border-white/[0.08] ${reason ? "text-[rgba(210,220,255,0.85)]" : "text-[rgba(148,163,255,0.4)]"}`}
@@ -143,7 +143,7 @@ function ReportModal({
             <option value="HARASSMENT" className="bg-[#0c1020]">Harassment</option>
             <option value="INAPPROPRIATE_CONTENT" className="bg-[#0c1020]">Inappropriate Content</option>
             <option value="OTHER" className="bg-[#0c1020]">Other</option>
-          </select>
+          </Select>
           <svg
             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
             width="12" height="12" viewBox="0 0 24 24" fill="none"

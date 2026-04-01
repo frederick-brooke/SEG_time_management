@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 //frontend view of the quotes
-import GlassCard from "@/components/ui/glassCard";
+import GlassCard from "@/components/ui/GlassCard";
 
 const defaultQuote = "You can do this!";
 

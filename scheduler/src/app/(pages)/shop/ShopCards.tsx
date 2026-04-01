@@ -7,7 +7,7 @@
   */
 
 import { CheckCircle } from "lucide-react";
-import { GoldCoin } from "@/components/ui/gold-coin";
+import { GoldCoin } from "@/components/ui/GoldCoin";
 import { AVATAR_IMAGES } from "@/lib/shop-catalogue";
 import { RARITY_CONFIG, ShopItem } from "./shop.types";
 

@@ -102,7 +102,7 @@ import {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-} from "../../ui/dialog";
+} from "../../ui/Dialog";
 
 describe("components/ui/dialog", () => {
   beforeEach(() => {

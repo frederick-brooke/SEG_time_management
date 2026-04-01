@@ -9,7 +9,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { payGameEntry } from "@/app/actions/games";
 import { DIFFICULTY_CONFIG, Difficulty } from "@/lib/games-config";
-import { GoldCoin } from "@/components/ui/gold-coin";
+import { GoldCoin } from "@/components/ui/GoldCoin";
 
 
 const ALL_SYMBOLS = ["🪐", "⭐", "🌙", "☄️", "🚀", "👾", "🌌", "💫", "🛸", "🔭", "🌠", "🪨"];

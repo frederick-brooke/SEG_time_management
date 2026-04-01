@@ -102,9 +102,9 @@ import {
   AlertDialogPortal,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "../../ui/alert-dialog";
+} from "../../ui/AlertDialog";
 
-describe("components/ui/alert-dialog", () => {
+describe("components/ui/AlertDialog", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     ButtonMock.mockClear();

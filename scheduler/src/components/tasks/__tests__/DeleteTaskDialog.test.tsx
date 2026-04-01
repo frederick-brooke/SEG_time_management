@@ -7,7 +7,7 @@ import { Delete } from "lucide-react";
  * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
  * src/components/tasks/__tests__ -> src/components/ui
  */
-jest.mock("../../ui/alert-dialog", () => {
+jest.mock("../../ui/AlertDialog", () => {
   const React = require("react");
 
   function AlertDialog({ open, onOpenChange, children }) {

@@ -1,5 +1,5 @@
 import { Eye, Pencil, Trash2 } from "lucide-react";
-import { Button } from "components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 export function TaskActions({ onView, onEdit, onDelete, canDelete=true, canEdit=true, className="", strokeWidth=2 }) {
     return (

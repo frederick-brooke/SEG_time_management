@@ -1,4 +1,4 @@
-import * as SidebarExports from "../sidebar"; 
+import * as SidebarExports from "../Sidebar"; 
 
 describe("Sidebar Barrel Exports", () => {
   it("should successfully export all expected components and hooks", () => {

@@ -79,7 +79,7 @@ export default function FilterSidebar({
         </h3>
           <div className="flex flex-col gap-3">
             {TASK_FILTERS.map((f) => (
-              <label
+              <Label
                 key={f.key}
                 className="flex items-center gap-2 cursor-pointer group"
               >
@@ -98,7 +98,7 @@ export default function FilterSidebar({
                 >
                   {f.label}
                 </span>
-              </label>
+              </Label>
             ))}
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function FilterSidebar({
           </div>
           <div className="flex flex-col gap-3">
             {categories.map((cat) => (
-              <label
+              <Label
                 key={cat.id}
                 className="flex items-center gap-2 cursor-pointer group"
               >
@@ -140,7 +140,7 @@ export default function FilterSidebar({
                 >
                   {cat.name}
                 </span>
-              </label>
+              </Label>
             ))}
           </div>
         </div>

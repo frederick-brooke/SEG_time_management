@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { AlertTriangle, ShieldOff, X } from "lucide-react";
-import { LunarCard } from "@/components/ui/lunar-card";
+import { LunarCard } from "@/components/ui/LunarCard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { useSession } from "next-auth/react";
 import BanInfo from "./BanInfo";

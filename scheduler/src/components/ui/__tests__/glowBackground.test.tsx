@@ -2,7 +2,7 @@ import * as React from "react";
 import { render } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import GlowBackground from "../glowBackground"; // adjust path as needed
+import GlowBackground from "../GlowBackground"; // adjust path as needed
 
 describe("GlowBackground", () => {
   it("renders without crashing", () => {

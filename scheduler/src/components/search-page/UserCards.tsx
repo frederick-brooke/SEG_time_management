@@ -1,5 +1,5 @@
 "use client";
-import GlassCard from "@/components/ui/glassCard";
+import GlassCard from "@/components/ui/GlassCard";
 import { resolveAvatarSrc } from "@/lib/avatar";
 import { IconX } from "@tabler/icons-react";
 

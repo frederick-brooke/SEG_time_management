@@ -10,7 +10,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetClose,
-} from "../sheet"; 
+} from "../Sheet"; 
 
 beforeAll(() => {
   if (typeof window !== "undefined" && !window.PointerEvent) {

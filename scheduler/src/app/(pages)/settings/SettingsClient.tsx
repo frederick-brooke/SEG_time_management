@@ -35,13 +35,13 @@ function FormInput({ label, type = "text", name, defaultValue, required, pattern
   const inputCls = "w-full bg-[#0a0f1d] border border-white/10 text-white placeholder-white/25 p-3 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-colors appearance-none";
   return (
     <div className="space-y-2">
-      <label className="lunar-label block">{label}</label>
+      <Label className="lunar-label block">{label}</Label>
       {options ? (
-        <select name={name} defaultValue={defaultValue} className={inputCls}>
+        <Select name={name} defaultValue={defaultValue} className={inputCls}>
           {options.map((opt: any) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
+        </Select>
       ) : (
-        <input type={type} name={name} defaultValue={defaultValue} required={required} pattern={pattern} minLength={minLength} className={inputCls} />
+        <Input type={type} name={name} defaultValue={defaultValue} required={required} pattern={pattern} minLength={minLength} className={inputCls} />
       )}
     </div>
   );
@@ -168,13 +168,13 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   ]} />
                   
                   <div className="space-y-3">
-                    <label className="lunar-label block">Rest Days</label>
+                    <Label className="lunar-label block">Rest Days</Label>
                     <div className="flex flex-wrap gap-3">
                       {daysOfWeek.map(day => (
-                        <label key={day} className="flex items-center gap-2 cursor-pointer bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
-                          <input type="checkbox" name="daysOff" value={day} defaultChecked={currentDaysOff.includes(day)} className="w-4 h-4 rounded bg-[#0a0f1d] border-white/20 accent-blue-500" />
+                        <Label key={day} className="flex items-center gap-2 cursor-pointer bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl hover:bg-white/10 transition-colors">
+                          <Input type="checkbox" name="daysOff" value={day} defaultChecked={currentDaysOff.includes(day)} className="w-4 h-4 rounded bg-[#0a0f1d] border-white/20 accent-blue-500" />
                           <span className="text-sm font-medium text-white/80">{day.substring(0, 3)}</span>
-                        </label>
+                        </Label>
                       ))}
                     </div>
                   </div>

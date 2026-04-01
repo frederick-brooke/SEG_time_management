@@ -124,7 +124,7 @@ function FilterButton({ onClick }) {
 function SearchForm({inputValue, setInputValue, onSubmit, onReset, onFilterOpen, itemLabel,}) {
 	return (
 		<form onSubmit={onSubmit} className="flex items-center gap-2 mb-4 flex-shrink-0">
-		<input
+		<Input
 			type="text"
 			placeholder={`Search ${itemLabel}...`}
 			value={inputValue}

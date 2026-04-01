@@ -3,7 +3,7 @@ import * as React from "react";
 import { Slot } from "radix-ui";
 
 import { cn } from "lib/utils";
-import { Skeleton } from "components/ui/skeleton";
+import { Skeleton } from "@/components/ui/Skeleton";
 import {
   Tooltip,
   TooltipContent,

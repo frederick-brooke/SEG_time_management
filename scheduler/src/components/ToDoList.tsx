@@ -11,14 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { TaskColumn } from "./TaskColumn";
-import { TaskForm } from "./TaskForm";
-import { TaskViewDialog } from "./TaskViewDialog";
-import { DeleteTaskDialog } from "./DeleteTaskDialog";
+import { TaskColumn } from "./tasks/TaskColumn";
+import { TaskForm } from "./tasks/TaskForm";
+import { TaskViewDialog } from "./tasks/TaskViewDialog";
+import { DeleteTaskDialog } from "./tasks/DeleteTaskDialog";
 import { useTasks } from "@/hooks/useTasks";
-import { useTaskFilters } from "../../hooks/useTaskFilters";
-import { getPriorityStyle } from "../../lib/priority";
-import { Input } from "../ui/Input";
+import { useTaskFilters } from "../hooks/useTaskFilters";
+import { getPriorityStyle } from "../lib/priority";
+import { Input } from "./ui/Input";
 
 interface ToDoListProps {
   userId: string;

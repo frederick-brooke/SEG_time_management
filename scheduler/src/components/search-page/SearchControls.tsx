@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { FunnelXIcon } from "lucide-react";
 //UI components
-import GlassCard from "@/components/ui/glassCard";
+import GlassCard from "@/components/ui/GlassCard";
 
 /**
  * SearchControls
@@ -80,7 +80,7 @@ function updateFilters(value, setFilters) {
 */
 function SearchInput({ value, onChange, placeholder }) {
 	return (
-		<input
+		<Input
 			type="text"
 			placeholder={placeholder}
 			value={value}

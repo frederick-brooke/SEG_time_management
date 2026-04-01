@@ -88,11 +88,11 @@ export default function GroupSettingsModal({ group, onClose, onSuccess }: GroupS
         {/* Section 1: Details Form */}
         <form onSubmit={handleUpdateDetails} className="space-y-4 mb-8">
           <div>
-            <label className="lunar-label">Group Name</label>
-            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="lunar-input w-full p-3 mt-1" />
+            <Label className="lunar-label">Group Name</Label>
+            <Input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="lunar-input w-full p-3 mt-1" />
           </div>
           <div>
-            <label className="lunar-label">Description</label>
+            <Label className="lunar-label">Description</Label>
             <textarea rows={2} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="lunar-input w-full p-3 mt-1 resize-none" />
           </div>
           <button type="submit" disabled={isSubmitting} className="w-full py-3 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50">

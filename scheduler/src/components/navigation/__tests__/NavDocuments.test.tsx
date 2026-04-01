@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { NavDocuments } from "../NavDocuments"; 
-import { useSidebar } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/Sidebar";
 
 // 1. Mock the icons
 jest.mock("@tabler/icons-react", () => ({

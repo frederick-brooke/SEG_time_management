@@ -3,14 +3,14 @@
 import { useState, useCallback } from "react";
 import { useUI } from "@/context/UIContext";
 
-import { Button } from "components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { IconSettings } from "@tabler/icons-react";
-import ReminderModal from "@/components/ui/reminderModal";
-import ReminderPicker from "./reminder_timer_picker";
+import ReminderModal from "@/components/ui/ReminderModal";
+import ReminderPicker from "./ReminderTimerPicker";
 import {useReminders} from "hooks/useReminders";
 
 import { IconClock } from "@tabler/icons-react";
-import GlassCard from "../ui/glassCard";
+import GlassCard from "../ui/GlassCard";
 
 /**
  * ReminderContainer

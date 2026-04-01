@@ -19,7 +19,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
   DropdownMenuPortal,
-} from "../dropdown-menu"; 
+} from "../DropdownMenu"; 
 
 // Mocks
 

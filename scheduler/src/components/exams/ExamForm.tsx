@@ -92,8 +92,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             )}
 
             <div>
-                <label className="lunar-label">Exam Title</label>
-                <input 
+                <Label className="lunar-label">Exam Title</Label>
+                <Input 
                     name="title" 
                     defaultValue={editingExam?.title || ""}
                     required
@@ -101,8 +101,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 />
             </div>
             <div>
-                <label className="lunar-label">Exam Date</label>
-                <input 
+                <Label className="lunar-label">Exam Date</Label>
+                <Input 
                     name="examDate" 
                     type="date" 
                     defaultValue={editingExam ? new Date(editingExam.examDate).toISOString().split('T')[0] : ""}
@@ -112,8 +112,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className="lunar-label">Start Time</label>
-                    <input
+                    <Label className="lunar-label">Start Time</Label>
+                    <Input
                         name="startTime"
                         type="time"
                         defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
@@ -122,8 +122,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                     />
                 </div>
                 <div>
-                    <label className="lunar-label">End Time</label>
-                    <input
+                    <Label className="lunar-label">End Time</Label>
+                    <Input
                         name="endTime"
                         type="time"
                         defaultValue={editingExam ? formatTime(editingExam.examDate) : "09:00"}
@@ -133,8 +133,8 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 </div>    
             </div>
             <div>
-                <label className="lunar-label">Daily Study Goal (mins)</label>
-                <input 
+                <Label className="lunar-label">Daily Study Goal (mins)</Label>
+                <Input 
                     name="maxTimePerDay" 
                     type="number" 
                     defaultValue={editingExam?.maxTimePerDay || ""}

@@ -26,7 +26,7 @@ function CategoryRow({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-3">
-        <input
+        <Input
           type="color"
           value={color}
           onChange={(e) => {
@@ -37,7 +37,7 @@ function CategoryRow({
           disabled={!editing}
         />
         {editing ? (
-          <input
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="flex-1 bg-white/5 border border-white/10 text-white p-1 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
@@ -107,7 +107,7 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
-        <input
+        <Input
           type="color"
           value={color}
           onChange={(e) => {
@@ -116,7 +116,7 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
           }}
           className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
         />
-        <input
+        <Input
           type="text"
           placeholder="Category name"
           value={name}

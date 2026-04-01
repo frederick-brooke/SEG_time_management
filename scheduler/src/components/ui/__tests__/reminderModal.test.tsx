@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 
-import ReminderModal from "../reminderModal"; 
+import ReminderModal from "../ReminderModal"; 
 
 // Mocks
 

@@ -2,7 +2,7 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
-import { Label } from "../label"; 
+import { Label } from "../Label"; 
 
 jest.mock("lib/utils", () => ({
   cn: (...classes: (string | undefined | null | false)[]) =>
@@ -29,7 +29,7 @@ describe("Label", () => {
     expect(getLabel()).toBeInTheDocument();
   });
 
-  it("renders as a <label> element", () => {
+  it("renders as a <Label> element", () => {
     render(<Label className="">Password</Label>);
     expect(getLabel().tagName).toBe("LABEL");
   });
@@ -72,7 +72,7 @@ describe("Label", () => {
     render(
       <>
         <Label className="" htmlFor="name">Name</Label>
-        <input id="name" />
+        <Input id="name" />
       </>
     );
     expect(screen.getByLabelText("Name")).toBeInTheDocument();

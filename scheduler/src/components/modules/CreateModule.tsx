@@ -94,8 +94,8 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
 
         <form action={handleSubmit} className="space-y-4">
           <div>
-            <label className="lunar-label">Module Name <span className="text-red-400">*</span></label>
-            <input
+            <Label className="lunar-label">Module Name <span className="text-red-400">*</span></Label>
+            <Input
               type="text" name="name" required maxLength={100}
               placeholder="e.g., Computer Science 101"
               className="lunar-input w-full p-3 rounded-xl mt-1"
@@ -103,7 +103,7 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
           </div>
 
           <div>
-            <label className="lunar-label">Description</label>
+            <Label className="lunar-label">Description</Label>
             <textarea
               name="description" rows={3} maxLength={500}
               placeholder="Optional description..."
@@ -112,8 +112,8 @@ export default function CreateModule({ onClose, onSuccess }: CreateModuleProps) 
           </div>
 
           <div>
-            <label className="lunar-label">Max Members</label>
-            <input
+            <Label className="lunar-label">Max Members</Label>
+            <Input
               type="number" name="maxMembers" min={2} max={100} defaultValue={50}
               className="lunar-input w-full p-3 rounded-xl mt-1"
             />

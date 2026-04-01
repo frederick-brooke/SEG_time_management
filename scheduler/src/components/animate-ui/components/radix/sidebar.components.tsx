@@ -4,16 +4,16 @@ import { Slot } from "radix-ui";
 import { PanelLeftIcon } from "lucide-react";
 
 import { cn } from "lib/utils";
-import { Button } from "components/ui/button";
-import { Input } from "components/ui/input";
-import { Separator } from "components/ui/separator";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Separator } from "@/components/ui/Separator";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "components/ui/sheet";
+} from "@/components/ui/Sheet";
 import {
   Highlight,
   HighlightItem,
@@ -188,7 +188,7 @@ export function SidebarRail({ className, ...props }: SidebarRailProps) {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <button
+    <Button
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label="Toggle Sidebar"

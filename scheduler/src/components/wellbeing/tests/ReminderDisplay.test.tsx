@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import ReminderContainer from "../reminder_display";
+import ReminderContainer from "../ReminderDisplay";
 
 // Mock UI context
 const mockSetWellbeingOpen = jest.fn();

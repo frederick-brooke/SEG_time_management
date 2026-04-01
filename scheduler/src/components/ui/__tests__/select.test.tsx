@@ -14,7 +14,7 @@ import {
   SelectSeparator,
   SelectScrollUpButton,
   SelectScrollDownButton,
-} from "../select";
+} from "../Select";
 
 // Mocks
 

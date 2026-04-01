@@ -72,7 +72,7 @@ export default function SaveLocationModal({
 
       <p className="text-xs text-white/30 truncate">{address}</p>
 
-      <input
+      <Input
         type="text"
         placeholder="Label (e.g. Home, Gym...)"
         value={label}

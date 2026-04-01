@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
-import { LunarCard } from "@/components/ui/lunar-card";
+import { LunarCard } from "@/components/ui/LunarCard";
 import { createPortal } from "react-dom";
 
 /**
@@ -157,10 +157,10 @@ function InfoText() {
 function ReasonSelect({ value, onChange }) {
 	return (
 		<div>
-			<label className="text-xs text-white/60 uppercase mb-2 block">
+			<Label className="text-xs text-white/60 uppercase mb-2 block">
 				Reason
-			</label>
-			<select
+			</Label>
+			<Select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 				className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white"
@@ -170,7 +170,7 @@ function ReasonSelect({ value, onChange }) {
 				<option value="HARASSMENT">Harassment</option>
 				<option value="INAPPROPRIATE_CONTENT">Inappropriate Content</option>
 				<option value="OTHER">Other</option>
-			</select>
+			</Select>
 		</div>
 	);
 }
@@ -185,9 +185,9 @@ function ReasonSelect({ value, onChange }) {
 function DescriptionInput({ value, onChange }) {
 	return (
 		<div>
-			<label className="text-xs text-white/60 uppercase mb-2 block">
+			<Label className="text-xs text-white/60 uppercase mb-2 block">
 				Additional details
-			</label>
+			</Label>
 			<textarea
 				value={value}
 				onChange={(e) => onChange(e.target.value)}

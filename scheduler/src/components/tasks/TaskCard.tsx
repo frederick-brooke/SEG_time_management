@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Button } from "components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/animate-ui/primitives/radix/Checkbox";
 import { TaskActions } from "@/components/tasks/TaskActions";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/lib/priority";
-import { LunarCard } from "../ui/lunar-card";
+import { LunarCard } from "../ui/LunarCard";
 
 /**
  * Renders the checklist of subtasks for a task card.//
@@ -24,7 +24,7 @@ function SubtaskList({ subtasks, checkedList, onSubtaskChange }: {
         <div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
           {subtasks.map((sub, i) => (
             <div key={i} className="flex items-center gap-1.5 group">
-              <input 
+              <Input 
                 type="checkbox" 
                 checked={checkedList[i] || false}
                 className="h-3 w-3 rounded border-gray-300 pointer-events-auto" 

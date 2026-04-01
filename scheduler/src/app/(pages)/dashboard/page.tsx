@@ -19,8 +19,8 @@ import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper"
 import LeaderboardClient from "../leaderboard/LeaderboardClient";
 import { getFriendsLeaderboard } from "../../actions/leaderboard";
 import { IconMoonStars } from "@tabler/icons-react";
-import WellbeingPanel from "@/components/wellbeing/wellbeing_panel";
-import { RocketProgress } from "@/components/ui/rocket-progress";
+import WellbeingPanel from "@/components/wellbeing/WellbeingPanel";
+import { RocketProgress } from "@/components/ui/RocketProgress";
 import { useTasks } from "@/hooks/useTasks";
 import { CalendarEvents } from "@/components/calendar/CalendarEvents";
 

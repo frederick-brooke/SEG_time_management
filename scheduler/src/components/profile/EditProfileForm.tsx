@@ -27,7 +27,7 @@ function FormInput({ id, label, defaultValue, isTextArea = false }: FormInputPro
   
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="lunar-label">{label}</label>
+      <Label htmlFor={id} className="lunar-label">{label}</Label>
       {isTextArea ? (
         <textarea
           id={id}
@@ -37,7 +37,7 @@ function FormInput({ id, label, defaultValue, isTextArea = false }: FormInputPro
           placeholder="Tell us a bit about yourself..."
         />
       ) : (
-        <input
+        <Input
           id={id}
           name={id}
           defaultValue={defaultValue}

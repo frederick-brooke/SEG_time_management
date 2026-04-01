@@ -36,7 +36,7 @@ function EditInput({
 }) {
   return (
     <div className="flex gap-1.5">
-      <input
+      <Input
         value={label}
         onChange={(e) => setLabel(e.target.value)}
         onKeyDown={(e) => {
@@ -257,7 +257,7 @@ function AddLocationForm({
       <p className="text-xs font-bold text-gray-400 uppercase">Add a location</p>
 
       <div className="relative">
-        <input
+        <Input
           placeholder="Search address…"
           value={query}
           onChange={(e) => search(e.target.value)}
@@ -274,7 +274,7 @@ function AddLocationForm({
 
       {selected && (
         <>
-          <input
+          <Input
             placeholder="Give this location a name…"
             value={label}
             onChange={(e) => setLabel(e.target.value)}

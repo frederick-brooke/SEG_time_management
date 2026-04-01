@@ -61,9 +61,9 @@ export default function LocationInput({
   return (
     <div className="relative">
       <div className="flex justify-between items-center">
-        <label className="text-xs font-bold text-white/30 uppercase tracking-wider">
+        <Label className="text-xs font-bold text-white/30 uppercase tracking-wider">
           {label}
-        </label>
+        </Label>
         {showCurrentLocation && onUseCurrentLocation && (
           <button
             type="button"
@@ -78,7 +78,7 @@ export default function LocationInput({
       <SavedLocationChips locations={locations} onSelect={onSelectSaved} />
 
       <div className="flex gap-1.5 items-center mt-1">
-        <input
+        <Input
           type="text"
           placeholder={placeholder}
           value={value}

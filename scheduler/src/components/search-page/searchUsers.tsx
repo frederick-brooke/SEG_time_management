@@ -7,7 +7,7 @@ import { addRecentUser, getRecentUsers, removeRecentUser, clearRecentUsers } fro
 import { IconX } from "@tabler/icons-react";
 
 //UI components
-import GlassCard from "@/components/ui/glassCard";
+import GlassCard from "@/components/ui/GlassCard";
 
 /**
  * SearchUsers

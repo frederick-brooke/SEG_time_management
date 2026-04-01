@@ -32,7 +32,7 @@ jest.mock("components/messaging/ConversationList", () => ({
 
 // Helpers
 
-import { useSidebar } from "components/ui/sidebar";
+import { useSidebar } from "@/components/ui/Sidebar";
 
 const mockPush = jest.fn();
 

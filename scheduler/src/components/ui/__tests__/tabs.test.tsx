@@ -2,7 +2,7 @@ import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 
 describe("Tabs Components", () => {
   const TestTabs = ({ orientation, variant }: any) => (

@@ -30,7 +30,7 @@ jest.mock("@radix-ui/react-toggle-group", () => {
   };
 });
 
-import { ToggleGroup, ToggleGroupItem } from "../../ui/toggle-group";
+import { ToggleGroup, ToggleGroupItem } from "../../ui/ToggleGroup";
 
 describe("components/ui/toggle-group", () => {
   beforeEach(() => {

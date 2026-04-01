@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useTimer } from "@/hooks/useTimer";
 
-import Reminders from "./reminders";
-import GlassCard from "../ui/glassCard";
+import Reminders from "@/components/wellbeing/Reminders";
+import GlassCard from "../ui/GlassCard";
+import { Label } from "../ui/Label";
+import { Input } from "../ui/Input";
 
 /**
  * Timer
@@ -141,11 +143,11 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
 
                     {!hasStarted ? (
                         <div className="flex flex-col items-center gap-3">
-                            <label className="lunar-label text-blue-400 text-sm mb-1">
+                            <Label className="lunar-label text-blue-400 text-sm mb-1">
                                 Session Duration
-                            </label>
+                            </Label>
 
-                            <input
+                            <Input
                                 type="time"
                                 step="1"
                                 value={timeInput}
