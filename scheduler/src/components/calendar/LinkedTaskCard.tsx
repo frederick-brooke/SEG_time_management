@@ -5,9 +5,7 @@ import { Toggle, RecurrencePanel } from "@/components/shared/FormComponents";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import { RELATIVE_OPTIONS, RelativeOption, relativeTo } from "./EventFormParts";
 
-// ---------------------------------------------------------------------------
 // RelativePicker — grid of relative option buttons
-// ---------------------------------------------------------------------------
 function RelativePicker({
   value,
   onChange,

@@ -21,6 +21,7 @@ import ScheduleDrawer from "./ScheduleDrawer";
 import UnscheduledPanel from "./UnscheduledPanel";
 import FilterSidebar from "./FilterSidebar";
 import CalendarBody from "./CalendarBody";
+import MobileCalendarToolbar from "./MobileCalendarToolbar";
 
 import { useCalendarData } from "@/hooks/useCalendarData";
 import { useSchedule } from "@/hooks/useSchedule";
@@ -100,7 +101,6 @@ export default function CalendarView({
 
   /**
    * Builds the list of calendar items to display based on active filters.
-   * Events are filtered by category; tasks by completion status and priority.
    */
   const getFilteredItems = () => {
     const items: any[] = [];
@@ -124,8 +124,6 @@ export default function CalendarView({
 
   /**
    * Called when the check-in modal completes.
-   * Refreshes tasks directly if nothing needs rescheduling,
-   * otherwise queues the tasks and shows the reschedule modal.
    */
   const handleCheckInDone = async (toReschedule: any[]) => {
     setShowCheckIn(false);
@@ -139,8 +137,6 @@ export default function CalendarView({
 
   /**
    * Called when the reschedule modal confirms a set of task IDs.
-   * Patches task durations to their remaining values, then posts a
-   * week-mode schedule request for today through the coming Sunday.
    */
   const handleRescheduleConfirm = async (ids: string[]) => {
     setShowReschedule(false);
@@ -188,7 +184,6 @@ export default function CalendarView({
     await data.fetchScheduleLogs();
   };
 
-  /** Returns the start (today at midnight) and end (coming Sunday) of the current week. */
   const weekBounds = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -197,22 +192,54 @@ export default function CalendarView({
     return { weekStart: today, weekEnd: sunday };
   };
 
-  /** Opens the event detail modal with the given event selected and editing disabled. */
   const openModal = (event: any) => {
     setSelectedEvent(event);
     setIsEditing(false);
     setIsModalOpen(true);
   };
-  
-  /** Closes the event detail modal and resets editing and task edit state. */
+
   const closeModal = () => {
     setIsModalOpen(false);
     setIsEditing(false);
     ix.setIsTaskEditOpen(false);
   };
 
+  // Shared filter/unscheduled props used by both desktop sidebars and mobile toolbar
+  const filterProps = {
+    activeFilters,
+    categories: data.categories,
+    categoryFilters: data.categoryFilters,
+    onToggleFilter: (key: string) =>
+      setActiveFilters((p) => ({ ...p, [key]: !p[key] })),
+    onToggleCategory: (id: string) =>
+      data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] })),
+    onManageCategories: () => setShowCategoryManager(true),
+  };
+
+  const unscheduledProps = {
+    unscheduledTasks: data.unscheduledTasks,
+    scheduleLogs: data.scheduleLogs,
+    events: data.events,
+    categories: data.categories,
+    onTaskClick: setQuickScheduleTask,
+    onEditLog: (log: any) => {
+      sched.patch({
+        scheduleMode: log.mode,
+        showScheduleDialog: true,
+        ...(log.mode === "day"
+          ? { scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd") }
+          : { scheduleWeekStart: format(new Date(log.scheduledAt), "yyyy-MM-dd") }),
+      });
+    },
+    onDeleteLog: async (id: string) => {
+      await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
+      await data.refreshTasks();
+      data.fetchScheduleLogs();
+    },
+  };
+
   return (
-    <div className="flex gap-6">
+    <div className="w-full flex justify-center px-4">
       {showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
       {showReschedule &&
         rescheduleQueue.length > 0 &&
@@ -233,24 +260,13 @@ export default function CalendarView({
           );
         })()}
 
-      {/* Hidden on small screens, visible from lg breakpoint */}
+      {/* Desktop: filter sidebar */}
       <div className="hidden lg:block">
-        <FilterSidebar
-          activeFilters={activeFilters}
-          categories={data.categories}
-          categoryFilters={data.categoryFilters}
-          onToggleFilter={(key) =>
-            setActiveFilters((p) => ({ ...p, [key]: !p[key] }))
-          }
-          onToggleCategory={(id) =>
-            data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] }))
-          }
-          onManageCategories={() => setShowCategoryManager(true)}
-        />
+        <FilterSidebar {...filterProps} />
       </div>
 
       <div className="flex-1 min-w-0">
-        {/* Schedule buttons hidden on small screens */}
+        {/* Desktop: schedule buttons */}
         <div className="hidden lg:flex gap-2 mb-4">
           <button
             onClick={() => sched.open("day", calendarDate)}
@@ -265,6 +281,7 @@ export default function CalendarView({
             Schedule My Week
           </button>
         </div>
+
         <CalendarBody
           localizer={localizer}
           filteredItems={getFilteredItems()}
@@ -294,37 +311,18 @@ export default function CalendarView({
         />
       </div>
 
-      {/* Hidden on small screens, visible from lg breakpoint */}
+      {/* Desktop: unscheduled panel */}
       <div className="hidden lg:block">
-        <UnscheduledPanel
-          unscheduledTasks={data.unscheduledTasks}
-          scheduleLogs={data.scheduleLogs}
-          events={data.events}
-          categories={data.categories}
-          onTaskClick={setQuickScheduleTask}
-          onEditLog={(log) => {
-            sched.patch({
-              scheduleMode: log.mode,
-              showScheduleDialog: true,
-              ...(log.mode === "day"
-                ? {
-                    scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd"),
-                  }
-                : {
-                    scheduleWeekStart: format(
-                      new Date(log.scheduledAt),
-                      "yyyy-MM-dd",
-                    ),
-                  }),
-            });
-          }}
-          onDeleteLog={async (id) => {
-            await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
-            await data.refreshTasks();
-            data.fetchScheduleLogs();
-          }}
-        />
+        <UnscheduledPanel {...unscheduledProps} />
       </div>
+
+      {/* Mobile: sticky bottom toolbar + slide-up sheets */}
+      <MobileCalendarToolbar
+        onScheduleDay={() => sched.open("day", calendarDate)}
+        onScheduleWeek={() => sched.open("week", calendarDate)}
+        {...filterProps}
+        {...unscheduledProps}
+      />
 
       {isModalOpen && (
         <EventDetailModal
