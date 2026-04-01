@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { NavDocuments } from "../nav-documents"; 
+import { NavDocuments } from "../NavDocuments"; 
 import { useSidebar } from "@/components/ui/sidebar";
 
 // 1. Mock the icons

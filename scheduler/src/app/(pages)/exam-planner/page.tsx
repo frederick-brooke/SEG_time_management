@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { getMyExams, deleteExam } from "@/app/actions/examActions";
-import ExamFormDialog from "@/components/exams/exam-form-dialog";
+import ExamFormDialog from "@/components/exams/ExamFormDialog";
 import Link from "next/link";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 

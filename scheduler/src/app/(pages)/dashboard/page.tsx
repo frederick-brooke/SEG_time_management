@@ -9,12 +9,12 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { getMyExams } from "@/app/actions/examActions";
-import { UpcomingExams } from "@/components/dashboard/upcoming-exams";
+import { UpcomingExams } from "@/components/dashboard/UpcomingExams";
 import { useUI } from "@/context/UIContext";
 import { useTaskProgress } from "@/context/TaskProgressContext";
 import { ProfileStats } from "@/components/profile/StatModules";
 import { getMyProfile } from "@/app/actions/profile";
-import { ComingUpSoon } from "@/components/dashboard/coming-up-soon";
+import { ComingUpSoon } from "@/components/dashboard/ComingUpSoon";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper"
 import LeaderboardClient from "../leaderboard/LeaderboardClient";
 import { getFriendsLeaderboard } from "../../actions/leaderboard";

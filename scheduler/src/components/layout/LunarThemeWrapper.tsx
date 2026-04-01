@@ -2,7 +2,7 @@
  * @file LunarThemeWrapper.tsx
  * @description Global theme wrapper component.
  */
-import StarField from "@/components/effects/starField";
+import StarField from "@/components/effects/StarField";
 
 /**
  * Wraps the application content in the standard Lunar visual theme.

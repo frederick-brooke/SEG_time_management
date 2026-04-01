@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ToDoList } from "@/components/tasks/to-do-list";
+import { ToDoList } from "@/components/tasks/ToDoList";
 import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/app/actions/examActions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";

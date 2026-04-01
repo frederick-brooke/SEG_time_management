@@ -18,7 +18,7 @@ import AdminStatistics from "@/components/admin/AdminStatistics";
 import AppealFilter from "@/components/admin/AppealFilterPanel";
 
 // UI components
-import StarField from "@/components/effects/starField";
+import StarField from "@/components/effects/StarField";
 import GlowBackground from "@/components/ui/glowBackground";
 import GlassCard from "@/components/ui/glassCard";
 import { motion } from "framer-motion";

@@ -1,4 +1,4 @@
-import LunarDrawer from "@/components/layout/lunar-drawer";
+import LunarDrawer from "@/components/layout/LunarDrawer";
 import WellbeingPage from "@/app/(pages)/wellbeing/page";
 
 /**

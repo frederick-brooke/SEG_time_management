@@ -1,6 +1,6 @@
-//testing for components/dashboard/coming-up-soon.tsx
+//testing for components/dashboard/ComingUpSoon.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ComingUpSoon } from "../coming-up-soon";
+import { ComingUpSoon } from "../ComingUpSoon";
 import { useTasks } from "@/hooks/useTasks";
 
 jest.mock("@/hooks/useTasks", () => ({

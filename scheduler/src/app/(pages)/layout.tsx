@@ -8,8 +8,8 @@
  
 import { useState } from "react";
 
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import SearchPanel from "@/components/search-page/search-panel";
+import { AppSidebar } from "@/components/layout/AppSidebar";
+import SearchPanel from "@/components/search-page/SearchPanel";
 
 import {
   SidebarProvider,

@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import GoogleLinkButton from "../googleLinkButton"; 
+import GoogleLinkButton from "../GoogleLinkButton"; 
 import { signIn } from "next-auth/react";
 
 // 1. Mock the next-auth/react module

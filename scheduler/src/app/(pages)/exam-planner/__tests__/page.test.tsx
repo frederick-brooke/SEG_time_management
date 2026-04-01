@@ -21,7 +21,7 @@ jest.mock("@/app/actions/examActions", () => ({
     deleteExam: jest.fn(),
 }));
 
-jest.mock("@/components/exams/exam-form-dialog", () => ({
+jest.mock("@/components/exams/ExamFormDialog", () => ({
     __esModule: true,
     default: ({ onExamAdded, onExamUpdated, editingExam }: any) => (
         <div>

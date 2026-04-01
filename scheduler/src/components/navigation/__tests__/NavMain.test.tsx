@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { NavMain } from "../nav-main"; 
+import { NavMain } from "../NavMain"; 
 
 // 1. Mock Next.js Link
 jest.mock("next/link", () => {

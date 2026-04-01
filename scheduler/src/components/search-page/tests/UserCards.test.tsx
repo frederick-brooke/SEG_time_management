@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import UserCard from "../user-cards";
+import UserCard from "../UserCards";
 
 // ---- mocks ----
 jest.mock("@/components/ui/glassCard", () => (props: any) => (

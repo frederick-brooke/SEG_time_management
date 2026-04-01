@@ -29,7 +29,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
     default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/tasks/to-do-list", () => ({
+jest.mock("@/components/tasks/ToDoList", () => ({
     __esModule: true,
     ToDoList: ({ children }: any) => <div data-testid="todo-list">mocked</div>,
 }));

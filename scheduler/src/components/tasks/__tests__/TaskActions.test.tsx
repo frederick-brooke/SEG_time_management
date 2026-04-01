@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { TaskActions } from "../task-actions";
+import { TaskActions } from "../TaskActions";
 
 // Mock lucide-react icons
 jest.mock("lucide-react", () => ({

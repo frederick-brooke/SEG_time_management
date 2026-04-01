@@ -1,5 +1,5 @@
 /**
- * @file upcoming-exams.tsx
+ * @file UpcomingExams.tsx
  * @description Displays exams due within 14 days. 
  * Uses midnight normalization and memoization to ensure accurate, 
  * high-performance date filtering and sorting.

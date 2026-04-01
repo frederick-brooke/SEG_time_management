@@ -28,7 +28,7 @@ jest.mock("components/animate-ui/primitives/radix/checkbox", () => ({
   ),
 }));
 
-jest.mock("@/components/tasks/task-actions", () => ({
+jest.mock("@/components/tasks/TaskActions", () => ({
   TaskActions: ({ onView, onEdit, onDelete, canDelete }: any) => (
     <div>
       <button onClick={onView}>View</button>

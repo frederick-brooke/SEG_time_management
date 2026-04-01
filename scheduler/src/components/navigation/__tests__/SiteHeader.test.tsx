@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { SiteHeader } from "../site-header"; 
+import { SiteHeader } from "../SiteHeader"; 
 
 // 1. Mock the child components to isolate the SiteHeader component
 jest.mock("components/ui/button", () => ({

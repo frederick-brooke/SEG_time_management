@@ -1,6 +1,6 @@
-//test for components/exams/exam-form-dialog.tsx
+//test for components/exams/ExamFormDialog.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
-import ExamFormDialog from "../exam-form-dialog";
+import ExamFormDialog from "../ExamFormDialog";
 
 // Mocks the underlying form to isolate dialog open/close logic
 jest.mock("../ExamForm", () => {

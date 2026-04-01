@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import SearchControls from "@/components/search-page/search-controls";
-import SearchUsers from "@/components/search-page/searchUsers";
+import SearchControls from "@/components/search-page/SearchControls";
+import SearchUsers from "@/components/search-page/SearchUsers";
 import UserFilter from "@/components/admin/UserFilterPanel";
 
 import { useUsers } from "@/hooks/useUsers";
 
 //UI components
 import GlassCard from "@/components/ui/glassCard";
-import LunarDrawer from "../layout/lunar-drawer";
+import LunarDrawer from "../layout/LunarDrawer";
 
 /**
  * SearchPanel

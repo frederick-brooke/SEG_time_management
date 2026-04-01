@@ -6,13 +6,13 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PagesLayout from "../layout";
 
-jest.mock("@/components/layout/app-sidebar", () => ({
+jest.mock("@/components/layout/AppSidebar", () => ({
   AppSidebar: ({ onSearchClick }: any) => (
     <button onClick={onSearchClick}>open-sidebar-search</button>
   ),
 }));
 
-jest.mock("@/components/search-page/search-panel", () => ({
+jest.mock("@/components/search-page/SearchPanel", () => ({
   __esModule: true,
   default: ({ onClose }: any) => (
     <button onClick={onClose}>close-search</button>

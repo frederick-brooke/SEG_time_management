@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { AppSidebar } from '../app-sidebar';
+import { AppSidebar } from '../AppSidebar';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -60,7 +60,7 @@ jest.mock('@/app/components/NotificationModal', () => ({
     ) : null,
 }));
 
-jest.mock('@/components/search-page/search-panel', () => ({
+jest.mock('@/components/search-page/SearchPanel', () => ({
   __esModule: true,
   default: ({ open, onClose }: any) =>
     open ? (

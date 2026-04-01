@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import LunarDrawer from "../lunar-drawer";
+import LunarDrawer from "../LunarDrawer";
 
 /**
  * Tests the LunarDrawer component's rendering, positioning logic, and interaction behavior.

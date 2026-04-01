@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import SearchUsers from "../searchUsers";
+import SearchUsers from "../SearchUsers";
 
 // Mock UserPanel
 jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
@@ -7,7 +7,7 @@ jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
 ));
 
 // Mock UserCard
-jest.mock("../user-cards", () => (props: any) => (
+jest.mock("../UserCards", () => (props: any) => (
 	<div data-testid="user-card">
 		<span>{props.user.username}</span>
 		<button onClick={props.onClick}>open</button>

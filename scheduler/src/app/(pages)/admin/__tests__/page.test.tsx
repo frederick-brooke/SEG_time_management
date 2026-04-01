@@ -21,7 +21,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/effects/starField", () => ({
+jest.mock("@/components/effects/StarField", () => ({
   __esModule: true,
   default: () => null,
 }));

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { NavUser } from "../nav-user";
+import { NavUser } from "../NavUser";
 import { useSidebar } from "@/components/ui/sidebar";
 
 // 1. Mock the Sidebar components and hook

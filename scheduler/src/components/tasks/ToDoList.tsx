@@ -11,10 +11,10 @@ import {
   CardTitle,
 } from "components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TaskColumn } from "../tasks/TaskColumn";
-import { TaskForm } from "../tasks/TaskForm";
-import { TaskViewDialog } from "../tasks/TaskViewDialog";
-import { DeleteTaskDialog } from "../tasks/DeleteTaskDialog";
+import { TaskColumn } from "./TaskColumn";
+import { TaskForm } from "./TaskForm";
+import { TaskViewDialog } from "./TaskViewDialog";
+import { DeleteTaskDialog } from "./DeleteTaskDialog";
 import { useTasks } from "@/hooks/useTasks";
 import { useTaskFilters } from "../../hooks/useTaskFilters";
 import { getPriorityStyle } from "../../lib/priority";

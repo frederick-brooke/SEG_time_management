@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import Link from "next/link";
-import SearchPanel from "@/components/search-page/search-panel";
+import SearchPanel from "@/components/search-page/SearchPanel";
 import NotificationModal from "@/app/components/NotificationModal";
 import { usePathname, useRouter } from "next/navigation";
 

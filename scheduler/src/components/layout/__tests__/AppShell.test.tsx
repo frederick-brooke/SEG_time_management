@@ -1,5 +1,5 @@
 import { render, screen, act } from "@testing-library/react";
-import { AppShell } from "./app-shell";
+import { AppShell } from "@/components/layout/AppShell";
 import { useSession } from "next-auth/react";
 import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";
 
@@ -11,15 +11,15 @@ jest.mock("@/app/actions/calendar/calendarNotifications", () => ({
   checkUpcomingEventNotifications: jest.fn(),
 }));
 
-jest.mock("@/components/layout/app-sidebar", () => ({
+jest.mock("@/components/layout/AppSidebar", () => ({
   AppSidebar: ({ onSearchClick }: any) => (
-    <div data-testid="app-sidebar" onClick={onSearchClick}>
+    <div data-testid="AppSidebar" onClick={onSearchClick}>
       AppSidebar
     </div>
   ),
 }));
 
-jest.mock("@/components/navigation/site-header", () => ({
+jest.mock("@/components/navigation/SiteHeader", () => ({
   SiteHeader: () => <div data-testid="site-header">SiteHeader</div>,
 }));
 
@@ -54,7 +54,7 @@ describe("AppShell Component", () => {
     );
 
     expect(screen.getByTestId("sidebar-provider")).toBeInTheDocument();
-    expect(screen.getByTestId("app-sidebar")).toBeInTheDocument();
+    expect(screen.getByTestId("AppSidebar")).toBeInTheDocument();
     expect(screen.getByTestId("site-header")).toBeInTheDocument();
     expect(screen.getByTestId("test-child")).toBeInTheDocument();
   });

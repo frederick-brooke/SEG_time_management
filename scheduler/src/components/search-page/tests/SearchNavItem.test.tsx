@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import SearchNavItem from "../search-nav-item";
+import SearchNavItem from "../SearchNavItem";
 
 // Mock next/router
 const push = jest.fn();
