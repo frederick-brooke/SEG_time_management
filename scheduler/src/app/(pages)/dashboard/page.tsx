@@ -201,28 +201,36 @@ function DashboardContent() {
       </LunarThemeWrapper>
 
 		{/* Floating wellbeing button */}
-		<div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50">
-			{wellbeingVisible && (
-				<div className="group relative flex items-center">
+		<div className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-[900]">
+    {wellbeingVisible && (
+        <div className="group relative flex items-center">
 
-					{/* Tooltip */}
-					<span suppressHydrationWarning className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-black/60 backdrop-blur-md px-3 py-1 text-sm text-white/80 opacity-0 translate-x-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0">
-						Wellbeing
-					</span>
+            {/* Tooltip */}
+            <span suppressHydrationWarning className="pointer-events-none absolute right-20 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md bg-black/50 backdrop-blur-md px-3 py-1 text-sm text-white border border-white/10 opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
+                Wellbeing
+            </span>
 
-					{/* Button wrapper for pulse */}
-					<div className="relative">
-						{/* Pulse ring */}
-						<span className="absolute inset-0 rounded-full bg-purple-500/30 animate-ping"></span>
+            {/* Button wrapper */}
+            <div className="relative">
+                {/* Pulse ring */}
+                <span className="absolute inline-flex h-full w-full rounded-full bg-purple-500 opacity-20 animate-ping" />
 
-						{/* Button */}
-						<button onClick={() => { setWellbeingOpen(true); setWellbeingVisible(false); }} className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-400 shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all duration-200" aria-label="Open wellbeing panel">
-							<IconMoonStars className="w-6 h-6 text-white" />
-						</button>
-					</div>
-				</div>
-			)}
-		</div>
+                {/* Gradient glow layer */}
+                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-40 transition" />
+
+                {/* Button */}
+                <button
+                    onClick={() => { setWellbeingOpen(true); setWellbeingVisible(false); }}
+                    className="relative flex h-16 w-16 items-center justify-center rounded-full bg-indigo-950 backdrop-blur-xl border border-white/10 text-red-300 shadow-[0_0_25px_rgba(168,85,247,0.45),0_0_60px_rgba(59,130,246,0.25)] hover:scale-110 hover:text-pink-300 hover:shadow-[0_0_35px_rgba(236,72,153,0.55),0_0_80px_rgba(168,85,247,0.35)] transition-all duration-300 animate-[pulse_4s_ease-in-out_infinite]"
+                    aria-label="Open wellbeing panel"
+                >
+                    <IconMoonStars className="relative w-7 h-7" />
+                </button>
+            </div>
+
+        </div>
+    )}
+</div>
     </>
   );
 }
