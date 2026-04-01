@@ -6,6 +6,7 @@
  */
 
 import { useState } from "react";
+import { Button } from "../ui/Button";
 
 const TYPE_ICONS: Record<string, string> = {
   HOME: "🏠",
