@@ -125,8 +125,8 @@ export default function ModulesPageClient({ modules: initialModules }: { modules
     <LunarThemeWrapper>
       <div className="lunar-page">
         {/* Page Title and Global Actions */}
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
-          <div>
+        <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="text-center sm:text-left">
             <h1 className="lunar-page-title">My Modules</h1>
             <p className="lunar-page-subtitle">Collaborate with peers on shared goals</p>
           </div>
