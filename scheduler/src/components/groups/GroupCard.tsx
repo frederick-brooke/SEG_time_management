@@ -1,8 +1,6 @@
 'use client';
-
 import Link from "next/link";
 import { Users, Crown } from "lucide-react";
-
 //section types
 interface GroupCardProps {
   group: {
@@ -15,12 +13,10 @@ interface GroupCardProps {
       username: string;
       fname?: string | null;
       lname?: string | null;
-    };
+    } | null;
   };
 }
-
 //section component
-
 /**
  * Displays a group card with name, description, member count and owner badge
  * @param {GroupCardProps} props - Group data to display
@@ -28,15 +24,12 @@ interface GroupCardProps {
  */
 export function GroupCard({ group }: GroupCardProps) {
   const isOwner = group.userRole === "OWNER";
-
   return (
     <div className="flex items-center gap-4 lunar-card bg-white/5 p-5 transition-all hover:bg-white/10 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/10">
-
       {/* Icon */}
       <div className="shrink-0 bg-white/5 p-3 rounded-2xl border border-white/10 shadow-inner">
         <Users className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" size={24} />
       </div>
-
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-3 mb-1">
@@ -54,7 +47,6 @@ export function GroupCard({ group }: GroupCardProps) {
             </span>
           )}
         </div>
-
         {/* Footer */}
         <div className="flex items-center justify-between gap-3 mt-3 pt-3 border-t lunar-divider">
           <div className="flex items-center gap-1.5 text-xs text-white/40 font-medium">
@@ -62,11 +54,10 @@ export function GroupCard({ group }: GroupCardProps) {
             <span>{group.memberCount} member{group.memberCount !== 1 ? "s" : ""}</span>
           </div>
           <span className="text-[11px] font-semibold text-blue-400">
-            by @{group.creator.username}
+            by @{group.creator?.username ?? "unknown"}
           </span>
         </div>
       </div>
-
       {/* View link */}
       <Link
         href={`/groups/${group.id}`}
