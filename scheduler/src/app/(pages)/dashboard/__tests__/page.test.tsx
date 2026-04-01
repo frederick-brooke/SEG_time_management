@@ -79,7 +79,7 @@ jest.mock("@/components/profile/StatModules", () => ({
 
 jest.mock("../wellbeing/page", () => () => <div>WellbeingPage</div>, { virtual: true });
 
-jest.mock("@/components/wellbeing/wellbeing_panel", () => ({
+jest.mock("@/components/wellbeing/WellbeingPanel", () => ({
   __esModule: true,
   default: ({ children, open, onClose }: any) => (
     <div>
@@ -90,7 +90,7 @@ jest.mock("@/components/wellbeing/wellbeing_panel", () => ({
   ),
 }));
 
-jest.mock("@/components/ui/rocket-progress", () => ({
+jest.mock("@/components/ui/RocketProgress", () => ({
   RocketProgress: ({ progress }: any) => <div data-testid="rocket">Rocket {progress}%</div>,
 }));
 

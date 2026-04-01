@@ -46,13 +46,11 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
 
   // Save progress to localStorage whenever it changes
   useEffect(() => {
-    if (tasks.length > 0 || progressPercentage > 0) {
-      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({
-        progressPercentage,
-        tasks,
-        lastUpdatedAt,
-      }));
-    }
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({
+      progressPercentage,
+      tasks,
+      lastUpdatedAt,
+    }));
   }, [progressPercentage, tasks, lastUpdatedAt]);
 
   // Listen for progress updates from other components or tabs
@@ -104,10 +102,10 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      if (data.tasks) {
-        const tasksArray = data.tasks;
-        const totalTasks = tasksArray.length || 0;
-        const completedTasks = tasksArray.filter((t: any) => t.status === "completed").length;
+      const tasksArray = Array.isArray(data) ? data : (data.tasks || []);
+      if (tasksArray) {
+        const totalTasks = tasksArray.length;
+        const completedTasks = tasksArray.filter((t: any) => t.status === "completed" || t.isCompleted === true).length;
         const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
         setTasks(tasksArray);

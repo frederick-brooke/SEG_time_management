@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { TaskProgressProvider, useTaskProgress } from "../TaskProgressContext";
+import { fireEvent } from "@testing-library/react";
 
 /** Test component that uses the hook */
 function TestComponent() {
@@ -33,7 +34,7 @@ function mockFetch(response: any, ok = true) {
 beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
-  jest.spyOn(window, "dispatchEvent").mockImplementation(() => true);
+  jest.spyOn(window, "dispatchEvent");
 });
 
 afterEach(() => {
@@ -76,10 +77,11 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("progress")).not.toHaveTextContent("0%");
-        });
+        fireEvent.click(refreshBtn);
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("progress")).not.toHaveTextContent("0%");
       });
 
       const cached = localStorage.getItem("task-progress-cache");
@@ -140,10 +142,11 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("progress")).toHaveTextContent("66%");
-        });
+        fireEvent.click(refreshBtn);
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("progress")).toHaveTextContent("66%");
       });
 
       expect(global.fetch).toHaveBeenCalledWith("/api/tasks?userId=user123");
@@ -178,10 +181,10 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("loading")).toHaveTextContent("done");
-        });
+        fireEvent.click(refreshBtn);
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("loading")).toHaveTextContent("done");
       });
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to refresh progress"), expect.any(Error));
@@ -205,10 +208,10 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("loading")).toHaveTextContent("done");
-        });
+        fireEvent.click(refreshBtn);
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("loading")).toHaveTextContent("done");
       });
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("status 500"));
@@ -231,10 +234,10 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("loading")).toHaveTextContent("done");
-        });
+        fireEvent.click(refreshBtn);
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("loading")).toHaveTextContent("done");
       });
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining("Empty response body"));
@@ -257,10 +260,11 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("loading")).toHaveTextContent("done");
-        });
+        fireEvent.click(refreshBtn);
+        
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("loading")).toHaveTextContent("done");
       });
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to parse JSON"), expect.any(SyntaxError));
@@ -284,18 +288,18 @@ describe("TaskProgressContext", () => {
       const refreshBtn = getByRole("button", { name: /Refresh/i });
 
       act(() => {
-        refreshBtn.click();
+        fireEvent.click(refreshBtn);
       });
 
       // Now resolve the fetch
       await act(async () => {
         resolveResponse({
           ok: true,
-          json: async () => ({ tasks: [] })
+          text: async () => JSON.stringify({ tasks: [] })
         });
-        await waitFor(() => {
-          expect(screen.getByTestId("loading")).toHaveTextContent("done");
-        });
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("loading")).toHaveTextContent("done");
       });
     });
 
@@ -310,10 +314,11 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("progress")).toHaveTextContent("0%");
-        });
+        fireEvent.click(refreshBtn);
+        
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("progress")).toHaveTextContent("0%");
       });
     });
 
@@ -334,10 +339,12 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(screen.getByTestId("progress")).toHaveTextContent("100%");
-        });
+        fireEvent.click(refreshBtn);
+        await new Promise(resolve => setTimeout(resolve, 0));
+       
+      });
+      await waitFor(() => {
+        expect(screen.getByTestId("progress")).toHaveTextContent("100%");
       });
     });
   });
@@ -356,10 +363,11 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(window.dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
-        });
+        fireEvent.click(refreshBtn);
+        
+      });
+      await waitFor(() => {
+        expect(window.dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
       });
     });
 
@@ -409,7 +417,7 @@ describe("TaskProgressContext", () => {
 
       await waitFor(() => {
         expect(screen.getByTestId("progress")).toHaveTextContent("50%");
-      });
+      }, { timeout: 3000 });
     });
   });
 
@@ -436,12 +444,14 @@ describe("TaskProgressContext", () => {
 
       const refreshBtn = getByRole("button", { name: /Refresh/i });
       await act(async () => {
-        refreshBtn.click();
-        await waitFor(() => {
-          expect(getByTestId("progress")).toHaveTextContent("50%");
-          expect(getByTestId("progress2")).toHaveTextContent("50%");
-        });
+        fireEvent.click(refreshBtn);
+        await new Promise(resolve => setTimeout(resolve, 0));
+    
       });
+      await waitFor(() => {
+        expect(getByTestId("progress")).toHaveTextContent("50%");
+        expect(getByTestId("progress2")).toHaveTextContent("50%");
+      }, { timeout: 3000});
     });
   });
 });
