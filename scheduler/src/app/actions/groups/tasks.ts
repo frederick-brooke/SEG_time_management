@@ -28,6 +28,9 @@ interface GroupTaskInput {
 /**
  * Creates a synchronized task for every member of a group.
  * Uses a Database Transaction to ensure all members receive the task atomically.
+ *  @param {string} groupId - The unique identifier of the group.
+ * @param {GroupTaskInput} taskData - The core data payload for the new task.
+ * @returns {Promise<{ success: boolean; message?: string; error?: string }>} An object indicating the success or failure of the operation.
  */
 export async function createGroupTask(groupId: string, taskData: GroupTaskInput) {
   const session = await requireSession();
@@ -79,6 +82,10 @@ export async function createGroupTask(groupId: string, taskData: GroupTaskInput)
 
 /**
  * Updates core metadata across all instances of a group task.
+ *  @param {string} groupTaskGroupId - The shared identifier linking the tasks across all members.
+ * @param {string} groupId - The unique identifier of the group.
+ * @param {GroupTaskInput} taskData - The updated data payload for the task.
+ * @returns {Promise<{ success: boolean; error?: string }>} An object indicating the success or failure of the operation.
  */
 export async function updateGroupTask(groupTaskGroupId: string, groupId: string, taskData: GroupTaskInput) {
   const session = await requireSession();
@@ -105,6 +112,9 @@ export async function updateGroupTask(groupTaskGroupId: string, groupId: string,
 
 /**
  * Deletes all instances of a group task across all members.
+ *  @param {string} groupTaskGroupId - The shared identifier linking the tasks across all members.
+ * @param {string} groupId - The unique identifier of the group.
+ * @returns {Promise<{ success: boolean; error?: string }>} An object indicating the success or failure of the operation.
  */
 export async function deleteGroupTask(groupTaskGroupId: string, groupId: string) {
   const session = await requireSession();
@@ -122,7 +132,9 @@ export async function deleteGroupTask(groupTaskGroupId: string, groupId: string)
 }
 
 /**
- * Gets the current user's group tasks — used for the personal completion view.
+ * Aggregates group tasks into a deduplicated list with per-member progress tracking.
+ *  @param {string} groupId - The unique identifier of the group.
+ * @returns {Promise<Array>} An array of aggregated task data including completion statistics.
  */
 export async function getGroupTasks(groupId: string) {
   const session = await getServerSession(authOptions);
@@ -136,6 +148,8 @@ export async function getGroupTasks(groupId: string) {
 
 /**
  * Aggregates group tasks into a deduplicated list with per-member progress tracking.
+ *  @param {string} groupId - The unique identifier of the group.
+ * @returns {Promise<Array>} An array of aggregated task data including completion statistics.
  */
 export async function getGroupTasksWithProgress(groupId: string) {
   const session = await getServerSession(authOptions);
@@ -209,6 +223,10 @@ export async function getGroupTasksWithProgress(groupId: string) {
 
 /**
  * Toggles completion status for the current user's instance of a group task.
+ * @param {string} groupTaskGroupId - The shared identifier linking the tasks.
+ * @param {string} groupId - The unique identifier of the group.
+ * @param {boolean} completed - The new boolean completion state.
+ * @returns {Promise<{ success: boolean; error?: string }>} An object indicating the success or failure of the operation.
  */
 export async function toggleGroupTaskComplete(
   groupTaskGroupId: string, 

@@ -1,8 +1,8 @@
 'use server';
 
 /**
- * Profile service
- *
+ * @file core.tsx
+ * @description Profile service
  * Handles fetching and updating user profiles, including stats,
  * friends, streaks, and friendship status.
  */
@@ -41,8 +41,7 @@ export async function getMyProfile() {
   if (!user) return null;
 
   const [
-    progress, tasks, pendingReceivedRequests, sentAcceptedRequests,
-    receivedAcceptedRequests, friendCount, streak,
+    progress, tasks, pendingReceivedRequests, friends, friendCount, streak,
   ] = await Promise.all([
     prisma.userProgress.findUnique({
       where: { userId: user.id },
@@ -56,33 +55,17 @@ export async function getMyProfile() {
       where: { receiverId: user.id, status: PrismaFriendStatus.PENDING },
       include: { sender: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
     }),
-    prisma.friendRequest.findMany({
-      where: { senderId: user.id, status: PrismaFriendStatus.ACCEPTED },
-      include: { receiver: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
-    }),
-    prisma.friendRequest.findMany({
-      where: { receiverId: user.id, status: PrismaFriendStatus.ACCEPTED },
-      include: { sender: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
-    }),
+    fetchFriends(user.id),
     countFriends(user.id),
     calculateStreak(user.id),
   ]);
-
-  const friends = [
-    ...sentAcceptedRequests.map((req) => req.receiver),
-    ...receivedAcceptedRequests.map((req) => req.sender),
-  ];
-
-  const completedTasks = tasks.filter((t) => t.completed).length;
-  const totalTasks = tasks.length;
-  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return {
     ...user,
     progress: progress ?? null,
     receivedRequests: pendingReceivedRequests,
     friends,
-    stats: { completedTasks, totalTasks, completionRate, friendCount, streak },
+    stats: { ...computeTaskStats(tasks), friendCount, streak },
     friendStatus: "ME",
   };
 }
@@ -115,65 +98,79 @@ export async function getProfile(username: string) {
     requestId,
   };
 }
+type ProfileUpdatePayload = {
+  fname: string | null;
+  lname: string | null;
+  bio: string | null;
+  city: string | null;
+  country: string | null;
+  location?: { lat: number; lng: number } | null;
+};
+
+/**
+ * Helper to extract profile fields from FormData
+ */
+function extractProfileFields(formData: FormData): ProfileUpdatePayload {
+  return {
+    fname: (formData.get("fname") as string) || null,
+    lname: (formData.get("lname") as string) || null,
+    bio: (formData.get("bio") as string) || null,
+    city: (formData.get("city") as string) || null,
+    country: (formData.get("country") as string) || null,
+  };
+}
+
+/**
+ * Resolves a city and country string to lat/lng coordinates via OpenCage.
+ * Returns null if the API key is missing, the request fails, or no result is found.
+ */
+async function geocode(city: string, country: string): Promise<{ lat: number; lng: number } | null> {
+  const apiKey = process.env.OPENCAGE_API_KEY;
+  
+  if (!apiKey) {
+    console.warn("OPENCAGE_API_KEY is not set; skipping geocoding.");
+    return null;
+  }
+  
+  const query = encodeURIComponent(`${city}, ${country}`);
+  const url = `https://api.opencagedata.com/geocode/v1/json?q=${query}&key=${apiKey}&limit=1`;
+  
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error("Geocoding request failed with status:", response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    const geometry = data?.results?.[0]?.geometry;
+    
+    return geometry?.lat != null && geometry?.lng != null
+      ? { lat: geometry.lat, lng: geometry.lng }
+      : null;
+  } catch (error) {
+    console.error("Error while geocoding city/country:", error);
+    return null;
+  }
+}
 
 /**
  * Updates the current user's profile fields including optional geocoding of city and country.
+ * V.3.2: Maintains a single level of abstraction by utilizing helper functions.
  * @param {FormData} formData - Form data containing fname, lname, bio, city, and country fields.
  * @return {Promise<void>}
  */
 export async function updateProfile(formData: FormData) {
   const session = await requireSession();
-
-  const fname = formData.get("fname") as string;
-  const lname = formData.get("lname") as string;
-  const bio = formData.get("bio") as string;
-  const city = formData.get("city") as string;
-  const country = formData.get("country") as string;
-
-  const updateData: any = {
-    fname: fname || null,
-    lname: lname || null,
-    bio: bio || null,
-    city: city || null,
-    country: country || null,
-  };
-
-  // Geocode city and country into coordinates when both are provided
-  // If geocoding fails, location is explicitly cleared to avoid stale coordinates
-  if (city && country) {
-    updateData.location = null;
-    try {
-      const apiKey = process.env.OPENCAGE_API_KEY;
-
-      if (!apiKey) {
-        console.warn("OPENCAGE_API_KEY is not set; skipping geocoding.");
-      } else {
-        const query = encodeURIComponent(`${city}, ${country}`);
-        const url = `https://api.opencagedata.com/geocode/v1/json?q=${query}&key=${apiKey}&limit=1`;
-        const response = await fetch(url);
-
-        if (response.ok) {
-          const data = await response.json();
-          const firstResult = data?.results?.[0];
-
-          if (firstResult?.geometry && firstResult.geometry.lat != null && firstResult.geometry.lng != null) {
-            updateData.location = {
-              lat: firstResult.geometry.lat,
-              lng: firstResult.geometry.lng,
-            };
-          }
-        } else {
-          console.error("Geocoding request failed with status:", response.status);
-        }
-      }
-    } catch (error) {
-      console.error("Error while geocoding city/country:", error);
-    }
-  }
+  
+  const fields = extractProfileFields(formData);
+  const location = fields.city && fields.country 
+    ? await geocode(fields.city, fields.country) 
+    : undefined;
 
   await prisma.user.update({
     where: { id: session.user.id },
-    data: updateData,
+    data: { ...fields, ...(location !== undefined && { location }) },
   });
 
   revalidatePath("/profile");
