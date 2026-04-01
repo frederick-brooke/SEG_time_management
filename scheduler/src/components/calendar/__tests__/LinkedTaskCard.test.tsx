@@ -1,9 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { LinkedTaskCard } from "../LinkedTaskCard";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("../EventFormParts", () => ({
   RELATIVE_OPTIONS: [
@@ -34,24 +32,22 @@ jest.mock("@/lib/ui", () => ({
 
 jest.mock("@/components/shared/FormComponents", () => ({
   Toggle: ({ on, onToggle, label }: any) => (
-    <Button data-testid={`toggle-${label}`} onClick={onToggle}>
+    <button data-testid={`toggle-${label}`} onClick={onToggle}>
       {label}: {on ? "on" : "off"}
-    </Button>
+    </button>
   ),
   RecurrencePanel: ({ type, onType, onDays, onUntil }: any) => (
     <div data-testid="recurrence-panel">
-      <Button onClick={() => onType("daily")}>Set Daily</Button>
-      <Button onClick={() => onType("weekly")}>Set Weekly</Button>
-      <Button onClick={() => onDays(["Mon"])}>Set Days</Button>
-      <Button onClick={() => onUntil("2026-12-01")}>Set Until</Button>
+      <button onClick={() => onType("daily")}>Set Daily</button>
+      <button onClick={() => onType("weekly")}>Set Weekly</button>
+      <button onClick={() => onDays(["Mon"])}>Set Days</button>
+      <button onClick={() => onUntil("2026-12-01")}>Set Until</button>
       <span>{type}</span>
     </div>
   ),
 }));
 
-// ---------------------------------------------------------------------------
 // Fixtures
-// ---------------------------------------------------------------------------
 
 const baseTask = {
   id: "task-1",
@@ -81,10 +77,7 @@ function renderCard(props = {}) {
   return render(<LinkedTaskCard {...defaultProps} {...props} />);
 }
 
-// ---------------------------------------------------------------------------
 // Rendering — collapsed state
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — rendering (collapsed)", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -139,10 +132,7 @@ describe("LinkedTaskCard — rendering (collapsed)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expand / collapse
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — expand/collapse", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -171,10 +161,7 @@ describe("LinkedTaskCard — expand/collapse", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // onRemove
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — onRemove", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -191,10 +178,7 @@ describe("LinkedTaskCard — onRemove", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // useEffect — onUpdate called on mount and state changes
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — onUpdate via useEffect", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -275,10 +259,7 @@ describe("LinkedTaskCard — onUpdate via useEffect", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded — scheduleTime section
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — expanded, scheduleTime", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -298,10 +279,7 @@ describe("LinkedTaskCard — expanded, scheduleTime", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded — isRecurring section
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — expanded, isRecurring", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -349,10 +327,7 @@ describe("LinkedTaskCard — expanded, isRecurring", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Expanded — CustomDatePicker
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — expanded, CustomDatePicker", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -378,10 +353,7 @@ describe("LinkedTaskCard — expanded, CustomDatePicker", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // CustomDatePicker — range inputs
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — CustomDatePicker range inputs", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -472,10 +444,7 @@ describe("LinkedTaskCard — CustomDatePicker range inputs", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // specificTime input update
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — specificTime input", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -495,10 +464,7 @@ describe("LinkedTaskCard — specificTime input", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Initial state from task prop
-// ---------------------------------------------------------------------------
-
 describe("LinkedTaskCard — initialised from task prop", () => {
   it("initialises mode from task.relativeMode", () => {
     renderCard({ task: { ...baseTask, relativeMode: "2-after" } });
