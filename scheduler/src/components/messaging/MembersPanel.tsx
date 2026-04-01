@@ -13,6 +13,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Represents a conversation participant.

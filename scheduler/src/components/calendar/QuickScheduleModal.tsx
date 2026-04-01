@@ -1,6 +1,6 @@
 "use client";
 import { format } from "date-fns";
-import { Button } from "../ui/Button";
+import { Button } from "@/components/ui/Button";
 
 interface QuickScheduleModalProps {
   task: any;
