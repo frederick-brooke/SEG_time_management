@@ -439,4 +439,71 @@ describe("TaskProgressContext", () => {
       });
     });
   });
+
+  describe("tasks-updated event listener", () => {
+    it("clears cache when tasks-updated event is received", () => {
+      const cacheData = {
+        progressPercentage: 75,
+        tasks: [{ id: "t1", status: "completed" }],
+        lastUpdatedAt: Date.now(),
+      };
+      localStorage.setItem("task-progress-cache", JSON.stringify(cacheData));
+
+      render(
+        <TaskProgressProvider>
+          <TestComponent />
+        </TaskProgressProvider>
+      );
+
+      expect(screen.getByTestId("progress")).toHaveTextContent("75%");
+
+      // Simulate a new task being added
+      act(() => {
+        window.dispatchEvent(new Event("tasks-updated"));
+      });
+
+      // Cache should be cleared
+      expect(localStorage.getItem("task-progress-cache")).toBeNull();
+      // Progress should be reset to 0
+      expect(screen.getByTestId("progress")).toHaveTextContent("0%");
+      expect(screen.getByTestId("tasks-count")).toHaveTextContent("0");
+    });
+
+    it("handles tasks-updated event while already loading", async () => {
+      let resolveResponse: any;
+      global.fetch = jest.fn().mockReturnValue(
+        new Promise(resolve => {
+          resolveResponse = resolve;
+        })
+      );
+
+      const { getByRole } = render(
+        <TaskProgressProvider>
+          <TestComponent />
+        </TaskProgressProvider>
+      );
+
+      const refreshBtn = getByRole("button", { name: /Refresh/i });
+
+      act(() => {
+        refreshBtn.click();
+      });
+
+      // While loading, dispatch tasks-updated
+      act(() => {
+        window.dispatchEvent(new Event("tasks-updated"));
+      });
+
+      // Should reset progress
+      expect(screen.getByTestId("progress")).toHaveTextContent("0%");
+
+      // Resolve the fetch
+      await act(async () => {
+        resolveResponse({
+          ok: true,
+          json: async () => ({ tasks: [] })
+        });
+      });
+    });
+  });
 });

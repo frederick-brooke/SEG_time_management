@@ -68,6 +68,20 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
     return () => window.removeEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
   }, []);
 
+  // Listen for task list changes (e.g., new task created) and invalidate cache
+  useEffect(() => {
+    const handleTasksUpdated = () => {
+      // Clear cached progress to force refresh on next dashboard visit
+      localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      setProgressPercentage(0);
+      setTasks([]);
+      setLastUpdatedAt(null);
+    };
+
+    window.addEventListener("tasks-updated", handleTasksUpdated);
+    return () => window.removeEventListener("tasks-updated", handleTasksUpdated);
+  }, []);
+
   const refreshProgress = useCallback(async (userId: string | undefined) => {
     if (!userId) return;
 

@@ -84,6 +84,8 @@ export function useTasks(userId: string | undefined) {
     const data = await res.json();
     if (data.task?.id) {
       setTasks((prev) => [data.task, ...prev]);
+      // Notify that task list has changed so progress cache gets invalidated
+      window.dispatchEvent(new Event("tasks-updated"));
       return data.task;
     }
     throw new Error("Invalid response from server");
@@ -103,6 +105,8 @@ export function useTasks(userId: string | undefined) {
   const deleteTask = async (taskId) => {
     await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    // Notify that task list has changed so progress cache gets invalidated
+    window.dispatchEvent(new Event("tasks-updated"));
   };
 
   const toggleTaskStatus = async (taskId, forcedStatus = null) => {

@@ -147,6 +147,17 @@ describe("useTasks", () => {
     expect(result.current.tasks[0]).toEqual(newTask);
   });
 
+  it("createTask dispatches tasks-updated event", async () => {
+    const dispatchEventSpy = jest.spyOn(window, "dispatchEvent");
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const newTask = { ...BASE_TASK, id: "t99", title: "New Task" };
+    global.fetch = mockFetch({ task: newTask }, true);
+    await act(async () => { await result.current.createTask({ title: "New Task" }); });
+    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "tasks-updated" }));
+    dispatchEventSpy.mockRestore();
+  });
+
   it("createTask throws when response is not ok", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -191,6 +202,16 @@ describe("useTasks", () => {
     global.fetch = mockFetch({});
     await act(async () => { await result.current.deleteTask("t1"); });
     expect(result.current.tasks.find((t: any) => t.id === "t1")).toBeUndefined();
+  });
+
+  it("deleteTask dispatches tasks-updated event", async () => {
+    const dispatchEventSpy = jest.spyOn(window, "dispatchEvent");
+    const { result } = renderHook(() => useTasks("u1"));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    global.fetch = mockFetch({});
+    await act(async () => { await result.current.deleteTask("t1"); });
+    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "tasks-updated" }));
+    dispatchEventSpy.mockRestore();
   });
 
   it("toggleTaskStatus transitions todo to in-progress", async () => {

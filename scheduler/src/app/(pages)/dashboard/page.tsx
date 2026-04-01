@@ -52,6 +52,18 @@ function DashboardContent() {
     }
   }, [userId, status, refreshProgress]);
 
+  // Listen for task list changes (new task added/deleted) and refresh progress
+  useEffect(() => {
+    const handleTasksUpdated = () => {
+      if (userId && status === "authenticated") {
+        refreshProgress(userId);
+      }
+    };
+
+    window.addEventListener("tasks-updated", handleTasksUpdated);
+    return () => window.removeEventListener("tasks-updated", handleTasksUpdated);
+  }, [userId, status, refreshProgress]);
+
   /**
    * Load core dashboard data once user is authenticated.
    * Uses Promise.all for parallel fetching.
