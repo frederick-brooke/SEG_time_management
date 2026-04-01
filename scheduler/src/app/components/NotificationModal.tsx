@@ -16,6 +16,7 @@ import {
   markNotificationAsRead,
 } from "../actions/notifications";
 import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/Button";
 
 interface Notification {
   id: string;
@@ -29,7 +30,7 @@ interface Notification {
   expiresAt?: Date;
 }
 
-const NOTIFICATION_ICONS: Record<NotificationType, JSX.Element> = {
+const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   [NotificationType.SUCCESS]: <CheckCircle className="w-5 h-5" />,
   [NotificationType.ERROR]:   <XCircle className="w-5 h-5" />,
   [NotificationType.WARNING]: <AlertCircle className="w-5 h-5" />,

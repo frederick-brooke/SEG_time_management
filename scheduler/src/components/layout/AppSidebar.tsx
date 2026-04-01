@@ -15,6 +15,7 @@ import { checkUpcomingDeadlines } from "@/app/actions/examNotifications";
 import { getNotifications } from "@/app/actions/notifications";
 import { ToastContainer } from "../ui/ToastContainer";
 import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";
+import { Button } from "../ui/Button";
 
 import {
   IconDashboard,

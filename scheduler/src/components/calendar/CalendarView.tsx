@@ -25,6 +25,7 @@ import CalendarBody from "./CalendarBody";
 import { useCalendarData } from "@/hooks/useCalendarData";
 import { useSchedule } from "@/hooks/useSchedule";
 import { useCalendarInteractions } from "@/hooks/useCalendarInteractions";
+import { Button } from "../ui/Button";
 
 const localizer = dateFnsLocalizer({
   format,

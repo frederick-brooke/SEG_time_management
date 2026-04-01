@@ -11,7 +11,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { resolveAvatarSrc } from "@/lib/avatar";
-
+import { Button } from "../ui/Button";
 
 type User = { id: string; username: string; fname?: string | null; pfp?: string | null };
 

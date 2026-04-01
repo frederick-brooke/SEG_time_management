@@ -1,3 +1,5 @@
+import { Button } from "../ui/Button";
+
 /**
  * Confirmation modal for permanently deleting a task.
  * @param {boolean} isOpen Whether the dialog is visible or not.

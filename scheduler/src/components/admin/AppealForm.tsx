@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, ShieldOff, X } from "lucide-react";
+import { Button } from "../ui/Button";
 
 /**
  * AppealForm

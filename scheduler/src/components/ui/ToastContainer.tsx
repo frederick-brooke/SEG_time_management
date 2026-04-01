@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { CheckCircle, AlertCircle, Info, X } from "lucide-react";
+import { Button } from "./Button";
 
 interface Toast {
   id: string;

@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ModuleDetailClient from "../ModuleDetailClient";
@@ -12,7 +13,6 @@ import {
   deleteModuleTask,
   deleteModuleEvent,
 } from "@/app/actions/module";
-import { Button } from "@/components/ui/Button";
 
 // Mocks
 const mockRefresh = jest.fn();

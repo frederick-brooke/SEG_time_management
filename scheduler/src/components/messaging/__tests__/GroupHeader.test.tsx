@@ -1,5 +1,6 @@
 //tests for scheduler/src/components/messaging/GroupHeader.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { GroupHeader } from "../GroupHeader";
 

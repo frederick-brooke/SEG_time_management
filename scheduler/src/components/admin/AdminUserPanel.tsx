@@ -1,3 +1,5 @@
+import { Button } from "../ui/Button";
+
 /**
  * Displays detailed information about a selected user.
  *

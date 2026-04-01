@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { LunarCard } from "@/components/ui/LunarCard";
 import { createPortal } from "react-dom";
+import { Button } from "../ui/Button";
 
 /**
  * ReportModal
@@ -160,7 +161,7 @@ function ReasonSelect({ value, onChange }) {
 			<label className="text-xs text-white/60 uppercase mb-2 block">
 				Reason
 			</label>
-			<Select
+			<select
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 				className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white"
@@ -170,7 +171,7 @@ function ReasonSelect({ value, onChange }) {
 				<option value="HARASSMENT">Harassment</option>
 				<option value="INAPPROPRIATE_CONTENT">Inappropriate Content</option>
 				<option value="OTHER">Other</option>
-			</Select>
+			</select>
 		</div>
 	);
 }

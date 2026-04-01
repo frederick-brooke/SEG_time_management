@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 /**
  * Client-side Modules page.
@@ -13,7 +14,6 @@ import CreateModule from "@/components/modules/CreateModule";
 import JoinModule from "@/components/modules/JoinModule";
 import { Plus, LogIn, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
-import { Button } from "@/components/ui/Button";
 
 
 // Global constants for pagination sizing and sorting keys.

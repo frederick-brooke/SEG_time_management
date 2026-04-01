@@ -11,6 +11,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { validatePassword } from "@/lib/password";
 import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {

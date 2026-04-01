@@ -9,6 +9,7 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { Button } from "../ui/Button";
 
 type Participant = {
   user: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null };

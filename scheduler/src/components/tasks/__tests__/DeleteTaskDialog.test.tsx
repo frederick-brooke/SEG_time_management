@@ -1,8 +1,8 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
 import { Delete } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 
 /**
  * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.

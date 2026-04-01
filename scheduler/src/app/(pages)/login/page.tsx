@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, LogIn, Loader2 } from "lucide-react";
 import BannedPage from "@/components/admin/BanMessagePage";
+import { Button } from "@/components/ui/Button";
 
 interface FormInputProps {
   label: string;

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { updateUserLocation } from "@/app/actions/updateUserLocation";
+import { Button } from "../ui/Button";
 import L from "leaflet";
 
 interface LatLng {

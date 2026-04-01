@@ -23,6 +23,7 @@ import WellbeingPanel from "@/components/wellbeing/WellbeingPanel";
 import { RocketProgress } from "@/components/ui/RocketProgress";
 import { useTasks } from "@/hooks/useTasks";
 import { CalendarEvents } from "@/components/calendar/CalendarEvents";
+import { Button } from "@/components/ui/Button";
 
 function DashboardContent() {
   // Session + auth state

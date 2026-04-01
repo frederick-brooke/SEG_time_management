@@ -2,6 +2,7 @@
  * Pure presentation component for displaying group overviews.
  */
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import Link from "next/link";
 import { Users, Crown } from "lucide-react";

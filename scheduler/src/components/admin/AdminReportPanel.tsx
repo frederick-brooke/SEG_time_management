@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "../ui/Button";
 
 /**
  * Displays detailed information about a selected report and allows moderators to take action

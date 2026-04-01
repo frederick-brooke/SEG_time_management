@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Timer from "../Timer";
 import React from "react";
+import { Button } from "@/components/ui/Button";
 
 // ---- mocks ----
 

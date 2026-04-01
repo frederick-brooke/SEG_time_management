@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState, useTransition } from "react";
 import { createModule } from "@/app/actions/module";

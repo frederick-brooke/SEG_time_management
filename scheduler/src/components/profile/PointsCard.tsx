@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { Zap, Star } from "lucide-react";
 import { GoldCoin } from "@/components/ui/GoldCoin";

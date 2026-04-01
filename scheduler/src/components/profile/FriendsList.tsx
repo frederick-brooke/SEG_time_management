@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { Users, X, UserMinus } from "lucide-react";
 import { resolveAvatarSrc } from "@/lib/avatar";

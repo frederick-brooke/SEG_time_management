@@ -23,6 +23,7 @@ import GlowBackground from "@/components/ui/GlowBackground";
 import GlassCard from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Main admin dashboard component managing users, reports, and appeals with filtering and pagination.

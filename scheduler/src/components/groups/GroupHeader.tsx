@@ -1,5 +1,5 @@
 'use client';
-
+import { Button } from "@/components/ui/Button";
 import { Users, ListTodo, Calendar, Trash, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { leaveGroup, deleteGroup } from "@/app/actions/groups";

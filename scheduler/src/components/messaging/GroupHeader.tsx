@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "../ui/Button";
+
 /**
  * @file GroupHeader.tsx
  * @description Header bar rendered at the top of a group conversation view.

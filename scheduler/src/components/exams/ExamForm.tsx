@@ -10,6 +10,7 @@ import { createExam, updateExamSettings } from "@/app/actions/examActions";
 import { createNotification } from "@/app/actions/notifications";
 import { NotificationType } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { Button } from "../ui/Button";
 
 
 const formatTime = (date: Date | string | undefined) => {

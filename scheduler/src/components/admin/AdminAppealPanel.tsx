@@ -1,5 +1,6 @@
 "use client"
 import { useState, useCallback } from "react";
+import { Button } from "../ui/Button";
 
 /**
  * Displays detailed information about a selected appeal

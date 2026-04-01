@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, act, waitFor } from "@testing-library/react";
 import { UnifiedMapLayer } from "@/components/map/UnifiedMapLayer";
 import { MapEvent } from "@/lib/map";

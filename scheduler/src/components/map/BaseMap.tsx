@@ -10,6 +10,7 @@ import { MAP_HEIGHT } from "@/lib/map/constants";
 interface LocationControllerProps {
   /** The latitude and longitude to center the map on */
   center: [number, number];
+  zoom: number;
 }
 
 /**
@@ -18,7 +19,7 @@ interface LocationControllerProps {
  *
  * @param {LocationControllerProps} props - Component properties
  */
-export function LocationController({ center }: LocationControllerProps) {
+export function LocationController({ center, zoom }: LocationControllerProps) {
   const map = useMap();
   const isFirstRender = useRef(true);
 
@@ -31,7 +32,7 @@ export function LocationController({ center }: LocationControllerProps) {
 
     // Only pan if a valid center is provided
     if (Array.isArray(center) && center.length === 2) {
-      map.panTo(center);
+      map.setView(center, zoom);
     } else {
       console.warn("Invalid center provided to LocationController:", center);
     }
@@ -88,7 +89,7 @@ export function BaseMap({
       />
 
       {/* Handles dynamic panning when `center` changes */}
-      <LocationController center={center} />
+      <LocationController center={center} zoom={zoom}/>
 
       {/* Render any child layers/components passed into the map */}
       {children}

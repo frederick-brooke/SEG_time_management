@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { Calendar, Pencil, Trash2 } from "lucide-react";
 import { formatEventDate } from "@/lib/format";

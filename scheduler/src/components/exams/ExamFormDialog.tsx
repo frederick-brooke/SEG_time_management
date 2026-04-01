@@ -7,6 +7,7 @@
 
 import React, { useState } from "react";
 import ExamForm from "./ExamForm";
+import { Button } from "../ui/Button";
 
 /**
  * A dialog wrapper which toggle the visibility of the ExamForm

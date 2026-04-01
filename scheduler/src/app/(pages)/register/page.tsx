@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { validatePassword } from "@/lib/password";
+import { Button } from "@/components/ui/Button";
 
 // ── DRY UI Sub-Components ───
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {

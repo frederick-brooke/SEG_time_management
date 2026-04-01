@@ -13,6 +13,7 @@ import { useSession } from "next-auth/react";
 import PusherClient from "pusher-js";
 import { CreateGroupModal } from "@/components/messaging/CreateGroupModal";
 import { ConversationRow, type Conversation } from "./ConversationRow";
+import { Button } from "../ui/Button";
 
 const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
   cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,

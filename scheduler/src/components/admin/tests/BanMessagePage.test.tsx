@@ -3,9 +3,9 @@
  * Full coverage for BannedPage, BanInfo, and AppealForm.
  */
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import BannedPage from "../BanMessagePage";
-import { Button } from "@/components/ui/Button";
 
 // Mock next-auth
 const updateMock = jest.fn();

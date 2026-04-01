@@ -15,6 +15,8 @@ import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, He
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import SetLocationModal from "@/components/map/SetLocationModal";
 import { TabKey } from "@/types/settings";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 
 interface SettingsClientProps {
   user: {
@@ -37,9 +39,9 @@ function FormInput({ label, type = "text", name, defaultValue, required, pattern
     <div className="space-y-2">
       <label className="lunar-label block">{label}</label>
       {options ? (
-        <Select name={name} defaultValue={defaultValue} className={inputCls}>
+        <select name={name} defaultValue={defaultValue} className={inputCls}>
           {options.map((opt: any) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </Select>
+        </select>
       ) : (
         <input type={type} name={name} defaultValue={defaultValue} required={required} pattern={pattern} minLength={minLength} className={inputCls} />
       )}

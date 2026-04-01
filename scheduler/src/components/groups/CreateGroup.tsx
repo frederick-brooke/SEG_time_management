@@ -2,6 +2,7 @@
  * Modal interface for group creation and initial member selection.
  */
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState, useEffect } from "react";
 import { X, Users, Check } from "lucide-react";

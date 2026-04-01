@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LunarCard } from "@/components/ui/LunarCard";
+import { Button } from "@/components/ui/Button";
 
 const DAYS = [
   { label: "Monday",    abbr: "Mon" },

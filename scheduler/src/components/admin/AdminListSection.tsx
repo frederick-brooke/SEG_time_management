@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FunnelXIcon } from "lucide-react";
+import { Button } from "../ui/Button";
 
 /**
  * Shared layout for the users, reports and appeals sections

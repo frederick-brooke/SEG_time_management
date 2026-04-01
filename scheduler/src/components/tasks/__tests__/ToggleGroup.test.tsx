@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 
 const toggleVariantsMock = jest.fn((_args: { variant?: string; size?: string }) => "toggle-variants-class");

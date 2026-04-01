@@ -1,6 +1,6 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
 import { Button } from "@/components/ui/Button";
+import { render, screen } from "@testing-library/react";
 
 // --- Mock Button so we can assert variant/size/asChild ---
 const ButtonMock = jest.fn(({ variant, size, asChild, children }) => (

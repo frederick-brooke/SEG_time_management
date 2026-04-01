@@ -1,4 +1,5 @@
 import { IconX } from "@tabler/icons-react";
+import { Button } from "../ui/Button";
 
 /**
  * Panel

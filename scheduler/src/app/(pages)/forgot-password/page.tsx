@@ -9,6 +9,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

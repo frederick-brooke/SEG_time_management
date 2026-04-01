@@ -11,6 +11,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import UserSearch from "components/messaging/UserSearch";
 import ConversationList from "components/messaging/ConversationList";
+import { Button } from "@/components/ui/Button";
 
 function useIsMobile(breakpoint = 768) {
   const [isMobile, setIsMobile] = useState(false);

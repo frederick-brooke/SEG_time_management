@@ -13,6 +13,7 @@ import {
 import { PRIORITY_TEXT } from "@/lib/ui";
 import type { ScheduleState } from "@/hooks/useSchedule";
 import FutureTasksPanel from "./FutureTasksPanel";
+import { Button } from "../ui/Button";
 
 interface Props {
   state: ScheduleState;
