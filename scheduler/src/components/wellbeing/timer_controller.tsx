@@ -22,7 +22,7 @@ import { useUI } from "@/context/UIContext";
  * @returns {JSX.Element} Timer controller with reminder modal
  */
 export default function TimerController({ initialReminderAt = null }) {
-    const [reminderAtTime] = useState(initialReminderAt);
+    const [reminderAtTime, setReminderAtTime] = useState(initialReminderAt);
     const [showReminderModal, setShowReminderModal] = useState(false);
 
     const { setWellbeingOpen } = useUI();

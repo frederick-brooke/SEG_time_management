@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useTimer } from "@/hooks/useTimer";
 
 import Reminders from "./reminders";
@@ -22,7 +22,7 @@ import GlassCard from "../ui/glassCard";
  *
  * @returns {JSX.Element} Timer UI block
  */
-export default function Timer({storageKey, onTick}) {
+export default function Timer({ storageKey, onTick }) {
     useEffect(() => {
         console.log("Timer mounted");
     }, []);
@@ -31,34 +31,37 @@ export default function Timer({storageKey, onTick}) {
     const [timeInput, setTimeInput] = useState("00:00:00");
 
     const {
-        time: { hours, minutes, seconds}, 
-        isRunning, 
-        hasStarted, 
+        time: { hours, minutes, seconds },
+        isRunning,
+        hasStarted,
         startTimer, pauseTimer, resumeTimer, stopTimer, remainingMs,
-    } = useTimer({storageKey, onTick});
+    } = useTimer({ storageKey, onTick });
 
     const [reminderOffsetMs, setReminderOffsetMs] = useState(null);
     const [reminderFired, setReminderFired] = useState(null);
-
     const [reminderFireAt, setReminderAt] = useState(null);
 
     useEffect(() => {
-        if(
-            reminderFireAt !== null && remainingMs <= reminderFireAt
-        ){
+        if (reminderFireAt !== null && remainingMs <= reminderFireAt) {
             setReminderFired(true);
             setReminderOffsetMs(null);
             console.log("Alert fired");
         }
-    }, [remainingMs, reminderFireAt]);
+    }, [remainingMs, reminderFireAt]); // fixed: reminderFireAt added to deps
 
-	const handleStart = (durationMs: number) => {
+    /**
+     * Calculates reminder trigger threshold from offset, starts the timer,
+     * and notifies the backend API.
+     *
+     * @param {number} durationMs - Total session duration in milliseconds
+     */
+    const handleStart = (durationMs: number) => {
         if (reminderOffsetMs !== null) {
             setReminderAt(durationMs - reminderOffsetMs);
         }
- 
+
         startTimer(durationMs);
- 
+
         fetch("/api/wellbeing/timer", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -70,18 +73,13 @@ export default function Timer({storageKey, onTick}) {
 
     return (
         <div className="time_wrapper">
-            <TimeInput timeInput={timeInput} setTimeInput={setTimeInput} startTimer={handleStart} isRunning={isRunning} stopTimer={stopTimer} hours={hours} minutes={minutes} seconds={seconds} pauseTimer={pauseTimer} hasStarted={hasStarted} resumeTimer={resumeTimer}/>
+            <TimeInput timeInput={timeInput} setTimeInput={setTimeInput} startTimer={handleStart} isRunning={isRunning} stopTimer={stopTimer} hours={hours} minutes={minutes} seconds={seconds} pauseTimer={pauseTimer} hasStarted={hasStarted} resumeTimer={resumeTimer} />
 
-            <Reminders
-                isRunning={isRunning}
-                remainingMs={remainingMs}
-                setReminderOffsetMs={setReminderOffsetMs}
-                reminderFired={reminderFired}
-            />
+            <Reminders isRunning={isRunning} remainingMs={remainingMs} setReminderOffsetMs={setReminderOffsetMs} reminderFired={reminderFired} />
 
             {/* Wellbeing Tip */}
             <p className="lunar-page-subtitle text-s text-center">
-              Tip: Set a reminder to take a drink - Hydration is important.
+                Tip: Set a reminder to take a drink - Hydration is important.
             </p>
         </div>
     );
@@ -94,21 +92,20 @@ export default function Timer({storageKey, onTick}) {
  * - Time input (HH:MM:SS)
  * - Displaying countdown when running
  * - Timer control buttons (start, pause, resume, stop)
- * - Sending duration to backend API
  *
  * @param {Object} props
  * @returns {JSX.Element}
  */
-function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, hours, minutes, seconds, pauseTimer, hasStarted, resumeTimer}) {
-    const format = (n) => String(n).padStart(2, "0");   //helper function to format numbers as two-digit strings
+function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, hours, minutes, seconds, pauseTimer, hasStarted, resumeTimer }) {
+    const format = (n) => String(n).padStart(2, "0"); // helper to format numbers as two-digit strings
 
-    useEffect(() => {   //reset the time input when timer hasn't started
+    useEffect(() => { // reset the time input when timer hasn't started
         if (!hasStarted) {
-            setTimeInput("00:00:00");    //default time at the start
+            setTimeInput("00:00:00"); // default time at the start
         }
     }, [hasStarted]);
 
-    //function to submit the time and start it via the API
+    // Parses the time input and delegates to handleStart (which also notifies the API)
     const submitTime = () => {
         const [h, m, s] = timeInput.split(":").map(Number);
         const durationMs = ((h * 60 + m) * 60 + (s || 0)) * 1000;
@@ -116,111 +113,122 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
     };
 
     return (
-		<div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-6">
 
-			{/* Section Header */}
-			<div className="text-center">
-				<h2 className="lunar-label text-xl font-semibold text-white">
-				Focus Session
-				</h2>
+            {/* Section Header */}
+            <div className="text-center">
+                <h2 className="lunar-label text-xl font-semibold text-white">
+                    Focus Session
+                </h2>
 
-				{!hasStarted && (
-					<p className="lunar-page-subtitle text-white-500 text-sm mt-1 max-w-sm">
-						Set how long you'd like to focus before taking a break.
-					</p>
-				)}
-			</div>
+                {!hasStarted && (
+                    <p className="lunar-page-subtitle text-white-500 text-sm mt-1 max-w-sm">
+                        Set how long you'd like to focus before taking a break.
+                    </p>
+                )}
+            </div>
 
-			{/* Timer Card */}
-			<GlassCard className="lunar-glass flex flex-col items-center gap-6 p-8 w-full max-w-lg mx-auto">
-				{/* Timer Display */}
-				<div className="text-center">
+            {/* Timer Card */}
+            <GlassCard className="lunar-glass flex flex-col items-center gap-6 p-8 w-full max-w-lg mx-auto">
+                {/* Timer Display */}
+                <div className="text-center">
 
-				{hasStarted && (
-					<p className="lunar-page-subtitle text-blue-400 text-s mb-1">
-						Remaining Time
-					</p>
-				)}
+                    {hasStarted && (
+                        <p className="lunar-page-subtitle text-blue-400 text-s mb-1">
+                            Remaining Time
+                        </p>
+                    )}
 
-				{!hasStarted ? (
-					<div className="flex flex-col items-center gap-3">
-						<label className="lunar-label text-blue-400 text-sm mb-1">
-							Session Duration
-						</label>
+                    {!hasStarted ? (
+                        <div className="flex flex-col items-center gap-3">
+                            <label className="lunar-label text-blue-400 text-sm mb-1">
+                                Session Duration
+                            </label>
 
-						<input
-							type="time"
-							step="1"
-							value={timeInput}
-							onChange={(e) => setTimeInput(e.target.value)}
-							className="lunar-input text-center text-2xl font-mono"
-						/>
+                            <input
+                                type="time"
+                                step="1"
+                                value={timeInput}
+                                onChange={(e) => setTimeInput(e.target.value)}
+                                className="lunar-input text-center text-2xl font-mono"
+                            />
 
-						{/* Quick Preset Buttons */}
-						<div className="flex gap-2 flex-wrap justify-center mt-2">
-							{[15, 25, 45].map((m) => (
-								<button
-									key={m}
-									onClick={() =>
-										setTimeInput(`00:${String(m).padStart(2, "0")}:00`)
-									}
-									className="lunar-button-ghost text-xs"
-								>
-									{m} min
-								</button>
-							))}
-						</div>
-					</div>
-				) : (
-					<div className="lunar-label text-white text-5xl tracking-wider">
-						{format(hours)}:{format(minutes)}:{format(seconds)}
-					</div>
-				)}
-				</div>
+                            {/* Quick Preset Buttons */}
+                            <div className="flex gap-2 flex-wrap justify-center mt-2">
+                                {[15, 25, 45].map((m) => (
+                                    <button
+                                        key={m}
+                                        onClick={() =>
+                                            setTimeInput(`00:${String(m).padStart(2, "0")}:00`)
+                                        }
+                                        className="lunar-button-ghost text-xs"
+                                    >
+                                        {m} min
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="lunar-label text-white text-5xl tracking-wider">
+                            {format(hours)}:{format(minutes)}:{format(seconds)}
+                        </div>
+                    )}
+                </div>
 
-				{/* Session Status */}
-				{hasStarted && (
-					<p className="lunar-page-subtitle text-blue-100 text-s">
+                {/* Session Status */}
+                {hasStarted && (
+                    <p className="lunar-page-subtitle text-blue-100 text-s">
+                        {isRunning && "Focus session in progress"}
+                        {!isRunning && "Session paused"}
+                    </p>
+                )}
 
-						{isRunning && "Focus session in progress"}
+                {/* Timer Buttons */}
+                <div className="flex gap-4 p-4 flex-wrap justify-center">
+                    {!hasStarted && (
+                        <button
+                            onClick={submitTime}
+                            className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
+                        >
+                            Start Focus
+                        </button>
+                    )}
 
-						{!isRunning && "Session paused"}
-					</p>
-				)}
+                    {isRunning && (
+                        <button
+                            onClick={pauseTimer}
+                            className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
+                        >
+                            Pause Session
+                        </button>
+                    )}
 
-				{/* Timer Buttons */}
-				<div className="flex gap-4 p-4 flex-wrap justify-center">
-					{!hasStarted && (
-						<button onClick={submitTime} className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition">
-							Start Focus
-						</button>
-					)}
+                    {hasStarted && !isRunning && (
+                        <button
+                            onClick={resumeTimer}
+                            className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
+                        >
+                            Resume Focus
+                        </button>
+                    )}
 
-					{isRunning && (
-						<button onClick={pauseTimer} className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition">
-							Pause Session
-						</button>
-					)}
+                    {hasStarted && (
+                        <button
+                            onClick={stopTimer}
+                            className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition"
+                        >
+                            End Session
+                        </button>
+                    )}
+                </div>
+            </GlassCard>
 
-					{hasStarted && !isRunning && (
-						<button onClick={resumeTimer} className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition">
-							Resume Focus
-						</button>
-					)}
+            {/* Wellbeing Tip */}
+            <p className="lunar-page-subtitle text-white/50 text-xs text-center max-w-xs mt-4">
+                Tip: Taking short breaks every 30–60 minutes improves focus
+                and helps reduce mental fatigue.
+            </p>
 
-					{hasStarted && (
-						<button onClick={stopTimer} className="lunar-button-primary shadow hover:scale-105 active:scale-95 transition">
-							End Session
-						</button>
-					)}
-				</div>
-			</GlassCard>
-
-			{/* Wellbeing Tip */}
-			<p className="lunar-page-subtitle text-white/50 text-xs text-center max-w-xs mt-4">
-				Tip: Taking short breaks every 30–60 minutes improves focus
-				and helps reduce mental fatigue.
-			</p>
-		</div>
-	);
+        </div>
+    );
 }
