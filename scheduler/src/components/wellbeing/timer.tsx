@@ -50,11 +50,27 @@ export default function Timer({storageKey, onTick}) {
             setReminderOffsetMs(null);
             console.log("Alert fired");
         }
-    }, [remainingMs]);
+    }, [remainingMs, reminderFireAt]);
+
+	const handleStart = (durationMs: number) => {
+        if (reminderOffsetMs !== null) {
+            setReminderAt(durationMs - reminderOffsetMs);
+        }
+ 
+        startTimer(durationMs);
+ 
+        fetch("/api/wellbeing/timer", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ durationMs }),
+        }).catch((error) => {
+            console.error("Timer API failed:", error);
+        });
+    };
 
     return (
         <div className="time_wrapper">
-            <TimeInput timeInput={timeInput} setTimeInput={setTimeInput} startTimer={startTimer} isRunning={isRunning} stopTimer={stopTimer} hours={hours} minutes={minutes} seconds={seconds} pauseTimer={pauseTimer} hasStarted={hasStarted} resumeTimer={resumeTimer}/>
+            <TimeInput timeInput={timeInput} setTimeInput={setTimeInput} startTimer={handleStart} isRunning={isRunning} stopTimer={stopTimer} hours={hours} minutes={minutes} seconds={seconds} pauseTimer={pauseTimer} hasStarted={hasStarted} resumeTimer={resumeTimer}/>
 
             <Reminders
                 isRunning={isRunning}
@@ -93,26 +109,10 @@ function TimeInput({ timeInput, setTimeInput, startTimer, isRunning, stopTimer, 
     }, [hasStarted]);
 
     //function to submit the time and start it via the API
-    const submitTime = async () => {
-        const [h, m, s] = timeInput.split(":").map(Number);  //parse hours, minutes and seconds from the time string
-
-        const durationMs = ((h * 60 + m) * 60 + (s || 0)) * 1000;   //total duration in milliseconds
-        
+    const submitTime = () => {
+        const [h, m, s] = timeInput.split(":").map(Number);
+        const durationMs = ((h * 60 + m) * 60 + (s || 0)) * 1000;
         startTimer(durationMs);
-        //calculates remaining time and start countdown
-
-        try {
-            await fetch("/api/wellbeing/timer", {
-                //sends the duration to server API
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ durationMs }),
-            });
-        } catch (error) {
-            console.error("Timer API failed:", error);
-        }
     };
 
     return (
