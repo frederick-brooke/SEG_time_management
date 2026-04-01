@@ -8,13 +8,13 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/animate-ui/components/animate/tooltip";
+} from "@/components/animate-ui/components/animate/Tooltip";
 import {
   Highlight,
   HighlightItem,
-} from "components/animate-ui/primitives/effects/highlight";
-import { sidebarMenuButtonVariants } from "./sidebar.constants";
-import { useSidebar } from "./sidebar.context";
+} from "@/components/animate-ui/primitives/effects/Highlight";
+import { sidebarMenuButtonVariants } from "./Sidebar.constants";
+import { useSidebar } from "./Sidebar.context";
 import type {
   SidebarMenuActionProps,
   SidebarMenuBadgeProps,
@@ -25,7 +25,7 @@ import type {
   SidebarMenuSubButtonProps,
   SidebarMenuSubItemProps,
   SidebarMenuSubProps,
-} from "./sidebar.types";
+} from "./Sidebar.types";
 
 const HighlightItemAny = HighlightItem as React.ComponentType<any>;
 

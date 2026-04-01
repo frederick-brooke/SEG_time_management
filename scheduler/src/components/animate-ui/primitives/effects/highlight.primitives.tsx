@@ -4,8 +4,8 @@ import * as React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Transition } from 'motion/react';
 import { cn } from 'lib/utils';
-import { HighlightContext } from './highlight.context';
-import type { HighlightMode, BoundsOffset, Bounds } from './highlight.context';
+import { HighlightContext } from './Highlight.context';
+import type { HighlightMode, BoundsOffset, Bounds } from './Highlight.context';
 
 // Types 
 

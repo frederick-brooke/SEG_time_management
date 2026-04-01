@@ -22,8 +22,8 @@ import {
   useFloatingContext,
   RenderedTooltipProvider,
   useRenderedTooltip,
-} from './tooltip.context';
-import type { Side, Align, GlobalTooltipData } from './tooltip.context';
+} from './Tooltip.context';
+import type { Side, Align, GlobalTooltipData } from './Tooltip.context';
 
 // Helpers 
 

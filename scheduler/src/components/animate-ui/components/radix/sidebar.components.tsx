@@ -17,9 +17,9 @@ import {
 import {
   Highlight,
   HighlightItem,
-} from "components/animate-ui/primitives/effects/highlight";
-import { SIDEBAR_WIDTH_MOBILE } from "./sidebar.constants";
-import { useSidebar } from "./sidebar.context";
+} from "@/components/animate-ui/primitives/effects/Highlight";
+import { SIDEBAR_WIDTH_MOBILE } from "./Sidebar.constants";
+import { useSidebar } from "./Sidebar.context";
 import type {
   SidebarContentProps,
   SidebarFooterProps,
@@ -34,7 +34,7 @@ import type {
   SidebarRailProps,
   SidebarSeparatorProps,
   SidebarTriggerProps,
-} from "./sidebar.types";
+} from "./Sidebar.types";
 
 const HighlightAny = Highlight as React.ComponentType<any>;
 const HighlightItemAny = HighlightItem as React.ComponentType<any>;

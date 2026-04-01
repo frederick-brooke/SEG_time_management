@@ -2,7 +2,7 @@
 import * as React from "react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TooltipProvider } from "@/components/animate-ui/components/animate/tooltip";
+import { TooltipProvider } from "@/components/animate-ui/components/animate/Tooltip";
 import { getStrictContext } from "lib/get-strict-context";
 import { cn } from "lib/utils";
 import {
@@ -11,8 +11,8 @@ import {
   SIDEBAR_KEYBOARD_SHORTCUT,
   SIDEBAR_WIDTH,
   SIDEBAR_WIDTH_ICON,
-} from "./sidebar.constants";
-import type { SidebarProviderProps } from "./sidebar.types";
+} from "./Sidebar.constants";
+import type { SidebarProviderProps } from "./Sidebar.types";
 type SidebarContextValue = {
   state: "expanded" | "collapsed";
   open: boolean;

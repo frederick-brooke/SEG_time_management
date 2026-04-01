@@ -9,7 +9,7 @@ import {
   TooltipTrigger as TooltipTriggerPrimitive,
   TooltipContent as TooltipContentPrimitive,
   TooltipArrow as TooltipArrowPrimitive,
-} from 'components/animate-ui/primitives/animate/tooltip';
+} from '@/components/animate-ui/primitives/animate/Tooltip';
 import { cn } from 'lib/utils';
 
 type TooltipProviderProps = {

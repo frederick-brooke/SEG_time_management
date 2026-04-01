@@ -23,7 +23,7 @@ jest.mock("@/components/navigation/site-header", () => ({
   SiteHeader: () => <div data-testid="site-header">SiteHeader</div>,
 }));
 
-jest.mock("@/components/animate-ui/components/radix/sidebar.index", () => ({
+jest.mock("@/components/animate-ui/components/radix/Sidebar.index", () => ({
   SidebarProvider: ({ children, open, onOpenChange }: any) => (
     <div data-testid="sidebar-provider" data-open={open} onClick={() => onOpenChange?.(!open)}>
       {children}

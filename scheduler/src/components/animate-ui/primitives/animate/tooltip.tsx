@@ -3,16 +3,16 @@
 import * as React from 'react';
 import { motion } from 'motion/react';
 
-import { Slot } from 'components/animate-ui/primitives/animate/slot';
-import { useGlobalTooltip, useTooltip } from './tooltip.context';
+import { Slot } from '@/components/animate-ui/primitives/animate/Slot';
+import { useGlobalTooltip, useTooltip } from './Tooltip.context';
 import {
   TooltipProvider,
   TooltipPortal,
   TooltipArrow,
   LocalTooltipProvider,
   shallowEqualWithoutChildren,
-} from './tooltip.primitives';
-import type { Side, Align } from './tooltip.context';
+} from './Tooltip.primitives';
+import type { Side, Align } from './Tooltip.context';
 
 // Tooltip 
 
@@ -198,4 +198,4 @@ export {
   TooltipContent,
   TooltipTrigger,
 };
-export { useGlobalTooltip, useTooltip } from './tooltip.context';
+export { useGlobalTooltip, useTooltip } from './Tooltip.context';

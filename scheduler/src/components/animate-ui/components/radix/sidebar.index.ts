@@ -1,4 +1,4 @@
-export { useSidebar, SidebarProvider } from "./sidebar.context";
+export { useSidebar, SidebarProvider } from "./Sidebar.context";
 
 export {
   Sidebar,
@@ -14,7 +14,7 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-} from "./sidebar.components";
+} from "./Sidebar.components";
 
 export {
   SidebarMenu,
@@ -26,4 +26,4 @@ export {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "./sidebar.menu";
+} from "./Sidebar.menu";
