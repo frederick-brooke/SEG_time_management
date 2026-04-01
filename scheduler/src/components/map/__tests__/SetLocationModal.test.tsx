@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import SetLocationModal from "../SetLocationModal";
 import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { useRouter } from "next/navigation";
-import { updateUserLocation } from "@/app/actions/update-user-location";
+import { updateUserLocation } from "@/app/actions/updateUserLocation";
 
 jest.mock("leaflet", () => ({
   divIcon: jest.fn(() => ({ options: {} })),
@@ -15,7 +15,9 @@ jest.mock("leaflet", () => ({
 }));
 
 jest.mock("react-leaflet", () => ({
-  MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
+  MapContainer: ({ children }: any) => (
+    <div data-testid="map-container">{children}</div>
+  ),
   TileLayer: () => null,
   useMap: () => ({
     flyTo: jest.fn(),
@@ -30,7 +32,11 @@ jest.mock("react-leaflet", () => ({
         lng: Array.isArray(position) ? position[1] : position.lng,
       })),
     }));
-    return <div data-testid="map-marker" data-pos={JSON.stringify(position)}>{children}</div>;
+    return (
+      <div data-testid="map-marker" data-pos={JSON.stringify(position)}>
+        {children}
+      </div>
+    );
   }),
 }));
 
@@ -43,7 +49,7 @@ jest.mock("@/lib/map", () => ({
   useLocationSearch: jest.fn(),
 }));
 
-jest.mock("@/app/actions/update-user-location", () => ({
+jest.mock("@/app/actions/updateUserLocation", () => ({
   updateUserLocation: jest.fn(),
 }));
 
@@ -61,260 +67,317 @@ const defaultProps = {
 
 const mockSuggestion = {
   geometry: { coordinates: [-0.1, 51.5] },
-  properties: { name: "London", city: "London", display: "London, UK" },
+  properties: { name: "London", display: "London, UK" },
 };
 
+const mockSuggestionNoCoords = {
+  geometry: {},
+  properties: { name: "Bad", display: "Bad" },
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.useFakeTimers();
+  (useGeolocation as jest.Mock).mockReturnValue({
+    userLocation: [MOCK_LAT, MOCK_LNG],
+  });
+  (useLocationSearch as jest.Mock).mockReturnValue({
+    searchQuery: "",
+    suggestions: [],
+    handleLocationSearch: jest.fn(),
+  });
+  (updateUserLocation as jest.Mock).mockResolvedValue({ success: true });
+  (global.fetch as jest.Mock).mockResolvedValue({
+    ok: true,
+    json: async () => [],
+  });
+});
+
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 /**
- * Tests for SetLocationModal covering all branches:
- * rendering, geolocation, search, suggestion selection,
- * map interaction, save success/failure, and the hidden toggle.
+ * Full test suite for SetLocationModal covering rendering, geolocation,
+ * search input, suggestion selection, map interaction, save lifecycle,
+ * error handling, and the visibility toggle.
  */
 describe("SetLocationModal", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
-    (useGeolocation as jest.Mock).mockReturnValue({ userLocation: [MOCK_LAT, MOCK_LNG] });
-    (useLocationSearch as jest.Mock).mockReturnValue({
-      searchQuery: "",
-      suggestions: [],
-      handleLocationSearch: jest.fn(),
+
+  describe("Rendering", () => {
+    it("renders nothing when isOpen is false", () => {
+      render(<SetLocationModal {...defaultProps} isOpen={false} />);
+      expect(screen.queryByText("Set Your Location")).not.toBeInTheDocument();
     });
-    (updateUserLocation as jest.Mock).mockResolvedValue({ success: true });
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => [] });
+
+    it("renders the modal when isOpen is true", () => {
+      render(<SetLocationModal {...defaultProps} />);
+      expect(screen.getByText("Set Your Location")).toBeInTheDocument();
+    });
+
+    it("renders the search input with correct placeholder", () => {
+      render(<SetLocationModal {...defaultProps} />);
+      expect(
+        screen.getByPlaceholderText("Search for a location...")
+      ).toBeInTheDocument();
+    });
+
+    it("renders the My Location button", () => {
+      render(<SetLocationModal {...defaultProps} />);
+      expect(screen.getByText("📍 My Location")).toBeInTheDocument();
+    });
+
+    it("renders the map container", () => {
+      render(<SetLocationModal {...defaultProps} />);
+      expect(screen.getByTestId("map-container")).toBeInTheDocument();
+    });
+
+    it("renders Cancel and Save Location buttons", () => {
+      render(<SetLocationModal {...defaultProps} />);
+      expect(screen.getByText("Cancel")).toBeInTheDocument();
+      expect(screen.getByText("Save Location")).toBeInTheDocument();
+    });
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
+  describe("Location initialisation", () => {
+    it("initialises marker with geolocation when no initialLocation provided", () => {
+      render(<SetLocationModal {...defaultProps} />);
+      expect(
+        screen.getByTestId("map-marker").getAttribute("data-pos")
+      ).toBe(JSON.stringify([MOCK_LAT, MOCK_LNG]));
+    });
 
-  it("renders nothing when isOpen is false", () => {
-    render(<SetLocationModal {...defaultProps} isOpen={false} />);
-    expect(screen.queryByText("Set Your Location")).not.toBeInTheDocument();
-  });
-
-  it("renders and initializes with geolocation coordinates when no initialLocation", () => {
-    render(<SetLocationModal {...defaultProps} />);
-    expect(screen.getByTestId("map-marker").getAttribute("data-pos")).toBe(
-      JSON.stringify([MOCK_LAT, MOCK_LNG])
-    );
-  });
-
-  it("initializes with initialLocation when provided", () => {
-    render(<SetLocationModal {...defaultProps} initialLocation={{ lat: 48.8, lng: 2.3 }} />);
-    expect(screen.getByTestId("map-marker").getAttribute("data-pos")).toBe(
-      JSON.stringify([48.8, 2.3])
-    );
-  });
-
-  it("falls back to default coordinates when no geolocation and no initialLocation", () => {
-    (useGeolocation as jest.Mock).mockReturnValue({ userLocation: null });
-    render(<SetLocationModal {...defaultProps} />);
-    expect(screen.getByTestId("map-marker").getAttribute("data-pos")).toBe(
-      JSON.stringify([51.505, -0.09])
-    );
-  });
-
-  it("calls onClose when the close button is clicked", () => {
-    const onClose = jest.fn();
-    render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-    fireEvent.click(screen.getByLabelText("Close modal"));
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it("calls onClose when the Cancel button is clicked", () => {
-    const onClose = jest.fn();
-    render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-    fireEvent.click(screen.getByText("Cancel"));
-    expect(onClose).toHaveBeenCalled();
-  });
-
-  it("calls updateUserLocation and closes on successful save", async () => {
-    const onClose = jest.fn();
-    const mockRefresh = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({ refresh: mockRefresh });
-
-    render(<SetLocationModal {...defaultProps} onClose={onClose} />);
-    fireEvent.click(screen.getByText("Save Location"));
-
-    await waitFor(() => {
-      expect(updateUserLocation).toHaveBeenCalledWith(
-        expect.objectContaining({
-          latitude: MOCK_LAT,
-          longitude: MOCK_LNG,
-          locationHidden: false,
-        })
+    it("initialises marker with initialLocation when provided", () => {
+      render(
+        <SetLocationModal
+          {...defaultProps}
+          initialLocation={{ lat: 48.8, lng: 2.3 }}
+        />
       );
+      expect(
+        screen.getByTestId("map-marker").getAttribute("data-pos")
+      ).toBe(JSON.stringify([48.8, 2.3]));
     });
 
-    expect(onClose).toHaveBeenCalled();
-    expect(mockRefresh).toHaveBeenCalled();
-  });
-
-  it("shows error message when updateUserLocation returns success: false", async () => {
-    (updateUserLocation as jest.Mock).mockResolvedValue({
-      success: false,
-      error: "Failed to save",
-    });
-
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("Save Location"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Failed to save")).toBeInTheDocument();
+    it("falls back to default coordinates when no geolocation and no initialLocation", () => {
+      (useGeolocation as jest.Mock).mockReturnValue({ userLocation: null });
+      render(<SetLocationModal {...defaultProps} />);
+      expect(
+        screen.getByTestId("map-marker").getAttribute("data-pos")
+      ).toBe(JSON.stringify([51.505, -0.09]));
     });
   });
 
-  it("shows fallback error message when result.error is undefined", async () => {
-    (updateUserLocation as jest.Mock).mockResolvedValue({ success: false });
+  describe("Close behaviour", () => {
+    it("calls onClose when the ✕ button is clicked", () => {
+      const onClose = jest.fn();
+      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
+      fireEvent.click(screen.getByLabelText("Close modal"));
+      expect(onClose).toHaveBeenCalled();
+    });
 
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("Save Location"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Failed to save location")).toBeInTheDocument();
+    it("calls onClose when the Cancel button is clicked", () => {
+      const onClose = jest.fn();
+      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
+      fireEvent.click(screen.getByText("Cancel"));
+      expect(onClose).toHaveBeenCalled();
     });
   });
 
-  it("shows error message when updateUserLocation throws", async () => {
-    (updateUserLocation as jest.Mock).mockRejectedValue(new Error("Network error"));
-
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("Save Location"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeInTheDocument();
-    });
-  });
-
-  it("shows generic error when a non-Error is thrown during save", async () => {
-    (updateUserLocation as jest.Mock).mockRejectedValue("unexpected");
-
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("Save Location"));
-
-    await waitFor(() => {
-      expect(screen.getByText("An error occurred")).toBeInTheDocument();
-    });
-  });
-
-  it("toggles the hidden state when the toggle button is clicked", async () => {
-    const onClose = jest.fn();
-    render(<SetLocationModal {...defaultProps} onClose={onClose} initialHidden={false} />);
-
-    fireEvent.click(screen.getByRole("button", { name: /hide location/i }));
-    fireEvent.click(screen.getByText("Save Location"));
-
-    await waitFor(() => {
-      expect(updateUserLocation).toHaveBeenCalledWith(
-        expect.objectContaining({ locationHidden: true })
+  describe("Search input", () => {
+    it("calls handleLocationSearch when the input changes", () => {
+      const handleLocationSearch = jest.fn();
+      (useLocationSearch as jest.Mock).mockReturnValue({
+        searchQuery: "",
+        suggestions: [],
+        handleLocationSearch,
+      });
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.change(
+        screen.getByPlaceholderText("Search for a location..."),
+        { target: { value: "Paris" } }
       );
+      expect(handleLocationSearch).toHaveBeenCalledWith("Paris");
     });
   });
 
-  it("initializes hidden toggle as true when initialHidden is true", async () => {
-    const onClose = jest.fn();
-    render(<SetLocationModal {...defaultProps} onClose={onClose} initialHidden={true} />);
-    fireEvent.click(screen.getByText("Save Location"));
+  describe("Suggestions dropdown", () => {
+    it("renders suggestion display text when suggestions are present", () => {
+      (useLocationSearch as jest.Mock).mockReturnValue({
+        searchQuery: "Lon",
+        suggestions: [mockSuggestion],
+        handleLocationSearch: jest.fn(),
+      });
+      render(<SetLocationModal {...defaultProps} />);
+      expect(screen.getByText("London, UK")).toBeInTheDocument();
+    });
 
-    await waitFor(() => {
-      expect(updateUserLocation).toHaveBeenCalledWith(
-        expect.objectContaining({ locationHidden: true })
+    it("adds data-testid to each suggestion button", () => {
+      (useLocationSearch as jest.Mock).mockReturnValue({
+        searchQuery: "Lon",
+        suggestions: [mockSuggestion],
+        handleLocationSearch: jest.fn(),
+      });
+      render(<SetLocationModal {...defaultProps} />);
+      expect(screen.getByTestId("suggestion-0")).toBeInTheDocument();
+    });
+
+    it("calls handleLocationSearch with empty string when a valid suggestion is selected", () => {
+      const handleLocationSearch = jest.fn();
+      (useLocationSearch as jest.Mock).mockReturnValue({
+        searchQuery: "Lon",
+        suggestions: [mockSuggestion],
+        handleLocationSearch,
+      });
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByTestId("suggestion-0"));
+      expect(handleLocationSearch).toHaveBeenCalledWith("");
+      act(() => jest.advanceTimersByTime(100));
+    });
+
+    it("does not call handleLocationSearch when suggestion has no coordinates", () => {
+      const handleLocationSearch = jest.fn();
+      (useLocationSearch as jest.Mock).mockReturnValue({
+        searchQuery: "Bad",
+        suggestions: [mockSuggestionNoCoords],
+        handleLocationSearch,
+      });
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByTestId("suggestion-0"));
+      expect(handleLocationSearch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("My Location button", () => {
+    it("updates the marker to user geolocation when clicked", () => {
+      render(<SetLocationModal {...defaultProps} initialLocation={{ lat: 0, lng: 0 }} />);
+      fireEvent.click(screen.getByText("📍 My Location"));
+      expect(
+        screen.getByTestId("map-marker").getAttribute("data-pos")
+      ).toBe(JSON.stringify([MOCK_LAT, MOCK_LNG]));
+      act(() => jest.advanceTimersByTime(100));
+    });
+
+    it("does nothing when userLocation is null", () => {
+      (useGeolocation as jest.Mock).mockReturnValue({ userLocation: null });
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByText("📍 My Location"));
+      expect(
+        screen.getByTestId("map-marker").getAttribute("data-pos")
+      ).toBe(JSON.stringify([51.505, -0.09]));
+    });
+  });
+
+  describe("Visibility toggle", () => {
+    it("shows Visible when initialHidden is false", () => {
+      render(<SetLocationModal {...defaultProps} initialHidden={false} />);
+      expect(screen.getByText("Visible")).toBeInTheDocument();
+    });
+
+    it("shows Hidden when initialHidden is true", () => {
+      render(<SetLocationModal {...defaultProps} initialHidden={true} />);
+      expect(screen.getByText("Hidden")).toBeInTheDocument();
+    });
+
+    it("toggles to hidden when the visibility button is clicked", async () => {
+      const onClose = jest.fn();
+      render(
+        <SetLocationModal {...defaultProps} onClose={onClose} initialHidden={false} />
       );
+      fireEvent.click(screen.getByRole("button", { name: /hide location/i }));
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(updateUserLocation).toHaveBeenCalledWith(
+          expect.objectContaining({ locationHidden: true })
+        );
+      });
+    });
+
+    it("saves with locationHidden true when initialHidden is true", async () => {
+      const onClose = jest.fn();
+      render(
+        <SetLocationModal {...defaultProps} onClose={onClose} initialHidden={true} />
+      );
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(updateUserLocation).toHaveBeenCalledWith(
+          expect.objectContaining({ locationHidden: true })
+        );
+      });
     });
   });
 
-  it("updates search query when input changes", () => {
-    const handleLocationSearch = jest.fn();
-    (useLocationSearch as jest.Mock).mockReturnValue({
-      searchQuery: "",
-      suggestions: [],
-      handleLocationSearch,
+  describe("Save", () => {
+    it("calls updateUserLocation with correct coordinates on save", async () => {
+      const onClose = jest.fn();
+      const mockRefresh = jest.fn();
+      (useRouter as jest.Mock).mockReturnValue({ refresh: mockRefresh });
+      render(<SetLocationModal {...defaultProps} onClose={onClose} />);
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(updateUserLocation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            latitude: MOCK_LAT,
+            longitude: MOCK_LNG,
+            locationHidden: false,
+          })
+        );
+      });
+      expect(onClose).toHaveBeenCalled();
+      expect(mockRefresh).toHaveBeenCalled();
     });
 
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.change(screen.getByPlaceholderText("Search for a location..."), {
-      target: { value: "Paris" },
+    it("shows Saving… and disables both buttons while saving", async () => {
+      let resolveSave!: (v: any) => void;
+      (updateUserLocation as jest.Mock).mockReturnValue(
+        new Promise((res) => { resolveSave = res; })
+      );
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByText("Save Location"));
+      expect(screen.getByText("Saving...")).toBeDisabled();
+      expect(screen.getByText("Cancel")).toBeDisabled();
+      await act(async () => resolveSave({ success: true }));
     });
 
-    expect(handleLocationSearch).toHaveBeenCalledWith("Paris");
-  });
-
-  it("renders suggestions dropdown when suggestions are present", () => {
-    (useLocationSearch as jest.Mock).mockReturnValue({
-      searchQuery: "Lon",
-      suggestions: [mockSuggestion],
-      handleLocationSearch: jest.fn(),
+    it("shows error when updateUserLocation returns success false", async () => {
+      (updateUserLocation as jest.Mock).mockResolvedValue({
+        success: false,
+        error: "Failed to save",
+      });
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(screen.getByText("Failed to save")).toBeInTheDocument();
+      });
     });
 
-    render(<SetLocationModal {...defaultProps} />);
-    expect(screen.getByText("London")).toBeInTheDocument();
-    expect(screen.getByText("London, UK")).toBeInTheDocument();
-  });
-
-  it("selects a suggestion and updates the map location", () => {
-    const handleLocationSearch = jest.fn();
-    (useLocationSearch as jest.Mock).mockReturnValue({
-      searchQuery: "Lon",
-      suggestions: [mockSuggestion],
-      handleLocationSearch,
+    it("shows fallback error when result.error is undefined", async () => {
+      (updateUserLocation as jest.Mock).mockResolvedValue({ success: false });
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(screen.getByText("Failed to save location")).toBeInTheDocument();
+      });
     });
 
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("London"));
-
-    expect(handleLocationSearch).toHaveBeenCalledWith("");
-
-    act(() => jest.advanceTimersByTime(100));
-  });
-
-  it("ignores suggestion click when feature has no coordinates", () => {
-    const handleLocationSearch = jest.fn();
-    const badSuggestion = { geometry: {}, properties: { name: "Bad", display: "Bad" } };
-
-    (useLocationSearch as jest.Mock).mockReturnValue({
-      searchQuery: "Bad",
-      suggestions: [badSuggestion],
-      handleLocationSearch,
+    it("shows error message when updateUserLocation throws", async () => {
+      (updateUserLocation as jest.Mock).mockRejectedValue(
+        new Error("Network error")
+      );
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(screen.getByText("Network error")).toBeInTheDocument();
+      });
     });
 
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByTestId("suggestion-0"));
-    expect(handleLocationSearch).not.toHaveBeenCalled();
-  });
-
-  it("sets location to user geolocation when 'My Location' is clicked", () => {
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("📍 My Location"));
-
-    expect(screen.getByTestId("map-marker").getAttribute("data-pos")).toBe(
-      JSON.stringify([MOCK_LAT, MOCK_LNG])
-    );
-
-    act(() => jest.advanceTimersByTime(100));
-  });
-
-  it("does nothing when 'My Location' is clicked but userLocation is null", () => {
-    (useGeolocation as jest.Mock).mockReturnValue({ userLocation: null });
-    render(<SetLocationModal {...defaultProps} />);
-
-    fireEvent.click(screen.getByText("📍 My Location"));
-    expect(screen.getByTestId("map-marker").getAttribute("data-pos")).toBe(
-      JSON.stringify([51.505, -0.09])
-    );
-  });
-
-  it("disables save and cancel buttons while saving", async () => {
-    let resolveSave!: (v: any) => void;
-    (updateUserLocation as jest.Mock).mockReturnValue(
-      new Promise((res) => { resolveSave = res; })
-    );
-
-    render(<SetLocationModal {...defaultProps} />);
-    fireEvent.click(screen.getByText("Save Location"));
-
-    expect(screen.getByText("Saving...")).toBeDisabled();
-    expect(screen.getByText("Cancel")).toBeDisabled();
-
-    await act(async () => resolveSave({ success: true }));
+    it("shows generic error when a non-Error is thrown", async () => {
+      (updateUserLocation as jest.Mock).mockRejectedValue("unexpected");
+      render(<SetLocationModal {...defaultProps} />);
+      fireEvent.click(screen.getByText("Save Location"));
+      await waitFor(() => {
+        expect(screen.getByText("An error occurred")).toBeInTheDocument();
+      });
+    });
   });
 });

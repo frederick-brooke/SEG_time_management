@@ -1,9 +1,10 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TaskViewDialog } from "../TaskViewDialog";
 
 /**
- * Mock Dialog/Label/Button via RELATIVE PATHS so alias config isn't required.
+ * Mock Dialog/label/Button via RELATIVE PATHS so alias config isn't required.
  * src/components/tasks/__tests__ -> src/components/ui
  */
 
@@ -15,20 +16,20 @@ jest.mock("../../ui/dialog", () => {
     if (!open) return null;
     return (
       <div data-testid="dialog-root">
-        <button
+        <Button
           type="button"
           data-testid="trigger-open-change-false"
           onClick={() => onOpenChange(false)}
         >
           simulate-close
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           data-testid="trigger-open-change-true"
           onClick={() => onOpenChange(true)}
         >
           simulate-open
-        </button>
+        </Button>
         {children}
       </div>
     );
@@ -71,14 +72,14 @@ jest.mock("../../ui/label", () => {
   };
 });
 
-jest.mock("../../ui/button", () => {
+jest.mock("../../ui/Button", () => {
   const React = require("react");
   return {
     Button: ({ children, onClick, disabled }) => (
-      <button type="button" onClick={onClick} disabled={disabled}>
+      <Button type="button" onClick={onClick} disabled={disabled}>
         {children}
         {disabled && "Loading..."}
-      </button>
+      </Button>
     ),
   };
 });

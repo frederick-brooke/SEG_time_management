@@ -1,4 +1,6 @@
+//tests for scheduler/src/components/messaging/MessageBubble.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { MessageBubble, formatDate } from "../MessageBubble";
 
@@ -35,7 +37,6 @@ function setup(props: Partial<typeof defaultProps> = {}) {
 
 beforeEach(() => jest.clearAllMocks());
 
-/* ------------------------- formatDate ------------------------- */
 
 describe("formatDate", () => {
   it("returns 'Today' for a timestamp from today", () => {
@@ -60,8 +61,6 @@ describe("formatDate", () => {
   });
 });
 
-/* ------------------------- MessageBubble: Date Divider ------------------------- */
-
 describe("MessageBubble – date divider", () => {
   it("does not render when disabled", () => {
     setup({ showDateDivider: false });
@@ -82,8 +81,6 @@ describe("MessageBubble – date divider", () => {
     expect(screen.getByText("Yesterday")).toBeInTheDocument();
   });
 });
-
-/* ------------------------- MessageBubble: Content ------------------------- */
 
 describe("MessageBubble – content", () => {
   it("renders message content", () => {
@@ -118,8 +115,6 @@ describe("MessageBubble – content", () => {
     expect(screen.getByText("Hello world").closest("div.opacity-100")).toBeInTheDocument();
   });
 });
-
-/* ------------------------- MessageBubble: Sender ------------------------- */
 
 describe("MessageBubble – sender", () => {
   it("shows username for first message", () => {
@@ -156,8 +151,6 @@ describe("MessageBubble – sender", () => {
   });
 });
 
-/* ------------------------- MessageBubble: Hover ------------------------- */
-
 describe("MessageBubble – hover", () => {
   it("calls onMouseEnter", () => {
     setup();
@@ -171,8 +164,6 @@ describe("MessageBubble – hover", () => {
     expect(defaultProps.onMouseLeave).toHaveBeenCalled();
   });
 });
-
-/* ------------------------- MessageBubble: Menu ------------------------- */
 
 describe("MessageBubble – menu", () => {
   it("opens menu", () => {
@@ -191,8 +182,6 @@ describe("MessageBubble – menu", () => {
     expect(screen.queryByText("Report")).not.toBeInTheDocument();
   });
 });
-
-/* ------------------------- MessageBubble: ReportModal ------------------------- */
 
 describe("MessageBubble – ReportModal", () => {
   const openModal = () => {

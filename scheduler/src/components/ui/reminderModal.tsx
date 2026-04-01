@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconHeartSpark } from "@tabler/icons-react";
-import { LunarCard } from "./lunar-card";
+import { LunarCard } from "./LunarCard";
 
 export default function ReminderModal({ open, onClose, title, children }) {
   const [portalRoot, setPortalRoot] = useState(null);
@@ -33,13 +33,13 @@ export default function ReminderModal({ open, onClose, title, children }) {
         >
  
           {/* Close button */}
-          <button
+          <Button
             onClick={onClose}
             aria-label="Close"
             className="absolute top-4 right-5 text-white/30 hover:text-white/70 text-lg transition-colors"
           >
             ✕
-          </button>
+          </Button>
  
           {/* Icon badge */}
           <div className="flex justify-center mb-5">
@@ -63,12 +63,12 @@ export default function ReminderModal({ open, onClose, title, children }) {
  
           {/* Confirm action */}
           <div className="flex justify-center">
-            <button
+            <Button
               onClick={onClose}
               className="lunar-page-subtitle px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-bold shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:shadow-[0_0_28px_rgba(59,130,246,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               OK!
-            </button>
+            </Button>
           </div>
  
         </LunarCard>

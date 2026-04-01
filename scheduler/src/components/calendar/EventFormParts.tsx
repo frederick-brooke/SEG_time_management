@@ -115,12 +115,12 @@ export function TaskPromptSection({
         onAdd={handleAdd}
       />
 
-      <button
+      <Button
         onClick={handleSave}
         className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all"
       >
         {linkedTasks.length > 0 ? "Save Tasks & Finish" : "Skip — No Tasks"}
-      </button>
+      </Button>
     </div>
   );
 }

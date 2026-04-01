@@ -26,6 +26,7 @@ import MobileCalendarToolbar from "./MobileCalendarToolbar";
 import { useCalendarData } from "@/hooks/useCalendarData";
 import { useSchedule } from "@/hooks/useSchedule";
 import { useCalendarInteractions } from "@/hooks/useCalendarInteractions";
+import { Button } from "../ui/Button";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -268,18 +269,18 @@ export default function CalendarView({
       <div className="flex-1 min-w-0">
         {/* Desktop: schedule buttons */}
         <div className="hidden lg:flex gap-2 mb-4">
-          <button
+          <Button
             onClick={() => sched.open("day", calendarDate)}
             className="flex-1 bg-gray-900 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-black transition-all"
           >
             Schedule My Day
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => sched.open("week", calendarDate)}
             className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
           >
             Schedule My Week
-          </button>
+          </Button>
         </div>
 
         <CalendarBody

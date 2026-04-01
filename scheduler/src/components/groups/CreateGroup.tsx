@@ -1,10 +1,13 @@
+/**
+ * Modal interface for group creation and initial member selection.
+ */
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState, useEffect } from "react";
 import { X, Users, Check } from "lucide-react";
 import { createGroup, getMyFriendsForGroup } from "@/app/actions/groups";
 
-//section types 
 interface Friend {
   id: string;
   username: string;
@@ -17,8 +20,6 @@ interface CreateGroupProps {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-//section component
 
 /**
  * Modal for creating a new group by selecting friends to add
@@ -34,7 +35,6 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
   const [isLoadingFriends, setIsLoadingFriends] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load friend list on mount
   useEffect(() => {
     getMyFriendsForGroup().then((data) => {
       setFriends(data);
@@ -64,33 +64,29 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
     e.preventDefault();
     setError(null);
 
-    if (!name.trim()) {
-      setError("Group name is required");
-      return;
-    }
-    if (selectedIds.size === 0) {
-      setError("Select at least one friend to add to the group");
-      return;
-    }
+    if (!name.trim()) return setError("Group name is required");
+    if (selectedIds.size === 0) return setError("Select at least one friend to add to the group");
 
     setIsSubmitting(true);
     const result = await createGroup(name, description || null, Array.from(selectedIds));
     setIsSubmitting(false);
 
-    if (result.success) {
-      onSuccess();
-      onClose();
-    } else {
+    if (!result.success) {
       setError(result.error || "Failed to create group");
+      return;
     }
+
+    onSuccess();
+    onClose();
   };
 
   return (
-    <div className="lunar-overlay z-50">
-      <div className="lunar-card max-w-md w-full p-6 max-h-[90vh] overflow-y-auto lunar-scroll">
-
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
+    <div className="lunar-overlay z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div 
+        className="lunar-card max-w-md w-full p-6 max-h-[90vh] overflow-y-auto lunar-scroll flex flex-col"
+        onClick={(e) => e.stopPropagation()} 
+      >
+        <div className="flex items-start justify-between mb-6 shrink-0">
           <div>
             <h2 className="lunar-header text-2xl flex items-center gap-2 text-white">
               <Users size={20} className="text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> 
@@ -98,15 +94,19 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
             </h2>
             <p className="lunar-value text-xs mt-1">Add friends to start collaborating</p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="lunar-item-error px-4 py-3 rounded-xl border text-sm font-medium mb-4 shrink-0">
+            {error}
+          </div>
+        )}
 
-          {/* Group name */}
-          <div>
+        <form onSubmit={handleSubmit} className="space-y-5 flex-1 flex flex-col min-h-0">
+          <div className="shrink-0">
             <label className="lunar-label flex items-center gap-1">
               Group Name <span className="text-red-400">*</span>
             </label>
@@ -121,8 +121,7 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
             />
           </div>
 
-          {/* Description */}
-          <div>
+          <div className="shrink-0">
             <label className="lunar-label flex items-center gap-1">
               Description <span className="text-white/30 lowercase">(optional)</span>
             </label>
@@ -136,9 +135,8 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
             />
           </div>
 
-          {/* Friend picker */}
-          <div>
-            <label className="lunar-label flex items-center gap-1">
+          <div className="flex-1 flex flex-col min-h-0">
+            <label className="lunar-label flex items-center gap-1 shrink-0">
               Add Friends <span className="text-red-400">*</span>
               {selectedIds.size > 0 && (
                 <span className="ml-auto text-[10px] text-blue-400 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">
@@ -154,81 +152,85 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
                 No friends yet — add friends from your profile first
               </p>
             ) : (
-              <div className="max-h-52 overflow-y-auto space-y-2 border border-white/10 bg-white/5 rounded-xl p-2 mt-1 lunar-scroll">
-                {friends.map((friend) => {
-                  const selected = selectedIds.has(friend.id);
-                  return (
-                    <button
-                      key={friend.id}
-                      type="button"
-                      onClick={() => toggleFriend(friend.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left border ${
-                        selected 
-                          ? "bg-blue-500/20 border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.1)]" 
-                          : "bg-white/5 hover:bg-white/10 border-transparent hover:border-white/10"
-                      }`}
-                    >
-                      {/* Avatar */}
-                      <div className="w-9 h-9 bg-[#0a0f1d] border border-white/20 rounded-full overflow-hidden shrink-0">
-                        {friend.pfp ? (
-                          <img src={friend.pfp} alt={friend.username} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white/60 font-black text-xs">
-                            {friend.fname?.[0] || friend.username[0]}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Name */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">
-                          {friend.fname || friend.username} {friend.lname}
-                        </p>
-                        <p className={`text-xs truncate ${selected ? "text-blue-300" : "text-white/40"}`}>
-                          @{friend.username}
-                        </p>
-                      </div>
-
-                      {/* Tick */}
-                      {selected && (
-                        <div className="shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.5)]">
-                          <Check size={12} className="text-white" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="flex-1 overflow-y-auto space-y-2 border border-white/10 bg-white/5 rounded-xl p-2 mt-1 lunar-scroll">
+                {friends.map((friend) => (
+                  <FriendOption 
+                    key={friend.id} 
+                    friend={friend} 
+                    isSelected={selectedIds.has(friend.id)} 
+                    onToggle={() => toggleFriend(friend.id)} 
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {error && (
-            <div className="lunar-item-error px-4 py-3 rounded-xl border text-sm font-medium">
-              {error}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <button
+          <div className="flex gap-3 pt-2 shrink-0">
+            <Button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50 py-3"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting || isLoadingFriends}
               className="flex-1 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:cursor-not-allowed py-3 text-xs"
             >
               {isSubmitting ? "Creating..." : "Create Group"}
-            </button>
+            </Button>
           </div>
-
         </form>
       </div>
     </div>
+  );
+}
+
+/**
+ * Sub-component for rendering individual friend selection rows.
+ * @param {Object} props - The component properties
+ * @param {Friend} props.friend - The friend data object
+ * @param {boolean} props.isSelected - Whether the friend is currently selected
+ * @param {Function} props.onToggle - Callback to toggle selection state
+ * @return {JSX.Element} - The rendered row
+ */
+function FriendOption({ friend, isSelected, onToggle }: { friend: Friend, isSelected: boolean, onToggle: () => void }) {
+  return (
+    <Button
+      type="button"
+      onClick={onToggle}
+      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left border ${
+        isSelected 
+          ? "bg-blue-500/20 border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.1)]" 
+          : "bg-white/5 hover:bg-white/10 border-transparent hover:border-white/10"
+      }`}
+    >
+      <div className="w-9 h-9 bg-[#0a0f1d] border border-white/20 rounded-full overflow-hidden shrink-0">
+        {friend.pfp ? (
+          <img src={friend.pfp} alt={friend.username} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white/60 font-black text-xs">
+            {friend.fname?.[0] || friend.username[0]}
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-white truncate">
+          {friend.fname || friend.username} {friend.lname}
+        </p>
+        <p className={`text-xs truncate ${isSelected ? "text-blue-300" : "text-white/40"}`}>
+          @{friend.username}
+        </p>
+      </div>
+
+      {isSelected && (
+        <div className="shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+          <Check size={12} className="text-white" />
+        </div>
+      )}
+    </Button>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -39,12 +40,12 @@ export default function GroupMembersList({ members, isOwner, groupId }: any) {
 
   return (
     <div className="lunar-card mb-6">
-      <button onClick={() => setShowMembers((v) => !v)} className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors rounded-[2rem]">
+      <Button onClick={() => setShowMembers((v) => !v)} className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors rounded-[2rem]">
         <h2 className="lunar-label flex items-center gap-2 text-sm text-white">
           <Users size={16} className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" /> Members ({members.length})
         </h2>
         {showMembers ? <ChevronUp size={18} className="text-white/50" /> : <ChevronDown size={18} className="text-white/50" />}
-      </button>
+      </Button>
       {showMembers && (
         <div className="px-6 pb-6 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="max-h-64 overflow-y-auto space-y-2 pr-1 lunar-scroll">
@@ -71,9 +72,9 @@ export default function GroupMembersList({ members, isOwner, groupId }: any) {
                     )}
                     
                     {canRemove && (
-                      <button onClick={() => handleRemove(member.user.id)} disabled={updatingId === member.user.id} className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50" title="Remove Member">
+                      <Button onClick={() => handleRemove(member.user.id)} disabled={updatingId === member.user.id} className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50" title="Remove Member">
                         <UserMinus size={14} />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>

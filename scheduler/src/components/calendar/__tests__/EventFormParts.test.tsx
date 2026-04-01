@@ -15,20 +15,20 @@ jest.mock("../LinkedTaskCard", () => ({
   LinkedTaskCard: ({ task, onRemove, onUpdate, index }: any) => (
     <div data-testid={`linked-task-${index}`}>
       <span>{task.title}</span>
-      <button onClick={() => onUpdate(index, { ...task, title: "Updated Task" })}>Update</button>
-      <button onClick={() => onRemove(index)}>Remove</button>
+      <Button onClick={() => onUpdate(index, { ...task, title: "Updated Task" })}>Update</Button>
+      <Button onClick={() => onRemove(index)}>Remove</Button>
     </div>
   ),
 }));
 
 jest.mock("../NewTaskForm", () => ({
   NewTaskForm: ({ onAdd }: any) => (
-    <button
+    <Button
       data-testid="add-task-btn"
       onClick={() => onAdd({ title: "New Task", duration: 60, priority: "Medium" })}
     >
       Add Task
-    </button>
+    </Button>
   ),
 }));
 

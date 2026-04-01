@@ -8,10 +8,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ToDoList } from "@/components/tasks/to-do-list";
+import { ToDoList } from "@/components/tasks/ToDoList";
 import { getExamById, generateExamPlan, updateExamUnavailableDays } from "@/app/actions/examActions";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/Button";
+import { Calendar } from "@/components/ui/Calendar";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 /**
@@ -56,12 +56,12 @@ function TopicRow({ topic, index, onUpdate, onRemove, showRemove }) {
             />
             {/* Circular X button to delete a topic */}
             {showRemove && (
-            <button 
+            <Button 
                 onClick={() => onRemove(index)}
                 className="flex items-center justify-center shrink-0 w-6 h-6 rouded-full bg-red-100 text-red-600 hover:bg-red-500 hover:text-white transition-colors text-[10px]"
             >
                 x
-            </button>
+            </Button>
         )}
     </div>
     );

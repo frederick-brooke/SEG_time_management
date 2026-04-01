@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState } from "react";
 import { X, MapPin } from "lucide-react";
@@ -156,9 +157,9 @@ export default function GroupEventModal({
               {isEditing ? "Changes apply to all members' calendars" : "Added to all members' calendars"}
             </p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -209,7 +210,7 @@ export default function GroupEventModal({
             <label className="lunar-label mb-2 block">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
-                <button
+                <Button
                   key={cat}
                   type="button"
                   onClick={() => handleChange({ category: cat })}
@@ -220,7 +221,7 @@ export default function GroupEventModal({
                   }`}
                 >
                   {cat}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -254,14 +255,14 @@ export default function GroupEventModal({
           )}
 
           <div className="flex gap-3 pt-4 border-t lunar-divider">
-            <button type="button" onClick={onClose} disabled={isSubmitting}
+            <Button type="button" onClick={onClose} disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50 py-3">
               Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting}
+            </Button>
+            <Button type="submit" disabled={isSubmitting}
               className="flex-1 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:cursor-not-allowed py-3">
               {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Create Event"}
-            </button>
+            </Button>
           </div>
 
         </form>

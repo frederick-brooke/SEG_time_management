@@ -6,6 +6,7 @@
  */
 
 import { useState } from "react";
+import { Button } from "../ui/Button";
 
 const TYPE_ICONS: Record<string, string> = {
   HOME: "🏠",
@@ -61,13 +62,13 @@ export default function SaveLocationModal({
         <p className="text-xs font-bold text-white/30 uppercase tracking-wider">
           Save Location
         </p>
-        <button
+        <Button
           type="button"
           onClick={onClose}
           className="text-white/30 hover:text-white/70 text-lg leading-none transition-colors"
         >
           ✕
-        </button>
+        </Button>
       </div>
 
       <p className="text-xs text-white/30 truncate">{address}</p>
@@ -83,7 +84,7 @@ export default function SaveLocationModal({
 
       <div className="flex gap-2">
         {(["HOME", "WORK", "FAVOURITE"] as const).map((t) => (
-          <button
+          <Button
             key={t}
             type="button"
             onClick={() => setType(t)}
@@ -94,18 +95,18 @@ export default function SaveLocationModal({
             }`}
           >
             {TYPE_ICONS[t]} {TYPE_LABELS[t]}
-          </button>
+          </Button>
         ))}
       </div>
 
-      <button
+      <Button
         type="button"
         onClick={handleSave}
         disabled={saving || !label.trim()}
         className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-500 disabled:opacity-40 transition-all"
       >
         {saving ? "Saving…" : "Save"}
-      </button>
+      </Button>
     </div>
   );
 }

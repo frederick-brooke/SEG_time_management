@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { TaskProgressProvider, useTaskProgress } from "../TaskProgressContext";
@@ -15,8 +16,8 @@ function TestComponent() {
       <div data-testid="progress">{progressPercentage}%</div>
       <div data-testid="loading">{isLoading ? "loading" : "done"}</div>
       <div data-testid="tasks-count">{tasks.length}</div>
-      <button onClick={() => refreshProgress("user123")}>Refresh</button>
-      <button onClick={() => triggerProgressUpdate()}>Trigger</button>
+      <Button onClick={() => refreshProgress("user123")}>Refresh</Button>
+      <Button onClick={() => triggerProgressUpdate()}>Trigger</Button>
     </div>
   );
 }

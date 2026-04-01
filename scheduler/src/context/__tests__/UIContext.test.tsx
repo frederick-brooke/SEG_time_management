@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { UIProvider, useUI } from "../UIContext";
 
@@ -16,11 +17,11 @@ function TestComponent() {
     <div>
       <p data-testid="state">{wellbeingOpen ? "open" : "closed"}</p>
 
-      <button
+      <Button
         onClick={() => setWellbeingOpen((prev) => !prev)}
       >
         toggle
-      </button>
+      </Button>
     </div>
   );
 }

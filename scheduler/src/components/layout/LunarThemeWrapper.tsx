@@ -1,5 +1,15 @@
-import StarField from "@/components/effects/starField"
+/**
+ * @file LunarThemeWrapper.tsx
+ * @description Global theme wrapper component.
+ */
+import StarField from "@/components/effects/StarField";
 
+/**
+ * Wraps the application content in the standard Lunar visual theme.
+ * @param {Object} props - Component properties.
+ * @param {React.ReactNode} props.children - The child components or pages to be rendered above the background.
+ * @returns {JSX.Element} The themed application wrapper.
+ */
 export default function LunarThemeWrapper({ children } : { children: React.ReactNode }) {
     return (
         <div className="relative min-h-screen bg-[#030712] text-white/90 overflow-x-hidden selection:bg-blue-500/30 z-10">

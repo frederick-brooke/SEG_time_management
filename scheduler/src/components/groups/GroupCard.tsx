@@ -1,7 +1,12 @@
+/**
+ * Pure presentation component for displaying group overviews.
+ */
 'use client';
+import { Button } from "@/components/ui/Button";
+
 import Link from "next/link";
 import { Users, Crown } from "lucide-react";
-//section types
+
 interface GroupCardProps {
   group: {
     id: string;
@@ -16,7 +21,8 @@ interface GroupCardProps {
     } | null;
   };
 }
-//section component
+
+
 /**
  * Displays a group card with name, description, member count and owner badge
  * @param {GroupCardProps} props - Group data to display

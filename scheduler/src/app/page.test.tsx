@@ -2,6 +2,7 @@
  * Testing for home page.tsx
  */
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import Home from "../app/page";
 

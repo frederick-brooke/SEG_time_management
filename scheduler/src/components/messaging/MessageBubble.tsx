@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Button } from "../ui/Button";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
 
@@ -65,7 +66,7 @@ function SenderAvatar({
 }) {
   if (src)
     return (
-      <Image
+      <img
         src={src}
         alt={username}
         width={28}
@@ -149,7 +150,7 @@ function ReportModal({
           <svg
             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
             width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(148a,163,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            stroke="rgba(148,163,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           >
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -164,19 +165,19 @@ function ReportModal({
         />
 
         <div className="flex justify-end gap-2">
-          <button
+          <Button
             onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg transition-colors border border-white/[0.08] text-[rgba(148,163,255,0.6)] hover:bg-white/[0.04]"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSubmit}
             disabled={!reason || loading}
             className="px-4 py-2 text-sm rounded-lg transition-colors disabled:opacity-40 bg-[rgba(220,50,50,0.7)] text-[rgba(255,220,220,0.95)]"
           >
             {loading ? "Submitting..." : "Submit Report"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -275,7 +276,7 @@ export function MessageBubble({
             {/* Three-dot button — only shown on others' messages */}
             {!isMe && !isOptimistic && (
               <div className="relative">
-                <button
+                <Button
                   onClick={() => setShowMenu((v) => !v)}
                   className={`transition-opacity duration-150 p-1 rounded-full bg-transparent text-[rgba(148,163,255,0.5)] hover:text-[rgba(148,163,255,0.9)] ${isHovered ? "opacity-100" : "opacity-0"}`}
                 >
@@ -284,13 +285,13 @@ export function MessageBubble({
                     <circle cx="8" cy="8" r="1.2" />
                     <circle cx="8" cy="13.5" r="1.2" />
                   </svg>
-                </button>
+                </Button>
 
                 {showMenu && (
                   <div
                     className="absolute top-full left-0 z-40 rounded-xl py-1 min-w-[130px] bg-[rgba(15,20,40,0.97)] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
                   >
-                    <button
+                    <Button
                       onClick={() => {
                         if (reported) return;
                         setShowMenu(false);
@@ -308,7 +309,7 @@ export function MessageBubble({
                         <line x1="12" y1="17" x2="12.01" y2="17"/>
                       </svg>
                       {reported ? "Already reported" : "Report"}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>

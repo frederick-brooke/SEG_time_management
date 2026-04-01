@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 /**
  * Client-side Modules page.
@@ -61,16 +62,16 @@ function Pagination({ page, total, onPageChange }: { page: number; total: number
   
   return (
     <div className="flex items-center justify-center gap-2 mt-8 py-4 border-t border-white/5">
-      <button 
+      <Button 
         onClick={() => onPageChange(page - 1)} 
         disabled={page === 1} 
         className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
       >
         <ChevronLeft size={16} />
-      </button>
+      </Button>
       
       {Array.from({ length: safeTotal }, (_, i) => i + 1).map((p) => (
-        <button 
+        <Button 
           key={p} 
           onClick={() => onPageChange(p)} 
           className={`w-10 h-10 rounded-xl text-[12px] font-bold transition-all border ${
@@ -80,16 +81,16 @@ function Pagination({ page, total, onPageChange }: { page: number; total: number
           }`}
         >
           {p}
-        </button>
+        </Button>
       ))}
       
-      <button 
+      <Button 
         onClick={() => onPageChange(page + 1)} 
         disabled={page === safeTotal} 
         className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
       >
         <ChevronRight size={16} />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -131,12 +132,12 @@ export default function ModulesPageClient({ modules: initialModules }: { modules
             <p className="lunar-page-subtitle">Collaborate with peers on shared goals</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setShowJoin(true)} className="lunar-button-ghost flex items-center gap-2">
+            <Button onClick={() => setShowJoin(true)} className="lunar-button-ghost flex items-center gap-2">
               <LogIn size={16} /> Join
-            </button>
-            <button onClick={() => setShowCreate(true)} className="lunar-button-primary flex items-center gap-2">
+            </Button>
+            <Button onClick={() => setShowCreate(true)} className="lunar-button-primary flex items-center gap-2">
               <Plus size={16} /> Create
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -149,19 +150,19 @@ export default function ModulesPageClient({ modules: initialModules }: { modules
           </div>
           
           <div className="relative">
-            <button onClick={() => setShowSortMenu(!showSortMenu)} className="lunar-button-ghost text-xs flex items-center gap-2">
+            <Button onClick={() => setShowSortMenu(!showSortMenu)} className="lunar-button-ghost text-xs flex items-center gap-2">
               <ArrowUpDown size={14} /> Sort
-            </button>
+            </Button>
             {showSortMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-[#0d1117] border border-white/10 rounded-xl z-20 shadow-2xl overflow-hidden">
                 {SORT_OPTIONS.map((opt) => (
-                  <button 
+                  <Button 
                     key={opt.value} 
                     onClick={() => { setSortKey(opt.value); setPage(1); setShowSortMenu(false); }} 
                     className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors ${sortKey === opt.value ? 'bg-blue-600/20 text-blue-400' : 'text-white/50 hover:bg-white/5 hover:text-white'}`}
                   >
                     {opt.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}

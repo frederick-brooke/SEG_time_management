@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState, useTransition } from "react";
 import { Medal, Flame, Clock, Target, Calendar } from "lucide-react";
@@ -7,6 +8,13 @@ import { useRouter } from "next/navigation";
 import { Timeframe, SortKey, LeaderboardUser } from "@/types/leaderboard";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
+/**
+ * Sorts leaderboard users based on a specified sorting key.
+ *
+ * @param users - The array of user data to sort
+ * @param sortKey - The criteria for sorting
+ * @returns A newly sorted array of users
+ */
 function sortLeaderboardUsers(users: LeaderboardUser[], sortKey: SortKey): LeaderboardUser[] {
   return [...users].sort((a, b) => {
     if (sortKey === 'streak') {
@@ -161,7 +169,7 @@ export default function LeaderboardClient({ initialData, currentTimeframe }: Lea
 
       {/* Column headers — exact same widths/flex as row cells */}
       <div className="flex items-center px-3 sm:px-5 py-2.5 border-b border-white/[0.06] gap-2">
-        <div className="w-7 shrink-0" /> 
+        <div className="w-7 shrink-0" />
         <div className="flex-1 min-w-0 lunar-label !mb-0 text-[10px] sm:text-xs">User</div>
         <div className="w-10 flex justify-center shrink-0">
           <Flame size={12} className="text-orange-400/60" />

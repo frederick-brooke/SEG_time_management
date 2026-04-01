@@ -1,4 +1,6 @@
+//tests for scheduler/src/components/messaging/MembersPanel.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MembersPanel } from "../MembersPanel";
 import { useRouter } from "next/navigation";

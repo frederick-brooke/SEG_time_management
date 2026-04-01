@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ScheduleDrawer from "../ScheduleDrawer";
 
@@ -22,7 +23,7 @@ jest.mock("@/components/ui/drawer", () => ({
   DrawerTitle: ({ children }: any) => <h1>{children}</h1>,
   DrawerDescription: ({ children }: any) => <p>{children}</p>,
   DrawerFooter: ({ children }: any) => <div>{children}</div>,
-  DrawerClose: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
+  DrawerClose: ({ children, onClick }: any) => <Button onClick={onClick}>{children}</Button>,
 }));
 
 // ── Helpers ────────

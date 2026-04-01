@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 // Mocks
@@ -45,8 +46,8 @@ jest.mock("../UnifiedMapLayer", () => ({
 jest.mock("../MapToggle", () => ({
   MapToggle: ({ mode, onChange, friendCount, eventCount }: any) => (
     <div data-testid="map-toggle">
-      <button onClick={() => onChange("events")}>events-btn</button>
-      <button onClick={() => onChange("friends")}>friends-btn</button>
+      <Button onClick={() => onChange("events")}>events-btn</Button>
+      <Button onClick={() => onChange("friends")}>friends-btn</Button>
       <span data-testid="toggle-mode">{mode}</span>
       <span data-testid="toggle-friend-count">{friendCount}</span>
       <span data-testid="toggle-event-count">{eventCount}</span>

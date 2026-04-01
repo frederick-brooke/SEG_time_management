@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { Users, X, UserMinus } from "lucide-react";
 import { resolveAvatarSrc } from "@/lib/avatar";
@@ -23,9 +24,9 @@ export default function FriendsList({
           <Users size={16} className="text-blue-400" />
           {isOwnProfile ? "My Friends" : "Friends"} ({friends?.length || 0})
         </h2>
-        <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+        <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
           <X size={18} />
-        </button>
+        </Button>
       </div>
       {friends && friends.length > 0 ? (
         <div className="max-h-96 overflow-y-auto space-y-2 pr-2 lunar-scroll">
@@ -54,7 +55,7 @@ export default function FriendsList({
                   </div>
                 </Link>
                 {isOwnProfile && (
-                  <button
+                  <Button
                     onClick={(e) => onRemoveFriend(friend.id, e)}
                     disabled={isPending}
                     className={`lunar-item-error flex items-center gap-1 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider flex-shrink-0 ml-2 transition-colors ${
@@ -63,7 +64,7 @@ export default function FriendsList({
                   >
                     <UserMinus size={12} />
                     <span>Remove</span>
-                  </button>
+                  </Button>
                 )}
               </div>
             );

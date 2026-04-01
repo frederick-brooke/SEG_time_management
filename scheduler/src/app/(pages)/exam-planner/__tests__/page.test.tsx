@@ -6,6 +6,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import ExamPlannerPage from "../page";
 import { useSession } from "next-auth/react";
 import { getMyExams, deleteExam } from "@/app/actions/examActions";
+import { Button } from "@/components/ui/Button";
 
 const pushMock = jest.fn();
 jest.mock("next/navigation", () => ({
@@ -21,21 +22,21 @@ jest.mock("@/app/actions/examActions", () => ({
     deleteExam: jest.fn(),
 }));
 
-jest.mock("@/components/exams/exam-form-dialog", () => ({
+jest.mock("@/components/exams/ExamFormDialog", () => ({
     __esModule: true,
     default: ({ onExamAdded, onExamUpdated, editingExam }: any) => (
         <div>
-            <button 
+            <Button 
                 data-testid="add-trigger"
                 onClick={() => onExamAdded({ id: "new", title: "New Exam"})}>
                     Add Mock Exam
-            </button>
+            </Button>
             {editingExam && (
-                <button 
+                <Button 
                     data-testid="update-trigger"
                     onClick={() => onExamUpdated({...editingExam, title: "Updated Exam" })}>
                         Updated Mock Exam
-                </button>
+                </Button>
             )}
         </div>
     ),

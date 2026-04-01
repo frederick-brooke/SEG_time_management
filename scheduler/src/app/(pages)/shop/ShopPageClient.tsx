@@ -9,7 +9,7 @@
 import { useState, useTransition, useCallback } from "react";
 import { purchaseItem, equipItem, unequipItem } from "@/app/actions/shop";
 import { Package } from "lucide-react";
-import { GoldCoin } from "@/components/ui/gold-coin";
+import { GoldCoin } from "@/components/ui/GoldCoin";
 import { AVATAR_IMAGES } from "@/lib/shop-catalogue";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { AvatarCard } from "./ShopCards";

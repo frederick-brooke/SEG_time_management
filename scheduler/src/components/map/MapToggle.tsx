@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import { Button } from "@/components/ui/Button";
 import { MapMode } from "@/lib/map";
 
 interface MapToggleProps {
@@ -9,24 +11,27 @@ interface MapToggleProps {
   eventCount?: number;
 }
 
-/**
- * Single toggle button for the MapToggle component
- */
-function ToggleButton({
-  label,
-  emoji,
-  count,
-  active,
-  onClick,
-}: {
+interface ToggleButtonProps {
   label: string;
   emoji: string;
   count?: number;
   active: boolean;
   onClick: () => void;
-}) {
+}
+
+/**
+ * Renders a single toggle button for the map mode.
+ *
+ * @param props.label - The label to display
+ * @param props.emoji - The emoji icon for the button
+ * @param props.count - Optional count badge
+ * @param props.active - Whether this button is currently active
+ * @param props.onClick - Callback when button is clicked
+ * @returns JSX.Element
+ */
+function ToggleButton({ label, emoji, count, active, onClick }: ToggleButtonProps) {
   return (
-    <button
+    <Button
       onClick={onClick}
       aria-pressed={active}
       className={`relative flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
@@ -48,14 +53,25 @@ function ToggleButton({
           {count}
         </span>
       )}
-    </button>
+    </Button>
   );
 }
 
 /**
- * MapToggle component allows switching between "Events" and "Friends" modes
+ * MapToggle component for switching between "Events" and "Friends" map modes.
+ *
+ * @param props.mode - Current map mode
+ * @param props.onChange - Callback when user toggles mode
+ * @param props.friendCount - Optional number of friends
+ * @param props.eventCount - Optional number of events
+ * @returns JSX.Element
  */
-export function MapToggle({ mode, onChange, friendCount, eventCount }: MapToggleProps) {
+export function MapToggle({
+  mode,
+  onChange,
+  friendCount,
+  eventCount,
+}: MapToggleProps){
   return (
     <div className="glass inline-flex items-center gap-1 p-1 rounded-full border border-white/10">
       <ToggleButton

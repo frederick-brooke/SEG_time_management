@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CalendarView from "../CalendarView";
@@ -34,10 +35,10 @@ jest.mock("../CheckInModal", () => ({
   __esModule: true,
   default: ({ onDone }: { onDone: (tasks: any[]) => void }) => (
     <div data-testid="check-in-modal">
-      <button onClick={() => onDone([])}>Done Empty</button>
-      <button onClick={() => onDone([{ id: "task-1", remainingDuration: 30, duration: 60 }])}>
+      <Button onClick={() => onDone([])}>Done Empty</Button>
+      <Button onClick={() => onDone([{ id: "task-1", remainingDuration: 30, duration: 60 }])}>
         Done With Tasks
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -46,9 +47,9 @@ jest.mock("../RescheduleModal", () => ({
   __esModule: true,
   default: ({ onConfirm, onDismiss }: any) => (
     <div data-testid="reschedule-modal">
-      <button onClick={() => onConfirm([])}>Confirm Empty</button>
-      <button onClick={() => onConfirm(["task-1"])}>Confirm With IDs</button>
-      <button onClick={onDismiss}>Dismiss</button>
+      <Button onClick={() => onConfirm([])}>Confirm Empty</Button>
+      <Button onClick={() => onConfirm(["task-1"])}>Confirm With IDs</Button>
+      <Button onClick={onDismiss}>Dismiss</Button>
     </div>
   ),
 }));
@@ -57,13 +58,13 @@ jest.mock("../EventDetailModal", () => ({
   __esModule: true,
   default: ({ onClose, onSetEditing, onEventSuccess, onDeleteTask, onDeleteEvent, onFormChange, onTaskSubmit }: any) => (
     <div data-testid="event-detail-modal">
-      <button onClick={onClose}>Close Modal</button>
-      <button onClick={() => onSetEditing(true)}>Start Editing</button>
-      <button onClick={onEventSuccess}>Event Success</button>
-      <button onClick={onDeleteTask}>Delete Task</button>
-      <button onClick={() => onDeleteEvent("single")}>Delete Event</button>
-      <button onClick={() => onFormChange({ title: "changed" })}>Form Change</button>
-      <button onClick={() => onTaskSubmit(null)}>Task Submit</button>
+      <Button onClick={onClose}>Close Modal</Button>
+      <Button onClick={() => onSetEditing(true)}>Start Editing</Button>
+      <Button onClick={onEventSuccess}>Event Success</Button>
+      <Button onClick={onDeleteTask}>Delete Task</Button>
+      <Button onClick={() => onDeleteEvent("single")}>Delete Event</Button>
+      <Button onClick={() => onFormChange({ title: "changed" })}>Form Change</Button>
+      <Button onClick={() => onTaskSubmit(null)}>Task Submit</Button>
     </div>
   ),
 }));
@@ -72,8 +73,8 @@ jest.mock("../QuickScheduleModal", () => ({
   __esModule: true,
   default: ({ onClose, onSaved }: any) => (
     <div data-testid="quick-schedule-modal">
-      <button onClick={onClose}>Close Quick</button>
-      <button onClick={onSaved}>Saved</button>
+      <Button onClick={onClose}>Close Quick</Button>
+      <Button onClick={onSaved}>Saved</Button>
     </div>
   ),
 }));
@@ -82,8 +83,8 @@ jest.mock("../CategoryManagerModal", () => ({
   __esModule: true,
   default: ({ onClose, onCategoriesChange }: any) => (
     <div data-testid="category-manager-modal">
-      <button onClick={onClose}>Close Category</button>
-      <button onClick={onCategoriesChange}>Categories Changed</button>
+      <Button onClick={onClose}>Close Category</Button>
+      <Button onClick={onCategoriesChange}>Categories Changed</Button>
     </div>
   ),
 }));
@@ -92,9 +93,9 @@ jest.mock("../ScheduleDrawer", () => ({
   __esModule: true,
   default: ({ onSchedule, onScheduleForced, onClose }: any) => (
     <div data-testid="schedule-drawer">
-      <button onClick={onSchedule}>Schedule</button>
-      <button onClick={onScheduleForced}>Force Schedule</button>
-      <button onClick={onClose}>Close Drawer</button>
+      <Button onClick={onSchedule}>Schedule</Button>
+      <Button onClick={onScheduleForced}>Force Schedule</Button>
+      <Button onClick={onClose}>Close Drawer</Button>
     </div>
   ),
 }));
@@ -103,16 +104,16 @@ jest.mock("../UnscheduledPanel", () => ({
   __esModule: true,
   default: ({ onTaskClick, onDeleteLog, onEditLog }: any) => (
     <div data-testid="unscheduled-panel">
-      <button onClick={() => onTaskClick({ id: "task-1", title: "Task" })}>
+      <Button onClick={() => onTaskClick({ id: "task-1", title: "Task" })}>
         Click Task
-      </button>
-      <button onClick={() => onDeleteLog("log-1")}>Delete Log</button>
-      <button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
+      </Button>
+      <Button onClick={() => onDeleteLog("log-1")}>Delete Log</Button>
+      <Button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
         Edit Day Log
-      </button>
-      <button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
+      </Button>
+      <Button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
         Edit Week Log
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -121,9 +122,9 @@ jest.mock("../FilterSidebar", () => ({
   __esModule: true,
   default: ({ onToggleFilter, onToggleCategory, onManageCategories }: any) => (
     <div data-testid="filter-sidebar">
-      <button onClick={() => onToggleFilter("tasks")}>Toggle Tasks</button>
-      <button onClick={() => onToggleCategory("cat-1")}>Toggle Category</button>
-      <button onClick={onManageCategories}>Manage Categories</button>
+      <Button onClick={() => onToggleFilter("tasks")}>Toggle Tasks</Button>
+      <Button onClick={() => onToggleCategory("cat-1")}>Toggle Category</Button>
+      <Button onClick={onManageCategories}>Manage Categories</Button>
     </div>
   ),
 }));
@@ -142,19 +143,19 @@ jest.mock("../CalendarBody", () => ({
     onNavigate,
   }: any) => (
     <div data-testid="calendar-body">
-      <button onClick={() => onSelectSlot("2024-06-03")}>Select Slot</button>
-      <button onClick={() => onSelectEvent({ id: "ev-1", title: "Event", start: new Date("2024-06-03") })}>
+      <Button onClick={() => onSelectSlot("2024-06-03")}>Select Slot</Button>
+      <Button onClick={() => onSelectEvent({ id: "ev-1", title: "Event", start: new Date("2024-06-03") })}>
         Select Event
-      </button>
-      <button onClick={() => onSearchResultClick({ id: "ev-2", start: new Date("2024-06-10") })}>
+      </Button>
+      <Button onClick={() => onSearchResultClick({ id: "ev-2", start: new Date("2024-06-10") })}>
         Click Search Result
-      </button>
-      <button onClick={onUndo}>Undo</button>
-      <button onClick={onUndoDismiss}>Dismiss Undo</button>
-      <button onClick={() => onSearchChange("query")}>Search Change</button>
-      <button onClick={onSearchFocus}>Search Focus</button>
-      <button onClick={onSearchClear}>Search Clear</button>
-      <button onClick={() => onNavigate(new Date("2024-06-10"))}>Navigate</button>
+      </Button>
+      <Button onClick={onUndo}>Undo</Button>
+      <Button onClick={onUndoDismiss}>Dismiss Undo</Button>
+      <Button onClick={() => onSearchChange("query")}>Search Change</Button>
+      <Button onClick={onSearchFocus}>Search Focus</Button>
+      <Button onClick={onSearchClear}>Search Clear</Button>
+      <Button onClick={() => onNavigate(new Date("2024-06-10"))}>Navigate</Button>
     </div>
   ),
 }));
@@ -665,12 +666,12 @@ describe("CalendarView", () => {
         __esModule: true,
         default: ({ onEditLog }: any) => (
           <div data-testid="unscheduled-panel">
-            <button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
+            <Button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
               Edit Day Log
-            </button>
-            <button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
+            </Button>
+            <Button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
               Edit Week Log
-            </button>
+            </Button>
           </div>
         ),
       }));
@@ -810,8 +811,8 @@ describe("CalendarView", () => {
         __esModule: true,
         default: ({ onClose, onCategoriesChange }: any) => (
           <div data-testid="category-manager-modal">
-            <button onClick={onClose}>Close Category</button>
-            <button onClick={onCategoriesChange}>Categories Changed</button>
+            <Button onClick={onClose}>Close Category</Button>
+            <Button onClick={onCategoriesChange}>Categories Changed</Button>
           </div>
         ),
       }));

@@ -1,5 +1,5 @@
 'use client';
-
+import { Button } from "@/components/ui/Button";
 import { Users, ListTodo, Calendar, Trash, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { leaveGroup, deleteGroup } from "@/app/actions/groups";
@@ -82,43 +82,43 @@ export default function GroupHeader({
         {/* Action Buttons */}
         <div className="flex gap-2 flex-wrap">
           {isOwner && (
-            <button
+            <Button
               onClick={onOpenSettings}
               className="lunar-button-ghost flex items-center gap-2"
               title="Group Settings"
             >
               <Settings size={14} /> Settings
-            </button>
+            </Button>
           )}
           
-          <button
+          <Button
             onClick={onOpenTaskModal}
             className="lunar-button-primary flex items-center gap-2 !bg-white/10 !border-white/20 hover:!bg-white/20 !text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           >
             <ListTodo size={14} /> Create Task
-          </button>
+          </Button>
           
-          <button
+          <Button
             onClick={onOpenEventModal}
             className="lunar-button-primary flex items-center gap-2 !bg-white/10 !border-white/20 hover:!bg-white/20 !text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           >
             <Calendar size={14} /> Create Event
-          </button>
+          </Button>
           
           {isOwner ? (
-            <button
+            <Button
               onClick={handleDeleteGroup}
               className="flex items-center gap-2 lunar-item-error px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-colors"
             >
               <Trash size={14} /> Delete Group
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={handleLeave}
               className="flex items-center gap-2 lunar-item-error px-4 py-2 rounded-xl border font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-colors"
             >
               <LogOut size={14} /> Leave Group
-            </button>
+            </Button>
           )}
         </div>
       </div>

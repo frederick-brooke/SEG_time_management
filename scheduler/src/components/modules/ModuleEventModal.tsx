@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState } from "react";
 import { X, MapPin } from "lucide-react";
@@ -148,9 +149,9 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
               {isEditing ? "Changes apply to all members' calendars" : "Added to all members' calendars"}
             </p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,14 +187,14 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
             <label className="lunar-label">Category</label>
             <div className="flex flex-wrap gap-2 mt-1">
               {CATEGORIES.map((cat) => (
-                <button key={cat} type="button" onClick={() => handleChange({ category: cat })}
+                <Button key={cat} type="button" onClick={() => handleChange({ category: cat })}
                   className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all ${
                     formData.category === cat
                       ? "border-blue-500 bg-blue-500/20 text-blue-400"
                       : "border-white/10 bg-white/5 text-white/40 hover:border-white/20"
                   }`}>
                   {cat}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -225,14 +226,14 @@ export default function ModuleEventModal({ moduleId, editingEvent, onClose, onSu
           )}
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={isSubmitting}
+            <Button type="button" onClick={onClose} disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50">
               Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting}
+            </Button>
+            <Button type="submit" disabled={isSubmitting}
               className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Create Event"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

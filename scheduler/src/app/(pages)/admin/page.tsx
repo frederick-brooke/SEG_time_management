@@ -6,23 +6,24 @@
  */
 
 import { useState } from "react";
-import UserFilter from "@/components/admin/user-filter-panel";
-import ReportFilter from "@/components/admin/report-filter-panel";
+import UserFilter from "@/components/admin/UserFilterPanel";
+import ReportFilter from "@/components/admin/ReportFilterPanel";
 import { useUsers } from "@/hooks/useUsers";
 import { useAdminReports } from "@/hooks/useAdminReports";
 import { useAdminAppeals } from "@/hooks/useAdminAppeals";
-import UserManagement from "@/components/admin/userManagement";
-import ReportManagement from "@/components/admin/reportManagement";
-import AppealsManagement from "@/components/admin/appealManagement";
-import AdminStatistics from "@/components/admin/admin-statistics";
-import AppealFilter from "@/components/admin/appeal-filter-panel";
+import UserManagement from "@/components/admin/UserManagement";
+import ReportManagement from "@/components/admin/ReportManagement";
+import AppealsManagement from "@/components/admin/AppealManagement";
+import AdminStatistics from "@/components/admin/AdminStatistics";
+import AppealFilter from "@/components/admin/AppealFilterPanel";
 
 // UI components
-import StarField from "@/components/effects/starField";
-import GlowBackground from "@/components/ui/glowBackground";
-import GlassCard from "@/components/ui/glassCard";
+import StarField from "@/components/effects/StarField";
+import GlowBackground from "@/components/ui/GlowBackground";
+import GlassCard from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Main admin dashboard component managing users, reports, and appeals with filtering and pagination.
@@ -48,7 +49,7 @@ export default function AdminPage() {
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
 
   // Report filter states
-  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12 };
+  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12, page:1 };
   const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
   const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
 
@@ -157,23 +158,23 @@ export default function AdminPage() {
                 <GlassCard>
                   {/* Tabs header title */}
                   <div className="flex border-b mb-4">
-                    <button
+                    <Button
                       onClick={() => setCurrentTab("reports")}
                       className={`lunar-page-subtitle px-4 py-2 font-medium ${
                         currentTab === "reports" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
                       }`}
                     >
                       Reports
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       onClick={() => setCurrentTab("appeals")}
                       className={`lunar-page-subtitle px-4 py-2 font-medium ${
                         currentTab === "appeals" ? "border-b-2 border-blue-500 text-blue-600" : "text-gray-500"
                       }`}
                     >
                       Appeals
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Render the active tab */}

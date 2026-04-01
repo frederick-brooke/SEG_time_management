@@ -1,3 +1,5 @@
+import { Button } from "../ui/Button";
+
 /**
  * Confirmation modal for permanently deleting a task.
  * @param {boolean} isOpen Whether the dialog is visible or not.
@@ -12,8 +14,8 @@ export function DeleteTaskDialog({ isOpen, onConfirm, onCancel }) {
         <h3 className="lunar-header text-xl mb-2">Delete Task?</h3>
           <p className="lunar-value mb-8">This will permanently delete this task. This cannot be undone.</p>
           <div className="flex gap-3">
-            <button onClick={onCancel} className="flex-1 lunar-button-ghost">Cancel</button>
-            <button onClick={onConfirm} className="flex-1 bg-red-500/20 text-red-400 border border-red-500/30 font-black uppercase tracking-widest text-xs py-2 rounded-xl hover:bg-red-500/30 transition-all">Delete</button>
+            <Button onClick={onCancel} className="flex-1 lunar-button-ghost">Cancel</Button>
+            <Button onClick={onConfirm} className="flex-1 bg-red-500/20 text-red-400 border border-red-500/30 font-black uppercase tracking-widest text-xs py-2 rounded-xl hover:bg-red-500/30 transition-all">Delete</Button>
         </div>
       </div>
     </div>

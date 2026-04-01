@@ -1,49 +1,73 @@
-"use client"; 
-/**
- * Dynamically pans the map to a new center whenever the `centre` prop changes.
- * Skips the first render to prevent overwriting the initial map view.
- */
+"use client";
+
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { useEffect, useRef } from "react";
 import { MAP_HEIGHT } from "@/lib/map/constants";
 
+/**
+ * Props for the LocationController component.
+ */
 interface LocationControllerProps {
-  /** The latitude and longitude to centre the map on */
+  /** The latitude and longitude to center the map on */
   center: [number, number];
+  zoom: number;
 }
 
-export function LocationController({ center }: LocationControllerProps) {
-  const map = useMap();       // Access Leaflet map instance
-  const isFirst = useRef(true); // Track first render to avoid unnecessary pan
+/**
+ * Dynamically pans the map to a new center whenever the `center` prop changes.
+ * Skips the first render to avoid overwriting the initial map view.
+ *
+ * @param {LocationControllerProps} props - Component properties
+ */
+export function LocationController({ center, zoom }: LocationControllerProps) {
+  const map = useMap();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Skip the initial render — Leaflet already centres on initial props
-    if (isFirst.current) {
-      isFirst.current = false;
+    // Skip the initial render — Leaflet already centres map on initial props
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
       return;
     }
 
     // Only pan if a valid center is provided
-    if (center) {
-      map.panTo(center);
+    if (Array.isArray(center) && center.length === 2) {
+      map.setView(center, zoom);
+    } else {
+      console.warn("Invalid center provided to LocationController:", center);
     }
-  }, [center, map]); // Re-run whenever `centre` changes
+  }, [center, map]);
 
-  return null; 
+  return null;
 }
 
 /**
- * Wraps Leaflet's MapContainer and provides default TileLayer, styling,
- * zoom control, and dynamic centering via LocationController.
+ * Props for the BaseMap component.
  */
 interface BaseMapProps {
-  center: [number, number];      // Initial map center
-  zoom?: number;                 // Initial zoom level (default: 12)
-  children: React.ReactNode;     // Map layers/components (markers, polygons, etc.)
-  height?: string;             
-  className?: string;         
+  /** Initial map center coordinates [latitude, longitude] */
+  center: [number, number];
+
+  /** Initial zoom level (default: 12) */
+  zoom?: number;
+
+  /** Map layers/components (markers, polygons, etc.) */
+  children: React.ReactNode;
+
+  /** Height of the map (default: MAP_HEIGHT) */
+  height?: string;
+
+  /** Optional additional CSS classes */
+  className?: string;
 }
 
+/**
+ * BaseMap component wraps Leaflet's MapContainer with default settings,
+ * including TileLayer, dynamic centering, and Tailwind styling.
+ *
+ * @param {BaseMapProps} props - Component properties
+ * @returns A Leaflet map with default TileLayer and dynamic center control
+ */
 export function BaseMap({
   center,
   zoom = 12,
@@ -56,7 +80,7 @@ export function BaseMap({
       center={center}
       zoom={zoom}
       style={{ height, width: "100%" }}
-      className={`rounded-xl border shadow-sm overflow-hidden ${className}`} // Tailwind styling
+      className={`rounded-xl border shadow-sm overflow-hidden ${className}`}
     >
       {/* Base tile layer for OpenStreetMap */}
       <TileLayer
@@ -64,8 +88,8 @@ export function BaseMap({
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      {/* Handles dynamic panning whenever `center` changes */}
-      <LocationController center={center} />
+      {/* Handles dynamic panning when `center` changes */}
+      <LocationController center={center} zoom={zoom}/>
 
       {/* Render any child layers/components passed into the map */}
       {children}

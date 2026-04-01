@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+
 /**
  * FilterSidebar — sticky sidebar for filtering calendar items by task type and category.
  */
@@ -112,12 +114,12 @@ export default function FilterSidebar({
           <h3 className="text-xs font-bold uppercase tracking-widest text-[rgba(148,163,255,0.45)]">
             Categories
           </h3>
-            <button
+            <Button
               onClick={onManageCategories}
               className="text-xs font-bold transition-colors text-[rgba(148,163,255,0.7)] hover:text-[rgba(148,163,255,1)]"
             >
               + Manage
-            </button>
+            </Button>
           </div>
           <div className="flex flex-col gap-3">
             {categories.map((cat) => (
