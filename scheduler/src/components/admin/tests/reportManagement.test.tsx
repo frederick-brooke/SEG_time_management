@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import ReportManagement from "../reportManagement";
+import ReportManagement from "../ReportManagement";
 
 jest.mock("framer-motion", () => ({
   motion: {
@@ -12,12 +12,12 @@ jest.mock("framer-motion", () => ({
 // Capture props passed into AdminListSection
 let capturedProps: any;
 
-jest.mock("../admin-list-section", () => (props: any) => {
+jest.mock("../AdminListSection", () => (props: any) => {
   capturedProps = props;
-  return <div data-testid="admin-list-section" />;
+  return <div data-testid="AdminListSection" />;
 });
 
-jest.mock("@/components/admin/admin-report-panel", () => (props: any) => (
+jest.mock("@/components/admin/AdminReportPanel", () => (props: any) => (
   <div data-testid="report-panel">
     <button onClick={props.onClose}>ClosePanel</button>
   </div>

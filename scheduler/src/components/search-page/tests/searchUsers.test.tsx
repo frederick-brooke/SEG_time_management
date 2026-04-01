@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import SearchUsers from "../searchUsers";
 
 // Mock UserPanel
-jest.mock("@/components/admin/admin-user-panel", () => (props: any) => (
+jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
 	<div data-testid="user-panel">{props.user ? "OPEN" : "CLOSED"}</div>
 ));
 

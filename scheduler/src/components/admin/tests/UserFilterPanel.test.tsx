@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import UserFilter from "../user-filter-panel";
+import UserFilter from "../UserFilterPanel";
 
 const baseFilters = {
   sortBy: "username",

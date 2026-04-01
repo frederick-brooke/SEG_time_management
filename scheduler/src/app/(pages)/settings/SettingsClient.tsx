@@ -9,7 +9,7 @@
 
 import { useState, useTransition } from "react";
 import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/app/actions/settings";
-import { updateLocationHidden } from "@/app/actions/update-user-location";
+import { updateLocationHidden } from "@/app/actions/updateUserLocation";
 import { signIn, signOut } from "next-auth/react";
 import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle, MapPin } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";

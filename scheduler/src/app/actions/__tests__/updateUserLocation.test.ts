@@ -1,12 +1,12 @@
 /**
- * Testing for update-user-location actions.
+ * Testing for updateUserLocation actions.
  */
 
 import {
     updateUserLocation,
     updateLocationHidden,
   } 
-from "@/app/actions/update-user-location";
+from "@/app/actions/updateUserLocation";
   
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";

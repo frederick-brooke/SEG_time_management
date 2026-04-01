@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import ReportPanel from "@/components/admin/admin-report-panel";
-import AdminListSection from "./admin-list-section";
+import ReportPanel from "@/components/admin/AdminReportPanel";
+import AdminListSection from "./AdminListSection";
 
 type ReportManagementProps = {
   reports: any[];

@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import AppealPanel from "./admin-appeal-panel";
-import AdminListSection from "./admin-list-section";
+import AppealPanel from "./AdminAppealPanel";
+import AdminListSection from "./AdminListSection";
 
 /**
 *Represents the props for the AppealsManagement component.
 *@interface AppealManagementProps
 */
-interface appealManagementProps {
+interface AppealManagementProps {
 	appeals: any[];
 	totalAppeals: number;
 	totalAppealPages: number;
@@ -49,7 +49,7 @@ export default function AppealsManagement({
 	filters,
 	setFilters,
 	resetFilters,
-}: appealManagementProps) {
+}: AppealManagementProps) {
 	return (
 		<AdminListSection
 			title="Appeals Management"

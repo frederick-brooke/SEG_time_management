@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import AppealPanel from "../admin-appeal-panel";
+import AppealPanel from "../AdminAppealPanel";
 
 global.fetch = jest.fn();
 const mockFetch = global.fetch as jest.Mock;

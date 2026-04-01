@@ -1,4 +1,4 @@
-import { FilterPanel, FilterSortGroup, FilterDateRange, FilterToggleGroup, FilterActions } from "@/components/admin/adminFilterPanel";
+import { FilterPanel, FilterSortGroup, FilterDateRange, FilterToggleGroup, FilterActions } from "@/components/admin/AdminFilterPanel";
 
 //polymorphic specific filter attributes
 const sortOptions = [{ value: "username", label: "Username" }, { value: "createdAt", label: "Date Created" }, { value: "email", label: "Email" }];

@@ -25,7 +25,7 @@ jest.mock("@/components/search-page/searchUsers", () => () => (
   <div data-testid="search-users" />
 ));
 
-jest.mock("@/components/admin/user-filter-panel", () => (props: any) => (
+jest.mock("@/components/admin/UserFilterPanel", () => (props: any) => (
   <div>
     <button
       data-testid="apply-filters"

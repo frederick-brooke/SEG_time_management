@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import UserManagement from "../userManagement";
+import UserManagement from "../UserManagement";
 
 // Mock AdminListSection so we can inspect what gets passed to it
-jest.mock("../admin-list-section", () => (props: any) => {
+jest.mock("../AdminListSection", () => (props: any) => {
   return (
     <div>
       <button onClick={props.onFilterOpen}>open-filter</button>
@@ -21,7 +21,7 @@ jest.mock("../admin-list-section", () => (props: any) => {
 });
 
 // Mock UserPanel
-jest.mock("@/components/admin/admin-user-panel", () => (props: any) => {
+jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => {
   return (
     <div>
       <span>USER PANEL {props.user?.username}</span>

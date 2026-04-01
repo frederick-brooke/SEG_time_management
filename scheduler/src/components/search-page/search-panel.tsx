@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import SearchControls from "@/components/search-page/search-controls";
 import SearchUsers from "@/components/search-page/searchUsers";
-import UserFilter from "@/components/admin/user-filter-panel";
+import UserFilter from "@/components/admin/UserFilterPanel";
 
 import { useUsers } from "@/hooks/useUsers";
 

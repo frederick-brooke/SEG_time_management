@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import AppealForm from "../appealForm";
+import AppealForm from "../AppealForm";
 
 jest.mock("lucide-react", () => ({
 	X: () => <div data-testid="icon-x" />,

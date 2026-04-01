@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import AppealFilter from "../appeal-filter-panel";
+import AppealFilter from "../AppealFilterPanel";
 
 const defaultFilters = {
   sortBy: "createdAt",

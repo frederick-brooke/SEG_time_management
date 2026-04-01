@@ -36,12 +36,12 @@ jest.mock("@/components/ui/glassCard", () => ({
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/admin/admin-statistics", () => ({
+jest.mock("@/components/admin/AdminStatistics", () => ({
   __esModule: true,
   default: () => <div>AdminStatistics</div>,
 }));
 
-jest.mock("@/components/admin/userManagement", () => ({
+jest.mock("@/components/admin/UserManagement", () => ({
   __esModule: true,
   default: ({ setIsUserFilterOpen, resetFilters, setFilters }: any) => (
     <div>
@@ -53,7 +53,7 @@ jest.mock("@/components/admin/userManagement", () => ({
   ),
 }));
 
-jest.mock("@/components/admin/reportManagement", () => ({
+jest.mock("@/components/admin/ReportManagement", () => ({
   __esModule: true,
   default: ({ setIsReportFilterOpen, resetFilters, setFilters }: any) => (
     <div>
@@ -65,7 +65,7 @@ jest.mock("@/components/admin/reportManagement", () => ({
   ),
 }));
 
-jest.mock("@/components/admin/appealManagement", () => ({
+jest.mock("@/components/admin/AppealManagement", () => ({
   __esModule: true,
   default: ({ setIsAppealFilterOpen, resetFilters, setFilters }: any) => (
     <div>
@@ -77,7 +77,7 @@ jest.mock("@/components/admin/appealManagement", () => ({
   ),
 }));
 
-jest.mock("@/components/admin/user-filter-panel", () => ({
+jest.mock("@/components/admin/UserFilterPanel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
     <div>
@@ -90,7 +90,7 @@ jest.mock("@/components/admin/user-filter-panel", () => ({
   ),
 }));
 
-jest.mock("@/components/admin/report-filter-panel", () => ({
+jest.mock("@/components/admin/ReportFilterPanel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
     <div>
@@ -103,7 +103,7 @@ jest.mock("@/components/admin/report-filter-panel", () => ({
   ),
 }));
 
-jest.mock("@/components/admin/appeal-filter-panel", () => ({
+jest.mock("@/components/admin/AppealFilterPanel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
     <div>
