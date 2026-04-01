@@ -19,7 +19,12 @@ jest.mock("../../ui/dialog", () => {
     return <div data-testid="dialog-trigger">{children}</div>;
   }
   function DialogContent({ children }) {
-    return <div data-testid="dialog-content">{children}</div>;
+    return (
+      <div data-testid="dialog-content">
+        <button aria-label="close" className="lunar-close-button">X</button>
+        {children}
+      </div>
+    );
   }
   function DialogHeader({ children }) {
     return <div data-testid="dialog-header">{children}</div>;
@@ -45,7 +50,7 @@ jest.mock("../../ui/dialog", () => {
   };
 });
 
-jest.mock("../../ui/input", () => {
+jest.mock("../../ui/Input", () => {
   const React = require("react");
   return {
     Input: ({ id, value, onChange, placeholder, type = "text" }) => (
@@ -65,7 +70,7 @@ jest.mock("react-dom", () => ({
   createPortal: (node: React.ReactNode) => node,
 }));
 
-jest.mock("../../ui/label", () => {
+jest.mock("../../ui/Label", () => {
   const React = require("react");
   return {
     Label: ({ htmlFor, children }) => <label htmlFor={htmlFor}>{children}</label>,
@@ -76,9 +81,9 @@ jest.mock("../../ui/Button", () => {
   const React = require("react");
   return {
     Button: ({ children, onClick, buttonType = "button" }) => (
-      <Button type={buttonType as "button"} onClick={onClick}>
+      <button type={buttonType as "button"} onClick={onClick}>
         {children}
-      </Button>
+      </button>
     ),
   };
 });
@@ -105,7 +110,7 @@ jest.mock("../../ui/Select", () => {
   };
 });
 
-jest.mock("../../ui/toggle-group", () => {
+jest.mock("../../ui/ToggleGroup", () => {
   const React = require("react");
 
   function ToggleGroup({ value, onValueChange, children }) {
@@ -123,9 +128,9 @@ jest.mock("../../ui/toggle-group", () => {
 
   function ToggleGroupItem({ value, children, __onValueChange }) {
     return (
-      <Button type="button" onClick={() => __onValueChange(value)}>
+      <button type="button" onClick={() => __onValueChange(value)}>
         {children}
-      </Button>
+      </button>
     );
   }
 
@@ -267,8 +272,8 @@ describe("TaskFormDialog", () => {
 
   it("calls onOpenChange when close button is clicked", () => {
     const props = setup();
-    const closeBtn = document.querySelector(".lunar-close-button");
-    fireEvent.click(closeBtn!);
+    const closeBtn = screen.getByRole("button", { name: /close/i });
+    fireEvent.click(closeBtn);
     expect(props.onOpenChange).toHaveBeenCalledWith(false);
   });
 
