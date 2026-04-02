@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import SearchControls from "@/components/search-page/SearchControls";
-import SearchUsers from "@/components/search-page/SearchUsers";
+import SearchUsers from "@/components/search-page/searchUsers";
 import UserFilter from "@/components/admin/UserFilterPanel";
 
 import { useUsers } from "@/hooks/useUsers";
