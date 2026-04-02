@@ -6,9 +6,6 @@ import React, { ReactElement } from "react";
 import { render, screen } from "@testing-library/react";
 import MapPage from "../page";
 
-
-// Mocks 
-
 const mockGetServerSession = jest.fn();
 const mockFindMany = jest.fn();
 const mockFindUnique = jest.fn();
@@ -41,9 +38,6 @@ jest.mock("@/components/map/SavedLocationsPanel", () => ({
   SavedLocationsPanel: () => <div data-testid="saved-locations-panel" />,
 }));
 
-
-// Fixtures
-
 const SESSION = {
   user: {
     id: "user-1",
@@ -69,9 +63,6 @@ function makeDbEvent(id: string, overrides: Partial<any> = {}) {
   };
 }
 
-
-// Helpers 
-
 function setupSession(events: any[] = []) {
   mockGetServerSession.mockResolvedValue(SESSION);
   mockFindMany.mockResolvedValue(events);
@@ -87,20 +78,14 @@ async function renderMapPage(events: any[] = []) {
   render(tree);
 }
 
-
-//  Tests 
-
 describe("MapPage (server page)", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // Authentication
 
   it("throws 'Not authenticated' when there is no session", async () => {
     mockGetServerSession.mockResolvedValue(null);
     await expect(MapPage()).rejects.toThrow("Not authenticated");
   });
-
-  // Database queries
 
   it("queries events filtered by the logged-in user's id", async () => {
     await renderMapPage();
@@ -118,11 +103,9 @@ describe("MapPage (server page)", () => {
     );
   });
 
-  // Rendering
-
   it("renders the page heading", async () => {
     await renderMapPage();
-    expect(screen.getByText("Event Map")).toBeInTheDocument();
+    expect(screen.getByText("Map")).toBeInTheDocument();
   });
 
   it("renders a back-to-calendar link pointing to /calendar", async () => {
@@ -142,14 +125,12 @@ describe("MapPage (server page)", () => {
     expect(screen.getByTestId("saved-locations-panel")).toBeInTheDocument();
   });
 
-  // Data flow
 
   it("passes the correct event count to MapView", async () => {
     await renderMapPage([makeDbEvent("a"), makeDbEvent("b")]);
     expect(screen.getByTestId("map-view")).toHaveAttribute("data-count", "2");
   });
 
-  // Event count label — singular / plural / zero
 
   it("shows singular label for exactly one event", async () => {
     await renderMapPage([makeDbEvent("a")]);
@@ -166,14 +147,10 @@ describe("MapPage (server page)", () => {
     expect(screen.getByText(/Showing 0 events with locations/i)).toBeInTheDocument();
   });
 
-  // Serialisation
-
   it("serialises event dates to ISO strings without throwing", async () => {
     await renderMapPage([makeDbEvent("a")]);
     expect(mockFindMany).toHaveBeenCalledTimes(1);
   });
-
-  // Edge cases — null coordinates
 
   it("handles an event with null startCoords without throwing", async () => {
     setupSession([makeDbEvent("a", { startCoords: null })]);
