@@ -1,8 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/Button";
 
-/** A single saved location belonging to the current user. */
 export interface SavedLocation {
   id: string;
   label: string;
@@ -12,18 +10,14 @@ export interface SavedLocation {
   type: "HOME" | "WORK" | "FAVOURITE";
 }
 
-/** Payload required to create a new saved location. */
 export type SaveLocationPayload = Pick<SavedLocation, "label" | "address" | "lat" | "lng" | "type">;
 
-/** Custom browser event name used to sync location state across hook instances. */
 const SYNC_EVENT = "saved-locations-updated";
 
-/** Notifies all mounted hook instances that saved locations have changed. */
 function broadcastUpdate() {
   window.dispatchEvent(new Event(SYNC_EVENT));
 }
 
-/** Fetches all saved locations for the current user from the API. */
 async function fetchLocations(): Promise<SavedLocation[]> {
   const res = await fetch("/api/location/saved");
   if (!res.ok) return [];
@@ -50,7 +44,6 @@ async function patchLocation(id: string, label: string): Promise<boolean> {
   return res.ok;
 }
 
-/** Deletes a saved location by ID via the API. */
 async function removeLocation(id: string): Promise<boolean> {
   const res = await fetch(`/api/location/saved/${id}`, { method: "DELETE" });
   return res.ok;
@@ -78,7 +71,6 @@ export function useSavedLocations() {
   const [locations, setLocations] = useState<SavedLocation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /** Reloads locations from the API and updates local state. */
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -88,10 +80,8 @@ export function useSavedLocations() {
     }
   }, []);
 
-  // Load locations on mount.
   useEffect(() => { refresh(); }, [refresh]);
 
-  // Re-fetch whenever another hook instance broadcasts a mutation.
   useEffect(() => {
     window.addEventListener(SYNC_EVENT, refresh);
     return () => window.removeEventListener(SYNC_EVENT, refresh);
