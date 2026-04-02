@@ -1,5 +1,5 @@
 import { render, screen, act } from "@testing-library/react";
-import { AppShell } from "./app-shell";
+import { AppShell } from "../app-shell";
 import { useSession } from "next-auth/react";
 import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendarNotifications";
 
