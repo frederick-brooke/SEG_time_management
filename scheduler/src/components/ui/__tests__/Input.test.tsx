@@ -2,7 +2,7 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { Input } from "../input";
+import { Input } from "../Input";
 
 describe("Input component", () => {
   it("renders without crashing", () => {
