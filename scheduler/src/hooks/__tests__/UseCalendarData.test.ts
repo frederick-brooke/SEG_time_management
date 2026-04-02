@@ -1,8 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useCalendarData } from "@/hooks/useCalendarData";
 
-// ── Mocks ───────
-
 global.fetch = jest.fn();
 
 const mockEvent = {
@@ -24,6 +22,7 @@ const mockEventWithTravel = {
 
 const mockTask = {
   _id: "112233445566778899aabbcc",
+  id:  "112233445566778899aabbcc",
   title: "Write tests",
   dueDate: "2024-06-15",
   priority: "High",
@@ -38,6 +37,7 @@ const mockTask = {
 const mockRecurringTask = {
   ...mockTask,
   _id: "aabb112233445566778899cc",
+  id:  "aabb112233445566778899cc",
   title: "Daily Standup",
   scheduledDate: "2024-06-10",
   scheduledTime: "2024-06-10T09:00:00Z",
@@ -58,8 +58,6 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ── refreshEvents ───────
-
 describe("refreshEvents", () => {
   it("fetches events, converts start/end to Date objects, and sets state", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
@@ -77,7 +75,7 @@ describe("refreshEvents", () => {
     expect(result.current.events).toHaveLength(1);
     expect(result.current.events[0].start).toBeInstanceOf(Date);
     expect(result.current.events[0].end).toBeInstanceOf(Date);
-    expect(result.current.events[0]._type).toBe("event");
+    expect((result.current.events[0] as any)._type).toBe("event");
   });
 
   it("returns an empty array and does not throw when the API fails", async () => {
@@ -119,9 +117,8 @@ describe("refreshEvents", () => {
       await result.current.refreshEvents();
     });
 
-    // Original event + 1 travel block
     expect(result.current.events).toHaveLength(2);
-    const travel = result.current.events.find((e) => e._type === "_travel");
+    const travel = result.current.events.find((e) => (e as any)._type === "_travel") as any;
     expect(travel).toBeDefined();
     expect(travel!.title).toContain("30 min");
     expect(travel!.title).toContain("Off-site Meeting");
@@ -145,7 +142,7 @@ describe("refreshEvents", () => {
       await result.current.refreshEvents();
     });
 
-    const travel = result.current.events.find((e) => e._type === "_travel");
+    const travel = result.current.events.find((e) => (e as any)._type === "_travel");
     expect(travel).toBeUndefined();
   });
 
@@ -166,7 +163,7 @@ describe("refreshEvents", () => {
       await result.current.refreshEvents();
     });
 
-    const travel = result.current.events.find((e) => e._type === "_travel");
+    const travel = result.current.events.find((e) => (e as any)._type === "_travel");
     expect(travel).toBeUndefined();
   });
 
@@ -182,10 +179,8 @@ describe("refreshEvents", () => {
       await result.current.refreshEvents();
     });
 
-    const originalEvent = result.current.events.find(
-      (e) => e._type === "event",
-    );
-    const travel = result.current.events.find((e) => e._type === "_travel");
+    const originalEvent = result.current.events.find((e) => (e as any)._type === "event");
+    const travel        = result.current.events.find((e) => (e as any)._type === "_travel");
     expect(travel!.end.getTime()).toBe(originalEvent!.start.getTime());
   });
 
@@ -201,10 +196,8 @@ describe("refreshEvents", () => {
       await result.current.refreshEvents();
     });
 
-    const originalEvent = result.current.events.find(
-      (e) => e._type === "event",
-    );
-    const travel = result.current.events.find((e) => e._type === "_travel");
+    const originalEvent = result.current.events.find((e) => (e as any)._type === "event");
+    const travel        = result.current.events.find((e) => (e as any)._type === "_travel");
     const diffMins =
       (originalEvent!.start.getTime() - travel!.start.getTime()) / 60000;
     expect(diffMins).toBe(mockEventWithTravel.travelDuration);
@@ -223,18 +216,16 @@ describe("refreshEvents", () => {
       returned = await result.current.refreshEvents();
     });
 
-    // 2 real events + 1 travel block for the event with travelDuration
     expect(returned!).toHaveLength(3);
   });
 });
-
-// ── refreshTasks 
 
 describe("refreshTasks", () => {
   it("fetches tasks, splits scheduled vs unscheduled, and sets state", async () => {
     const unscheduledTask = {
       ...mockTask,
       _id: "cc2233445566778899aabbcc",
+      id:  "cc2233445566778899aabbcc",
       scheduledDate: null,
       scheduledTime: null,
     };
@@ -249,12 +240,10 @@ describe("refreshTasks", () => {
       await result.current.refreshTasks([]);
     });
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      `/api/tasks?userId=${USER_ID}`,
-    );
+    expect(global.fetch).toHaveBeenCalledWith(`/api/tasks?userId=${USER_ID}`);
     expect(result.current.tasks.length).toBeGreaterThan(0);
-    expect(result.current.tasks[0].start).toBeInstanceOf(Date);
-    expect(result.current.tasks[0]._type).toBe("task");
+    expect((result.current.tasks[0] as any).start).toBeInstanceOf(Date);
+    expect((result.current.tasks[0] as any)._type).toBe("task");
   });
 
   it("returns null and does not throw on network error", async () => {
@@ -271,7 +260,7 @@ describe("refreshTasks", () => {
   });
 
   it("excludes completed tasks from allFetchedTasks", async () => {
-    const completedTask = { ...mockTask, _id: "cc0011223344556677889900", completed: true };
+    const completedTask = { ...mockTask, _id: "cc0011223344556677889900", id: "cc0011223344556677889900", completed: true };
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => ({ tasks: [mockTask, completedTask] }),
@@ -298,13 +287,13 @@ describe("refreshTasks", () => {
       await result.current.refreshTasks([]);
     });
 
-    const task = result.current.tasks[0];
+    const task = result.current.tasks[0] as any;
     const diffMins = (task.end.getTime() - task.start.getTime()) / 60000;
     expect(diffMins).toBe(mockTask.duration);
   });
 
   it("returns fresh non-completed tasks list", async () => {
-    const completedTask = { ...mockTask, _id: "cc0011223344556677889900", completed: true };
+    const completedTask = { ...mockTask, _id: "cc0011223344556677889900", id: "cc0011223344556677889900", completed: true };
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => ({ tasks: [mockTask, completedTask] }),
@@ -321,8 +310,6 @@ describe("refreshTasks", () => {
     expect(returned[0]._id).toBe(mockTask._id);
   });
 });
-
-// ── expandRecurringTasks 
 
 describe("recurring tasks via refreshTasks", () => {
   it("expands weekly recurring tasks into multiple occurrences", async () => {
@@ -389,10 +376,6 @@ describe("recurring tasks via refreshTasks", () => {
   });
 });
 
-
-
-// ── travel title formatting branches ────────
-
 describe("travel block title formatting", () => {
   it("formats travelDuration as 'Xh' when it is an exact number of hours", async () => {
     const exactHourEvent = {
@@ -411,7 +394,7 @@ describe("travel block title formatting", () => {
       await result.current.refreshEvents();
     });
 
-    const travel = result.current.events.find((e: any) => e._type === "_travel");
+    const travel = result.current.events.find((e: any) => e._type === "_travel") as any;
     expect(travel!.title).toContain("1h");
     expect(travel!.title).not.toContain("min");
   });
@@ -433,18 +416,17 @@ describe("travel block title formatting", () => {
       await result.current.refreshEvents();
     });
 
-    const travel = result.current.events.find((e: any) => e._type === "_travel");
+    const travel = result.current.events.find((e: any) => e._type === "_travel") as any;
     expect(travel!.title).toContain("1h 30m");
   });
 });
-
-// ── expandRecurringTasks — daily, monthly and no-days branches ───
 
 describe("daily and monthly recurring tasks via refreshTasks", () => {
   it("expands a daily recurring task into multiple occurrences", async () => {
     const dailyTask = {
       ...mockTask,
       _id: "bb0011223344556677889900",
+      id:  "bb0011223344556677889900",
       title: "Daily Review",
       isRecurring: true,
       recurrence: { type: "daily", until: "2024-06-14" },
@@ -471,44 +453,42 @@ describe("daily and monthly recurring tasks via refreshTasks", () => {
       ...mockRecurringTask,
       recurrence: {
         type: "weekly",
-        days: ["Mon", "INVALID"], // invalid value
+        days: ["Mon", "INVALID"],
         until: "2024-06-30",
       },
     };
-  
+
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => ({ tasks: [invalidDayTask] }),
     });
-  
+
     const { result } = renderHook(() => useCalendarData(USER_ID));
-  
+
     await act(async () => {
       await result.current.refreshTasks([]);
     });
-  
+
     expect(result.current.tasks.length).toBeGreaterThan(0);
   });
 
   it("uses default 12-month limit when recurrence.until is missing", async () => {
     const noUntilTask = {
       ...mockRecurringTask,
-      recurrence: {
-        type: "daily",
-      },
+      recurrence: { type: "daily" },
     };
-  
+
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => ({ tasks: [noUntilTask] }),
     });
-  
+
     const { result } = renderHook(() => useCalendarData(USER_ID));
-  
+
     await act(async () => {
       await result.current.refreshTasks([]);
     });
-  
+
     expect(result.current.tasks.length).toBeGreaterThan(1);
   });
 
@@ -516,6 +496,7 @@ describe("daily and monthly recurring tasks via refreshTasks", () => {
     const monthlyTask = {
       ...mockTask,
       _id: "cc0011223344556677889900",
+      id:  "cc0011223344556677889900",
       title: "Monthly Review",
       isRecurring: true,
       recurrence: { type: "monthly", until: "2024-09-10" },
@@ -538,6 +519,7 @@ describe("daily and monthly recurring tasks via refreshTasks", () => {
     const noDaysTask = {
       ...mockTask,
       _id: "dd0011223344556677889900",
+      id:  "dd0011223344556677889900",
       title: "Broken Weekly",
       isRecurring: true,
       recurrence: { type: "weekly", days: [], until: "2024-06-30" },
@@ -556,8 +538,6 @@ describe("daily and monthly recurring tasks via refreshTasks", () => {
     expect(result.current.tasks).toHaveLength(0);
   });
 });
-
-// ── fetchCategories ─────
 
 describe("fetchCategories", () => {
   it("fetches categories and initialises all filters to true", async () => {
@@ -615,8 +595,6 @@ describe("fetchCategories", () => {
   });
 });
 
-// ── fetchScheduleLogs ───
-
 describe("fetchScheduleLogs", () => {
   it("fetches and stores schedule logs", async () => {
     const mockLogs = [{ id: "log-1", action: "scheduled", taskId: mockTask._id }];
@@ -651,8 +629,6 @@ describe("fetchScheduleLogs", () => {
     expect(result.current.scheduleLogs).toHaveLength(0);
   });
 });
-
-// ── fetchExams ──
 
 describe("fetchExams", () => {
   it("fetches and stores exams", async () => {
@@ -702,8 +678,6 @@ describe("fetchExams", () => {
   });
 });
 
-// ── state setters ───────
-
 describe("state setters", () => {
   it("setEvents updates the events state", () => {
     const { result } = renderHook(() => useCalendarData(USER_ID));
@@ -747,18 +721,15 @@ describe("state setters", () => {
   });
 });
 
-// ── computeUnscheduled ──
-
 describe("computeUnscheduled", () => {
   it("returns tasks that shouldShowAsUnscheduled given events", () => {
     const { result } = renderHook(() => useCalendarData(USER_ID));
 
-    // A task with no scheduledDate/scheduledTime should appear unscheduled
     const unscheduled = { ...mockTask, scheduledDate: null, scheduledTime: null };
-    const output = result.current.computeUnscheduled([unscheduled], []);
+    const output = result.current.computeUnscheduled([unscheduled] as any, []);
 
     expect(output).toHaveLength(1);
-    expect(output[0]._id).toBe(unscheduled._id);
+    expect((output[0] as any)._id).toBe(unscheduled._id);
   });
 
   it("is a stable reference across renders", () => {

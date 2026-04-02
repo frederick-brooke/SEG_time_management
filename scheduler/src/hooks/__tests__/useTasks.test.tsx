@@ -1,4 +1,3 @@
-// src/hooks/__tests__/useTasks.test.ts
 import { renderHook, act, waitFor } from "@testing-library/react";
 
 const createNotificationMock = jest.fn().mockResolvedValue(undefined);
@@ -18,7 +17,7 @@ function mockFetch(response: any, ok = true) {
     ok,
     status: ok ? 200 : 400,
     text: jest.fn().mockResolvedValue(JSON.stringify(response)),
-    json: jest.fn().mockResolvedValue(response), // Keep for backward compatibility with existing tests
+    json: jest.fn().mockResolvedValue(response),
   });
 }
 
@@ -30,7 +29,7 @@ const BASE_TASK = {
   url: "https://example.com",
   subtasks: ["sub1", "sub2"],
   duration: 90,
-  priority: "High",
+  priority: "High" as const,
   status: "todo",
   completed: false,
   examId: "exam1",
@@ -66,9 +65,7 @@ describe("useTasks", () => {
   });
 
   it("does not fetch when userId is absent", async () => {
-    const { result } = renderHook(() => useTasks(null));
-    // fetchTasks returns early without calling setIsLoading(false) when userId
-    // is null, so isLoading stays true — just verify no network call was made
+    const { result } = renderHook(() => useTasks(undefined));
     await new Promise((r) => setTimeout(r, 50));
     expect(fetch).not.toHaveBeenCalled();
     expect(result.current.tasks).toEqual([]);
@@ -87,7 +84,7 @@ describe("useTasks", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: false,
       status: 500,
-      text: jest.fn().mockResolvedValue("")
+      text: jest.fn().mockResolvedValue(""),
     });
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -100,7 +97,7 @@ describe("useTasks", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      text: jest.fn().mockResolvedValue("")
+      text: jest.fn().mockResolvedValue(""),
     });
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -114,11 +111,14 @@ describe("useTasks", () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      text: jest.fn().mockResolvedValue("invalid json {")
+      text: jest.fn().mockResolvedValue("invalid json {"),
     });
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to parse JSON"), expect.any(SyntaxError));
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to parse JSON"),
+      expect.any(SyntaxError),
+    );
     expect(result.current.tasks).toEqual([]);
     consoleErrorSpy.mockRestore();
   });
@@ -143,7 +143,7 @@ describe("useTasks", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     const newTask = { ...BASE_TASK, id: "t99", title: "New Task" };
     global.fetch = mockFetch({ task: newTask }, true);
-    await act(async () => { await result.current.createTask({ title: "New Task" }); });
+    await act(async () => { await result.current.createTask({ title: "New Task" } as any); });
     expect(result.current.tasks[0]).toEqual(newTask);
   });
 
@@ -151,21 +151,21 @@ describe("useTasks", () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     global.fetch = mockFetch({ error: "Bad request" }, false);
-    await expect(result.current.createTask({})).rejects.toThrow("Bad request");
+    await expect(result.current.createTask({} as any)).rejects.toThrow("Bad request");
   });
 
   it("createTask throws with Unknown error fallback when no error field", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     global.fetch = mockFetch({}, false);
-    await expect(result.current.createTask({})).rejects.toThrow("Unknown error");
+    await expect(result.current.createTask({} as any)).rejects.toThrow("Unknown error");
   });
 
   it("createTask throws when response has no task id", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     global.fetch = mockFetch({ task: null }, true);
-    await expect(result.current.createTask({})).rejects.toThrow("Invalid response from server");
+    await expect(result.current.createTask({} as any)).rejects.toThrow("Invalid response from server");
   });
 
   it("updateTask replaces the correct task in state using response task", async () => {
@@ -251,7 +251,9 @@ describe("useTasks", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     global.fetch = mockFetch({ rewards: null });
     await act(async () => { await result.current.toggleTaskStatus("t1"); });
-    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
+    expect(dispatchEventSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "task-progress-updated" }),
+    );
     dispatchEventSpy.mockRestore();
   });
 
@@ -262,7 +264,10 @@ describe("useTasks", () => {
     let rewards: any;
     await act(async () => { rewards = await result.current.toggleTaskStatus("nonexistent"); });
     expect(rewards).toBeNull();
-    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("nonexistent"), expect.anything());
+    expect(fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining("nonexistent"),
+      expect.anything(),
+    );
   });
 
   it("toggleTaskStatus does not dispatch event when task is not found", async () => {
@@ -270,15 +275,17 @@ describe("useTasks", () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     await act(async () => { await result.current.toggleTaskStatus("nonexistent"); });
-    expect(dispatchEventSpy).not.toHaveBeenCalledWith(expect.objectContaining({ type: "task-progress-updated" }));
+    expect(dispatchEventSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "task-progress-updated" }),
+    );
     dispatchEventSpy.mockRestore();
   });
 
   it("sortTasks orders tasks by priority High > Medium > Low", async () => {
     const tasks = [
-      { ...BASE_TASK, id: "a", priority: "Low" },
-      { ...BASE_TASK, id: "b", priority: "High" },
-      { ...BASE_TASK, id: "c", priority: "Medium" },
+      { ...BASE_TASK, id: "a", priority: "Low" as const },
+      { ...BASE_TASK, id: "b", priority: "High" as const },
+      { ...BASE_TASK, id: "c", priority: "Medium" as const },
     ];
     global.fetch = mockFetch({ tasks });
     const { result } = renderHook(() => useTasks("u1"));
@@ -325,7 +332,7 @@ describe("useTasks", () => {
       });
     });
     expect(createNotificationMock).toHaveBeenCalledWith(
-      "u1", "Task Created", expect.any(String), "SUCCESS"
+      "u1", "Task Created", expect.any(String), "SUCCESS",
     );
     expect(result.current.isDialogOpen).toBe(false);
   });
@@ -337,13 +344,15 @@ describe("useTasks", () => {
     const updated = { ...BASE_TASK, title: "Edited" };
     global.fetch = mockFetch({ task: updated }, true);
     await act(async () => {
-      await result.current.handleSubmitTask({ name: "Edited", description: "", dueDate: "",
-        url: "", subtasks: "", durationHours: "0", durationMinutes: "0",
-        priority: "High", examId: "none", bufferDays: 0, isRecurring: false, recurrence: null,
+      await result.current.handleSubmitTask({
+        name: "Edited", description: "", dueDate: "", url: "",
+        subtasks: "", durationHours: "0", durationMinutes: "0",
+        priority: "High", examId: "none", bufferDays: 0,
+        isRecurring: false, recurrence: null,
       });
     });
     expect(createNotificationMock).toHaveBeenCalledWith(
-      "u1", "Task Updated", expect.any(String), "INFO"
+      "u1", "Task Updated", expect.any(String), "INFO",
     );
   });
 
@@ -365,14 +374,14 @@ describe("useTasks", () => {
     await act(async () => {
       await result.current.handleSubmitTask({
         name: "Exam Task", description: "", dueDate: "", url: "",
-        subtasks: [], durationHours: "0", durationMinutes: "0",
-        priority: "Low", examId: "none", bufferDays: "2",
-        isRecurring: true, recurrence: "weekly",
+        subtasks: "" as any, durationHours: "0", durationMinutes: "0",
+        priority: "Low", examId: "none", bufferDays: 2,
+        isRecurring: true, recurrence: null,
       });
     });
     expect(fetch).toHaveBeenCalledWith(
       "/api/tasks",
-      expect.objectContaining({ body: expect.stringContaining('"examId":null') })
+      expect.objectContaining({ body: expect.stringContaining('"examId":null') }),
     );
   });
 
@@ -381,9 +390,11 @@ describe("useTasks", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     global.fetch = mockFetch({ error: "Server error" }, false);
     await act(async () => {
-      await result.current.handleSubmitTask({ name: "Fail Task", description: "", dueDate: "",
-        url: "", subtasks: "", durationHours: "0", durationMinutes: "0",
-        priority: "Low", examId: "none", bufferDays: 0, isRecurring: false, recurrence: null,
+      await result.current.handleSubmitTask({
+        name: "Fail Task", description: "", dueDate: "", url: "",
+        subtasks: "", durationHours: "0", durationMinutes: "0",
+        priority: "Low", examId: "none", bufferDays: 0,
+        isRecurring: false, recurrence: null,
       });
     });
     expect(window.alert).toHaveBeenCalledWith(expect.stringContaining("Failed to save task"));
@@ -427,14 +438,14 @@ describe("useTasks", () => {
   it("handleViewTask sets the viewTask state", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    act(() => { result.current.handleViewTask(BASE_TASK); });
+    act(() => { result.current.handleViewTask(BASE_TASK as any); });
     expect(result.current.viewTask).toEqual(BASE_TASK);
   });
 
   it("setViewTask clears the view when set to null", async () => {
     const { result } = renderHook(() => useTasks("u1"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    act(() => { result.current.handleViewTask(BASE_TASK); });
+    act(() => { result.current.handleViewTask(BASE_TASK as any); });
     act(() => { result.current.setViewTask(null); });
     expect(result.current.viewTask).toBeNull();
   });
@@ -461,7 +472,10 @@ describe("useTasks", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     global.fetch = mockFetch({});
     await act(async () => { await result.current.confirmDeleteTask(); });
-    expect(fetch).not.toHaveBeenCalledWith(expect.stringContaining("/api/tasks/"), expect.anything());
+    expect(fetch).not.toHaveBeenCalledWith(
+      expect.stringContaining("/api/tasks/"),
+      expect.anything(),
+    );
   });
 
   it("confirmDeleteTask alerts on delete failure", async () => {
