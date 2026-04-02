@@ -6,7 +6,6 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 
 interface FormFieldProps {
   label: string;
@@ -139,17 +138,15 @@ export function RecurrencePanel({
 }: RecurrencePanelProps) {
   return (
     <div className="flex flex-col gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-      <Select
-        value={type}
-        onChange={(e) => onType(e.target.value)}
-        className="w-full border border-gray-200 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-400"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </Select>
+    <select
+      value={type}
+      onChange={(e) => onType(e.target.value)}
+      className="..."
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
       
       {type === "weekly" && <DayPicker selected={days} onChange={onDays} />}
       
