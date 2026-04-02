@@ -1,13 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-<<<<<<< HEAD
-import Timer from "@/components/wellbeing/timer";
-import ReminderModal from "@/components/ui/reminderModal";
-=======
 import Timer from "@/components/wellbeing/Timer";
 import ReminderModal from "@/components/ui/ReminderModal";
->>>>>>> origin
 import { useUI } from "@/context/UIContext";
 
 /**
