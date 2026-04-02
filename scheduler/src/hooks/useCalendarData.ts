@@ -9,26 +9,85 @@
  * - Computing unscheduled tasks based on current events
  * - Managing categories, schedule logs, and exams
  *
- * Also provides helper actions for refreshing and fetching data from the API.
- *
- * This hook acts as the central data layer for the calendar feature.
  */
 
 import { useState, useCallback } from "react";
 import { addDays, addWeeks, addMonths, addMinutes, subMinutes } from "date-fns";
 import { shouldShowAsUnscheduled } from "@/lib/scheduling/taskSchedulingUtils";
 
-/** Maps day abbreviations to JS day-of-week indices (0 = Sunday). */
+interface Recurrence {
+  type: "daily" | "weekly" | "monthly" | "none";
+  days?: string[];
+  until?: string;
+}
+
+interface Task {
+  id: string;
+  status?: string;
+  isCompleted?: boolean;
+  completed?: boolean;
+  scheduledDate?: string;
+  scheduledTime?: string;
+  duration?: number;
+  isRecurring?: boolean;
+  recurrence?: Recurrence;
+}
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  category?: string;
+  travelDuration?: number;
+  transportMode?: string;
+  _type?: string;
+}
+
+interface ScheduledTask extends Task {
+  start: Date;
+  end: Date;
+  occurrenceId?: string;
+  _type: "task";
+}
+
+interface TravelBlock {
+  _type: "_travel";
+  _eventId: string;
+  _eventCategory?: string;
+  _transportMode: string;
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+}
+
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface ProgressCache {
+  progressPercentage: number;
+  tasks: Task[];
+  lastUpdatedAt: number | null;
+}
+
 const DAY_MAP: Record<string, number> = {
   Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
 };
 
-async function fetchJson(url: string) {
+/**
+ * Fetches JSON from a URL, throwing on non-OK responses.
+ * @param {string} url - The endpoint to fetch
+ * @returns {Promise<any>} Parsed JSON response body
+ * @throws {Error} On non-OK HTTP response
+ */
+async function fetchJson(url: string): Promise<any> {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
   return res.json();
 }
-// Recurring task expansion helpers
 
 /** Returns occurrences for a single daily or monthly recurrence step. */
 function getDailyOrMonthlyOccurrences(
@@ -61,24 +120,24 @@ function getWeeklyOccurrences(
 }
 
 /** Converts a list of occurrence dates into calendar-ready task objects. */
-function occurrencesToTasks(task: any, occurrences: Date[], durationMins: number): any[] {
+function occurrencesToTasks(task: Task, occurrences: Date[], durationMins: number): ScheduledTask[] {
   return occurrences.map((occ) => ({
     ...task,
     start: new Date(occ),
     end: addMinutes(new Date(occ), durationMins),
     occurrenceId: `${task.id}-${occ.getTime()}`,
-    _type: "task",
+    _type: "task" as const,
   }));
 }
 
 /** Advances the cursor and returns occurrences for one recurrence step. */
 function stepRecurrence(
-  task: any,
+  task: Task,
   cursor: Date,
   baseDate: Date,
   limitDate: Date,
 ): { occurrences: Date[]; next: Date } {
-  const { type, days } = task.recurrence;
+  const { type, days } = task.recurrence!;
   if (type === "weekly" && Array.isArray(days) && days.length > 0) {
     return {
       occurrences: getWeeklyOccurrences(cursor, days, baseDate, limitDate),
@@ -88,19 +147,18 @@ function stepRecurrence(
   if (type === "daily" || type === "monthly") {
     return getDailyOrMonthlyOccurrences(type, cursor);
   }
-  // Unknown recurrence type — signal caller to stop iterating.
   return { occurrences: [], next: limitDate };
 }
 
 /** Expands a single recurring task into all its individual occurrences. */
-function expandSingleTask(task: any): any[] {
-  const { until } = task.recurrence;
+function expandSingleTask(task: Task): ScheduledTask[] {
+  const { until } = task.recurrence!;
   const baseDate = task.scheduledTime
     ? new Date(task.scheduledTime)
     : task.scheduledDate ? new Date(task.scheduledDate) : new Date();
   const limitDate = until ? new Date(until) : addMonths(new Date(), 12);
   const durationMins = task.duration || 60;
-  const result: any[] = [];
+  const result: ScheduledTask[] = [];
   let cursor = new Date(baseDate);
   let iterations = 0;
   while (cursor <= limitDate && iterations < 500) {
@@ -113,7 +171,7 @@ function expandSingleTask(task: any): any[] {
 }
 
 /** Expands all recurring tasks in a list into individual occurrences. */
-export function expandRecurringTasks(tasks: any[]): any[] {
+export function expandRecurringTasks(tasks: Task[]): (Task | ScheduledTask)[] {
   return tasks.flatMap((task) => {
     if (!task.isRecurring || !task.recurrence || task.recurrence.type === "none") {
       return [task];
@@ -122,9 +180,6 @@ export function expandRecurringTasks(tasks: any[]): any[] {
   });
 }
 
-// Travel block helpers
-
-/** Formats a duration in minutes into a human-readable string. */
 function formatTravelDuration(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
   if (minutes % 60 === 0) return `${Math.floor(minutes / 60)}h`;
@@ -132,7 +187,7 @@ function formatTravelDuration(minutes: number): string {
 }
 
 /** Returns true if an event is eligible for a travel block. */
-function isTravelEligible(ev: any): boolean {
+function isTravelEligible(ev: CalendarEvent): boolean {
   return (
     typeof ev.travelDuration === "number" &&
     ev.travelDuration > 0 &&
@@ -142,34 +197,30 @@ function isTravelEligible(ev: any): boolean {
 }
 
 /** Builds a single travel block that precedes a given event. */
-function buildTravelBlock(ev: any): any {
+function buildTravelBlock(ev: CalendarEvent): TravelBlock {
   const travelEnd = new Date(ev.start);
-  const travelStart = subMinutes(travelEnd, ev.travelDuration);
+  const travelStart = subMinutes(travelEnd, ev.travelDuration!);
   return {
     _type: "_travel",
     _eventId: ev.id,
     _eventCategory: ev.category,
     _transportMode: ev.transportMode || "walking",
     id: `travel-${ev.id}`,
-    title: `🚗 ${formatTravelDuration(ev.travelDuration)} to ${ev.title}`,
+    title: `🚗 ${formatTravelDuration(ev.travelDuration!)} to ${ev.title}`,
     start: travelStart,
     end: travelEnd,
   };
 }
 
 /** Generates travel blocks for all eligible events. */
-function buildTravelBlocks(events: any[]): any[] {
+function buildTravelBlocks(events: CalendarEvent[]): TravelBlock[] {
   return events.filter(isTravelEligible).map(buildTravelBlock);
 }
 
-// API fetch helpers
-
 /** Fetches and maps raw calendar events, attaching travel blocks. */
-async function fetchEvents(): Promise<any[]> {
-  const res = await fetch("/api/calendar/events");
-  if (!res.ok) return [];
-  const data = await res.json();
-  const mapped = data.map((e: any) => ({
+async function fetchEvents(): Promise<(CalendarEvent | TravelBlock)[]> {
+  const data = await fetchJson("/api/calendar/events");
+  const mapped: CalendarEvent[] = data.map((e: any) => ({
     ...e,
     start: new Date(e.start),
     end: new Date(e.end),
@@ -179,47 +230,42 @@ async function fetchEvents(): Promise<any[]> {
 }
 
 /** Fetches raw tasks from the API and returns all non-completed ones. */
-async function fetchRawTasks(userId: string): Promise<any[]> {
-  const res = await fetch(`/api/tasks?userId=${userId}`);
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.tasks || []).filter((t: any) => !t.completed);
+async function fetchRawTasks(userId: string): Promise<Task[]> {
+  const data = await fetchJson(`/api/tasks?userId=${userId}`);
+  return (data.tasks || []).filter((t: Task) => !t.completed);
 }
 
 /** Maps a scheduled task to a calendar-ready object with start/end times. */
-function toScheduledTask(t: any): any {
+function toScheduledTask(t: Task): ScheduledTask {
   return {
     ...t,
-    start: new Date(t.scheduledTime),
-    end: addMinutes(new Date(t.scheduledTime), t.duration || 60),
-    _type: "task",
+    start: new Date(t.scheduledTime!),
+    end: addMinutes(new Date(t.scheduledTime!), t.duration || 60),
+    _type: "task" as const,
   };
 }
 
 /** Fetches and maps category data, building an all-enabled filter map. */
-async function fetchCategoryData(): Promise<{ cats: any[]; filters: Record<string, boolean> }> {
-  const res = await fetch("/api/categories");
-  const data = await res.json();
-  const cats = data.categories || [];
-  const filters: Record<string, boolean> = Object.fromEntries(cats.map((c: any) => [c.id, true]));
+async function fetchCategoryData(): Promise<{ cats: Category[]; filters: Record<string, boolean> }> {
+  const data = await fetchJson("/api/categories");
+  const cats: Category[] = data.categories || [];
+  const filters = Object.fromEntries(cats.map((c) => [c.id, true]));
   return { cats, filters };
 }
-
-// State hook
 
 /**
  * Holds all raw calendar state slices.
  * Separated from action logic so each concern fits within the line budget.
  */
 function useCalendarState() {
-  const [events, setEvents] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [unscheduledTasks, setUnscheduledTasks] = useState<any[]>([]);
-  const [allFetchedTasks, setAllFetchedTasks] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [categoryFilters, setCategoryFilters] = useState<Record<string, boolean>>({});
-  const [scheduleLogs, setScheduleLogs] = useState<any[]>([]);
-  const [exams, setExams] = useState<any[]>([]);
+  const [events, setEvents]                     = useState<(CalendarEvent | TravelBlock)[]>([]);
+  const [tasks, setTasks]                       = useState<(Task | ScheduledTask)[]>([]);
+  const [unscheduledTasks, setUnscheduledTasks] = useState<Task[]>([]);
+  const [allFetchedTasks, setAllFetchedTasks]   = useState<Task[]>([]);
+  const [categories, setCategories]             = useState<Category[]>([]);
+  const [categoryFilters, setCategoryFilters]   = useState<Record<string, boolean>>({});
+  const [scheduleLogs, setScheduleLogs]         = useState<any[]>([]);
+  const [exams, setExams]                       = useState<any[]>([]);
   return {
     events, setEvents,
     tasks, setTasks,
@@ -232,22 +278,18 @@ function useCalendarState() {
   };
 }
 
-// Action hooks (split by domain)
-
 /** Returns a stable callback that filters tasks down to those without a scheduled slot. */
 function useComputeUnscheduled() {
   return useCallback(
-    (allTasksList: any[], latestEvents: any[]) =>
-      allTasksList.filter((t: any) =>
-        shouldShowAsUnscheduled(t, latestEvents),
-      ),
+    (allTasksList: Task[], latestEvents: (CalendarEvent | TravelBlock)[]) =>
+      allTasksList.filter((t) => shouldShowAsUnscheduled(t, latestEvents)),
     [],
   );
 }
 
 /** Provides the refreshEvents action. */
-function useRefreshEvents(setEvents: (e: any[]) => void) {
-  return useCallback(async (): Promise<any[]> => {
+function useRefreshEvents(setEvents: (e: (CalendarEvent | TravelBlock)[]) => void) {
+  return useCallback(async (): Promise<(CalendarEvent | TravelBlock)[]> => {
     try {
       const withTravel = await fetchEvents();
       setEvents(withTravel);
@@ -259,73 +301,93 @@ function useRefreshEvents(setEvents: (e: any[]) => void) {
   }, [setEvents]);
 }
 
+/**
+ * Normalises a raw task list into scheduled and expanded calendar tasks.
+ * @param {Task[]} raw - Unfiltered tasks from the API
+ * @returns {{ scheduled: (Task | ScheduledTask)[]; raw: Task[] }} Normalised task collections
+ */
+function buildScheduledTasks(raw: Task[]): (Task | ScheduledTask)[] {
+  const scheduledRaw = raw
+    .filter((t) => t.scheduledDate && t.scheduledTime)
+    .map(toScheduledTask);
+  return expandRecurringTasks(scheduledRaw);
+}
+
+/**
+ * Applies a fetched task list to all relevant state slices.
+ *
+ * @param {Task[]} fetched - The raw tasks returned from the API
+ * @param {(CalendarEvent | TravelBlock)[]} latestEvents - Current events for unscheduled computation
+ * @param {ReturnType<typeof useCalendarState>} state - The calendar state slice setters
+ * @param {ReturnType<typeof useComputeUnscheduled>} computeUnscheduled - Unscheduled filter callback
+ */
+function applyTaskState(
+  fetched: Task[],
+  latestEvents: (CalendarEvent | TravelBlock)[],
+  state: ReturnType<typeof useCalendarState>,
+  computeUnscheduled: ReturnType<typeof useComputeUnscheduled>,
+): void {
+  state.setAllFetchedTasks(fetched);
+  state.setTasks(buildScheduledTasks(fetched));
+  state.setUnscheduledTasks(computeUnscheduled(fetched, latestEvents));
+}
+
 /** Provides the refreshTasks action. */
 function useRefreshTasks(
   state: ReturnType<typeof useCalendarState>,
   userId: string,
   computeUnscheduled: ReturnType<typeof useComputeUnscheduled>,
 ) {
-  const { setAllFetchedTasks, setTasks, setUnscheduledTasks, events } = state;
-  return useCallback(async (latestEvents?: any[]): Promise<any[] | null> => {
+  return useCallback(async (latestEvents?: (CalendarEvent | TravelBlock)[]): Promise<Task[] | null> => {
     try {
-      const fresh = await fetchRawTasks(userId);
-      setAllFetchedTasks(fresh);
-      const scheduledRaw = fresh.filter((t) => t.scheduledDate && t.scheduledTime).map(toScheduledTask);
-      setTasks(expandRecurringTasks(scheduledRaw));
-      setUnscheduledTasks(computeUnscheduled(fresh, latestEvents ?? events));
-      return fresh;
+      const fetched = await fetchRawTasks(userId);
+      applyTaskState(fetched, latestEvents ?? state.events, state, computeUnscheduled);
+      return fetched;
     } catch (err) {
       console.error("Failed to refresh tasks:", err);
       return null;
     }
-  }, [userId, events, computeUnscheduled, setAllFetchedTasks, setTasks, setUnscheduledTasks]);
+  }, [userId, state, computeUnscheduled]);
 }
 
 /** Provides category, schedule log, and exam fetch actions. */
 function useMetaActions(state: ReturnType<typeof useCalendarState>) {
   const { setCategories, setCategoryFilters, setScheduleLogs, setExams } = state;
 
-  /**
-   * Fetches available categories and initializes category filters.
-   */
-  const fetchCategories = useCallback(async () => {
+  const fetchCategories = useCallback(async (): Promise<void> => {
     const { cats, filters } = await fetchCategoryData();
     setCategories(cats);
     setCategoryFilters(filters);
   }, [setCategories, setCategoryFilters]);
 
-  /**
-   * Fetches schedule logs from the API.
-   */
-  const fetchScheduleLogs = useCallback(async () => {
+  const fetchScheduleLogs = useCallback(async (): Promise<void> => {
     const data = await fetchJson("/api/schedule-log");
     setScheduleLogs(data.logs || []);
   }, [setScheduleLogs]);
 
-  /**
-   * Fetches exams from the API.
-   */
-  const fetchExams = useCallback(async () => {
+  const fetchExams = useCallback(async (): Promise<void> => {
     try {
       const data = await fetchJson("/api/exams");
       setExams(data.exams || []);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to fetch exams:", err);
+    }
   }, [setExams]);
 
   return { fetchCategories, fetchScheduleLogs, fetchExams };
 }
 
-// Public hook
-
 /**
  * Manages all calendar data: events, tasks, categories, schedule logs, and exams.
- * Composes useCalendarState, useEventAndTaskActions, and useMetaActions into a single public API.
+ * Composes useCalendarState, refresh actions, and meta actions into a single public API.
+ * @param {string} userId - The authenticated user's ID
+ * @returns {object} All calendar state and action callbacks
  */
 export function useCalendarData(userId: string) {
-  const state = useCalendarState();
+  const state              = useCalendarState();
   const computeUnscheduled = useComputeUnscheduled();
-  const refreshEvents = useRefreshEvents(state.setEvents);
-  const refreshTasks = useRefreshTasks(state, userId, computeUnscheduled);
-  const metaActions = useMetaActions(state);
+  const refreshEvents      = useRefreshEvents(state.setEvents);
+  const refreshTasks       = useRefreshTasks(state, userId, computeUnscheduled);
+  const metaActions        = useMetaActions(state);
   return { ...state, computeUnscheduled, refreshEvents, refreshTasks, ...metaActions };
 }
