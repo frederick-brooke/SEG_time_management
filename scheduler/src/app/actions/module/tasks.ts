@@ -13,14 +13,27 @@ import { authOptions } from "lib/auth";
 import { revalidatePath } from "next/cache";
 import { requireSession, isModuleOwner, generateGroupId } from "./utils";
 
+/** Strict interface for task creation to prevent runtime schema mismatches */
+interface ModuleTaskInput {
+  title: string;
+  description?: string;
+  dueDate?: string | Date;
+  priority?: "Low" | "Medium" | "High";
+  duration?: number;
+  subtasks?: string[];
+  url?: string;
+}
+
 /**
- * Creates a task on every module member's task list, grouped by a shared groupId.
- * Always creates a template copy for the creator so the task persists even with 0 members.
- * @param {string} moduleId - The module database ID
- * @param {object} taskData - Task fields (title, dueDate, priority, etc.)
- * @return {Promise<{ success: boolean; message?: string; error?: string }>}
+ * Creates a synchronized task for every member of a module.
+ * Uses a database transaction to ensure all members receive the task atomically.
+ * Always includes the owner so the task persists even with zero enrolled members.
+ *
+ * @param {string} moduleId - The unique identifier of the module.
+ * @param {ModuleTaskInput} taskData - The core data payload for the new task.
+ * @returns {Promise<{ success: boolean; message?: string; error?: string }>} An object indicating the success or failure of the operation.
  */
-export async function createModuleTask(moduleId: string, taskData: any) {
+export async function createModuleTask(moduleId: string, taskData: ModuleTaskInput) {
   const session = await requireSession();
 
   if (!(await isModuleOwner(moduleId, session.user.id))) {
@@ -34,51 +47,57 @@ export async function createModuleTask(moduleId: string, taskData: any) {
 
   const moduleTaskGroupId = generateGroupId();
 
-  const memberIdsToAssign = members
+  const memberIds = members
     .filter((m) => m.role === 'MEMBER')
     .map((m) => m.userId);
 
-  if (!memberIdsToAssign.includes(session.user.id)) {
-    memberIdsToAssign.push(session.user.id);
+  if (!memberIds.includes(session.user.id)) {
+    memberIds.push(session.user.id);
   }
 
-  await Promise.all(
-    memberIdsToAssign.map((userId) =>
-      prisma.task.create({
-        data: {
-          userId,
-          moduleId,
-          isModuleTask: true,
-          moduleTaskGroupId,
-          title: taskData.title,
-          description: taskData.description || null,
-          dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
-          priority: taskData.priority || "Low",
-          duration: taskData.duration || 0,
-          subtasks: taskData.subtasks || [],
-          url: taskData.url || null,
-          status: "todo",
-          completed: false,
-        },
-      })
-    )
-  );
+  try {
+    await prisma.$transaction(
+      memberIds.map((userId) =>
+        prisma.task.create({
+          data: {
+            userId,
+            moduleId,
+            isModuleTask: true,
+            moduleTaskGroupId,
+            title: taskData.title,
+            description: taskData.description ?? null,
+            dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
+            priority: taskData.priority ?? "Low",
+            duration: taskData.duration ?? 0,
+            subtasks: taskData.subtasks ?? [],
+            url: taskData.url ?? null,
+            status: "todo",
+            completed: false,
+          },
+        })
+      )
+    );
 
-  revalidatePath(`/modules/${moduleId}`);
-  return { success: true, message: `Task created successfully` };
+    revalidatePath(`/modules/${moduleId}`);
+    return { success: true, message: `Task assigned to ${memberIds.length} members.` };
+  } catch (err) {
+    console.error("Module task creation failed:", err);
+    return { success: false, error: "Failed to distribute module tasks." };
+  }
 }
 
 /**
- * Updates all member copies of a module task by group ID
- * @param {string} moduleTaskGroupId - The shared group ID for the task
- * @param {string} moduleId - The module database ID
- * @param {object} taskData - Updated task fields
- * @return {Promise<{ success: boolean; error?: string }>}
+ * Updates core metadata across all instances of a module task.
+ *
+ * @param {string} moduleTaskGroupId - The shared identifier linking the tasks across all members.
+ * @param {string} moduleId - The unique identifier of the module.
+ * @param {ModuleTaskInput} taskData - The updated data payload for the task.
+ * @returns {Promise<{ success: boolean; error?: string }>} An object indicating the success or failure of the operation.
  */
 export async function updateModuleTask(
   moduleTaskGroupId: string,
   moduleId: string,
-  taskData: any
+  taskData: ModuleTaskInput,
 ) {
   const session = await requireSession();
 
@@ -90,11 +109,11 @@ export async function updateModuleTask(
     where: { moduleTaskGroupId, moduleId, isModuleTask: true },
     data: {
       title: taskData.title,
-      description: taskData.description || null,
+      description: taskData.description ?? null,
       dueDate: taskData.dueDate ? new Date(taskData.dueDate) : null,
-      priority: taskData.priority || "Low",
-      duration: taskData.duration || 0,
-      url: taskData.url || null,
+      priority: taskData.priority ?? "Low",
+      duration: taskData.duration ?? 0,
+      url: taskData.url ?? null,
     },
   });
 
@@ -103,10 +122,11 @@ export async function updateModuleTask(
 }
 
 /**
- * Deletes all member copies of a module task by group ID
- * @param {string} moduleTaskGroupId - The shared group ID for the task
- * @param {string} moduleId - The module database ID
- * @return {Promise<{ success: boolean; error?: string }>}
+ * Deletes all instances of a module task across all members.
+ *
+ * @param {string} moduleTaskGroupId - The shared identifier linking the tasks across all members.
+ * @param {string} moduleId - The unique identifier of the module.
+ * @returns {Promise<{ success: boolean; error?: string }>} An object indicating the success or failure of the operation.
  */
 export async function deleteModuleTask(moduleTaskGroupId: string, moduleId: string) {
   const session = await requireSession();
@@ -124,14 +144,15 @@ export async function deleteModuleTask(moduleTaskGroupId: string, moduleId: stri
 }
 
 /**
- * Gets the current user's module tasks — used for the member view
- * @param {string} moduleId - The module database ID
- * @return {Promise<Array>} - List of the current user's module tasks
+ * Fetches the current user's module tasks for the member view.
+ *
+ * @param {string} moduleId - The unique identifier of the module.
+ * @returns {Promise<Array>} A list of the current user's module tasks.
  */
 export async function getModuleTasks(moduleId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return [];
-  
+
   return prisma.task.findMany({
     where: { moduleId, isModuleTask: true, userId: session.user.id },
     select: {
@@ -149,17 +170,95 @@ export async function getModuleTasks(moduleId: string) {
   });
 }
 
+type MemberInfo = {
+  id: string;
+  username: string;
+  fname: string | null;
+  lname: string | null;
+  pfp: string | null;
+};
+
+type TaskGroup = {
+  moduleTaskGroupId: string;
+  title: string;
+  description: string | null;
+  dueDate: Date | null;
+  priority: string;
+  duration: number;
+  url: string | null;
+  completedMembers: MemberInfo[];
+  inProgressMembers: MemberInfo[];
+  totalAssigned: number;
+};
+
+/**
+ * Resolves or initialises the task group entry for a given group ID.
+ *
+ * @param {Map<string, TaskGroup>} groupMap - The accumulator map of task groups.
+ * @param {string} groupId - The group ID to resolve.
+ * @param {object} task - The source task used to seed the entry if missing.
+ * @returns {TaskGroup} The existing or newly created task group entry.
+ */
+function resolveGroupEntry(
+  groupMap: Map<string, TaskGroup>,
+  groupId: string,
+  task: { title: string; description: string | null; dueDate: Date | null; priority: string; duration: number; url: string | null },
+): TaskGroup {
+  if (!groupMap.has(groupId)) {
+    groupMap.set(groupId, {
+      moduleTaskGroupId: groupId,
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: task.priority,
+      duration: task.duration,
+      url: task.url,
+      completedMembers: [],
+      inProgressMembers: [],
+      totalAssigned: 0,
+    });
+  }
+
+  return groupMap.get(groupId)!;
+}
+
+/**
+ * Accumulates a member's completion state into the correct task group bucket.
+ * Owners and Admins are excluded so they do not skew student progress statistics.
+ *
+ * @param {TaskGroup} group - The task group entry to update.
+ * @param {MemberInfo} member - The member whose state is being recorded.
+ * @param {boolean} completed - Whether the member has completed the task.
+ * @param {string | undefined} role - The member's module role.
+ */
+function accumulateMemberProgress(
+  group: TaskGroup,
+  member: MemberInfo,
+  completed: boolean,
+  role: string | undefined,
+) {
+  if (role !== 'MEMBER') return;
+
+  group.totalAssigned++;
+
+  if (completed) {
+    group.completedMembers.push(member);
+  } else {
+    group.inProgressMembers.push(member);
+  }
+}
+
 /**
  * Gets deduplicated tasks with per-member completion progress for the owner view.
- * Ignores Owner/Admin copies so they do not skew the student progress statistics.
- * @param {string} moduleId - The module database ID
- * @return {Promise<Array>} - Task groups with progress data
+ * Owners and Admins are excluded from progress statistics.
+ *
+ * @param {string} moduleId - The unique identifier of the module.
+ * @returns {Promise<Array>} An array of aggregated task data including completion statistics.
  */
 export async function getModuleTasksWithProgress(moduleId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return [];
 
-  // Fetch all member copies of all tasks in the module
   const allTasks = await prisma.task.findMany({
     where: { moduleId, isModuleTask: true },
     include: {
@@ -168,59 +267,18 @@ export async function getModuleTasksWithProgress(moduleId: string) {
     orderBy: { dueDate: 'asc' },
   });
 
-  // Fetch roles so we can filter out Owners/Admins from the progress tracking
   const moduleMembers = await prisma.moduleMember.findMany({
     where: { moduleId },
-    select: { userId: true, role: true }
+    select: { userId: true, role: true },
   });
-  
-  // Create a quick lookup dictionary for user roles
-  const roleMap = new Map(moduleMembers.map(m => [m.userId, m.role]));
 
-  const groupMap = new Map<string, {
-    moduleTaskGroupId: string;
-    title: string;
-    description: string | null;
-    dueDate: Date | null;
-    priority: string;
-    duration: number;
-    url: string | null;
-    completedMembers: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null }[];
-    inProgressMembers: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null }[];
-    totalAssigned: number;
-  }>();
+  const roleMap = new Map(moduleMembers.map((m) => [m.userId, m.role]));
+  const groupMap = new Map<string, TaskGroup>();
 
   for (const task of allTasks) {
     const groupId = task.moduleTaskGroupId ?? task.id;
-
-    if (!groupMap.has(groupId)) {
-      groupMap.set(groupId, {
-        moduleTaskGroupId: groupId,
-        title: task.title,
-        description: task.description,
-        dueDate: task.dueDate,
-        priority: task.priority,
-        duration: task.duration,
-        url: task.url,
-        completedMembers: [],
-        inProgressMembers: [],
-        totalAssigned: 0,
-      });
-    }
-
-    const group = groupMap.get(groupId)!;
-    const userRole = roleMap.get(task.userId);
-
-    // Only count regular members in the progress stats.
-    // This prevents the Owner's template copy from showing up in the "In Progress" list.
-    if (userRole === 'MEMBER') {
-      group.totalAssigned++;
-      if (task.completed) {
-        group.completedMembers.push(task.user);
-      } else {
-        group.inProgressMembers.push(task.user);
-      }
-    }
+    const group = resolveGroupEntry(groupMap, groupId, task);
+    accumulateMemberProgress(group, task.user, task.completed, roleMap.get(task.userId));
   }
 
   return Array.from(groupMap.values());

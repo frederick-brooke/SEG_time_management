@@ -8,7 +8,7 @@ import { LunarCard } from "@/components/ui/LunarCard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { useSession } from "next-auth/react";
 import AppealForm from "./AppealForm";
-import BanInfo from "@/components/admin/banInfo";
+import BanInfo from "@/components/admin/BanInfo";
 import { useRouter } from "next/navigation";
 /**
  * BannedPage

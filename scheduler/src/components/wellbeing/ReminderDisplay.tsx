@@ -5,7 +5,7 @@ import { useUI } from "@/context/UIContext";
 
 import { Button } from "@/components/ui/Button";
 import { IconSettings } from "@tabler/icons-react";
-import ReminderModal from "@/components/ui/reminderModal";
+import ReminderModal from "@/components/ui/ReminderModal";
 import ReminderPicker from "./ReminderTimerPicker";
 import {useReminders} from "hooks/useReminders";
 

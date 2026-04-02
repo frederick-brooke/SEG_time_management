@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Timer from "@/components/wellbeing/Timer";
-import ReminderModal from "@/components/ui/reminderModal";
+import ReminderModal from "@/components/ui/ReminderModal";
 import { useUI } from "@/context/UIContext";
 
 /**

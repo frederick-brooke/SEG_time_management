@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import SearchUsers from "../searchUsers";
+import SearchUsers from "../SearchUsers";
 
 // Mock UserPanel
 jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (

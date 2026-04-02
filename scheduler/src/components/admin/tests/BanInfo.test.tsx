@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import BanInfo from "@/components/admin/banInfo";
+import BanInfo from "@/components/admin/BanInfo";
 import { signOut } from "next-auth/react";
 
 jest.mock("next-auth/react", () => ({
