@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import UserCard from "../UserCards";
 
-// ---- mocks ----
+// Mocks
+
 jest.mock("@/components/ui/glassCard", () => (props: any) => (
   <div data-testid="glass-card" onClick={props.onClick}>
     {props.children}
@@ -13,6 +14,8 @@ jest.mock("@/lib/avatar", () => ({
 }));
 
 import { resolveAvatarSrc } from "@/lib/avatar";
+
+// Tests
 
 describe("UserCard", () => {
   const baseUser = {

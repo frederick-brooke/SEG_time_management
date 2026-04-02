@@ -3,9 +3,7 @@ import { renderHook, act } from "@testing-library/react";
 import { format, addDays, startOfWeek } from "date-fns";
 import { useSchedule } from "../useSchedule";
 
-// ---------------------------------------------------------------------------
 // Helpers
-// ---------------------------------------------------------------------------
 
 const TODAY = new Date(2025, 5, 16); // Monday 16 Jun 2025 — fixed
 const TODAY_STR = format(TODAY, "yyyy-MM-dd");
@@ -35,9 +33,7 @@ function mockFetch(body: any, ok = true) {
   } as any);
 }
 
-// ---------------------------------------------------------------------------
 // Setup / teardown
-// ---------------------------------------------------------------------------
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -49,9 +45,7 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-// ---------------------------------------------------------------------------
 // Initial state
-// ---------------------------------------------------------------------------
 
 describe("initial state", () => {
   it("sets sensible defaults", () => {
@@ -79,9 +73,7 @@ describe("initial state", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // patch()
-// ---------------------------------------------------------------------------
 
 describe("patch()", () => {
   it("merges partial state", () => {
@@ -95,9 +87,7 @@ describe("patch()", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // open()
-// ---------------------------------------------------------------------------
 
 describe("open()", () => {
   it("opens dialog in day mode and selects unscheduled tasks", async () => {
@@ -205,9 +195,7 @@ describe("open()", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // getScheduleDays()
-// ---------------------------------------------------------------------------
 
 describe("getScheduleDays()", () => {
   it("returns a single day in day mode", async () => {
@@ -277,9 +265,7 @@ describe("getScheduleDays()", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // schedule() — API call construction
-// ---------------------------------------------------------------------------
 
 describe("schedule()", () => {
   it("calls /api/schedule with correct payload in day mode", async () => {
@@ -475,9 +461,7 @@ describe("schedule()", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // getFinalTaskIds() — via schedule() payload inspection
-// ---------------------------------------------------------------------------
 
 describe("getFinalTaskIds() task ID assembly", () => {
   it("includes selectedTaskIds", async () => {
@@ -648,9 +632,7 @@ describe("getFinalTaskIds() task ID assembly", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // close()
-// ---------------------------------------------------------------------------
 
 describe("close()", () => {
   it("hides dialog and calls refresh hooks", async () => {

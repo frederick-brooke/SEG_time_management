@@ -89,7 +89,7 @@ describe('ModuleMembersList Component', () => {
     expect(badges.length).toBe(2); 
   });
 
-  // --- HIERARCHY & PERMISSION TESTS ---
+  // HIERARCHY & PERMISSION TESTS
 
   it('hides all management buttons for standard members', () => {
     render(<ModuleMembersList members={mockMembers} isOwner={false} moduleId="mod1" currentUserRole="MEMBER" />);

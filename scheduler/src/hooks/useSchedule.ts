@@ -1,10 +1,11 @@
 "use client";
+
 // src/hooks/useSchedule.ts
-// ---------------------------------------------------------------------------
+
 // Owns all state and logic for the "Schedule My Day / Week" flow.
 // CalendarView and ScheduleDrawer consume this hook — neither needs to
 // know how scheduling works internally.
-// ---------------------------------------------------------------------------
+
 import { useState } from "react";
 import { format, addDays } from "date-fns";
 import { startOfWeek } from "date-fns";
@@ -64,7 +65,7 @@ export function useSchedule(
       missedDeadlineTasks: [],
     });
 
-  // ── Open dialog ─
+  // Open dialog
   const open = async (mode: "day" | "week", calendarDate: Date) => {
     resetWarnings();
     patch({
@@ -89,7 +90,7 @@ export function useSchedule(
     });
   };
 
-  // ── Build day list for current mode ─────────
+  // Build day list for current mode
   const getScheduleDays = () => {
     const allDays =
       state.scheduleMode === "day"
@@ -100,7 +101,7 @@ export function useSchedule(
     return allDays.filter((d) => !state.unavailableDays.includes(d));
   };
 
-  // ── Compute final task ID list ────
+  // Compute final task ID list
   const getFinalTaskIds = () => {
     const ws = new Date(state.scheduleWeekStart + "T12:00:00");
     const we = addDays(ws, 6);
@@ -138,7 +139,7 @@ export function useSchedule(
     return [...new Set([...weekIds, ...state.selectedTaskIds, ...futureIds])];
   };
 
-  // ── Run schedule API ────
+  // Run schedule API
   const schedule = async (ignoreCapacity = false) => {
     patch({ isScheduling: true });
     resetWarnings();

@@ -51,9 +51,7 @@ function renderOpen(content: React.ReactNode) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // DropdownMenu (root)
-// ---------------------------------------------------------------------------
 
 describe("DropdownMenu", () => {
   it("renders the trigger", () => {
