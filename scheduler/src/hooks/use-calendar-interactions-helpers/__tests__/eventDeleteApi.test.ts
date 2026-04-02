@@ -7,7 +7,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// ── getDeleteConfirmMsg 
+// getDeleteConfirmMsg 
 
 describe("getDeleteConfirmMsg", () => {
   it("returns single-occurrence message for 'single' mode", () => {
@@ -19,7 +19,7 @@ describe("getDeleteConfirmMsg", () => {
   });
 });
 
-// ── deleteEventRequest ─
+// deleteEventRequest
 
 describe("deleteEventRequest", () => {
   const mockFetch = fetch as jest.Mock;

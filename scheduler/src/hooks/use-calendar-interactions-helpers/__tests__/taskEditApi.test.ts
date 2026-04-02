@@ -24,7 +24,7 @@ beforeEach(() => {
   (fetch as jest.Mock).mockResolvedValue({ ok: true });
 });
 
-// ── patchTask: fetch call ────────
+// patchTask: fetch call
 
 describe("patchTask", () => {
   it("calls fetch with PATCH method and correct URL", async () => {
@@ -49,7 +49,7 @@ describe("patchTask", () => {
   });
 });
 
-// ── patchTask: duration math ─────
+// patchTask: duration math
 
 describe("patchTask duration", () => {
   it("converts hours and minutes to total minutes", async () => {
@@ -65,7 +65,7 @@ describe("patchTask duration", () => {
   });
 });
 
-// ── patchTask: nullable fields ───
+// patchTask: nullable fields
 
 describe("patchTask nullable fields", () => {
   it("sends null when dueDate is falsy", async () => {
@@ -81,7 +81,7 @@ describe("patchTask nullable fields", () => {
   });
 });
 
-// ── patchTask: parseSubtasks ─────
+// patchTask: parseSubtasks
 
 describe("patchTask subtasks parsing", () => {
   it("splits a comma-separated string into an array", async () => {

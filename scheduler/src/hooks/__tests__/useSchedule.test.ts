@@ -23,7 +23,7 @@ function makeFetchScheduleLogs() {
 
 /**
  * Mocks global.fetch via spyOn so jest.restoreAllMocks() in afterEach
- * correctly tears it down (unlike direct global.fetch = jest.fn() assignment).
+ * correctly tears it down.
  */
 function mockFetch(body: any, ok = true) {
   jest.spyOn(global, "fetch").mockResolvedValue({

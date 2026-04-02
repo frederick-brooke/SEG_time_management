@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// ── Helpers ─────
+// Helpers
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -35,7 +35,7 @@ beforeEach(() => {
   mediaQueryListener = null;
 });
 
-// ── Initial state ───────
+// Initial state
 
 describe("initial state", () => {
   it("returns false when viewport is at the breakpoint width", () => {
@@ -74,13 +74,12 @@ describe("initial state", () => {
     setViewportWidth(375);
     setupMatchMedia(true);
 
-    // coerces undefined → false on first render, then effect sets true
     const { result } = renderHook(() => useIsMobile());
     expect(typeof result.current).toBe("boolean");
   });
 });
 
-// ── matchMedia query string ───────
+// matchMedia query string
 
 describe("matchMedia query", () => {
   it("calls matchMedia with the correct max-width query", () => {
@@ -95,7 +94,7 @@ describe("matchMedia query", () => {
   });
 });
 
-// ── Resize behaviour ────
+// Resize behaviour
 
 describe("responding to viewport changes", () => {
   it("updates to true when viewport shrinks below breakpoint", () => {
@@ -157,7 +156,7 @@ describe("responding to viewport changes", () => {
   });
 });
 
-// ── Cleanup ─────
+// Cleanup
 
 describe("cleanup", () => {
   it("removes the matchMedia event listener on unmount", () => {

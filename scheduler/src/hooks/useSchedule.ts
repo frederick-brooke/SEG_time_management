@@ -3,8 +3,7 @@
 // src/hooks/useSchedule.ts
 
 // Owns all state and logic for the "Schedule My Day / Week" flow.
-// CalendarView and ScheduleDrawer consume this hook — neither needs to
-// know how scheduling works internally.
+// CalendarView and ScheduleDrawer consume this hook.
 
 import { useState } from "react";
 import { format, addDays } from "date-fns";

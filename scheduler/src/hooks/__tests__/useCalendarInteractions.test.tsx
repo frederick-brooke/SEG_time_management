@@ -43,7 +43,7 @@ function setup() {
   return { result, refreshEvents, refreshTasks };
 }
 
-// ── sub-hook wiring ────
+// sub-hook wiring
 
 describe("sub-hook wiring", () => {
   it("passes refreshEvents to useUndoDelete", () => {
@@ -72,7 +72,7 @@ describe("sub-hook wiring", () => {
   });
 });
 
-// ── return value ───────
+// return value
 
 describe("return value", () => {
   it("exposes undo values", () => {

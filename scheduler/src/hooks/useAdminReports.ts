@@ -39,7 +39,7 @@ export function useAdminReports(filters) {
     async function fetchReports() {
         try {
             setReportLoading(true);		//start loading the state
-            const query = new URLSearchParams(filters);		// Convert filters object → query string
+            const query = new URLSearchParams(filters);		// Convert filters object to query string
 
             const res = await fetch(`/api/admin/reports?${query.toString()}`);
 

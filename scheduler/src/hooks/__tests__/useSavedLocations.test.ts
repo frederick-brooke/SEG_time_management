@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useSavedLocations } from "@/hooks/useSavedLocations";
 
-// ── Mocks ───────
+// Mocks
 
 global.fetch = jest.fn();
 
@@ -28,7 +28,7 @@ beforeEach(() => {
   mockFetchOk(mockLocations);
 });
 
-// ── Initial fetch ───────
+// Initial fetch
 
 describe("initial fetch", () => {
   it("fetches locations on mount and sets loading false", async () => {
@@ -52,7 +52,7 @@ describe("initial fetch", () => {
   });
 });
 
-// ── Derived values ──────
+// Derived values
 
 describe("derived values", () => {
   it("exposes home as the HOME type location", async () => {
@@ -104,7 +104,7 @@ describe("derived values", () => {
   });
 });
 
-// ── refresh() ──
+// refresh()
 
 describe("refresh()", () => {
   it("re-fetches and updates locations", async () => {
@@ -135,7 +135,7 @@ describe("refresh()", () => {
   });
 });
 
-// ── Cross-tab sync via custom event ─────────
+// Cross-tab sync via custom event
 
 describe("SYNC_EVENT listener", () => {
   it("re-fetches when the saved-locations-updated event fires", async () => {
@@ -169,7 +169,7 @@ describe("SYNC_EVENT listener", () => {
   });
 });
 
-// ── saveLocation() ─────
+// saveLocation()
 
 describe("saveLocation()", () => {
   const payload = {
@@ -238,7 +238,7 @@ describe("saveLocation()", () => {
   });
 });
 
-// ── deleteLocation() ───
+// deleteLocation()
 
 describe("deleteLocation()", () => {
   it("sends DELETE to the correct URL and returns true on success", async () => {
@@ -296,7 +296,7 @@ describe("deleteLocation()", () => {
   });
 });
 
-// ── renameLocation() ───
+// renameLocation()
 
 describe("renameLocation()", () => {
   it("sends PATCH with new label and returns true on success", async () => {

@@ -161,8 +161,6 @@ export function useTasks(userId: string | undefined) {
     setEditingTaskId(null);
   };
 
-  // TaskFormDialog now passes merged data as argument — use it directly
-  // so we're never reading stale formData state.
   const handleSubmitTask = async (mergedData) => {
     const data = mergedData || formData;
     if (!data.name?.trim()) {
@@ -267,7 +265,7 @@ export function useTasks(userId: string | undefined) {
     taskToDelete,
 
     // Actions
-    fetchTasks,       // expose so ToDoList can refresh after external changes
+    fetchTasks,
     createTask,
     updateTask,
     deleteTask,

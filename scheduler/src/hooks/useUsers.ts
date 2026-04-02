@@ -1,8 +1,12 @@
 "use client";
-//reusable component for user searching
+
+/**
+ * Reusable component for user searching
+ */
+
 import { useEffect, useState, useCallback } from "react";
 
-type Filters = Record<string, string | number | string[] | null | undefined>; //Generic filter type for query params
+type Filters = Record<string, string | number | string[] | null | undefined>; // Generic filter type for query params
 
 /**
  * Custom hook for fetching and managing user data.

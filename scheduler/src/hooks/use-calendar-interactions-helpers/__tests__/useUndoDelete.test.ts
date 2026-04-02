@@ -26,7 +26,7 @@ function setup() {
   return { result, refreshEvents };
 }
 
-// ── initial state ──────
+// initial state
 describe("initial state", () => {
   it("starts with undo banner hidden", () => {
     const { result } = setup();
@@ -34,7 +34,7 @@ describe("initial state", () => {
   });
 });
 
-// ── triggerUndo 
+// triggerUndo 
 describe("triggerUndo", () => {
   it("shows the undo banner for a full deletion", () => {
     const { result } = setup();
@@ -65,7 +65,7 @@ describe("triggerUndo", () => {
   });
 });
 
-// ── handleUndo ─
+// handleUndo
 describe("handleUndo", () => {
   it("does nothing when no event has been deleted", async () => {
     const { result } = setup();
@@ -102,7 +102,7 @@ describe("handleUndo", () => {
   });
 });
 
-// ── dismissUndo 
+// dismissUndo 
 describe("dismissUndo", () => {
   it("hides the undo banner", () => {
     const { result } = setup();
