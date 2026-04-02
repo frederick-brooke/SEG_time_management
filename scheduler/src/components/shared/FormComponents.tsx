@@ -5,6 +5,9 @@
  */
 "use client";
 
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
+
 interface FormFieldProps {
   label: string;
   children: React.ReactNode;
@@ -41,7 +44,7 @@ export function Toggle({ on, onToggle, label }: ToggleProps) {
   return (
     <div className="flex items-center gap-2 select-none">
       {/* V.4.2 Polish: Semantic button with ARIA attributes instead of a clickable div */}
-      <button
+      <Button
         type="button"
         role="switch"
         aria-checked={on}
@@ -55,7 +58,7 @@ export function Toggle({ on, onToggle, label }: ToggleProps) {
             on ? "left-5" : "left-0.5"
           }`}
         />
-      </button>
+      </Button>
       <span className="text-xs font-semibold text-gray-600 cursor-pointer" onClick={onToggle}>
         {label}
       </span>
@@ -86,7 +89,7 @@ export function DayPicker({ selected, onChange }: DayPickerProps) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {DAYS.map((day) => (
-        <button
+        <Button
           key={day}
           type="button"
           onClick={() => toggle(day)}
@@ -97,7 +100,7 @@ export function DayPicker({ selected, onChange }: DayPickerProps) {
           }`}
         >
           {day}
-        </button>
+        </Button>
       ))}
     </div>
   );

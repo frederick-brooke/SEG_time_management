@@ -20,7 +20,7 @@ jest.mock('@/app/actions/settings', () => ({
   deleteAccount: jest.fn().mockResolvedValue({}),
 }));
 
-jest.mock('@/app/actions/update-user-location', () => ({
+jest.mock('@/app/actions/updateUserLocation', () => ({
   updateLocationHidden: jest.fn().mockResolvedValue({ success: true }),
 }));
 
@@ -104,7 +104,7 @@ describe('SettingsClient', () => {
       });
 
       it('toggles location hidden successfully', async () => {
-        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        const { updateLocationHidden } = require('@/app/actions/updateUserLocation');
         updateLocationHidden.mockResolvedValueOnce({ success: true });
         render(<SettingsClient user={defaultUser} />);
         fireEvent.click(screen.getByText('Privacy'));
@@ -113,7 +113,7 @@ describe('SettingsClient', () => {
       });
 
       it('reverts toggle and shows error when updateLocationHidden returns failure', async () => {
-        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        const { updateLocationHidden } = require('@/app/actions/updateUserLocation');
         updateLocationHidden.mockResolvedValueOnce({ success: false, error: 'Server error' });
         render(<SettingsClient user={defaultUser} />);
         fireEvent.click(screen.getByText('Privacy'));
@@ -122,7 +122,7 @@ describe('SettingsClient', () => {
       });
 
       it('reverts toggle and shows error when updateLocationHidden returns failure with no error message', async () => {
-        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        const { updateLocationHidden } = require('@/app/actions/updateUserLocation');
         updateLocationHidden.mockResolvedValueOnce({ success: false });
         render(<SettingsClient user={defaultUser} />);
         fireEvent.click(screen.getByText('Privacy'));
@@ -131,7 +131,7 @@ describe('SettingsClient', () => {
       });
 
       it('shows error when updateLocationHidden throws', async () => {
-        const { updateLocationHidden } = require('@/app/actions/update-user-location');
+        const { updateLocationHidden } = require('@/app/actions/updateUserLocation');
         updateLocationHidden.mockRejectedValueOnce(new Error('Network error'));
         render(<SettingsClient user={defaultUser} />);
         fireEvent.click(screen.getByText('Privacy'));

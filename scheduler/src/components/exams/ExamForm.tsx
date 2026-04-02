@@ -10,6 +10,7 @@ import { createExam, updateExamSettings } from "@/app/actions/examActions";
 import { createNotification } from "@/app/actions/notifications";
 import { NotificationType } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { Button } from "../ui/Button";
 
 
 const formatTime = (date: Date | string | undefined) => {
@@ -143,21 +144,21 @@ export default function ExamForm({ onExamAdded, onExamUpdated, editingExam, onSu
                 />                        
             </div>
             <div className="flex justify-end gap-3 pt-4">
-                <button 
+                <Button 
                     type="button" 
                     onClick={onSuccess} 
                     disabled={isPending}
                     className="text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
                 >
                     Cancel
-                </button>
-                <button 
+                </Button>
+                <Button 
                     type="submit" 
                     disabled={isPending}
                     className="lunar-button-primary"
                 >
                     {isPending? "Saving..." : editingExam ? "Update Settings" : "Save Exam"}
-                </button>            
+                </Button>            
             </div>
         </form>
     );

@@ -10,6 +10,8 @@ import { useState } from "react";
 import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 import { useLocationSearch } from "@/lib/map";
 import LocationInput from "./LocationInput";
+import { Button } from "../ui/Button";
+import { Select } from "../ui/Select";
 
 interface TravelSectionProps {
   startLocationName: string;
@@ -83,12 +85,12 @@ export default function TravelSection({
       onStartNameChange(name);
       onStartCoordsChange({ lat, lng });
       setPendingStart({ lat, lng, address });
-      startSearch.handleLocationSearch(""); // Clear suggestions
+      startSearch.handleLocationSearch("");
     } else {
       onDestNameChange(name);
       onDestCoordsChange({ lat, lng });
       setPendingDest({ lat, lng, address });
-      destSearch.handleLocationSearch(""); // Clear suggestions
+      destSearch.handleLocationSearch("");
     }
   };
 
@@ -135,14 +137,14 @@ export default function TravelSection({
   return (
     <div className="space-y-4 border-t border-white/[0.06] pt-4 mt-4">
 
-      {/* ── Travel time mode toggle ── */}
+      {/* Travel time mode toggle */}
       <div>
         <label className="text-xs font-bold text-white/30 uppercase tracking-wider block mb-2">
           Travel Time
         </label>
         <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl mb-4">
           {(["auto", "manual"] as const).map((m) => (
-            <button
+            <Button
               key={m}
               type="button"
               onClick={() => onTravelTimeModeChange(m)}
@@ -153,7 +155,7 @@ export default function TravelSection({
               }`}
             >
               {m === "auto" ? "• Auto-calculate •" : "• Enter manually •"}
-            </button>
+            </Button>
           ))}
         </div>
 

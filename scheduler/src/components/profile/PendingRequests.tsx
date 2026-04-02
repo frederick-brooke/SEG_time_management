@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useTransition } from "react";
 import { Check, X } from "lucide-react";
@@ -69,7 +70,7 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
             </div>
 
             <div className="flex gap-2">
-              <button
+              <Button
                 onClick={() => handleAccept(req.sender.id)}
                 disabled={isPending}
                 className={`lunar-item-success flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-colors ${
@@ -77,9 +78,9 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
                 }`}
               >
                 <Check size={14} /> {isPending ? "..." : "Accept"}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 onClick={() => handleReject(req.sender.id)}
                 disabled={isPending}
                 className={`lunar-item-error flex items-center justify-center px-3 py-2 rounded-lg border transition-colors ${
@@ -87,7 +88,7 @@ export default function PendingRequests({ requests }: { requests: any[] }) {
                 }`}
               >
                 <X size={14} />
-              </button>
+              </Button>
             </div>
           </div>
           );

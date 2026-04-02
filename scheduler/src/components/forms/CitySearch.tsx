@@ -9,14 +9,12 @@
 import { useState, useEffect } from "react";
 import { Check, ChevronsUpDown, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import {
   Command, CommandEmpty, CommandGroup,
   CommandInput, CommandItem, CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-// Types 
+} from "@/components/ui/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 
 interface CityOption {
   display_name: string;
@@ -33,25 +31,23 @@ interface CityValue {
 }
 
 interface CitySearchProps {
-  value?: { name: string; lat: number; lng: number };
-  onChange: (city: { name: string; lat: number; lng: number }) => void;
+  value?: CityValue;
+  onChange: (city: CityValue) => void;
   placeholder?: string;
 }
-// Constants 
 
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 const RELEVANT_TYPES = new Set(["city", "town", "village", "municipality"]);
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
 
-// Pure Utility   
-
 /**
  * Fetches filtered city results from the Nominatim geocoding API.
- * @param query - The user's search string.
- * @param signal - AbortSignal to cancel stale in-flight requests.
- * @returns A filtered array of relevant city options.
- * @throws {Error} On non-OK HTTP response.
+ *
+ * @param {string} query - The user's search string
+ * @param {AbortSignal} signal - AbortSignal to cancel stale in-flight requests
+ * @returns {Promise<CityOption[]>} A filtered array of relevant city options
+ * @throws {Error} On non-OK HTTP response
  */
 async function fetchCities(query: string, signal: AbortSignal): Promise<CityOption[]> {
   const url = `${NOMINATIM_URL}?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=10&dedupe=1&extratags=1`;
@@ -65,12 +61,11 @@ async function fetchCities(query: string, signal: AbortSignal): Promise<CityOpti
   );
 }
 
-// Hook
-
 /**
  * Manages debounced city search state against the Nominatim API.
- * @param query - The live search string from the input.
- * @returns Search results, loading state, and any fetch error.
+ *
+ * @param {string} query - The live search string from the input
+ * @returns {{ cities: CityOption[]; loading: boolean; error: string | null }} Search results, loading state, and any fetch error
  */
 function useCitySearch(query: string) {
   const [cities, setCities] = useState<CityOption[]>([]);
@@ -106,42 +101,46 @@ function useCitySearch(query: string) {
 
   return { cities, loading, error };
 }
+
 /**
  * Trigger button displaying the currently selected city or placeholder.
- * @param value - The currently selected city, or `null`.
- * @param placeholder - Fallback text when no city is selected.
- * @param loading - Disables the button during active search.
- * @param open - Whether the popover is currently open.
+ *
+ * @param {{ value: CityValue | null; placeholder: string; loading: boolean; open: boolean }} props
+ * @returns {JSX.Element} The trigger button element
  */
 function CitySearchTrigger({ value, placeholder, loading, open }: {
-  value: CityValue | null;
+  value: CityValue | null | undefined;
   placeholder: string;
   loading: boolean;
   open: boolean;
 }) {
+  const label = value ? value.name : placeholder;
+
   return (
-    <Button variant="outline" role="combobox" aria-expanded={open} disabled={loading} className="w-full justify-between">
+    <Button
+      variant="outline"
+      aria-expanded={open}
+      aria-label={label}
+      disabled={loading}
+      className="w-full justify-between"
+    >
       <div className="flex items-center gap-2">
-        <MapPin className="h-4 w-4" />
+        <MapPin className="h-4 w-4" aria-hidden="true" />
         {value
           ? <span className="truncate">{value.name}</span>
           : <span className="text-muted-foreground">{placeholder}</span>
         }
       </div>
-      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
     </Button>
   );
 }
 
 /**
  * Dropdown content containing the search input and city results list.
- * @param searchTerm - The current input value.
- * @param onSearchChange - Fired on input change.
- * @param cities - The list of city results to render.
- * @param selectedName - The display name of the currently selected city.
- * @param onSelectCity - Fired when a city row is chosen.
- * @param loading - Shows loading text when true.
- * @param error - Error message to display, or null.
+ *
+ * @param {{ searchTerm: string; onSearchChange: (val: string) => void; cities: CityOption[]; selectedName: string | undefined; onSelectCity: (city: CityOption) => void; loading: boolean; error: string | null }} props
+ * @returns {JSX.Element} The dropdown command palette element
  */
 function CitySearchDropdown({ searchTerm, onSearchChange, cities, selectedName, onSelectCity, loading, error }: {
   searchTerm: string;
@@ -163,9 +162,13 @@ function CitySearchDropdown({ searchTerm, onSearchChange, cities, selectedName, 
         </CommandEmpty>
         <CommandGroup>
           {cities.map((city) => (
-            <CommandItem key={`${city.lat}-${city.lon}`} value={city.display_name} onSelect={() => onSelectCity(city)}>
+            <CommandItem
+              key={`${city.lat}-${city.lon}`}
+              value={city.display_name}
+              onSelect={() => onSelectCity(city)}
+            >
               <Check className={cn("mr-2 h-4 w-4", selectedName === city.display_name ? "opacity-100" : "opacity-0")} />
-              <MapPin className="mr-2 h-4 w-4" />
+              <MapPin className="mr-2 h-4 w-4" aria-hidden="true" />
               <span className="truncate">{city.display_name}</span>
             </CommandItem>
           ))}
@@ -177,9 +180,9 @@ function CitySearchDropdown({ searchTerm, onSearchChange, cities, selectedName, 
 
 /**
  * Controlled city search combobox backed by the Nominatim geocoding API.
- * @param value - The currently selected city, or `null`.
- * @param onChange - Fired when the user selects a city.
- * @param placeholder - Trigger button placeholder text.
+ *
+ * @param {CitySearchProps} props - Component props including value, onChange handler, and placeholder
+ * @returns {JSX.Element} The city search combobox element
  */
 export function CitySearch({ value, onChange, placeholder = "Search for a city..." }: CitySearchProps) {
   const [open, setOpen] = useState(false);

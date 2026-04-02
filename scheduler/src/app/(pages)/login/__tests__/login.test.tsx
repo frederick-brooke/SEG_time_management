@@ -22,7 +22,7 @@ jest.mock("next/link", () => ({
   default: ({ href, children }: any) => <a href={href}>{children}</a>,
 }));
 
-jest.mock("@/components/admin/ban-message-page", () => ({
+jest.mock("@/components/admin/BanMessagePage", () => ({
   __esModule: true,
   default: () => <div data-testid="banned-page">Banned</div>,
 }));
@@ -32,10 +32,11 @@ global.fetch = jest.fn();
 describe("LoginPage", () => {
   const mockPush = jest.fn();
   const mockReplace = jest.fn();
+  const mockRefresh = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useRouter as jest.Mock).mockReturnValue({ push: mockPush, replace: mockReplace });
+    (useRouter as jest.Mock).mockReturnValue({ push: mockPush, replace: mockReplace, refresh: mockRefresh });
     (useSearchParams as jest.Mock).mockReturnValue({ get: () => null });
     (useSession as jest.Mock).mockReturnValue({ status: "unauthenticated" });
   });
@@ -53,7 +54,7 @@ describe("LoginPage", () => {
   });
 
   it("redirects to dashboard with error when authenticated with error param", async () => {
-    (useSearchParams as jest.Mock).mockReturnValue({ get: () => "TestError" });
+    (useSearchParams as jest.Mock).mockReturnValue({ get: (key: string) => key === "error" ? "TestError" : null });
     (useSession as jest.Mock).mockReturnValue({ status: "authenticated" });
     await act(async () => { render(<LoginPage />); });
     expect(mockReplace).toHaveBeenCalledWith("/dashboard?error=TestError");

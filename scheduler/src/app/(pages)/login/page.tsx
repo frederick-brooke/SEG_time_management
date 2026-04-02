@@ -5,7 +5,8 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, LogIn, Loader2 } from "lucide-react";
-import BannedPage from "@/components/admin/ban-message-page";
+import BannedPage from "@/components/admin/BanMessagePage";
+import { Button } from "@/components/ui/Button";
 
 interface FormInputProps {
   label: string;
@@ -82,18 +83,22 @@ function FullScreenLoader() {
 
 /**
  * Resolves the post-login destination by checking user preferences.
- * Falls back to the dashboard if the preferences check fails.
+ * Returns an object with the path and any error message to display if resolution fails.
  *
- * @returns {Promise<string>} The path to redirect the user to after login
+ * @returns {Promise<{ path: string; error?: string }>} The path to redirect to, and an optional error
  */
-async function resolvePostLoginPath(): Promise<string> {
-  try {
-    const response = await fetch("/api/preferences/check");
-    const data = await response.json();
-    return data.hasPreferences ? "/dashboard" : "/quiz";
-  } catch {
-    return "/dashboard";
+async function resolvePostLoginPath(): Promise<{ path: string; error?: string }> {
+  const sessionRes = await fetch("/api/auth/session");
+  const sessionData = await sessionRes.json();
+
+  if (!sessionData?.user?.id) {
+    return { path: "", error: "Failed to get user session." };
   }
+
+  const prefRes = await fetch(`/api/preferences/check`);
+  const prefData = await prefRes.json();
+
+  return { path: prefData.hasPreferences ? "/dashboard" : "/quiz" };
 }
 
 /**
@@ -125,9 +130,14 @@ function LoginForm() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/dashboard");
+      const errorParam = searchParams.get("error");
+      if (errorParam) {
+        router.replace(`/dashboard?error=${errorParam}`);
+      } else {
+        router.replace("/dashboard");
+      }
     }
-  }, [status, router]);
+  }, [status, router, searchParams]);
 
   useEffect(() => {
     if (searchParams.get("error") === "AccessDenied") {
@@ -145,21 +155,35 @@ function LoginForm() {
     setError(null);
     setIsPending(true);
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      identifier,
-      password,
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        identifier,
+        password,
+      });
 
-    if (result?.error) {
-      handleSignInError(result.error);
+      if (result?.error) {
+        handleSignInError(result.error);
+        setIsPending(false);
+        return;
+      }
+
+      const { path, error: resolveError } = await resolvePostLoginPath();
+
+      if (resolveError) {
+        setError(resolveError);
+        setIsPending(false);
+        return;
+      }
+
+      if (typeof router.refresh === "function") {
+        router.refresh();
+      }
+      router.push(path);
+    } catch {
+      setError("An unexpected error occurred during login.");
       setIsPending(false);
-      return;
     }
-
-    const destination = await resolvePostLoginPath();
-    router.refresh();
-    router.push(destination);
   };
 
   if (status === "loading" || status === "authenticated") {
@@ -205,12 +229,12 @@ function LoginForm() {
               Forgot your password?
             </Link>
           </div>
-           <div className="mt-3 text-center text-sm text-white/50">
-              Don't have an account?{" "}
-              <Link href="/register" className="text-blue-400 hover:text-blue-300 transition-colors font-semibold">
-                Sign up
-              </Link>
-            </div>
+          <div className="mt-3 text-center text-sm text-white/50">
+            Don't have an account?{" "}
+            <Link href="/register" className="text-blue-400 hover:text-blue-300 transition-colors font-semibold">
+              Sign up
+            </Link>
+          </div>
         </form>
 
         {showBannedInfo && <BannedPage />}
@@ -248,14 +272,14 @@ function LoginHeader() {
  */
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <button
+    <Button
       type="submit"
       disabled={isPending}
       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-4 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.3)] disabled:opacity-50 disabled:pointer-events-none"
     >
       {isPending && <Loader2 size={18} className="animate-spin" />}
       {isPending ? "Authenticating..." : "Initiate Launch"}
-    </button>
+    </Button>
   );
 }
 

@@ -1,4 +1,11 @@
+/**
+ * TaskCard.test.tsx
+ */
+
+import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+
+// Mocks
 
 const pushMock = jest.fn();
 
@@ -10,41 +17,105 @@ jest.mock("lucide-react", () =>
   new Proxy({}, { get: () => () => null })
 );
 
-jest.mock("components/ui/button", () => ({
-  Button: ({ children, onClick, ...rest }: any) => (
-    <button onClick={onClick} {...rest}>{children}</button>
-  ),
-}));
+jest.mock("components/ui/Button", () => {
+  const React = require("react");
+  return {
+    Button: ({ children, onClick, disabled, type, variant, size, className, ...rest }: any) => (
+      <button
+        type={type || "button"}
+        onClick={onClick}
+        disabled={disabled}
+        data-variant={variant || ""}
+        data-size={size || ""}
+        className={className}
+        {...rest}
+      >
+        {children}
+      </button>
+    ),
+  };
+});
 
-jest.mock("components/animate-ui/primitives/radix/checkbox", () => ({
-  Checkbox: ({ checked, onCheckedChange, id }: any) => (
-    <input
-      type="checkbox"
-      id={id}
-      checked={checked}
-      onChange={onCheckedChange}
-      data-testid="main-checkbox"
-    />
-  ),
-}));
+jest.mock("@/components/ui/Button", () => {
+  const React = require("react");
+  return {
+    Button: ({ children, onClick, disabled, type, variant, size, className, ...rest }: any) => (
+      <button
+        type={type || "button"}
+        onClick={onClick}
+        disabled={disabled}
+        data-variant={variant || ""}
+        data-size={size || ""}
+        className={className}
+        {...rest}
+      >
+        {children}
+      </button>
+    ),
+  };
+});
 
-jest.mock("@/components/tasks/task-actions", () => ({
-  TaskActions: ({ onView, onEdit, onDelete, canDelete }: any) => (
-    <div>
-      <button onClick={onView}>View</button>
-      <button onClick={onEdit}>Edit</button>
-      {canDelete && <button onClick={onDelete}>Delete</button>}
-    </div>
-  ),
-}));
+jest.mock("components/animate-ui/primitives/radix/checkbox", () => {
+  const React = require("react");
+  return {
+    Checkbox: ({ checked, onCheckedChange, id }: any) => (
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        onChange={onCheckedChange}
+        data-testid="main-checkbox"
+      />
+    ),
+  };
+});
+
+jest.mock("@/components/animate-ui/primitives/radix/Checkbox", () => {
+  const React = require("react");
+  return {
+    Checkbox: ({ checked, onCheckedChange, id }: any) => (
+      <input
+        type="checkbox"
+        id={id}
+        checked={checked}
+        onChange={onCheckedChange}
+        data-testid="main-checkbox"
+      />
+    ),
+  };
+});
+
+jest.mock("@/components/tasks/TaskActions", () => {
+  const React = require("react");
+  return {
+    TaskActions: ({ onView, onEdit, onDelete, canDelete }: any) => (
+      <div>
+        <button type="button" onClick={onView}>View</button>
+        <button type="button" onClick={onEdit}>Edit</button>
+        {canDelete && <button type="button" onClick={onDelete}>Delete</button>}
+      </div>
+    ),
+  };
+});
 
 jest.mock("@/lib/priority", () => ({
   getPriorityStyle: (p: string) => `priority-${p}`,
 }));
 
-
+jest.mock("@/components/ui/LunarCard", () => {
+  const React = require("react");
+  return {
+    LunarCard: ({ children, className, id, onClick }: any) => (
+      <div id={id} className={className} onClick={onClick}>
+        {children}
+      </div>
+    ),
+  };
+});
 
 import { TaskCard } from "../TaskCard";
+
+// Fixtures
 
 const BASE_TASK = {
   id: "t1",
@@ -80,6 +151,8 @@ beforeEach(() => {
 });
 
 afterEach(() => jest.restoreAllMocks());
+
+// Tests
 
 describe("TaskCard", () => {
 
@@ -337,7 +410,7 @@ describe("TaskCard", () => {
     expect(screen.getByText("New Subtask")).toBeInTheDocument();
   });
 
-  it("scrolls to task element when animate-lunar-burst class is present", async () => {
+  it("scrolls to task element when animate-lunar-burst class is present", () => {
     const scrollIntoViewMock = jest.fn();
     jest.spyOn(document, "getElementById").mockReturnValue({
       scrollIntoView: scrollIntoViewMock,
@@ -349,7 +422,7 @@ describe("TaskCard", () => {
     jest.useRealTimers();
   });
 
-  it("does not scroll when animate-lunar-burst class is absent", async () => {
+  it("does not scroll when animate-lunar-burst class is absent", () => {
     const scrollIntoViewMock = jest.fn();
     jest.spyOn(document, "getElementById").mockReturnValue({
       scrollIntoView: scrollIntoViewMock,
@@ -361,7 +434,7 @@ describe("TaskCard", () => {
     jest.useRealTimers();
   });
 
-  it("handles missing element gracefully when scrolling", async () => {
+  it("handles missing element gracefully when scrolling", () => {
     jest.spyOn(document, "getElementById").mockReturnValue(null);
     jest.useFakeTimers();
     expect(() => {

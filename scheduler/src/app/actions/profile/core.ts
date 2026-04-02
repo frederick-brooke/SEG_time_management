@@ -53,15 +53,15 @@ export async function getMyProfile() {
       select: { completed: true, completedAt: true },
     }),
     prisma.friendRequest.findMany({
-      where: { receiverId: user.id, status: PrismaFriendStatus.PENDING },
+      where: { receiverId: user.id, status: PrismaFriendStatus.PENDING, senderId: { not: undefined } },
       include: { sender: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
     }),
     prisma.friendRequest.findMany({
-      where: { senderId: user.id, status: PrismaFriendStatus.ACCEPTED },
+      where: { senderId: user.id, status: PrismaFriendStatus.ACCEPTED, receiverId: { not: undefined } },
       include: { receiver: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
     }),
     prisma.friendRequest.findMany({
-      where: { receiverId: user.id, status: PrismaFriendStatus.ACCEPTED },
+      where: { receiverId: user.id, status: PrismaFriendStatus.ACCEPTED, senderId: { not: undefined } },
       include: { sender: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
     }),
     countFriends(user.id),

@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import FeaturesSection from "../FeaturesSection";
@@ -28,7 +29,7 @@ jest.mock("framer-motion", () => {
   return { motion: motionProxy };
 });
 
-// Must mock every icon the component actually imports
+// Mock every icon the component imports
 jest.mock("lucide-react", () => ({
   Calendar:  (props: any) => <svg data-testid="icon-calendar"  {...props} />,
   Clock:     (props: any) => <svg data-testid="icon-clock"     {...props} />,
@@ -47,7 +48,7 @@ const FEATURES = [
   {
     testId: "icon-clock",
     title: "Smart Time Blocking",
-    description: "Focus sessions, breaks, and task limits shaped around how you work.",
+    description: "Focus sessions, breaks and task limits shaped around how you work.",
   },
   {
     testId: "icon-users",
@@ -62,12 +63,12 @@ const FEATURES = [
   {
     testId: "icon-settings2",
     title: "Preferences",
-    description: "Set your hours, rest days, and session lengths to make Lunar yours.",
+    description: "Set your hours, rest days and session lengths to make Lunar yours.",
   },
   {
     testId: "icon-barchart3",
     title: "Profiles",
-    description: "View completed tasks, current workload, and how your week is shaping up.",
+    description: "View completed tasks, current workload and how your week is shaping up.",
   },
 ];
 

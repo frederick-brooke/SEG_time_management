@@ -1,13 +1,17 @@
 "use client";
-// src/components/calendar/LinkedTaskCard.tsx
+
+/**
+ * Linked Task Card component
+ */
+
 import { useState, useEffect } from "react";
 import { Toggle, RecurrencePanel } from "@/components/shared/FormComponents";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import { RELATIVE_OPTIONS, RelativeOption, relativeTo } from "./EventFormParts";
+import { Button } from "@/components/ui/Button";
 
-// ---------------------------------------------------------------------------
+
 // RelativePicker — grid of relative option buttons
-// ---------------------------------------------------------------------------
 function RelativePicker({
   value,
   onChange,
@@ -18,7 +22,7 @@ function RelativePicker({
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {RELATIVE_OPTIONS.map((opt) => (
-        <button
+        <Button
           key={opt.key}
           type="button"
           onClick={() => onChange(opt.key)}
@@ -29,15 +33,13 @@ function RelativePicker({
           }`}
         >
           {opt.label}
-        </button>
+        </Button>
       ))}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
 // CustomDatePicker — single date or date range
-// ---------------------------------------------------------------------------
 function CustomDatePicker({
   useRange,
   setUseRange,
@@ -95,9 +97,7 @@ function CustomDatePicker({
   );
 }
 
-// ---------------------------------------------------------------------------
 // LinkedTaskCard
-// ---------------------------------------------------------------------------
 export function LinkedTaskCard({
   task,
   index,
@@ -191,18 +191,18 @@ export function LinkedTaskCard({
             )}
           </div>
         </div>
-        <button
+        <Button
           onClick={() => setExpanded((p) => !p)}
           className="text-xs text-white/30 hover:text-white/70 px-2 transition-colors"
         >
           {expanded ? "▲" : "▼"}
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => onRemove(index)}
           className="text-red-400/60 hover:text-red-400 text-lg leading-none transition-colors"
         >
           ✕
-        </button>
+        </Button>
       </div>
 
       {expanded && (

@@ -1,5 +1,9 @@
 "use client";
-// src/components/calendar/ScheduleDrawer.tsx
+
+/**
+ * Schedule Drawer component
+ */
+
 import { format, addDays } from "date-fns";
 import {
   Drawer,
@@ -9,10 +13,11 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerClose,
-} from "@/components/ui/drawer";
+} from "@/components/ui/Drawer";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import type { ScheduleState } from "@/hooks/useSchedule";
 import FutureTasksPanel from "./FutureTasksPanel";
+import { Button } from "../ui/Button";
 
 interface Props {
   state: ScheduleState;
@@ -154,20 +159,20 @@ function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
             </p>
           ))}
           <div className="flex gap-2 mt-3">
-            <button
+            <Button
               onClick={onScheduleForced}
               className="flex-1 bg-amber-500 text-black rounded-xl py-2 text-sm font-bold hover:bg-amber-400 transition-all"
             >
               Schedule What Fits
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() =>
                 patch({ requiresConfirmation: false, overCapacityTasks: [] })
               }
               className="flex-1 bg-white/5 border border-amber-500/20 text-amber-300 rounded-xl py-2 text-sm font-bold hover:bg-amber-500/10 transition-all"
             >
               Go Back
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -179,12 +184,12 @@ function WarningBanners({ state, patch, onClose, onScheduleForced }: any) {
           {state.missedDeadlineTasks.map((w: any) => (
             <p key={w.taskId} className="text-xs text-red-400/70">• {w.title}</p>
           ))}
-          <button
+          <Button
             onClick={onClose}
             className="mt-3 w-full bg-red-500 text-white rounded-xl py-2 text-sm font-bold hover:bg-red-400 transition-all"
           >
             Close
-          </button>
+          </Button>
         </div>
       )}
     </>
@@ -349,7 +354,7 @@ export default function ScheduleDrawer({
                   const isOff = state.unavailableDays.includes(d);
                   const dd = new Date(d + "T12:00:00");
                   return (
-                    <button
+                    <Button
                       key={d}
                       onClick={() => patch({ unavailableDays: toggleId(d, state.unavailableDays), })}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
@@ -359,7 +364,7 @@ export default function ScheduleDrawer({
                       }`}
                     >
                       {DAY_ABBR[dd.getDay()]} {format(dd, "d")}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -383,13 +388,13 @@ export default function ScheduleDrawer({
         {!state.requiresConfirmation &&
           state.missedDeadlineTasks.length === 0 && (
             <DrawerFooter className="border-t border-white/[0.06] px-6 py-4 flex-shrink-0">
-              <button
+              <Button
                 onClick={onSchedule}
                 disabled={state.isScheduling}
                 className="w-full bg-white text-gray-900 rounded-2xl py-4 text-sm font-bold hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 {state.isScheduling ? "Scheduling…" : "Create Schedule"}
-              </button>
+              </Button>
             </DrawerFooter>
           )}
       </DrawerContent>

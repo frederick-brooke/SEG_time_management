@@ -10,6 +10,7 @@
 import TravelSection from "./TravelSection";
 import { TaskPromptSection } from "./EventFormParts";
 import { useEventForm } from "@/hooks/Events/useEventForm";
+import { Button } from "../ui/Button";
 
 
 export default function EventForm({
@@ -52,18 +53,18 @@ export default function EventForm({
           This overlaps with another event. Proceed?
         </p>
         <div className="flex flex-col gap-3 w-full">
-          <button
+          <Button
             onClick={() => f.saveEvent(f.pendingPayload)}
             className="w-full bg-amber-500 text-black p-3 rounded-xl font-bold hover:bg-amber-400 transition-all"
           >
             Ignore & Save
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => f.setShowConflict(false)}
             className="w-full bg-white/5 border border-white/10 text-white/60 p-3 rounded-xl font-bold hover:bg-white/10 transition-all"
           >
             Go Back
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -101,7 +102,7 @@ export default function EventForm({
       {initialEvent && f.isRecurringEv && !f.isGoogle && (
         <div className="flex bg-white/5 border border-white/10 p-1 rounded-xl">
           {(["single", "series"] as const).map((m) => (
-            <button
+            <Button
               key={m}
               type="button"
               onClick={() => f.setEditMode(m)}
@@ -114,7 +115,7 @@ export default function EventForm({
               }`}
             >
               {m === "single" ? "Move Only This Day" : "Edit Entire Series"}
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -141,7 +142,7 @@ export default function EventForm({
         <label className="text-xs font-bold text-white/30 uppercase">Category</label>
         <div className="flex flex-wrap gap-2 mt-2">
           {f.categories.map((cat: any) => (
-            <button
+            <Button
               key={cat.id}
               type="button"
               disabled={f.isGoogle}
@@ -154,7 +155,7 @@ export default function EventForm({
               style={{ backgroundColor: cat.color }}
             >
               {cat.name}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -264,23 +265,23 @@ export default function EventForm({
         onManualTravelTimeChange={f.setManualTravelTime}
       />
 
-      <button
+      <Button
         type="submit"
         disabled={f.isGoogle || f.isCalculating}
         className={`w-full p-3 rounded-xl font-bold transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 ${submitBtnClass}`}
       >
         {f.isCalculating && <span className="animate-spin text-lg">⏳</span>}
         {submitLabel}
-      </button>
+      </Button>
 
       {initialEvent && !f.isGoogle && (
-        <button
+        <Button
           type="button"
           onClick={() => f.handleDelete(onSuccess)}
           className="w-full mt-2 p-3 rounded-xl font-bold text-red-400 border border-red-500/20 bg-red-500/5 hover:bg-red-500/15 transition-all"
         >
           {f.editMode === "single" ? "Delete This Day Only" : "Delete Entire Event"}
-        </button>
+        </Button>
       )}
     </form>
   );

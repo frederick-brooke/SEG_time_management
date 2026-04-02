@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState } from "react";
 import { X, Settings } from "lucide-react";
@@ -61,9 +62,9 @@ export default function ModuleSettingsModal({ module, onClose, onSuccess }: Modu
           <h2 className="lunar-header flex items-center gap-2">
             <Settings size={18} className="text-white/40" /> Module Settings
           </h2>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,14 +97,14 @@ export default function ModuleSettingsModal({ module, onClose, onSuccess }: Modu
           )}
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onClose} disabled={isSubmitting}
+            <Button type="button" onClick={onClose} disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50">
               Cancel
-            </button>
-            <button type="submit" disabled={isSubmitting}
+            </Button>
+            <Button type="submit" disabled={isSubmitting}
               className="flex-1 lunar-button-primary disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? "Saving..." : "Save Settings"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

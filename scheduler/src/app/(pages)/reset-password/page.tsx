@@ -11,6 +11,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { validatePassword } from "@/lib/password";
 import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 
 function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
@@ -127,9 +128,9 @@ export function ResetPasswordContent() {
           required
         />
 
-        <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">
+        <Button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">
           {status === "sending" ? "Saving..." : "Save Password"}
-        </button>
+        </Button>
       </form>
     </div>
   );

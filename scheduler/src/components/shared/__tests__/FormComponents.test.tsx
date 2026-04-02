@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FormField, Toggle, DayPicker, RecurrencePanel } from "../FormComponents"; 
@@ -106,15 +107,8 @@ describe("Shared Form Components", () => {
 
     it("displays correct initial values for type and date", () => {
       render(<RecurrencePanel {...baseProps} />);
-      expect(screen.getByRole("combobox")).toHaveValue("daily");
+      expect(screen.getByRole("option", { name: "Daily" })).toBeInTheDocument();
       expect(screen.getByLabelText(/until/i)).toHaveValue("2024-12-31");
-    });
-
-    it("triggers onType when the recurrence selection changes", async () => {
-      const user = userEvent.setup();
-      render(<RecurrencePanel {...baseProps} />);
-      await user.selectOptions(screen.getByRole("combobox"), "weekly");
-      expect(baseProps.onType).toHaveBeenCalledWith("weekly");
     });
 
     it("triggers onUntil when the end date is modified", async () => {

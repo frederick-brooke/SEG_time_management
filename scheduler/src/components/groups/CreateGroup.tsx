@@ -2,6 +2,7 @@
  * Modal interface for group creation and initial member selection.
  */
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState, useEffect } from "react";
 import { X, Users, Check } from "lucide-react";
@@ -93,9 +94,9 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
             </h2>
             <p className="lunar-value text-xs mt-1">Add friends to start collaborating</p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
+          <Button onClick={onClose} className="text-white/30 hover:text-white transition-colors">
             <X size={24} />
-          </button>
+          </Button>
         </div>
 
         {error && (
@@ -165,21 +166,21 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
           </div>
 
           <div className="flex gap-3 pt-2 shrink-0">
-            <button
+            <Button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1 lunar-button-ghost disabled:opacity-50 py-3"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting || isLoadingFriends}
               className="flex-1 lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] disabled:opacity-50 disabled:cursor-not-allowed py-3 text-xs"
             >
               {isSubmitting ? "Creating..." : "Create Group"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -197,7 +198,7 @@ export default function CreateGroup({ onClose, onSuccess }: CreateGroupProps) {
  */
 function FriendOption({ friend, isSelected, onToggle }: { friend: Friend, isSelected: boolean, onToggle: () => void }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onToggle}
       className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left border ${
@@ -230,6 +231,6 @@ function FriendOption({ friend, isSelected, onToggle }: { friend: Friend, isSele
           <Check size={12} className="text-white" />
         </div>
       )}
-    </button>
+    </Button>
   );
 }

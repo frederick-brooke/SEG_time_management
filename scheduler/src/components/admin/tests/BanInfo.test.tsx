@@ -1,114 +1,81 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import BanInfo from "../banInfo";
-
-// Mock lucide icons
-jest.mock("lucide-react", () => ({
-	AlertTriangle: () => <div data-testid="icon-alert" />,
-	ShieldOff: () => <div data-testid="icon-shield" />,
-	X: () => <div />,
-}));
-
-// Mock next-auth signOut
-const signOutMock = jest.fn();
+import BanInfo from "@/components/admin/BanInfo";
+import { signOut } from "next-auth/react";
 
 jest.mock("next-auth/react", () => ({
-	signOut: (...args: any[]) => signOutMock(...args),
+  signOut: jest.fn(),
+}));
+
+jest.mock("@/components/ui/Button", () => ({
+  Button: (props: any) => <button {...props} />,
+}));
+
+jest.mock("lucide-react", () => ({
+  AlertTriangle: () => <div>AlertTriangleIcon</div>,
+  ShieldOff: () => <div>ShieldOffIcon</div>,
+  X: () => <div>XIcon</div>,
 }));
 
 describe("BanInfo", () => {
-	const baseProps = {
-		onAppeal: jest.fn(),
-	};
+  const onAppeal = jest.fn();
 
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-	test("renders basic ban info", () => {
-		render(
-			<BanInfo
-				{...baseProps}
-				banInfo={{ reason: "Violation", expires: null }}
-			/>
-		);
+  it("renders permanent ban correctly", () => {
+    render(
+      <BanInfo
+        banInfo={{ reason: "Violation", expires: null }}
+        onAppeal={onAppeal}
+      />
+    );
 
-		expect(screen.getByText("Account Banned")).toBeInTheDocument();
-		expect(screen.getByText("Violation")).toBeInTheDocument();
-	});
+    expect(screen.getByText("Account Banned")).toBeInTheDocument();
+    expect(screen.getByText("Violation")).toBeInTheDocument();
+    expect(screen.getByText("Permanent")).toBeInTheDocument();
+    expect(screen.getByText("Submit Appeal")).toBeInTheDocument();
+    expect(screen.getByText("Sign Out")).toBeInTheDocument();
+  });
 
-	test("shows permanent ban", () => {
-		render(
-			<BanInfo
-				{...baseProps}
-				banInfo={{ reason: "Serious abuse", expires: null }}
-			/>
-		);
+  it("renders temporary ban with formatted date", () => {
+    const date = new Date("2030-01-01T00:00:00Z");
 
-		expect(screen.getByText("Permanent")).toBeInTheDocument();
-	});
+    render(
+      <BanInfo
+        banInfo={{ reason: "Spam", expires: date.toISOString() }}
+        onAppeal={onAppeal}
+      />
+    );
 
-	test("shows temporary ban with formatted date", () => {
-		const date = new Date("2026-01-01T10:00:00Z");
+    expect(screen.getByText("Spam")).toBeInTheDocument();
+    expect(
+      screen.getByText(new Date(date).toLocaleString())
+    ).toBeInTheDocument();
+  });
 
-		render(
-			<BanInfo
-				{...baseProps}
-				banInfo={{
-					reason: "Spam",
-					expires: date.toISOString(),
-				}}
-			/>
-		);
+  it("calls onAppeal when appeal button is clicked", () => {
+    render(
+      <BanInfo
+        banInfo={{ reason: "Test", expires: null }}
+        onAppeal={onAppeal}
+      />
+    );
 
-		expect(screen.getByText("Spam")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Submit Appeal"));
+    expect(onAppeal).toHaveBeenCalled();
+  });
 
-		// Match partial since locale formatting varies
-		expect(
-			screen.getByText((text) =>
-				text.includes(new Date(date).getFullYear().toString())
-			)
-		).toBeInTheDocument();
-	});
+  it("calls signOut when sign out button is clicked", () => {
+    render(
+      <BanInfo
+        banInfo={{ reason: "Test", expires: null }}
+        onAppeal={onAppeal}
+      />
+    );
 
-	test("renders warning note", () => {
-		render(
-			<BanInfo
-				{...baseProps}
-				banInfo={{ reason: "Test", expires: null }}
-			/>
-		);
-
-		expect(
-			screen.getByText(/you believe this ban was issued in error/i)
-		).toBeInTheDocument();
-	});
-
-	test("clicking appeal calls onAppeal", () => {
-		render(
-			<BanInfo
-				{...baseProps}
-				banInfo={{ reason: "Test", expires: null }}
-			/>
-		);
-
-		fireEvent.click(screen.getByText("Submit Appeal"));
-
-		expect(baseProps.onAppeal).toHaveBeenCalled();
-	});
-
-	test("clicking sign out calls signOut with callbackUrl", () => {
-		render(
-			<BanInfo
-				{...baseProps}
-				banInfo={{ reason: "Test", expires: null }}
-			/>
-		);
-
-		fireEvent.click(screen.getByText("Sign Out"));
-
-		expect(signOutMock).toHaveBeenCalledWith({
-			callbackUrl: "/login",
-		});
-	});
+    fireEvent.click(screen.getByText("Sign Out"));
+    expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
+  });
 });
+

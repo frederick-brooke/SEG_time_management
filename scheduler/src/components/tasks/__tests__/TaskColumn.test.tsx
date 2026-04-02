@@ -1,4 +1,9 @@
+/**
+ * Testing for Task Column component.
+ */
+
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import { TaskColumn } from "../TaskColumn";
 
@@ -13,7 +18,8 @@ interface TaskColumnProps {
   highlightId?: string | null;
 }
 
-// Mock TaskCard so TaskColumn tests are isolated and stable
+// Mocks
+
 jest.mock("../TaskCard", () => ({
   TaskCard: ({ task }: { task: { id: string }}) => (
     <div data-testid={`taskcard-${task.id}`} />
@@ -24,6 +30,8 @@ jest.mock("react-dom", () => ({
   ...jest.requireActual("react-dom"),
   createPortal: (node: React.ReactNode) => node
 }));
+
+// Tests
 
 describe("TaskColumn", () => {
   const baseHandlers = {
@@ -48,7 +56,6 @@ describe("TaskColumn", () => {
       />,
     );
 
-    // This hits: tasks.length === 1 ? "task" : "tasks"
     expect(screen.getByText(/1\s+task/i)).toBeInTheDocument();
     expect(screen.getByTestId("taskcard-t1")).toBeInTheDocument();
   });
@@ -67,7 +74,6 @@ describe("TaskColumn", () => {
       />,
     );
 
-    // Plural branch
     expect(screen.getByText(/2\s+tasks/i)).toBeInTheDocument();
     expect(screen.getByTestId("taskcard-t1")).toBeInTheDocument();
     expect(screen.getByTestId("taskcard-t2")).toBeInTheDocument();

@@ -1,5 +1,6 @@
 import { AlertTriangle, ShieldOff, X } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { Button } from "@/components/ui/Button";
 
 /**
  * BanInfo
@@ -10,7 +11,7 @@ import { signOut } from "next-auth/react";
  * - Actions (appeal / sign out)
  * 
  * @param {Object} props
- * @param {Object} props.banInfo - Ban data from backend
+ * @param {Object} props.BanInfo - Ban data from backend
  * @param {Function} props.onAppeal - Opens appeal form
  */
 export default function BanInfo({ banInfo, onAppeal }) {
@@ -45,9 +46,9 @@ export default function BanInfo({ banInfo, onAppeal }) {
 
 /**
 *Renders ban details including reason and expiration information.
-*@param {Object} props.banInfo - The ban information object.
-*@param {string} props.banInfo.reason - The reason for the ban.
-*@param {string} props.banInfo.expires - The expiration date of the ban.
+*@param {Object} props.BanInfo - The ban information object.
+*@param {string} props.BanInfo.reason - The reason for the ban.
+*@param {string} props.BanInfo.expires - The expiration date of the ban.
 *@param {boolean} props.isPermanent - Whether the ban is permanent.
 *@returns {JSX.Element} The ban details component.
 */
@@ -95,13 +96,13 @@ function WarningNote() {
 function ActionButtons({ onAppeal }) {
 	return (
 		<div className="flex flex-col gap-2 pt-1">
-			<button onClick={onAppeal} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-bold">
+			<Button onClick={onAppeal} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm font-bold">
 				Submit Appeal
-			</button>
+			</Button>
 
-			<button onClick={() => signOut({ callbackUrl: "/login" })} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-white/5 text-white/60 text-sm">
+			<Button onClick={() => signOut({ callbackUrl: "/login" })} className="lunar-page-subtitle w-full py-2.5 rounded-full bg-white/5 text-white/60 text-sm">
 				Sign Out
-			</button>
+			</Button>
 		</div>
 	);
 }

@@ -1,5 +1,9 @@
-//tests for scheduler/src/components/messaging/CreateGroupModal.tsx
+/**
+ * Testing for Create Group Modal
+ */
+
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { CreateGroupModal } from "../CreateGroupModal";
 

@@ -12,7 +12,7 @@ jest.mock("@/app/actions/games", () => ({
   payGameEntry: jest.fn(),
 }));
 
-jest.mock("@/components/ui/gold-coin", () => ({
+jest.mock("@/components/ui/GoldCoin", () => ({
   GoldCoin: () => <span data-testid="gold-coin">🪙</span>,
 }));
 

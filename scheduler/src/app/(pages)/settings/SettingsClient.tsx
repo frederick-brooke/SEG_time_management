@@ -9,12 +9,14 @@
 
 import { useState, useTransition } from "react";
 import { updateAccountDetails, changePassword, disconnectGoogle, updatePreferences, deleteAccount } from "@/app/actions/settings";
-import { updateLocationHidden } from "@/app/actions/update-user-location";
+import { updateLocationHidden } from "@/app/actions/updateUserLocation";
 import { signIn, signOut } from "next-auth/react";
 import { Key, User, Globe, AlertCircle, CheckCircle2, Sliders, AlertTriangle, HelpCircle, MapPin } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import SetLocationModal from "@/components/map/SetLocationModal";
 import { TabKey } from "@/types/settings";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 
 interface SettingsClientProps {
   user: {
@@ -111,7 +113,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
         {/* Sidebar */}
         <div className="w-full md:w-64 shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
           {tabs.map(({ key, label, icon: Icon }) => (
-            <button 
+            <Button 
               key={key} 
               onClick={() => { setActiveTab(key as TabKey); setError(null); setSuccess(null); }} 
               className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 whitespace-nowrap ${
@@ -121,7 +123,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
               }`}
             >
               <Icon size={16} /> {label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -138,7 +140,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 <form onSubmit={handleAction(updateAccountDetails, "Account details updated.")} className="space-y-6 max-w-md">
                   <FormInput label="Username" name="username" defaultValue={user.username} required pattern="^[a-zA-Z0-9_-]{3,20}$" />
                   <FormInput label="Email Address" type="email" name="email" defaultValue={user.email} required />
-                  <button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Saving..." : "Save Changes"}</button>
+                  <Button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Saving..." : "Save Changes"}</Button>
                 </form>
               </div>
             )}
@@ -178,7 +180,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                       ))}
                     </div>
                   </div>
-                  <button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Configuring..." : "Update Preferences"}</button>
+                  <Button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Configuring..." : "Update Preferences"}</Button>
                 </form>
               </div>
             )}
@@ -199,12 +201,12 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   ) : (
                     <p className="text-sm text-white/70 mb-4">No location set</p>
                   )}
-                  <button
+                  <Button
                     onClick={() => setIsLocationModalOpen(true)}
                     className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
                   >
                     📍 Edit Location
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Location Visibility Toggle */}
@@ -214,7 +216,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                       <h3 className="font-semibold text-white mb-1">Hide Location from Friends</h3>
                       <p className="text-sm text-white/50">Friends won't see your location on the friend map</p>
                     </div>
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         setLocationHidden(!locationHidden);
@@ -243,7 +245,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                           locationHidden ? "translate-x-6" : "translate-x-1"
                         }`}
                       />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -257,19 +259,19 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   <FormInput label="Current Password" type="password" name="currentPassword" required />
                   <FormInput label="New Password" type="password" name="newPassword" required minLength={6} />
                   <FormInput label="Confirm Password" type="password" name="confirmPassword" required minLength={6} />
-                  <button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Encrypting..." : "Update Password"}</button>
+                  <Button disabled={isPending} type="submit" className="lunar-button-primary mt-4">{isPending ? "Encrypting..." : "Update Password"}</Button>
                 </form>
                 <div className="pt-8 border-t border-white/10">
                   <h3 className="text-lg font-semibold text-white mb-2">Delete Account</h3>
                   <p className="text-sm text-white/50 mb-5">
                     Permanently remove your account and all associated data. This action cannot be undone.
                   </p>
-                  <button 
+                  <Button 
                     onClick={() => setShowDeleteModal(true)} 
                     className="px-5 py-2.5 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-colors"
                   >
                     Delete Account
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -287,8 +289,8 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <div><h3 className="font-semibold text-white text-lg">Google Workspace</h3><p className="text-sm text-white/50 mt-1">Sync your terrestrial calendar and tasks.</p></div>
                   </div>
                   {user.hasGoogleConnected 
-                    ? <button onClick={handleDisconnectGoogle} disabled={isPending} className="lunar-item-error px-5 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-40 text-sm">Disconnect</button>
-                    : <button onClick={() => signIn('google')} className="bg-white text-black px-5 py-2.5 hover:bg-gray-200 rounded-xl font-medium transition-colors text-sm">Connect Google</button>}
+                    ? <Button onClick={handleDisconnectGoogle} disabled={isPending} className="lunar-item-error px-5 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-40 text-sm">Disconnect</Button>
+                    : <Button onClick={() => signIn('google')} className="bg-white text-black px-5 py-2.5 hover:bg-gray-200 rounded-xl font-medium transition-colors text-sm">Connect Google</Button>}
                 </div>
               </div>
             )}
@@ -305,8 +307,8 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   <div className="flex items-center gap-3 mb-4"><HelpCircle size={28} className="text-white/40" /><h2 className="lunar-header">Initiate Self-Destruct?</h2></div>
                   <p className="lunar-value mb-8 leading-relaxed">Are you absolutely sure you want to delete your account? This will permanently erase your orbit and cannot be undone.</p>
                   <div className="flex justify-end gap-3">
-                    <button type="button" onClick={() => { setShowDeleteModal(false); setDeleteStage('initial'); setDeleteError(null); }} className="lunar-button-ghost">Abort</button>
-                    <button type="button" onClick={() => setDeleteStage('password')} className="lunar-item-error px-5 py-2.5 rounded-xl font-medium transition-colors">Yes, Continue</button>
+                    <Button type="button" onClick={() => { setShowDeleteModal(false); setDeleteStage('initial'); setDeleteError(null); }} className="lunar-button-ghost">Abort</Button>
+                    <Button type="button" onClick={() => setDeleteStage('password')} className="lunar-item-error px-5 py-2.5 rounded-xl font-medium transition-colors">Yes, Continue</Button>
                   </div>
                 </div>
               ) : (
@@ -317,8 +319,8 @@ export function SettingsClient({ user }: SettingsClientProps) {
                   <form onSubmit={handleDeleteAccount}>
                     <div className="mb-8"><FormInput label="Password" type="password" name="password" required /></div>
                     <div className="flex justify-end gap-3">
-                      <button type="button" onClick={() => { setShowDeleteModal(false); setDeleteStage('initial'); setDeleteError(null); }} disabled={isPending} className="lunar-button-ghost">Cancel</button>
-                      <button type="submit" disabled={isPending} className="lunar-item-error px-5 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-40 flex items-center gap-2">{isPending ? "Deleting..." : "Permanently Delete"}</button>
+                      <Button type="button" onClick={() => { setShowDeleteModal(false); setDeleteStage('initial'); setDeleteError(null); }} disabled={isPending} className="lunar-button-ghost">Cancel</Button>
+                      <Button type="submit" disabled={isPending} className="lunar-item-error px-5 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-40 flex items-center gap-2">{isPending ? "Deleting..." : "Permanently Delete"}</Button>
                     </div>
                   </form>
                 </div>

@@ -3,11 +3,12 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import TravelSection from "../TravelSection";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("../LocationInput", () => ({
   __esModule: true,
@@ -35,21 +36,21 @@ jest.mock("../LocationInput", () => ({
         data-testid={`search-input-${label}`}
       />
       {suggestions?.map((s: any, i: number) => (
-        <button key={i} onClick={() => onSelectSuggestion(s)}>
+        <Button key={i} onClick={() => onSelectSuggestion(s)}>
           Select {s.properties?.name}
-        </button>
+        </Button>
       ))}
-      <button onClick={() => onSelectSaved({ id: "loc-1", label: "Home", lat: 51.5, lng: -0.1, address: "Home Addr", type: "HOME" })}>
+      <Button onClick={() => onSelectSaved({ id: "loc-1", label: "Home", lat: 51.5, lng: -0.1, address: "Home Addr", type: "HOME" })}>
         Select Saved
-      </button>
-      <button onClick={() => onSelectSuggestion({ properties: { name: "Bad" } })}>
+      </Button>
+      <Button onClick={() => onSelectSuggestion({ properties: { name: "Bad" } })}>
         Bad Suggestion
-      </button>
-      <button onClick={onOpenSaveModal}>Open Save Modal</button>
-      <button onClick={onCloseSaveModal}>Close Save Modal</button>
-      <button onClick={() => onSaveLocation("My Label", "HOME")}>Save Location</button>
+      </Button>
+      <Button onClick={onOpenSaveModal}>Open Save Modal</Button>
+      <Button onClick={onCloseSaveModal}>Close Save Modal</Button>
+      <Button onClick={() => onSaveLocation("My Label", "HOME")}>Save Location</Button>
       {onUseCurrentLocation && (
-        <button onClick={onUseCurrentLocation}>Use Current Location</button>
+        <Button onClick={onUseCurrentLocation}>Use Current Location</Button>
       )}
     </div>
   ),
@@ -509,7 +510,6 @@ describe("TravelSection", () => {
     });
   });
 
-  // ── fetch error branch ─────
   describe("location search fetch error", () => {
     it("should clear suggestions when fetch returns non-ok response", async () => {
       jest.useFakeTimers();
@@ -523,7 +523,6 @@ describe("TravelSection", () => {
 
       await act(async () => jest.advanceTimersByTime(500));
 
-      // No suggestions rendered — fetch was called but returned not-ok
       expect(global.fetch).toHaveBeenCalled();
       jest.useRealTimers();
     });

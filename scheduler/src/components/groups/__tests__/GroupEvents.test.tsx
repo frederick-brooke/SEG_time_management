@@ -1,17 +1,15 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupEvents from "@/components/groups/GroupEvents";
 
-// --- Mocks ---
+// Mocks
 
 jest.mock("@/lib/format", () => ({
   formatEventDate: jest.fn(() => "March 15, 2026"),
 }));
 
-// Every icon used across this file AND sibling test files running in the same
-// Jest worker must be listed here. An incomplete mock resolves to undefined and
-// causes "Element type is invalid" errors across the entire test suite.
 jest.mock("lucide-react", () => ({
   Calendar: () => <svg data-testid="calendar-icon" />,
   Pencil:   () => <svg data-testid="pencil-icon" />,
@@ -20,7 +18,7 @@ jest.mock("lucide-react", () => ({
   MapPin:   () => <svg data-testid="map-pin-icon" />,
 }));
 
-// --- Fixtures ---
+// Fixtures
 
 const mockOnEdit   = jest.fn();
 const mockOnDelete = jest.fn();
@@ -44,7 +42,7 @@ const mockEvents = [
   },
 ];
 
-// --- Tests ---
+// Tests
 
 describe("GroupEvents", () => {
   beforeEach(() => {
@@ -79,7 +77,7 @@ describe("GroupEvents", () => {
     expect(screen.getByText("Social")).toHaveClass("text-blue-400");
   });
 
-  // Confirms the UI gracefully handles events with no description (branch coverage)
+  // Confirms the UI gracefully handles events with no description
   it("does not render description paragraph when description is null", () => {
     render(<GroupEvents events={mockEvents} onEdit={mockOnEdit} onDelete={mockOnDelete} />);
 
@@ -87,7 +85,7 @@ describe("GroupEvents", () => {
     expect(teamPizzaHeading?.querySelector("p")).not.toBeInTheDocument();
   });
 
-  // Confirms the fallback style is applied when an event has an unrecognised category (branch coverage)
+  // Confirms the fallback style is applied when an event has an unrecognised category
   it("applies default styling for unknown categories", () => {
     const unknownCategoryEvent = [{ ...mockEvents[0], category: "UnknownCategory" }];
 

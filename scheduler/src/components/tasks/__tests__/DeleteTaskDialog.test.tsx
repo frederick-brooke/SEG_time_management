@@ -1,34 +1,36 @@
+/**
+ * Testing for Delete Task Dialog component.
+ */
+
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
 import { Delete } from "lucide-react";
 
-/**
- * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
- * src/components/tasks/__tests__ -> src/components/ui
- */
-jest.mock("../../ui/alert-dialog", () => {
+// Mocks
+
+jest.mock("../../ui/AlertDialog", () => {
   const React = require("react");
 
   function AlertDialog({ open, onOpenChange, children }) {
     if (!open) return null;
     return (
       <div data-testid="alert-dialog-root">
-        {/* Expose onOpenChange to test the !open && onCancel() branch */}
-        <button
+        <Button
           type="button"
           data-testid="simulate-open-change-true"
           onClick={() => onOpenChange(true)}
         >
           simulate-open
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           data-testid="simulate-open-change-false"
           onClick={() => onOpenChange(false)}
         >
           simulate-close
-        </button>
+        </Button>
         {children}
       </div>
     );
@@ -51,16 +53,16 @@ jest.mock("../../ui/alert-dialog", () => {
   }
   function AlertDialogCancel({ children, onClick }) {
     return (
-      <button type="button" onClick={onClick}>
+      <Button type="button" onClick={onClick}>
         {children}
-      </button>
+      </Button>
     );
   }
   function AlertDialogAction({ children, onClick }) {
     return (
-      <button type="button" onClick={onClick}>
+      <Button type="button" onClick={onClick}>
         {children}
-      </button>
+      </Button>
     );
   }
 
@@ -75,6 +77,8 @@ jest.mock("../../ui/alert-dialog", () => {
     AlertDialogTitle,
   };
 });
+
+// Tests
 
 describe("DeleteTaskDialog", () => {
   it("renders when open and shows text", () => {

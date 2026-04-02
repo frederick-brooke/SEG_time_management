@@ -3,11 +3,12 @@
  */
 
 import React from "react";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { Button } from "@/components/ui/Button";
+import { render, screen, fireEvent, act, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CalendarView from "../CalendarView";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("react-big-calendar", () => ({
   dateFnsLocalizer: jest.fn(() => ({})),
@@ -28,16 +29,14 @@ jest.mock("date-fns", () => ({
   addDays: jest.fn(),
 }));
 
-// ── Child component mocks ──
-
 jest.mock("../CheckInModal", () => ({
   __esModule: true,
   default: ({ onDone }: { onDone: (tasks: any[]) => void }) => (
     <div data-testid="check-in-modal">
-      <button onClick={() => onDone([])}>Done Empty</button>
-      <button onClick={() => onDone([{ id: "task-1", remainingDuration: 30, duration: 60 }])}>
+      <Button onClick={() => onDone([])}>Done Empty</Button>
+      <Button onClick={() => onDone([{ id: "task-1", remainingDuration: 30, duration: 60 }])}>
         Done With Tasks
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -46,9 +45,9 @@ jest.mock("../RescheduleModal", () => ({
   __esModule: true,
   default: ({ onConfirm, onDismiss }: any) => (
     <div data-testid="reschedule-modal">
-      <button onClick={() => onConfirm([])}>Confirm Empty</button>
-      <button onClick={() => onConfirm(["task-1"])}>Confirm With IDs</button>
-      <button onClick={onDismiss}>Dismiss</button>
+      <Button onClick={() => onConfirm([])}>Confirm Empty</Button>
+      <Button onClick={() => onConfirm(["task-1"])}>Confirm With IDs</Button>
+      <Button onClick={onDismiss}>Dismiss</Button>
     </div>
   ),
 }));
@@ -57,13 +56,13 @@ jest.mock("../EventDetailModal", () => ({
   __esModule: true,
   default: ({ onClose, onSetEditing, onEventSuccess, onDeleteTask, onDeleteEvent, onFormChange, onTaskSubmit }: any) => (
     <div data-testid="event-detail-modal">
-      <button onClick={onClose}>Close Modal</button>
-      <button onClick={() => onSetEditing(true)}>Start Editing</button>
-      <button onClick={onEventSuccess}>Event Success</button>
-      <button onClick={onDeleteTask}>Delete Task</button>
-      <button onClick={() => onDeleteEvent("single")}>Delete Event</button>
-      <button onClick={() => onFormChange({ title: "changed" })}>Form Change</button>
-      <button onClick={() => onTaskSubmit(null)}>Task Submit</button>
+      <Button onClick={onClose}>Close Modal</Button>
+      <Button onClick={() => onSetEditing(true)}>Start Editing</Button>
+      <Button onClick={onEventSuccess}>Event Success</Button>
+      <Button onClick={onDeleteTask}>Delete Task</Button>
+      <Button onClick={() => onDeleteEvent("single")}>Delete Event</Button>
+      <Button onClick={() => onFormChange({ title: "changed" })}>Form Change</Button>
+      <Button onClick={() => onTaskSubmit(null)}>Task Submit</Button>
     </div>
   ),
 }));
@@ -72,8 +71,8 @@ jest.mock("../QuickScheduleModal", () => ({
   __esModule: true,
   default: ({ onClose, onSaved }: any) => (
     <div data-testid="quick-schedule-modal">
-      <button onClick={onClose}>Close Quick</button>
-      <button onClick={onSaved}>Saved</button>
+      <Button onClick={onClose}>Close Quick</Button>
+      <Button onClick={onSaved}>Saved</Button>
     </div>
   ),
 }));
@@ -82,8 +81,8 @@ jest.mock("../CategoryManagerModal", () => ({
   __esModule: true,
   default: ({ onClose, onCategoriesChange }: any) => (
     <div data-testid="category-manager-modal">
-      <button onClick={onClose}>Close Category</button>
-      <button onClick={onCategoriesChange}>Categories Changed</button>
+      <Button onClick={onClose}>Close Category</Button>
+      <Button onClick={onCategoriesChange}>Categories Changed</Button>
     </div>
   ),
 }));
@@ -92,9 +91,9 @@ jest.mock("../ScheduleDrawer", () => ({
   __esModule: true,
   default: ({ onSchedule, onScheduleForced, onClose }: any) => (
     <div data-testid="schedule-drawer">
-      <button onClick={onSchedule}>Schedule</button>
-      <button onClick={onScheduleForced}>Force Schedule</button>
-      <button onClick={onClose}>Close Drawer</button>
+      <Button onClick={onSchedule}>Schedule</Button>
+      <Button onClick={onScheduleForced}>Force Schedule</Button>
+      <Button onClick={onClose}>Close Drawer</Button>
     </div>
   ),
 }));
@@ -103,16 +102,16 @@ jest.mock("../UnscheduledPanel", () => ({
   __esModule: true,
   default: ({ onTaskClick, onDeleteLog, onEditLog }: any) => (
     <div data-testid="unscheduled-panel">
-      <button onClick={() => onTaskClick({ id: "task-1", title: "Task" })}>
+      <Button onClick={() => onTaskClick({ id: "task-1", title: "Task" })}>
         Click Task
-      </button>
-      <button onClick={() => onDeleteLog("log-1")}>Delete Log</button>
-      <button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
+      </Button>
+      <Button onClick={() => onDeleteLog("log-1")}>Delete Log</Button>
+      <Button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
         Edit Day Log
-      </button>
-      <button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
+      </Button>
+      <Button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
         Edit Week Log
-      </button>
+      </Button>
     </div>
   ),
 }));
@@ -121,9 +120,9 @@ jest.mock("../FilterSidebar", () => ({
   __esModule: true,
   default: ({ onToggleFilter, onToggleCategory, onManageCategories }: any) => (
     <div data-testid="filter-sidebar">
-      <button onClick={() => onToggleFilter("tasks")}>Toggle Tasks</button>
-      <button onClick={() => onToggleCategory("cat-1")}>Toggle Category</button>
-      <button onClick={onManageCategories}>Manage Categories</button>
+      <Button onClick={() => onToggleFilter("tasks")}>Toggle Tasks</Button>
+      <Button onClick={() => onToggleCategory("cat-1")}>Toggle Category</Button>
+      <Button onClick={onManageCategories}>Manage Categories</Button>
     </div>
   ),
 }));
@@ -142,24 +141,24 @@ jest.mock("../CalendarBody", () => ({
     onNavigate,
   }: any) => (
     <div data-testid="calendar-body">
-      <button onClick={() => onSelectSlot("2024-06-03")}>Select Slot</button>
-      <button onClick={() => onSelectEvent({ id: "ev-1", title: "Event", start: new Date("2024-06-03") })}>
+      <Button onClick={() => onSelectSlot("2024-06-03")}>Select Slot</Button>
+      <Button onClick={() => onSelectEvent({ id: "ev-1", title: "Event", start: new Date("2024-06-03") })}>
         Select Event
-      </button>
-      <button onClick={() => onSearchResultClick({ id: "ev-2", start: new Date("2024-06-10") })}>
+      </Button>
+      <Button onClick={() => onSearchResultClick({ id: "ev-2", start: new Date("2024-06-10") })}>
         Click Search Result
-      </button>
-      <button onClick={onUndo}>Undo</button>
-      <button onClick={onUndoDismiss}>Dismiss Undo</button>
-      <button onClick={() => onSearchChange("query")}>Search Change</button>
-      <button onClick={onSearchFocus}>Search Focus</button>
-      <button onClick={onSearchClear}>Search Clear</button>
-      <button onClick={() => onNavigate(new Date("2024-06-10"))}>Navigate</button>
+      </Button>
+      <Button onClick={onUndo}>Undo</Button>
+      <Button onClick={onUndoDismiss}>Dismiss Undo</Button>
+      <Button onClick={() => onSearchChange("query")}>Search Change</Button>
+      <Button onClick={onSearchFocus}>Search Focus</Button>
+      <Button onClick={onSearchClear}>Search Clear</Button>
+      <Button onClick={() => onNavigate(new Date("2024-06-10"))}>Navigate</Button>
     </div>
   ),
 }));
 
-// ── Hook mocks ─────
+// Hook mocks
 
 const mockRefreshEvents = jest.fn().mockResolvedValue([]);
 const mockRefreshTasks = jest.fn().mockResolvedValue(undefined);
@@ -238,7 +237,7 @@ jest.mock("@/hooks/useCalendarInteractions", () => ({
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
 
-// ── Helpers ────────
+// Helpers
 
 function renderCalendarView(props = {}) {
   return render(
@@ -246,7 +245,11 @@ function renderCalendarView(props = {}) {
   );
 }
 
-// ── Tests 
+function getFirst(testId: string) {
+  return screen.getAllByTestId(testId)[0];
+}
+
+// Tests
 
 describe("CalendarView", () => {
   beforeEach(() => {
@@ -267,12 +270,12 @@ describe("CalendarView", () => {
 
     it("should render the filter sidebar", async () => {
       await act(async () => { renderCalendarView(); });
-      expect(screen.getByTestId("filter-sidebar")).toBeInTheDocument();
+      expect(getFirst("filter-sidebar")).toBeInTheDocument();
     });
 
     it("should render the unscheduled panel", async () => {
       await act(async () => { renderCalendarView(); });
-      expect(screen.getByTestId("unscheduled-panel")).toBeInTheDocument();
+      expect(getFirst("unscheduled-panel")).toBeInTheDocument();
     });
 
     it("should render the schedule drawer", async () => {
@@ -297,7 +300,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Init effects ─
+  // ── Init effects ─────────
 
   describe("mount effects", () => {
     it("should call fetchCategories on mount", async () => {
@@ -405,7 +408,7 @@ describe("CalendarView", () => {
     });
   });
 
-  // ── Check-in flow 
+  // ── Check-in flow ────────
 
   describe("check-in flow", () => {
     it("should show the check-in modal after the mount delay", async () => {
@@ -500,20 +503,23 @@ describe("CalendarView", () => {
   describe("category manager", () => {
     it("should open the category manager when Manage Categories is clicked", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Manage Categories")); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Manage Categories")); });
       expect(screen.getByTestId("category-manager-modal")).toBeInTheDocument();
     });
 
     it("should close the category manager when onClose is called", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Manage Categories")); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Manage Categories")); });
       await act(async () => { fireEvent.click(screen.getByText("Close Category")); });
       expect(screen.queryByTestId("category-manager-modal")).not.toBeInTheDocument();
     });
 
     it("should call fetchCategories when categories change in the manager", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Manage Categories")); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Manage Categories")); });
       mockFetchCategories.mockClear();
       await act(async () => { fireEvent.click(screen.getByText("Categories Changed")); });
       expect(mockFetchCategories).toHaveBeenCalled();
@@ -525,20 +531,23 @@ describe("CalendarView", () => {
   describe("quick schedule modal", () => {
     it("should open the quick schedule modal when a task is clicked in the unscheduled panel", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Click Task")); });
+      const panel = getFirst("unscheduled-panel");
+      await act(async () => { fireEvent.click(within(panel).getByText("Click Task")); });
       expect(screen.getByTestId("quick-schedule-modal")).toBeInTheDocument();
     });
 
     it("should close the quick schedule modal when onClose is called", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Click Task")); });
+      const panel = getFirst("unscheduled-panel");
+      await act(async () => { fireEvent.click(within(panel).getByText("Click Task")); });
       await act(async () => { fireEvent.click(screen.getByText("Close Quick")); });
       expect(screen.queryByTestId("quick-schedule-modal")).not.toBeInTheDocument();
     });
 
     it("should close and refresh tasks when onSaved is called", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Click Task")); });
+      const panel = getFirst("unscheduled-panel");
+      await act(async () => { fireEvent.click(within(panel).getByText("Click Task")); });
       mockRefreshTasks.mockClear();
 
       await act(async () => { fireEvent.click(screen.getByText("Saved")); });
@@ -553,8 +562,9 @@ describe("CalendarView", () => {
   describe("unscheduled panel callbacks", () => {
     it("should call DELETE on /api/schedule-log when a log is deleted", async () => {
       await act(async () => { renderCalendarView(); });
+      const panel = getFirst("unscheduled-panel");
 
-      await act(async () => { fireEvent.click(screen.getByText("Delete Log")); });
+      await act(async () => { fireEvent.click(within(panel).getByText("Delete Log")); });
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith(
@@ -580,13 +590,12 @@ describe("CalendarView", () => {
 
       await act(async () => { renderCalendarView(); });
 
-      // CalendarBody receives filteredItems - verify via the mock hook return
       const { useCalendarData: ucd } = require("@/hooks/useCalendarData");
       expect(ucd).toHaveBeenCalledWith("user-123");
     });
   });
 
-  // ── getFilteredItems (full branch coverage) ───
+  // ── getFilteredItems ───
 
   describe("getFilteredItems branch coverage", () => {
     it("includes event with a known category when categoryFilters[cat.id] is true", async () => {
@@ -622,8 +631,8 @@ describe("CalendarView", () => {
         categoryFilters: {},
       });
       await act(async () => { renderCalendarView(); });
-      // Toggle events filter off
-      await act(async () => { fireEvent.click(screen.getByText("Toggle Tasks")); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Toggle Tasks")); });
       expect(screen.getByTestId("calendar-body")).toBeInTheDocument();
     });
 
@@ -634,23 +643,24 @@ describe("CalendarView", () => {
         tasks: [{ id: "t1", completed: true, priority: "Low" }],
       });
       await act(async () => { renderCalendarView(); });
-
       expect(screen.getByTestId("calendar-body")).toBeInTheDocument();
     });
   });
 
-  // ── Filter sidebar toggle callbacks 
+  // ── Filter sidebar toggle callbacks ─
 
   describe("filter sidebar callbacks", () => {
     it("should toggle a filter key when onToggleFilter is called", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Toggle Tasks")); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Toggle Tasks")); });
       expect(screen.getByTestId("calendar-body")).toBeInTheDocument();
     });
 
     it("should call setCategoryFilters when onToggleCategory is called", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Toggle Category")); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Toggle Category")); });
       expect(mockSetCategoryFilters).toHaveBeenCalled();
     });
   });
@@ -658,30 +668,10 @@ describe("CalendarView", () => {
   // ── onEditLog in UnscheduledPanel ───
 
   describe("unscheduled panel onEditLog", () => {
-    it("should call sched.patch with scheduleDate when log.mode is 'day'", async () => {
-      const { default: UnscheduledPanel } = require("../UnscheduledPanel");
-      // Override mock to expose onEditLog
-      jest.mock("../UnscheduledPanel", () => ({
-        __esModule: true,
-        default: ({ onEditLog }: any) => (
-          <div data-testid="unscheduled-panel">
-            <button onClick={() => onEditLog({ mode: "day", scheduledAt: "2024-06-03T00:00:00" })}>
-              Edit Day Log
-            </button>
-            <button onClick={() => onEditLog({ mode: "week", scheduledAt: "2024-06-03T00:00:00" })}>
-              Edit Week Log
-            </button>
-          </div>
-        ),
-      }));
-    });
-  });
-  // ── onEditLog in UnscheduledPanel ───
-
-  describe("unscheduled panel onEditLog", () => {
     it("should call sched.patch with scheduleDate when log mode is day", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Edit Day Log")); });
+      const panel = getFirst("unscheduled-panel");
+      await act(async () => { fireEvent.click(within(panel).getByText("Edit Day Log")); });
       expect(mockSchedPatch).toHaveBeenCalledWith(
         expect.objectContaining({ scheduleDate: "2024-06-03" })
       );
@@ -689,7 +679,8 @@ describe("CalendarView", () => {
 
     it("should call sched.patch with scheduleWeekStart when log mode is week", async () => {
       await act(async () => { renderCalendarView(); });
-      await act(async () => { fireEvent.click(screen.getByText("Edit Week Log")); });
+      const panel = getFirst("unscheduled-panel");
+      await act(async () => { fireEvent.click(within(panel).getByText("Edit Week Log")); });
       expect(mockSchedPatch).toHaveBeenCalledWith(
         expect.objectContaining({ scheduleWeekStart: "2024-06-03" })
       );
@@ -804,17 +795,12 @@ describe("CalendarView", () => {
 
   describe("category manager onCategoriesChange", () => {
     it("should call fetchCategories when onCategoriesChange is triggered", async () => {
-      // Update CategoryManagerModal mock to expose onCategoriesChange
-      const { default: CategoryManagerModal } = require("../CategoryManagerModal");
-      jest.mock("../CategoryManagerModal", () => ({
-        __esModule: true,
-        default: ({ onClose, onCategoriesChange }: any) => (
-          <div data-testid="category-manager-modal">
-            <button onClick={onClose}>Close Category</button>
-            <button onClick={onCategoriesChange}>Categories Changed</button>
-          </div>
-        ),
-      }));
+      await act(async () => { renderCalendarView(); });
+      const sidebar = getFirst("filter-sidebar");
+      await act(async () => { fireEvent.click(within(sidebar).getByText("Manage Categories")); });
+      mockFetchCategories.mockClear();
+      await act(async () => { fireEvent.click(screen.getByText("Categories Changed")); });
+      expect(mockFetchCategories).toHaveBeenCalled();
     });
   });
 });

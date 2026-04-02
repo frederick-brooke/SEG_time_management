@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/Button";
 
 /** A single saved location belonging to the current user. */
 export interface SavedLocation {

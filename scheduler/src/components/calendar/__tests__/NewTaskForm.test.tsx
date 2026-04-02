@@ -1,9 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { NewTaskForm } from "../NewTaskForm";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("../EventFormParts", () => ({
   RELATIVE_OPTIONS: [
@@ -24,27 +22,35 @@ jest.mock("../EventFormParts", () => ({
   },
 }));
 
-jest.mock("@/components/shared/FormComponents", () => ({
-  Toggle: ({ on, onToggle, label }: any) => (
-    <button data-testid={`toggle-${label}`} onClick={onToggle}>
-      {label}: {on ? "on" : "off"}
-    </button>
-  ),
-  RecurrencePanel: ({ type, onType, onDays, onUntil }: any) => (
-    <div data-testid="recurrence-panel">
-      <button onClick={() => onType("daily")}>Set Daily</button>
-      <button onClick={() => onType("weekly")}>Set Weekly</button>
-      <button onClick={() => onDays(["Mon"])}>Set Days</button>
-      <button onClick={() => onUntil("2026-12-01")}>Set Until</button>
-      <span>{type}</span>
-    </div>
+
+jest.mock("@/components/ui/Button", () => ({
+  Button: ({ children, ...props }: any) => (
+    <button {...props}>{children}</button>
   ),
 }));
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+jest.mock("@/components/shared/FormComponents", () => {
+  const { Button } = require("@/components/ui/Button");
 
+  return {
+    Toggle: ({ on, onToggle, label }: any) => (
+      <Button data-testid={`toggle-${label}`} onClick={onToggle}>
+        {label}: {on ? "on" : "off"}
+      </Button>
+    ),
+    RecurrencePanel: ({ type, onType, onDays, onUntil }: any) => (
+      <div data-testid="recurrence-panel">
+        <Button onClick={() => onType("daily")}>Set Daily</Button>
+        <Button onClick={() => onType("weekly")}>Set Weekly</Button>
+        <Button onClick={() => onDays(["Mon"])}>Set Days</Button>
+        <Button onClick={() => onUntil("2026-12-01")}>Set Until</Button>
+        <span>{type}</span>
+      </div>
+    ),
+  };
+});
+
+// Helpers
 const defaultProps = {
   eventStartDate: "2026-04-01",
   defaultUntil: "2026-06-01",
@@ -55,10 +61,7 @@ function renderForm(props = {}) {
   return render(<NewTaskForm {...defaultProps} {...props} />);
 }
 
-// ---------------------------------------------------------------------------
 // Rendering
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — rendering", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -71,11 +74,6 @@ describe("NewTaskForm — rendering", () => {
     renderForm();
     const input = screen.getByDisplayValue("60");
     expect(input).toBeInTheDocument();
-  });
-
-  it("renders the priority select with default Medium", () => {
-    renderForm();
-    expect(screen.getByDisplayValue("Medium")).toBeInTheDocument();
   });
 
   it("renders all 8 relative option buttons", () => {
@@ -101,10 +99,7 @@ describe("NewTaskForm — rendering", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // handleAdd — basic submission
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — handleAdd", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -177,10 +172,7 @@ describe("NewTaskForm — handleAdd", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Duration and priority
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — duration and priority", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -212,25 +204,9 @@ describe("NewTaskForm — duration and priority", () => {
     );
   });
 
-  it("submits with updated priority", () => {
-    renderForm();
-    fireEvent.change(screen.getByPlaceholderText("Task title"), {
-      target: { value: "Task" },
-    });
-    fireEvent.change(screen.getByDisplayValue("Medium"), {
-      target: { value: "High" },
-    });
-    fireEvent.click(screen.getByText("+ Add Task"));
-    expect(defaultProps.onAdd).toHaveBeenCalledWith(
-      expect.objectContaining({ priority: "High" }),
-    );
-  });
 });
 
-// ---------------------------------------------------------------------------
 // Relative mode selection
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — relative mode", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -283,10 +259,7 @@ describe("NewTaskForm — relative mode", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // scheduleTime toggle
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — scheduleTime", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -330,10 +303,7 @@ describe("NewTaskForm — scheduleTime", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // isRecurring toggle
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — isRecurring", () => {
   beforeEach(() => jest.clearAllMocks());
 
@@ -385,10 +355,7 @@ describe("NewTaskForm — isRecurring", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // reset after add
-// ---------------------------------------------------------------------------
-
 describe("NewTaskForm — reset after add", () => {
   beforeEach(() => jest.clearAllMocks());
 

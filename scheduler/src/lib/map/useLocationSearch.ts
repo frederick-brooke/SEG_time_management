@@ -41,6 +41,45 @@ interface UseLocationSearchReturn extends LocationSearchState {
 }
 
 /**
+ * Fetches location suggestions from API and validates response.
+ * Returns suggestions array or throws error with description.
+ */
+export async function performLocationSearch(
+  query: string
+): Promise<LocationFeature[]> {
+  const res = await fetch(
+    `/api/location/search?q=${encodeURIComponent(query)}`
+  );
+
+  if (!res.ok) throw new Error("Location search failed");
+
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Executes location search and updates state with results or errors.
+ */
+export async function executeSearch(
+  text: string,
+  setSuggestions: (suggestions: LocationFeature[]) => void,
+  setError: (error: string | null) => void,
+  setLoading: (loading: boolean) => void
+): Promise<void> {
+  try {
+    const results = await performLocationSearch(text);
+    setSuggestions(results);
+    setError(null);
+  } catch (err) {
+    setSuggestions([]);
+    const message = err instanceof Error ? err.message : "Search error";
+    setError(message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+/**
  * Hook for debounced location search with suggestions.
  *
  * Provides search functionality for location autocomplete with:
@@ -66,7 +105,9 @@ export function useLocationSearch(): UseLocationSearchReturn {
   const [suggestions, setSuggestions] = useState<LocationFeature[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [debounceTimer, setDebounceTimer] = useState<
+    ReturnType<typeof setTimeout> | null
+  >(null);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -79,11 +120,10 @@ export function useLocationSearch(): UseLocationSearchReturn {
     (text: string) => {
       setSearchQuery(text);
 
-      // Clear previous timer
       if (debounceTimer) clearTimeout(debounceTimer);
 
-      // Clear suggestions if text is too short
-      if (text.length < 3) {
+      const isQueryTooShort = text.length < 3;
+      if (isQueryTooShort) {
         setSuggestions([]);
         setError(null);
         return;
@@ -92,27 +132,8 @@ export function useLocationSearch(): UseLocationSearchReturn {
       setLoading(true);
       setError(null);
 
-      // Debounce the API call
-      const timer = setTimeout(async () => {
-        try {
-          const res = await fetch(`/api/location/search?q=${encodeURIComponent(text)}`);
-
-          if (!res.ok) {
-            setSuggestions([]);
-            setError("Location search failed");
-            setLoading(false);
-            return;
-          }
-
-          const data = await res.json();
-          setSuggestions(Array.isArray(data) ? data : []);
-          setError(null);
-          setLoading(false);
-        } catch (err) {
-          setSuggestions([]);
-          setError(err instanceof Error ? err.message : "Search error");
-          setLoading(false);
-        }
+      const timer = setTimeout(() => {
+        executeSearch(text, setSuggestions, setError, setLoading);
       }, 400);
 
       setDebounceTimer(timer);

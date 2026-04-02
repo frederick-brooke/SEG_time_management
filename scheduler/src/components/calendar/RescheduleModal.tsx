@@ -1,6 +1,12 @@
 "use client";
+
+/**
+ * Reschedule Modal component for tasks.
+ */
+
 import { useState } from "react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/Button";
 
 interface RescheduleTask {
   id:                string;
@@ -169,7 +175,7 @@ export default function RescheduleModal({
 
         {/* Footer */}
         <div className="px-8 py-5 border-t border-gray-100 flex-shrink-0 flex flex-col gap-3">
-          <button
+          <Button
             onClick={handleConfirm}
             disabled={saving || selected.size === 0}
             className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -179,13 +185,13 @@ export default function RescheduleModal({
               : selected.size === 0
                 ? "No tasks selected"
                 : `Reschedule ${selected.size} task${selected.size !== 1 ? "s" : ""} into remaining week`}
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onDismiss}
             className="w-full text-sm text-gray-400 hover:text-gray-600 py-2"
           >
             Skip — I will handle these manually
-          </button>
+          </Button>
         </div>
       </div>
     </div>

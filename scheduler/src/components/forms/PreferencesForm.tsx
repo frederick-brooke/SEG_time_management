@@ -7,6 +7,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Button } from "../ui/Button";
 
 // Types 
 
@@ -180,13 +181,13 @@ function WorkHoursSection({ prefs, onChange }: {
         <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Days off</label>
         <div className="flex gap-2">
           {DAYS.map((day) => (
-            <button key={day} type="button" onClick={() => onToggleDay(day)}
+            <Button key={day} type="button" onClick={() => onToggleDay(day)}
               className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
                 prefs.daysOff.includes(day)
                   ? "bg-red-500 text-white border-red-500"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
               }`}
-            >{day}</button>
+            >{day}</Button>
           ))}
         </div>
         {prefs.daysOff.length > 0 && (
@@ -223,13 +224,13 @@ function SessionsSection({ prefs, onChange }: {
         <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Breaks per day</label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <button key={n} type="button" onClick={() => onChange("breaksPerDay", n)}
+            <Button key={n} type="button" onClick={() => onChange("breaksPerDay", n)}
               className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${
                 prefs.breaksPerDay === n
                   ? "bg-indigo-600 text-white border-indigo-600"
                   : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
               }`}
-            >{n}</button>
+            >{n}</Button>
           ))}
         </div>
       </div>
@@ -315,13 +316,13 @@ function RemindersSection({ reminderDays, onChange }: {
         <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Remind me before deadlines</label>
         <div className="flex gap-2 flex-wrap">
           {[0, 1, 2, 3, 5, 7, 14].map((n) => (
-            <button key={n} type="button" onClick={() => onChange(n)}
+            <Button key={n} type="button" onClick={() => onChange(n)}
               className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
                 reminderDays === n
                   ? "bg-indigo-600 text-white border-indigo-600"
                   : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
               }`}
-            >{n === 0 ? "Day of" : `${n}d before`}</button>
+            >{n === 0 ? "Day of" : `${n}d before`}</Button>
           ))}
         </div>
       </div>
@@ -390,11 +391,11 @@ export default function PreferencesForm({ userId, onSaved }: PreferencesFormProp
       <TaskSection prefs={prefs} onChange={onChange} />
       <RemindersSection reminderDays={prefs.reminderDays} onChange={(val) => onChange("reminderDays", val)} />
       <div className="flex items-center gap-4">
-        <button onClick={onSave} disabled={saving}
+        <Button onClick={onSave} disabled={saving}
           className="px-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saving ? "Saving…" : "Save Preferences"}
-        </button>
+        </Button>
         {saved && (
           <span className="text-sm text-green-600 font-semibold flex items-center gap-1.5">
             <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-[10px]">✓</span>

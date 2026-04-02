@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "../ui/Button";
+
 /**
  * @file GroupHeader.tsx
  * @description Header bar rendered at the top of a group conversation view.
@@ -17,7 +19,7 @@ type Props = {
 export function GroupHeader({ name, participantCount, onToggleMembers, onLeave }: Props) {
   return (
     <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
-      <button
+      <Button
         onClick={onToggleMembers}
         className="text-sm font-semibold transition-colors text-[rgba(220,225,255,0.85)] hover:text-[rgba(148,163,255,0.9)]"
       >
@@ -25,14 +27,14 @@ export function GroupHeader({ name, participantCount, onToggleMembers, onLeave }
         <span className="ml-1.5 text-xs font-normal text-[rgba(148,163,255,0.4)]">
           {participantCount} members
         </span>
-      </button>
+      </Button>
 
-      <button
+      <Button
         onClick={onLeave}
         className="text-xs font-medium transition-colors text-[rgba(255,100,100,0.6)] hover:text-[rgba(255,100,100,0.9)]"
       >
         Leave group
-      </button>
+      </Button>
     </div>
   );
 }

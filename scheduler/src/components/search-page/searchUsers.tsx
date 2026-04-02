@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import UserPanel from "@/components/admin/admin-user-panel";
-import UserCard from "./user-cards";
+import UserPanel from "@/components/admin/AdminUserPanel";
+import UserCard from "./UserCards";
 import { addRecentUser, getRecentUsers, removeRecentUser, clearRecentUsers } from "@/lib/recent-users";
 import { IconX } from "@tabler/icons-react";
 
 //UI components
-import GlassCard from "@/components/ui/glassCard";
+import GlassCard from "@/components/ui/GlassCard";
 
 /**
  * SearchUsers
@@ -125,7 +125,7 @@ function Header({ isSearching, hasRecent, onClear }) {
 			</p>
 
 			{!isSearching && hasRecent && (
-				<button onClick={onClear} className="lunar-page-subtitle text-sm text-red-400 hover:text-red-500 transition" >
+				<button onClick={onClear} className="lunar-page-subtitle text-sm text-red-400 hover:text-red-500 transition">
 					Clear All
 				</button>
 			)}
@@ -188,7 +188,7 @@ function Pagination({ filters, setFilters, start, end, totalUsers, totalPages })
 		<div className="mt-2 pt-2 border-t border-white/10 flex justify-between items-center text-white/70 text-sm">
 			<button
 				disabled={filters.page === 1}
-				onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 })) }
+				onClick={() => setFilters((prev) => ({ ...prev, page: prev.page - 1 }))}
 				className="lunar-page-subtitle px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
 			>
 				Previous
@@ -198,7 +198,7 @@ function Pagination({ filters, setFilters, start, end, totalUsers, totalPages })
 
 			<button
 				disabled={filters.page === totalPages}
-				onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 })) }
+				onClick={() => setFilters((prev) => ({ ...prev, page: prev.page + 1 }))}
 				className="lunar-page-subtitle px-3 py-1 rounded-md border border-white/20 hover:bg-white/10 disabled:opacity-40"
 			>
 				Next

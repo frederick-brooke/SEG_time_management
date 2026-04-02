@@ -5,6 +5,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ModulesPageClient from '../ModulesPageClient';
 import '@testing-library/jest-dom';
+import { Button } from "@/components/ui/Button";
 
 
 // Mocks
@@ -17,14 +18,14 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/components/modules/CreateModule', () => ({
   __esModule: true,
   default: ({ onSuccess }: any) => (
-    <button onClick={onSuccess} data-testid="create-modal-trigger">Mock Create</button>
+    <Button onClick={onSuccess} data-testid="create-modal-trigger">Mock Create</Button>
   ),
 }));
 
 jest.mock('@/components/modules/JoinModule', () => ({
   __esModule: true,
   default: ({ onSuccess }: any) => (
-    <button onClick={onSuccess} data-testid="join-modal-trigger">Mock Join</button>
+    <Button onClick={onSuccess} data-testid="join-modal-trigger">Mock Join</Button>
   ),
 }));
 

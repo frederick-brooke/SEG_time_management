@@ -24,11 +24,7 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/landing/HeroSection", () => ({
-  StarField: () => <div data-testid="star-field" />,
-}));
-
-jest.mock("@/components/tasks/to-do-list", () => ({
+jest.mock("@/components/tasks/ToDoList", () => ({
   ToDoList: ({ userId, exams, highlightId }: any) => (
     <div>
       <div data-testid="todo-list">ToDoList</div>
@@ -103,11 +99,6 @@ describe("TasksPage", () => {
     setAuth("authenticated", "user-99");
     render(<TasksPage />);
     expect(await screen.findByTestId("todo-user-id")).toHaveTextContent("user-99");
-  });
-
-  it("renders the StarField background element", async () => {
-    render(<TasksPage />);
-    expect(await screen.findByTestId("star-field")).toBeInTheDocument();
   });
 
   // Exam fetching

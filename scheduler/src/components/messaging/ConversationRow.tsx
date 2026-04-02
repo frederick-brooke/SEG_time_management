@@ -9,6 +9,7 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { Button } from "../ui/Button";
 
 type Participant = {
   user: { id: string; username: string; fname: string | null; lname: string | null; pfp: string | null };
@@ -124,7 +125,7 @@ function ConversationMenu({
 
   return (
     <div className="relative" ref={menuRef}>
-      <button
+      <Button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         className="p-1 rounded-lg transition-colors text-[rgba(148,163,255,0.4)] hover:text-[rgba(148,163,255,0.8)]"
         title="More options"
@@ -135,10 +136,10 @@ function ConversationMenu({
           <circle cx="8" cy="8" r="1.2" />
           <circle cx="8" cy="13" r="1.2" />
         </svg>
-      </button>
+      </Button>
       {open && (
         <div className="absolute right-0 top-7 z-50 rounded-xl py-1 min-w-[140px] bg-[rgba(15,20,40,0.95)] border border-white/[0.08] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-          <button
+          <Button
             onClick={handleDelete}
             disabled={loading}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors disabled:opacity-50 text-[rgba(255,100,100,0.8)] hover:bg-[rgba(255,80,80,0.08)]"
@@ -151,7 +152,7 @@ function ConversationMenu({
               <path d="M9 6V4h6v2" />
             </svg>
             {loading ? "Deleting…" : "Delete"}
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -188,7 +189,7 @@ export function ConversationRow({ convo, isActive, currentUserId, onNavigate, on
           : "border-transparent hover:bg-white/[0.04]"
       }`}
     >
-      <button
+      <Button
         onClick={() => onNavigate(convo.id)}
         className="flex items-center gap-3 flex-1 min-w-0 text-left"
       >
@@ -242,7 +243,7 @@ export function ConversationRow({ convo, isActive, currentUserId, onNavigate, on
             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[rgba(99,149,255,0.95)]" />
           )}
         </div>
-      </button>
+      </Button>
       <ConversationMenu conversationId={convo.id} onDeleted={onDeleted} />
     </div>
   );

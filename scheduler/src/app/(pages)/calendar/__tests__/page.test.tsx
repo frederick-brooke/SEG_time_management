@@ -31,7 +31,7 @@ jest.mock("@/components/calendar/CalendarView", () => ({
   ),
 }));
 
-jest.mock("@/components/shared/googleLinkButton", () => ({
+jest.mock("@/components/shared/GoogleLinkButton", () => ({
   __esModule: true,
   default: ({ isConnected }: { isConnected: boolean }) => (
     <div data-testid="google-link-button" data-connected={String(isConnected)} />

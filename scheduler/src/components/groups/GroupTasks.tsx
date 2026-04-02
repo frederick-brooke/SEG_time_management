@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { useState } from "react";
 import { ListTodo, Pencil, Trash2, CheckCircle, Circle } from "lucide-react";
@@ -31,9 +32,9 @@ function MemberProgressBadge({ count, members, label, color }: any) {
 
   return (
     <div className="relative inline-block">
-      <button onClick={() => setOpen((v) => !v)} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider transition-colors ${styles.badge}`}>
+      <Button onClick={() => setOpen((v) => !v)} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase tracking-wider transition-colors ${styles.badge}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${styles.dot}`} /> {count} {label}
-      </button>
+      </Button>
       {open && members.length > 0 && (
         <div className="absolute bottom-full mb-2 left-0 z-20 bg-[#111629] border border-white/20 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] p-3 min-w-[160px] animate-in fade-in slide-in-from-bottom-2">
           <p className="lunar-label mb-2 text-white/80">{label}</p>
@@ -71,9 +72,9 @@ export default function GroupTasks({ tasksWithProgress, onEdit, onDelete, onTogg
             <div key={task.groupTaskGroupId} className={`flex items-start justify-between p-4 border rounded-xl transition-all gap-3 ${task.currentUserCompleted ? "bg-transparent border-white/5 opacity-60" : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}`}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => onToggleComplete(task)} className="shrink-0 transition-colors hover:scale-110" title={task.currentUserCompleted ? "Mark incomplete" : "Mark complete"}>
+                  <Button onClick={() => onToggleComplete(task)} className="shrink-0 transition-colors hover:scale-110" title={task.currentUserCompleted ? "Mark incomplete" : "Mark complete"}>
                     {task.currentUserCompleted ? <CheckCircle size={18} className="text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> : <Circle size={18} className="text-white/30" />}
-                  </button>
+                  </Button>
                   <h3 className={`font-bold truncate text-sm ${task.currentUserCompleted ? "text-white/40 line-through" : "text-white"}`}>{task.title}</h3>
                 </div>
                 {task.description && <p className="text-xs text-white/40 mt-0.5 line-clamp-1 ml-8">{task.description}</p>}
@@ -88,8 +89,8 @@ export default function GroupTasks({ tasksWithProgress, onEdit, onDelete, onTogg
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <button onClick={() => onEdit(task)} className="p-1.5 text-white/30 hover:text-white hover:bg-white/20 rounded-lg transition-colors" title="Edit task"><Pencil size={14} /></button>
-                <button onClick={() => onDelete(task.groupTaskGroupId)} className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Delete task"><Trash2 size={14} /></button>
+                <Button onClick={() => onEdit(task)} className="p-1.5 text-white/30 hover:text-white hover:bg-white/20 rounded-lg transition-colors" title="Edit task"><Pencil size={14} /></Button>
+                <Button onClick={() => onDelete(task.groupTaskGroupId)} className="p-1.5 text-white/30 hover:text-red-400 hover:bg-red-500/20 rounded-lg transition-colors" title="Delete task"><Trash2 size={14} /></Button>
               </div>
             </div>
           ))}

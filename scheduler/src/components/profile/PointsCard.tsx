@@ -1,7 +1,8 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 import { Zap, Star } from "lucide-react";
-import { GoldCoin } from "@/components/ui/gold-coin";
+import { GoldCoin } from "@/components/ui/GoldCoin";
 
 interface PointsCardProps {
   totalPoints: number;

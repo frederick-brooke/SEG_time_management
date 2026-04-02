@@ -1,3 +1,7 @@
+/**
+ * Task Column component
+ */
+
 import { TaskCard } from "./TaskCard";
 
 /**

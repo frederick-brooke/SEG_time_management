@@ -6,11 +6,11 @@
   */
 
 import { Suspense, useEffect, useState } from "react";
-import { ToDoList } from "@/components/tasks/to-do-list";
+import { ToDoList } from "@/components/tasks/ToDoList";
 import { useSession } from "next-auth/react";
 import { getMyExams } from "@/app/actions/examActions";
 import { useSearchParams } from "next/navigation";
-import StarField from "@/components/effects/starField"
+import StarField from "@/components/effects/StarField"
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 
 function TasksContent() {

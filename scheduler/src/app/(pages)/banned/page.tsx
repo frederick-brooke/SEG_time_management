@@ -1,4 +1,4 @@
-import BannedPage from "@/components/admin/ban-message-page";
+import BannedPage from "@/components/admin/BanMessagePage";
 
 /**
  * Renders the banned user page.

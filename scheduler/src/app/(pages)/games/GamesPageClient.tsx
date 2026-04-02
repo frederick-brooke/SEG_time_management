@@ -1,4 +1,5 @@
 'use client';
+import { Button } from "@/components/ui/Button";
 
 /**
  * Games Hub client page.

@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MessagesLayout from "../layout";
 import { useParams, useRouter } from "next/navigation";
@@ -13,10 +14,6 @@ import { useParams, useRouter } from "next/navigation";
 jest.mock("next/navigation", () => ({
   useParams: jest.fn(),
   useRouter: jest.fn(),
-}));
-
-jest.mock("components/ui/sidebar", () => ({
-  useSidebar: jest.fn(),
 }));
 
 jest.mock("components/messaging/UserSearch", () => ({
@@ -32,8 +29,6 @@ jest.mock("components/messaging/ConversationList", () => ({
 
 // Helpers
 
-import { useSidebar } from "components/ui/sidebar";
-
 const mockPush = jest.fn();
 
 function setupMocks({
@@ -43,12 +38,30 @@ function setupMocks({
   (useParams as jest.Mock).mockReturnValue(
     conversationId ? { conversationId } : {}
   );
+
   (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
-  (useSidebar as jest.Mock).mockReturnValue({ isMobile });
+
+  setWindowWidth(isMobile ? 500 : 1200);
+}
+
+function setWindowWidth(width: number) {
+  Object.defineProperty(window, "innerWidth", {
+    writable: true,
+    configurable: true,
+    value: width,
+  });
+
+  window.dispatchEvent(new Event("resize"));
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Reset to a safe desktop width between tests so state initialises correctly.
+  Object.defineProperty(window, "innerWidth", {
+    writable: true,
+    configurable: true,
+    value: 1200,
+  });
 });
 
 
@@ -178,7 +191,6 @@ describe("MessagesLayout – mobile layout", () => {
 
 describe("MessagesLayout – isMobile transitions", () => {
   it("shows sidebar and children simultaneously after switching to desktop", () => {
-    // Start as desktop
     setupMocks({ conversationId: "conv-1", isMobile: false });
     const { rerender } = render(
       <MessagesLayout><div data-testid="child" /></MessagesLayout>

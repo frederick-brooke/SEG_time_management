@@ -24,7 +24,7 @@ export async function getNotifications(count: number = 20) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return { notifications: [], error: null };
+      return { notifications: null, error: "Failed to fetch notifications" };
     }
 
     const notifications = await prisma.notification.findMany({
