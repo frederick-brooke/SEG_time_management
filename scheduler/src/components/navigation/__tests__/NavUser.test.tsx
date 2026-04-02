@@ -3,7 +3,7 @@ import { NavUser } from "../NavUser";
 import { useSidebar } from "@/components/ui/Sidebar";
 import { Button } from "@/components/ui/Button";
 
-// 1. Mock the Sidebar components and hook
+// Mock the Sidebar components and hook
 jest.mock("@/components/ui/sidebar", () => ({
   SidebarMenu: ({ children }: { children: React.ReactNode }) => <div data-testid="sidebar-menu">{children}</div>,
   SidebarMenuItem: ({ children }: { children: React.ReactNode }) => <div data-testid="sidebar-menu-item">{children}</div>,
@@ -11,8 +11,8 @@ jest.mock("@/components/ui/sidebar", () => ({
   useSidebar: jest.fn(),
 }));
 
-// 2. Mock the DropdownMenu components to avoid Radix UI JSDOM errors
-jest.mock("components/ui/dropdown-menu", () => ({
+// Mock the DropdownMenu components to avoid Radix UI JSDOM errors
+jest.mock("components/ui/DropdownMenu", () => ({
   DropdownMenu: ({ children }: { children: React.ReactNode }) => <div data-testid="dropdown-menu">{children}</div>,
   // DropdownMenuTrigger uses `asChild`, so we pass children through
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -27,14 +27,14 @@ jest.mock("components/ui/dropdown-menu", () => ({
   DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
 }));
 
-// 3. Mock the Avatar components
+// Mock the Avatar components
 jest.mock("@/components/ui/avatar", () => ({
   Avatar: ({ children }: { children: React.ReactNode }) => <div data-testid="avatar">{children}</div>,
   AvatarImage: ({ alt }: { alt: string }) => <img data-testid="avatar-image" alt={alt} />,
   AvatarFallback: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// 4. Mock the icons to keep the snapshot/DOM clean
+// Mock the icons to keep the snapshot/DOM clean
 jest.mock("@tabler/icons-react", () => ({
   IconCreditCard: () => <span data-testid="icon-credit-card" />,
   IconDotsVertical: () => <span data-testid="icon-dots-vertical" />,
