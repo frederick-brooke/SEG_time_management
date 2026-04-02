@@ -1,8 +1,15 @@
+/**
+ * @file TaskStatsCard.tsx
+ * @description Renders a dashboard card displaying the user's task performance metrics,
+ * including completed tasks, total tasks, and a visual success rate progress bar.
+ */
 'use client';
-import { Button } from "@/components/ui/Button";
 
 import { Trophy } from "lucide-react";
 
+/**
+ * Props for the StatBox component.
+ */
 interface StatBoxProps {
   label: string;
   value: number | string;
@@ -10,7 +17,26 @@ interface StatBoxProps {
 }
 
 /**
+ * Represents the statistical data for a user's task performance.
+ */
+interface TaskStatsData {
+  completedTasks?: number;
+  totalTasks?: number;
+  completionRate?: number;
+}
+
+/**
+ * Props for the TaskStatsCard component.
+ */
+interface TaskStatsCardProps {
+  stats: TaskStatsData;
+}
+
+/**
  * Reusable unit for displaying a specific stat block to maintain DRY code.
+ *
+ * @param {StatBoxProps} props - Component props.
+ * @returns {JSX.Element} The rendered stat box.
  */
 function StatBox({ label, value, suffix }: StatBoxProps) {
   return (
@@ -28,11 +54,11 @@ function StatBox({ label, value, suffix }: StatBoxProps) {
 
 /**
  * Renders the user's task performance statistics and progress bar.
- * @param {object} props - Component props.
- * @param {any} props.stats - Statistics object containing task data.
- * @return {JSX.Element} The task performance card UI.
+ *
+ * @param {TaskStatsCardProps} props - Component props.
+ * @returns {JSX.Element} The task performance card UI.
  */
-export default function TaskStatsCard({ stats }: { stats: any }) {
+export default function TaskStatsCard({ stats }: TaskStatsCardProps) {
   const completedTasks = stats?.completedTasks ?? 0;
   const totalTasks = stats?.totalTasks ?? 0;
   const completionRate = stats?.completionRate ?? 0;
