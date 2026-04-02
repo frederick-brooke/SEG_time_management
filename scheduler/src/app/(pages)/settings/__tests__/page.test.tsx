@@ -20,7 +20,7 @@ jest.mock("../SettingsClient", () => ({
   ),
 }));
 
-jest.mock("@/components/ui/page-header", () => ({
+jest.mock("@/components/ui/PageHeader", () => ({
   PageHeader: ({
     title,
     subtitle,
