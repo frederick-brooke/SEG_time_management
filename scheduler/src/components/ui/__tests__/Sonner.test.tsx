@@ -4,12 +4,12 @@ import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
 import { Toaster } from "@/components/ui/Sonner" 
 
-// 1. Mock the next-themes hook
+// Mock the next-themes hook
 jest.mock("next-themes", () => ({
   useTheme: jest.fn(),
 }))
 
-// 2. Mock the external Sonner package to inspect the props it receives
+// Mock the external Sonner package to inspect the props it receives
 jest.mock("sonner", () => ({
   Toaster: jest.fn(() => <div data-testid="mock-sonner" />),
 }))

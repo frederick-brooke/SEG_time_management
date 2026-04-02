@@ -42,7 +42,6 @@ describe("ModuleCard Component", () => {
    */
   it("renders member count and max members", () => {
     render(<ModuleCard module={baseModule} />);
-    // FIXED: Use regex to ignore whitespace formatting
     expect(screen.getByText(/10\s*\/\s*50/)).toBeInTheDocument();
   });
 
@@ -52,7 +51,6 @@ describe("ModuleCard Component", () => {
    */
   it("renders the creator username", () => {
     render(<ModuleCard module={baseModule} />);
-    // FIXED: Use regex to ignore whitespace formatting
     expect(screen.getByText(/by @\s*prof1/)).toBeInTheDocument();
   });
 

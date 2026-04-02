@@ -91,7 +91,7 @@ describe("ModuleEventModal — create mode", () => {
   });
 
   /**
-   * THE HAPPY PATH: Verifies that filling out the form correctly triggers
+   * Verifies that filling out the form correctly triggers
    * the server action with the right payload, and closes the modal.
    */
   it("calls createModuleEvent with correct data on valid submit", async () => {
@@ -151,7 +151,7 @@ describe("ModuleEventModal — edit mode", () => {
     render(
       <ModuleEventModal
         moduleId="mod1"
-        editingEvent={editingEvent as any} // Cast as any to bypass strict type matching in tests
+        editingEvent={editingEvent as any}
         onClose={mockOnClose}
         onSuccess={mockOnSuccess}
       />

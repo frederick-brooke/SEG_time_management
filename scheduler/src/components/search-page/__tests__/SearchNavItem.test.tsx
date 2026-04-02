@@ -10,7 +10,7 @@ jest.mock("next/router", () => ({
   }),
 }));
 
-// Mock icon (not relevant to behavior)
+// Mock icon
 jest.mock("@tabler/icons-react", () => ({
   IconSearch: () => <div />,
 }));

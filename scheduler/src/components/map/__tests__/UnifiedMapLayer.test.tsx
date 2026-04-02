@@ -5,10 +5,8 @@ import { UnifiedMapLayer } from "@/components/map/UnifiedMapLayer";
 import { MapEvent } from "@/lib/map";
 import { SavedLocation } from "hooks/useSavedLocations";
 
-// ─── Leaflet mock ──
-// Must be defined before any imports so jest.mock hoisting picks it up.
-// We also expose the mock instances at module scope so tests can reference them
-// via jest.requireMock("leaflet") without a dynamic import.
+// Leaflet mock
+
 jest.mock("leaflet", () => {
   const polylineMock = {
     addTo: jest.fn().mockReturnThis(),
@@ -27,11 +25,9 @@ jest.mock("leaflet", () => {
   };
 });
 
-// ─── Grab the stable mock reference (synchronous, no dynamic import needed) ──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const L = jest.requireMock("leaflet") as any;
 
-// ─── react-leaflet mock ────
 const mockMap = {
   getZoom: jest.fn().mockReturnValue(12),
   addLayer: jest.fn(),
@@ -45,7 +41,7 @@ jest.mock("react-leaflet", () => ({
   useMap: () => mockMap,
 }));
 
-// ─── @/lib/map mock 
+// @/lib/map mock 
 jest.mock("@/lib/map", () => ({
   CATEGORY_COLORS: { Work: "#3b82f6", Personal: "#10b981" },
   TRANSPORT_ICONS: { CAR: "🚗", TRAIN: "🚆", WALK: "🚶" },
@@ -54,7 +50,7 @@ jest.mock("@/lib/map", () => ({
     `<div style="color:${color}">${label}</div>`,
 }));
 
-// ─── Fixtures ──────
+// Fixtures
 const baseEvent: MapEvent = {
   id: "evt-1",
   title: "Team standup",
@@ -96,11 +92,8 @@ const favouriteLocation: SavedLocation = {
   lng: -0.095,
 };
 
-// ─── Helper ────────
+// Helper
 // Wraps render in act so React flushes the useEffect synchronously in jsdom.
-// The component calls import("leaflet") inside useEffect — because jest.mock
-// hoists a synchronous module, the dynamic import resolves in the same
-// microtask tick and act() drains it before returning.
 async function renderLayer(
   events: MapEvent[] = [],
   savedLocations: SavedLocation[] = []
@@ -114,14 +107,14 @@ async function renderLayer(
   return result;
 }
 
-// ─── Tests ─────────
+// Tests
 describe("UnifiedMapLayer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMap.getZoom.mockReturnValue(12);
   });
 
-  // ── Rendering ───
+  // Rendering
   describe("rendering", () => {
     it("renders without crashing when both props are empty", async () => {
       await expect(renderLayer()).resolves.toBeDefined();
@@ -133,7 +126,7 @@ describe("UnifiedMapLayer", () => {
     });
   });
 
-  // ── Map lifecycle hooks ─
+  // Map lifecycle hooks
   describe("map lifecycle hooks", () => {
     it("registers a zoomend listener on mount", async () => {
       await renderLayer([baseEvent]);
@@ -155,7 +148,7 @@ describe("UnifiedMapLayer", () => {
     });
   });
 
-  // ── Polylines ──
+  // Polylines
   describe("polylines", () => {
     it("draws a polyline between start and destination coords", async () => {
       await renderLayer([baseEvent]);
@@ -194,7 +187,7 @@ describe("UnifiedMapLayer", () => {
     });
   });
 
-  // ── Markers ────
+  // Markers
   describe("markers", () => {
     it("places a marker for each saved location", async () => {
       await renderLayer([], [homeLocation, workLocation]);
@@ -231,7 +224,7 @@ describe("UnifiedMapLayer", () => {
     });
   });
 
-  // ── fitBounds ──
+  // fitBounds
   describe("fitBounds", () => {
     it("calls fitBounds on first render when there are multiple coords", async () => {
       await renderLayer([baseEvent]);
@@ -257,7 +250,7 @@ describe("UnifiedMapLayer", () => {
     });
   });
 
-  // ── Saved-location pin icons ──────
+  // Saved-location pin icons
   describe("saved location pin icons", () => {
     it("creates a divIcon for a HOME saved location", async () => {
       await renderLayer([], [homeLocation]);
@@ -287,7 +280,7 @@ describe("UnifiedMapLayer", () => {
     });
   });
 
-  // ── Window events ──────
+  // Window events
   describe("window event listener", () => {
     it("registers saved-locations-updated on mount", async () => {
       const addSpy = jest.spyOn(window, "addEventListener");

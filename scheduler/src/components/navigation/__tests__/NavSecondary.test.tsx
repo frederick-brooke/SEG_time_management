@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { NavSecondary } from "../NavSecondary";
 import { Button } from "@/components/ui/Button";
 
-// 1. Mock the Sidebar components
+// Mock the Sidebar components
 jest.mock("@/components/ui/sidebar", () => ({
   SidebarGroup: ({ children, ...props }: any) => (
     <div data-testid="sidebar-group" {...props}>

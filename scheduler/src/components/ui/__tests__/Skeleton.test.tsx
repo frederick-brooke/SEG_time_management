@@ -15,11 +15,9 @@ describe("Skeleton Component", () => {
     render(<Skeleton data-testid="test-skeleton" className="" />);
     
     const skeleton = screen.getByTestId("test-skeleton");
-    
-    // Check for the base classes you defined
+
     expect(skeleton).toHaveClass("bg-accent", "animate-pulse", "rounded-md");
     
-    // Check for the radix-style data slot
     expect(skeleton).toHaveAttribute("data-slot", "skeleton");
   });
 

@@ -93,7 +93,6 @@ describe('EditProfileForm Component', () => {
 
   /**
    * Ensures fallback empty strings are used when profile fields are missing.
-   * This covers the || "" conditional branches.
    */
   it('uses empty string fallbacks when profile fields are missing', () => {
     render(<EditProfileForm profile={{}} onClose={mockOnClose} />);

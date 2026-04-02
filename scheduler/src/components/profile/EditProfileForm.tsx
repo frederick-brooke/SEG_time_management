@@ -21,7 +21,7 @@ interface FormInputProps {
 // components
 
 /**
- * Reusable form input unit to maintain DRY markup.
+ * Reusable form input unit.
  */
 function FormInput({ id, label, defaultValue, isTextArea = false }: FormInputProps) {
   const commonClasses = "lunar-input w-full p-2.5 rounded-xl";

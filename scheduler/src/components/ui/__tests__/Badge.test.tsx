@@ -1,7 +1,7 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { Badge } from "../Badge"; // Adjust path as needed
+import { Badge } from "../Badge";
 
 describe("Badge Component", () => {
   it("renders the badge text correctly", () => {

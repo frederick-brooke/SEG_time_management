@@ -107,8 +107,7 @@ describe("success path", () => {
   it("calls triggerUndo and refreshEvents on success", async () => {
     const { deleteEvent, triggerUndo, refreshEvents } = setup();
     await deleteEvent(BASE_EVENT, "single");
-    
-    // FIX: Include the second argument "single" to match the hook implementation
+
     expect(triggerUndo).toHaveBeenCalledWith(BASE_EVENT, "single");
     
     expect(refreshEvents).toHaveBeenCalled();

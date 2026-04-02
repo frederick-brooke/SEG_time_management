@@ -5,8 +5,6 @@ import UserPanel from "@/components/admin/AdminUserPanel";
 import UserCard from "./UserCards";
 import { addRecentUser, getRecentUsers, removeRecentUser, clearRecentUsers } from "@/lib/recent-users";
 import { IconX } from "@tabler/icons-react";
-
-//UI components
 import GlassCard from "@/components/ui/GlassCard";
 
 /**

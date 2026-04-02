@@ -1,7 +1,8 @@
 "use client";
+
 import { useState } from "react";
 import { FunnelXIcon } from "lucide-react";
-//UI components
+
 import GlassCard from "@/components/ui/GlassCard";
 
 /**

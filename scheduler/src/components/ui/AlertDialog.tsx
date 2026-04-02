@@ -185,8 +185,8 @@ function AlertDialogAction({
   size = "default",
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action> & {
-  variant?: ButtonVariant;  // ← now uses exact CVA union type
-  size?: ButtonSize;        // ← now uses exact CVA union type
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 }) {
   return (
     <Button variant={variant} size={size} asChild className={className}>
@@ -206,8 +206,8 @@ function AlertDialogCancel({
   size = "default",
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel> & {
-  variant?: ButtonVariant;  // ← now uses exact CVA union type
-  size?: ButtonSize;        // ← now uses exact CVA union type
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 }) {
   return (
     <Button variant={variant} size={size} asChild className={className}>

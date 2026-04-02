@@ -16,7 +16,7 @@ jest.mock('next/navigation', () => ({
 // Mock the Server Actions
 jest.mock('@/app/actions/module', () => ({
   updateMemberRole: jest.fn(),
-  removeMember: jest.fn(), // <-- Mocked the new action
+  removeMember: jest.fn(),
 }));
 
 // Mock Icons
@@ -26,7 +26,7 @@ jest.mock('lucide-react', () => ({
   ChevronUp: () => <svg data-testid="chevron-up" />,
   Crown: () => <svg data-testid="crown-icon" />,
   Shield: () => <svg data-testid="shield-icon" />,
-  UserMinus: () => <svg data-testid="user-minus-icon" />, // <-- Mocked the new icon
+  UserMinus: () => <svg data-testid="user-minus-icon" />,
 }));
 
 describe('ModuleMembersList Component', () => {

@@ -31,8 +31,7 @@ jest.mock("@/components/map/CombinedMap", () => ({
 jest.mock("next/dynamic", () => ({
   __esModule: true,
   default: (factory: () => Promise<any>, _options?: any) => {
-    // For testing, we synchronously resolve the dynamic import
-    // This prevents the "Dynamic component not yet resolved" error
+    // Synchronously resolve the dynamic import to prevent the "Dynamic component not yet resolved" error
     const mod = require("@/components/map/CombinedMap");
     return mod.CombinedMap;
   },

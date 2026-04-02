@@ -145,7 +145,7 @@ function DropdownMenuRadioItem({
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
-      {...props} // requires value ✅
+      {...props}
     >
       <span className="absolute left-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>

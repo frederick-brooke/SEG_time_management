@@ -5,12 +5,12 @@ import "@testing-library/jest-dom";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/Tooltip";
 
 beforeAll(() => {
-  // 1. Mock PointerEvent for Radix UI interactions
+  // Mock PointerEvent for Radix UI interactions
   if (typeof window !== "undefined" && !window.PointerEvent) {
     window.PointerEvent = MouseEvent as any;
   }
   
-  // 2. Mock ResizeObserver for Radix UI positioning calculations
+  // Mock ResizeObserver for Radix UI positioning calculations
   if (typeof window !== "undefined" && !window.ResizeObserver) {
     window.ResizeObserver = class ResizeObserver {
       observe() {}

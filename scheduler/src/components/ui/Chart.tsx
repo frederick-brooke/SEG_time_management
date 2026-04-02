@@ -4,7 +4,6 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "lib/utils"
 
-// 1. Define the Config types to fix "Property does not exist on type unknown"
 export type ChartConfig = {
   [key: string]: {
     label?: React.ReactNode
@@ -180,7 +179,7 @@ function ChartTooltipContent({
                         style={{
                           "--color-bg": indicatorColor,
                           "--color-border": indicatorColor
-                        } as React.CSSProperties} // 2. Cast to React.CSSProperties
+                        } as React.CSSProperties}
                       />
                     )
                   )}

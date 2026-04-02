@@ -2,9 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render } from "@testing-library/react";
 
-// jest.mock calls must NOT reference outer const variables 
-// jest.mock is hoisted above const declarations, causing a temporal dead zone
-// error if outer consts are referenced inside the factory. All fns are inlined.
+// Mocks
 
 jest.mock("leaflet", () => ({
   marker: jest.fn(() => ({

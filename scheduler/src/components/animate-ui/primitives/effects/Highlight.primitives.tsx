@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from "@/components/ui/Button";
 
 import * as React from 'react';
@@ -256,7 +257,6 @@ function HighlightItemWrapper({
   children: React.ReactNode;
   className?: string;
 }) {
-  // Lazy import to avoid circular dependency 
   return (
     <div data-slot="motion-highlight-item-wrapper" className={className}>
       {children}

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import Navbar from "../Navbar";
 
-// Proper next/link mock
+// next/link mock
 jest.mock("next/link", () => ({
   __esModule: true,
   default: ({ href, children, ...rest }: any) => (

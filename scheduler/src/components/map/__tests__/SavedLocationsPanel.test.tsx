@@ -1,3 +1,9 @@
+/**
+ * Full test suite for SavedLocationsPanel covering header, loading, empty state,
+ * location cards, delete, rename, add form search, suggestion picking,
+ * type selection, save lifecycle, and all guarded branches.
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
@@ -88,11 +94,8 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-/**
- * Full test suite for SavedLocationsPanel covering header, loading, empty state,
- * location cards, delete, rename, add form search, suggestion picking,
- * type selection, save lifecycle, and all guarded branches.
- */
+// Tests
+
 describe("SavedLocationsPanel", () => {
 
   describe("Header", () => {

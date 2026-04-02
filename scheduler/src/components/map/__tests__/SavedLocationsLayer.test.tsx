@@ -53,7 +53,7 @@ const homeClone: SavedLocation = {
   id: "4", type: "WORK", label: "Home Office", address: "1 Main St", lat: 51.5, lng: -0.1,
 };
 
-//  Helper ─
+//  Helper
 async function renderLayer(locations: SavedLocation[] = []) {
   let result!: ReturnType<typeof render>;
   await act(async () => {

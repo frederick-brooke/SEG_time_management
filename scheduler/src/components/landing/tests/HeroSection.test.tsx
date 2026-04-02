@@ -17,7 +17,7 @@ describe("HeroSection", () => {
   it("renders the hero section and handles star interactions", async () => {
     const { container } = render(<HeroSection />);
 
-    /** Waits for component to mount to cover !mounted branches */
+    /** Waits for component to mount */
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
     });
@@ -25,12 +25,12 @@ describe("HeroSection", () => {
     expect(screen.getByText(/Time moves./i)).toBeInTheDocument();
     expect(container.querySelector("img[alt='Moon']")).toBeInTheDocument();
 
-    /** Simulates mouse move to center to cover isNear=true branches */
+    /** Simulates mouse move to center */
     act(() => {
       fireEvent.mouseMove(window, { clientX: 500, clientY: 500 });
     });
 
-    /** Simulates mouse move to corner to cover isNear=false branches */
+    /** Simulates mouse move to corner */
     act(() => {
       fireEvent.mouseMove(window, { clientX: 10, clientY: 10 });
     });

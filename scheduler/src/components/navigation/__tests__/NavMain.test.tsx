@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NavMain } from "../NavMain"; 
 
-// 1. Mock Next.js Link
+// Mock Next.js Link
 jest.mock("next/link", () => {
   return ({ children, href, onClick, className }: any) => (
     <a href={href} onClick={onClick} className={className} data-testid="next-link">
@@ -13,7 +13,7 @@ jest.mock("next/link", () => {
   );
 });
 
-// 2. Mock the Sidebar components
+// Mock the Sidebar components
 jest.mock("@/components/ui/sidebar", () => ({
   SidebarGroup: ({ children }: any) => <div data-testid="sidebar-group">{children}</div>,
   SidebarGroupContent: ({ children }: any) => <div>{children}</div>,

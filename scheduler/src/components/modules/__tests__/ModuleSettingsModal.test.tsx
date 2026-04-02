@@ -71,7 +71,6 @@ describe("CreateGroup", () => {
     fireEvent.change(screen.getByPlaceholderText(/Study Squad/i), {
       target: { value: "My Group" },
     });
-    // FIXED: Use getByRole instead of getByText
     fireEvent.click(screen.getByRole("button", { name: /Create Group/i }));
     await waitFor(() => {
       expect(screen.getByText("Select at least one friend to add to the group")).toBeInTheDocument();
@@ -94,7 +93,7 @@ describe("CreateGroup", () => {
   });
 
   /**
-   * THE HAPPY PATH: Verifies that when all fields are filled out correctly, 
+   * Verifies that when all fields are filled out correctly, 
    * the server action is called with the expected payload, and the success/close 
    * callbacks are fired.
    */
@@ -109,7 +108,6 @@ describe("CreateGroup", () => {
       target: { value: "My Group" },
     });
     fireEvent.click(screen.getByText("Bob Jones").closest("button")!);
-    // FIXED: Use getByRole instead of getByText
     fireEvent.click(screen.getByRole("button", { name: /Create Group/i }));
 
     await waitFor(() => {
@@ -138,7 +136,6 @@ describe("CreateGroup", () => {
       target: { value: "My Group" },
     });
     fireEvent.click(screen.getByText("Bob Jones").closest("button")!);
-    // FIXED: Use getByRole instead of getByText
     fireEvent.click(screen.getByRole("button", { name: /Create Group/i }));
 
     await waitFor(() => {

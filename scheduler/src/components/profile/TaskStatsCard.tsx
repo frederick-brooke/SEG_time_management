@@ -10,7 +10,7 @@ interface StatBoxProps {
 }
 
 /**
- * Reusable unit for displaying a specific stat block to maintain DRY code.
+ * Reusable unit for displaying a specific stat block.
  */
 function StatBox({ label, value, suffix }: StatBoxProps) {
   return (

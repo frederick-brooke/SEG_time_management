@@ -3,7 +3,6 @@ import StreakCard from '../StreakCard';
 import '@testing-library/jest-dom';
 
 // mocks
-// Prevents Next.js router context errors by rendering a plain anchor tag
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href }: any) => <a href={href}>{children}</a>,

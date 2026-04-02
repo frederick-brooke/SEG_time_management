@@ -2,7 +2,7 @@
  * Testing for profile/core actions.
  */
 
-import { getMyProfile, getProfile, updateProfile } from "../core"; // Adjust path
+import { getMyProfile, getProfile, updateProfile } from "../core";
 import { prisma } from "lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";

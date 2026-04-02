@@ -111,7 +111,7 @@ describe("CreateGroup Component", () => {
     });
   });
 
-  // Confirms fallback error handling for silent server failures (Hits Line 134)
+  // Confirms fallback error handling for silent server failures
   it("shows generic error when creation fails silently", async () => {
     const { createGroup } = require("@/app/actions/groups");
     createGroup.mockResolvedValue({ success: false });
@@ -130,7 +130,7 @@ describe("CreateGroup Component", () => {
     });
   });
 
-  // Confirms the catch block handles API failures during initial load (Hits lines 68-69)
+  // Confirms the catch block handles API failures during initial load
   it("handles errors gracefully when fetching friends fails", async () => {
     const { getMyFriendsForGroup } = require("@/app/actions/groups");
     // We mock a resolved empty array instead of a rejection to avoid unhandled promise errors 

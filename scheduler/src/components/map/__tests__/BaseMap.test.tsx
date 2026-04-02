@@ -41,8 +41,6 @@ jest.mock("@/lib/map/constants", () => ({
   MAP_HEIGHT: "500px",
 }));
 
-// Import after mocks 
-
 import { BaseMap, LocationController } from "../BaseMap";
 
 // Helpers

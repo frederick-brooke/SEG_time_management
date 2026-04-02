@@ -1,3 +1,9 @@
+/**
+ * Full test suite for SetLocationModal covering rendering, geolocation,
+ * search input, suggestion selection, map interaction, save lifecycle,
+ * error handling, and the visibility toggle.
+ */
+
 import React, { useImperativeHandle, forwardRef } from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import SetLocationModal from "../SetLocationModal";
@@ -97,11 +103,8 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-/**
- * Full test suite for SetLocationModal covering rendering, geolocation,
- * search input, suggestion selection, map interaction, save lifecycle,
- * error handling, and the visibility toggle.
- */
+// Tests
+
 describe("SetLocationModal", () => {
 
   describe("Rendering", () => {
