@@ -50,6 +50,7 @@ function sortGroups(groups: any[], key: SortKey): any[] {
   // Default fallback (handles "newest" and any unexpected values)
   return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
+
 /**
  * Renders the numeric pagination footer, which persists even for small lists.
  * @param {object} props - Component properties.
@@ -125,7 +126,9 @@ export default function GroupsPageClient({ groups: initialGroups }: { groups: an
 
   return (
     <LunarThemeWrapper>
-      <div className="lunar-page">
+      
+      <div className="lunar-page w-full px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        
         {/* Header Section */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>

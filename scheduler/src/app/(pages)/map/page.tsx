@@ -114,7 +114,7 @@ export default async function MapPage() {
 function PageHeader({ count }: { count: number }) {
   return (
     <div className="flex justify-between items-center mb-6">
-      <div>
+      <div className="ml-4 md:ml-0">
         <h1 className="lunar-page-title">Map</h1>
         <p className="lunar-page-subtitle">{getEventCountLabel(count)}</p>
       </div>
