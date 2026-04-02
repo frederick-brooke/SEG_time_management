@@ -28,6 +28,8 @@ import { useSchedule } from "@/hooks/useSchedule";
 import { useCalendarInteractions } from "@/hooks/useCalendarInteractions";
 import { Button } from "../ui/Button";
 
+type CategoryWithColor = { id: string; name: string; color: string };
+
 const localizer = dateFnsLocalizer({
   format,
   parse,
@@ -101,22 +103,38 @@ export default function CalendarView({
   }, []);
 
   /**
+   * Cast data.categories to the shape expected by child components.
+   * The shared Category type is missing `color` — once that type is updated
+   * upstream (add `color: string` to the Category interface), this cast can be removed.
+   */
+  const categories = data.categories as unknown as CategoryWithColor[];
+
+  /**
    * Builds the list of calendar items to display based on active filters.
    */
   const getFilteredItems = () => {
     const items: any[] = [];
     data.events.forEach((e) => {
-      const cat = data.categories.find((c) => c.name === e.category);
-      if (cat && data.categoryFilters[cat.id]) items.push(e);
-      else if (!cat && activeFilters.events) items.push(e);
+      if ('category' in e) {
+        const cat = categories.find((c) => c.name === e.category);
+        if (cat && data.categoryFilters[cat.id]) items.push(e);
+        else if (!cat && activeFilters.events) items.push(e);
+      } else if (activeFilters.events) {
+        items.push(e);
+      }
     });
+
     if (activeFilters.tasks)
       items.push(
-        ...data.tasks.filter((t) => !t.completed && t.priority !== "High"),
+        ...data.tasks.filter(
+          (t) => !t.completed && (!('priority' in t) || t.priority !== "High")
+        )
       );
     if (activeFilters.priorityTasks)
       items.push(
-        ...data.tasks.filter((t) => !t.completed && t.priority === "High"),
+        ...data.tasks.filter(
+          (t) => !t.completed && 'priority' in t && t.priority === "High"
+        )
       );
     if (activeFilters.completed)
       items.push(...data.tasks.filter((t) => t.completed));
@@ -205,10 +223,9 @@ export default function CalendarView({
     ix.setIsTaskEditOpen(false);
   };
 
-  // Shared filter/unscheduled props used by both desktop sidebars and mobile toolbar
   const filterProps = {
     activeFilters,
-    categories: data.categories,
+    categories,
     categoryFilters: data.categoryFilters,
     onToggleFilter: (key: string) =>
       setActiveFilters((p) => ({ ...p, [key]: !p[key] })),
@@ -221,7 +238,7 @@ export default function CalendarView({
     unscheduledTasks: data.unscheduledTasks,
     scheduleLogs: data.scheduleLogs,
     events: data.events,
-    categories: data.categories,
+    categories,
     onTaskClick: setQuickScheduleTask,
     onEditLog: (log: any) => {
       sched.patch({
@@ -261,13 +278,11 @@ export default function CalendarView({
           );
         })()}
 
-      {/* Desktop: filter sidebar */}
       <div className="hidden lg:block">
         <FilterSidebar {...filterProps} />
       </div>
 
       <div className="flex-1 min-w-0">
-        {/* Desktop: schedule buttons */}
         <div className="hidden lg:flex gap-2 mb-4">
           <Button
             onClick={() => sched.open("day", calendarDate)}
@@ -288,7 +303,7 @@ export default function CalendarView({
           filteredItems={getFilteredItems()}
           calendarDate={calendarDate}
           scheduleLogs={data.scheduleLogs}
-          categories={data.categories}
+          categories={categories}
           searchQuery={ix.searchQuery}
           searchResults={ix.searchResults}
           showSearchResults={ix.showSearchResults}
@@ -312,12 +327,10 @@ export default function CalendarView({
         />
       </div>
 
-      {/* Desktop: unscheduled panel */}
       <div className="hidden lg:block">
         <UnscheduledPanel {...unscheduledProps} />
       </div>
 
-      {/* Mobile: sticky bottom toolbar + slide-up sheets */}
       <MobileCalendarToolbar
         onScheduleDay={() => sched.open("day", calendarDate)}
         onScheduleWeek={() => sched.open("week", calendarDate)}

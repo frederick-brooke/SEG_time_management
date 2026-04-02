@@ -49,7 +49,7 @@ export default function AdminPage() {
   const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
 
   // Report filter states
-  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12, page:1 };
+  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:"12", page:"1" };
   const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
   const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
 
@@ -61,7 +61,7 @@ export default function AdminPage() {
   // Appeal management
   const [currentAppealPage, setCurrentAppealPage] = useState(1);
   const [selectedAppeal, setSelectedAppeal] = useState(null);
-  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:12};
+  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:"12"};
   const [appliedAppealFilters, setAppliedAppealFilters] = useState(defaultAppealFilters);
   const [draftAppealFilters, setDraftAppealFilters] = useState(defaultAppealFilters);
   const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  
