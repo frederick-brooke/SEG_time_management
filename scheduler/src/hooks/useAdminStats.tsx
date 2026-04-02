@@ -11,10 +11,10 @@ import { useState, useEffect } from "react"
 export function useAdminStats() {
   const [stats, setStats] = useState({ totalUsers: 0, totalReports: 0, totalAppeals: 0 });
 
-  useEffect(() => {		//fetch stats once on component mount
+  useEffect(() => {		
     fetch("/api/admin/stats")
       .then(res => res.json())
-      .then(data => setStats(data));	//updates state with api response
+      .then(data => setStats(data));	
   }, []);
 
   return stats;

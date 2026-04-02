@@ -18,9 +18,9 @@ import { useEffect, useState } from "react";
  */
 
 export function useAdminReports(filters) {
-    const [reports, setReports] = useState([]); //track if reports get rendered
-    const [reportLoading, setReportLoading] = useState(true);		// Loading indicator for UI feedback
-    const [totalReportPages, setTotalReportPages] = useState(1);	// Pagination metadata
+    const [reports, setReports] = useState([]); 
+    const [reportLoading, setReportLoading] = useState(true);		
+    const [totalReportPages, setTotalReportPages] = useState(1);
     const [totalReports, setTotalReports] = useState(null);
 
     useEffect(() => {
@@ -38,8 +38,8 @@ export function useAdminReports(filters) {
      */
     async function fetchReports() {
         try {
-            setReportLoading(true);		//start loading the state
-            const query = new URLSearchParams(filters);		// Convert filters object → query string
+            setReportLoading(true);
+            const query = new URLSearchParams(filters);
 
             const res = await fetch(`/api/admin/reports?${query.toString()}`);
 
@@ -50,17 +50,16 @@ export function useAdminReports(filters) {
 
             const data = await res.json();
 
-            setReports(data.reports);		// Update report data
-            setTotalReportPages(data.totalPages);		// Update pagination info
+            setReports(data.reports);
+            setTotalReportPages(data.totalPages);
             setTotalReports(data.totalMatchingReports);
         } 
         catch (err) {
-            console.error(err);		// Handle network / unexpected errors
+            console.error(err);
             setReportLoading(false);
         }
         finally {
-            setReportLoading(false);		// Ensure loading state is always reset
-        }
+            setReportLoading(false);
     }
 
     return {reports, totalReportPages, totalReports, reportLoading, fetchReports };
