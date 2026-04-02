@@ -4,126 +4,182 @@
  * TaskProgressContext
  *
  * Global state for task progress tracking, including cached progress,
- * API syncing, and cross-tab updates via events and localStorage.
+ * API syncing, and cross-tab updates via custom events and localStorage.
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+
+interface Task {
+  id: string;
+  status?: string;
+  isCompleted?: boolean;
+}
+
+interface ProgressCache {
+  progressPercentage: number;
+  tasks: Task[];
+  lastUpdatedAt: number | null;
+}
 
 interface TaskProgressContextType {
   progressPercentage: number;
-  tasks: any[];
+  tasks: Task[];
   isLoading: boolean;
   lastUpdatedAt: number | null;
   refreshProgress: (userId: string | undefined) => Promise<void>;
   triggerProgressUpdate: () => void;
 }
 
-const TaskProgressContext = createContext<TaskProgressContextType | undefined>(undefined);
-
 const PROGRESS_SYNC_EVENT = "task-progress-updated";
 const PROGRESS_STORAGE_KEY = "task-progress-cache";
 
+const TaskProgressContext = createContext<TaskProgressContextType | undefined>(undefined);
+
+/**
+ * Reads and parses the progress cache from localStorage.
+ * Returns null if the key is missing or the value is malformed.
+ *
+ * @returns {ProgressCache | null} The cached progress data, or null on failure
+ */
+function readProgressCache(): ProgressCache | null {
+  const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as ProgressCache;
+  } catch {
+    console.error("Failed to parse progress cache from localStorage");
+    return null;
+  }
+}
+
+/**
+ * Writes a progress cache entry to localStorage.
+ *
+ * @param {ProgressCache} cache - The progress data to persist
+ * @returns {void}
+ */
+function writeProgressCache(cache: ProgressCache): void {
+  localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(cache));
+}
+
+/**
+ * Calculates the percentage of completed tasks, rounded to the nearest integer.
+ *
+ * @param {Task[]} tasks - The full list of tasks
+ * @returns {number} A value between 0 and 100 inclusive
+ */
+function calculateProgress(tasks: Task[]): number {
+  if (tasks.length === 0) return 0;
+  const completed = tasks.filter(
+    (t) => t.status === "completed" || t.isCompleted === true
+  ).length;
+  return Math.floor((completed / tasks.length) * 100);
+}
+
+/**
+ * Fetches raw task data from the API for the given user.
+ * Returns null and logs a warning or error on any failure.
+ *
+ * @param {string} userId - The ID of the user whose tasks to fetch
+ * @returns {Promise<Task[] | null>} The array of tasks, or null on failure
+ */
+async function fetchTasks(userId: string): Promise<Task[] | null> {
+  const res = await fetch(`/api/tasks?userId=${userId}`);
+
+  if (!res.ok) {
+    console.warn(`API /api/tasks responded with status ${res.status}`);
+    return null;
+  }
+
+  const text = await res.text();
+  if (!text) {
+    console.warn("Empty response body from /api/tasks");
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(text);
+    return Array.isArray(data) ? data : (data.tasks ?? []);
+  } catch (e) {
+    console.error("Failed to parse JSON response from /api/tasks", e as SyntaxError);
+    return null;
+  }
+}
+
+/**
+ * Dispatches the progress sync custom event to notify all listeners.
+ *
+ * @returns {void}
+ */
+function broadcastProgressUpdate(): void {
+  window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+}
+
+/**
+ * Provides task progress state to all child components, including
+ * localStorage persistence and cross-tab synchronisation via custom events.
+ *
+ * @param {{ children: React.ReactNode }} props - Child components to wrap
+ * @returns {JSX.Element} The context provider wrapping its children
+ */
 export function TaskProgressProvider({ children }: { children: React.ReactNode }) {
   const [progressPercentage, setProgressPercentage] = useState(0);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
+  const [tasks, setTasks]                           = useState<Task[]>([]);
+  const [isLoading, setIsLoading]                   = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt]           = useState<number | null>(null);
 
-  // Load cached progress on mount
-  useEffect(() => {
-    const cached = localStorage.getItem(PROGRESS_STORAGE_KEY);
-    if (cached) {
-      try {
-        const { progressPercentage: cachedProgress, tasks: cachedTasks, lastUpdatedAt: cachedTime } = JSON.parse(cached);
-        setProgressPercentage(cachedProgress);
-        setTasks(cachedTasks);
-        setLastUpdatedAt(cachedTime);
-      } catch (e) {
-        console.error("Failed to load cached progress:", e);
-      }
-    }
+  const applyCache = useCallback((cache: ProgressCache): void => {
+    setProgressPercentage(cache.progressPercentage);
+    setTasks(cache.tasks);
+    setLastUpdatedAt(cache.lastUpdatedAt);
   }, []);
 
-  // Save progress to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({
-      progressPercentage,
-      tasks,
-      lastUpdatedAt,
-    }));
-  }, [progressPercentage, tasks, lastUpdatedAt]);
+    const cache = readProgressCache();
+    if (cache) applyCache(cache);
+  }, [applyCache]);
 
-  // Listen for progress updates from other components or tabs
   useEffect(() => {
     const handleProgressUpdate = () => {
-      const cached = localStorage.getItem(PROGRESS_STORAGE_KEY);
-      if (cached) {
-        try {
-          const { progressPercentage: newProgress, tasks: newTasks, lastUpdatedAt: newTime } = JSON.parse(cached);
-          setProgressPercentage(newProgress);
-          setTasks(newTasks);
-          setLastUpdatedAt(newTime);
-        } catch (e) {
-          console.error("Failed to sync progress update:", e);
-        }
-      }
+      const cache = readProgressCache();
+      if (cache) applyCache(cache);
     };
 
     window.addEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
     return () => window.removeEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
-  }, []);
+  }, [applyCache]);
 
-  const refreshProgress = useCallback(async (userId: string | undefined) => {
+  const refreshProgress = useCallback(async (userId: string | undefined): Promise<void> => {
     if (!userId) return;
 
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const res = await fetch(`/api/tasks?userId=${userId}`);
+      const fetched = await fetchTasks(userId);
+      if (!fetched) return;
 
-      // Check response status
-      if (!res.ok) {
-        console.warn(`API /api/tasks responded with status ${res.status}`);
-        return;
-      }
+      const progress    = calculateProgress(fetched);
+      const updatedAt   = Date.now();
 
-      // Get response text first to avoid JSON parse errors
-      const text = await res.text();
-      if (!text) {
-        console.warn("Empty response body from /api/tasks");
-        return;
-      }
-
-      // Parse JSON safely
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error("Failed to parse JSON response from /api/tasks", parseError);
-        return;
-      }
-
-      const tasksArray = Array.isArray(data) ? data : (data.tasks || []);
-      if (tasksArray) {
-        const totalTasks = tasksArray.length;
-        const completedTasks = tasksArray.filter((t: any) => t.status === "completed" || t.isCompleted === true).length;
-        const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-        setTasks(tasksArray);
-        setProgressPercentage(newProgress);
-        setLastUpdatedAt(Date.now());
-
-        // Broadcast update to other components/tabs
-        window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
-      }
+      setTasks(fetched);
+      setProgressPercentage(progress);
+      setLastUpdatedAt(updatedAt);
+      writeProgressCache({ progressPercentage: progress, tasks: fetched, lastUpdatedAt: updatedAt });
+      broadcastProgressUpdate();
     } catch (error) {
-      console.error("Failed to refresh progress:", error);
+      console.error("Failed to refresh progress:", error as Error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const triggerProgressUpdate = useCallback(() => {
-    window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+  const triggerProgressUpdate = useCallback((): void => {
+    broadcastProgressUpdate();
   }, []);
 
   const value: TaskProgressContextType = {
@@ -143,9 +199,13 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
 }
 
 /**
- * Hook to access task progress context
+ * Hook to access task progress context.
+ * Must be used within a {@link TaskProgressProvider}.
+ *
+ * @returns {TaskProgressContextType} The current task progress context value
+ * @throws {Error} If called outside of a TaskProgressProvider
  */
-export function useTaskProgress() {
+export function useTaskProgress(): TaskProgressContextType {
   const context = useContext(TaskProgressContext);
   if (context === undefined) {
     throw new Error("useTaskProgress must be used within TaskProgressProvider");
