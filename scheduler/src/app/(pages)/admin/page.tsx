@@ -80,7 +80,7 @@ export default function AdminPage() {
   if (loading || reportLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-        <p className="p-6 animate-pulse">Loading dashboard...</p>
+        <p className="p-6 animate-pulse">Loading...</p>
       </div>
     );
   }
