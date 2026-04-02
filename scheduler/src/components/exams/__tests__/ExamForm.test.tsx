@@ -1,9 +1,10 @@
-//tests for components/exams/ExamForm.tsx
+//Tests for components/exams/ExamForm.tsx
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ExamForm from "../ExamForm";
 import { createExam, updateExamSettings } from "@/app/actions/examActions";
 
-// Mock external dependencies to maintain Low Coupling (V.2.1)
+// Mock external dependencies
 jest.mock("next-auth/react", () => ({
     useSession: () => ({ data: { user: { id: "user1" } } }),
 }));
@@ -28,7 +29,6 @@ const mockUpdateExam = updateExamSettings as jest.Mock;
 describe("Exam Form Component", () => {
     /**
      * Base properties used for rendering the component across tests.
-     * Minimizes repetition to satisfy DRY principles (V.3.6).
      */
     const baseProps = {
         onExamAdded: jest.fn(),
@@ -54,18 +54,20 @@ describe("Exam Form Component", () => {
         expect(screen.getByText("Update Settings")).toBeInTheDocument();
     });
 
-    it("calls onCancel when the cancel button is clicked", () => {
+    it("calls onSuccess when the cancel button is clicked", () => {
         render(<ExamForm {...baseProps} />);
         fireEvent.click(screen.getByText("Cancel"));
-        expect(baseProps.onCancel).toHaveBeenCalled();
+        expect(baseProps.onSuccess).toHaveBeenCalled();
     });
 
-    //  Form Submission & API Integration (V.5.1)
+    //  Form Submission & API Integration
 
     it("calls createExam on submit in create mode", async () => {
         mockCreateExam.mockResolvedValue({ success: true, data: { id: "new1" } });
         render(<ExamForm {...baseProps} />);
-        fireEvent.submit(screen.getByRole("form", { hidden: true }) || document.querySelector("form")!);
+    
+        fireEvent.submit(document.querySelector("form")!);
+    
         await waitFor(() => expect(mockCreateExam).toHaveBeenCalled());
     });
 

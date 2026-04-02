@@ -108,8 +108,7 @@ describe("PageHeader", () => {
     render(<PageHeader {...defaultProps} />);
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading.className).toContain("text-3xl");
-    expect(heading.className).toContain("font-semibold");
-    expect(heading.className).toContain("tracking-tight");
+    expect(heading.className).toContain("lunar-page-title");
   });
 
   it("subtitle has muted styling", () => {

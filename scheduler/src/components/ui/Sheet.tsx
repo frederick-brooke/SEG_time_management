@@ -5,7 +5,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 import { cn } from "lib/utils"
 
-// -- Types --
+// Types
 
 type Side = "left" | "right" | "top" | "bottom"
 
@@ -16,7 +16,7 @@ type SheetContentProps = React.ComponentPropsWithoutRef<typeof SheetPrimitive.Co
   showCloseButton?: boolean
 }
 
-// -- Components --
+// Components
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />

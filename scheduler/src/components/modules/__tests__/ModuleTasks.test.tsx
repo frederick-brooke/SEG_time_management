@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import ModuleTasks, { ModuleTask, TaskWithProgress } from '../ModuleTasks';
 import '@testing-library/jest-dom';
 
-// mocks
+// Mocks
 jest.mock('@/lib/format', () => ({
   formatDuration: jest.fn(() => '1h 30m'),
   formatTaskDate: jest.fn(() => 'Oct 16'),
@@ -16,7 +16,7 @@ jest.mock('lucide-react', () => ({
   Trash2: () => <svg data-testid="trash-icon" />,
 }));
 
-// tests
+// Tests
 describe('ModuleTasks Component', () => {
   const mockOnEdit = jest.fn();
   const mockOnDelete = jest.fn();
@@ -38,7 +38,7 @@ describe('ModuleTasks Component', () => {
     jest.clearAllMocks();
   });
 
-  // --- Member View Tests ---
+  // Member View Tests
 
   // Confirms the empty state renders correctly for standard members without tasks
   it('renders Member view empty state correctly', () => {
@@ -58,7 +58,7 @@ describe('ModuleTasks Component', () => {
     expect(screen.getByTestId('incomplete-icon')).toBeInTheDocument();
   });
 
-  // --- Owner/Admin View Tests ---
+  // Owner/Admin View Tests
 
   // Confirms the empty state displays a specific creation prompt for owners and admins
   it('renders Owner/Admin view empty state correctly', () => {

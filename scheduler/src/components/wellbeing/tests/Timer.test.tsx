@@ -3,7 +3,7 @@ import Timer from "../Timer";
 import React from "react";
 import { Button } from "@/components/ui/Button";
 
-// ---- mocks ----
+// Mocks
 
 // mock fetch
 global.fetch = jest.fn(() =>
@@ -30,6 +30,8 @@ const mockStop = jest.fn();
 jest.mock("@/hooks/useTimer", () => ({
   useTimer: () => mockTimerState,
 }));
+
+// Tests
 
 describe("Timer Component", () => {
   beforeEach(() => {
