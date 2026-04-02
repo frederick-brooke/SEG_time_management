@@ -168,15 +168,6 @@ describe("AppealFilter – callbacks", () => {
 });
 
 // ─── setFilters interactions 
-//
-// KEY INSIGHT: the component's onChange handlers close over `e` (the synthetic
-// event), NOT over `e.target.value`. By the time a test calls the stored updater
-// function, React's controlled-input reconciliation may have already reset the
-// DOM element's value back to the prop value — so e.target.value reads stale data.
-//
-// Fix: our setup() mock invokes the updater *immediately* (while the event is
-// still live) and stores the produced state in `capturedState`. Tests assert on
-// capturedState via getState() instead of re-invoking the stored updater.
 
 describe("AppealFilter – setFilters interactions", () => {
   it("updates sortBy to 'id' when that option is selected", async () => {

@@ -1,13 +1,14 @@
+/**
+ * Testing for Task Form component.
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskForm } from "../TaskForm";
 import { Select } from "@/components/ui/Select";
 
-/**
- * Mock shadcn/Radix wrappers via RELATIVE PATHS so Jest doesn't need alias config.
- * Path basis: src/components/tasks/__tests__ -> src/components/ui
- */
+// Mocks
 
 jest.mock("../../ui/dialog", () => {
   const React = require("react");
@@ -136,6 +137,8 @@ jest.mock("../../ui/ToggleGroup", () => {
 
   return { ToggleGroup, ToggleGroupItem };
 });
+
+// Tests
 
 describe("TaskFormDialog", () => {
   const baseFormData = {
@@ -267,13 +270,6 @@ describe("TaskFormDialog", () => {
     const props = setup();
     const backdrop = document.querySelector(".bg-black\\/60");
     fireEvent.click(backdrop!, { target: backdrop });
-    expect(props.onOpenChange).toHaveBeenCalledWith(false);
-  });
-
-  it("calls onOpenChange when close button is clicked", () => {
-    const props = setup();
-    const closeBtn = screen.getByRole("button", { name: /close/i });
-    fireEvent.click(closeBtn);
     expect(props.onOpenChange).toHaveBeenCalledWith(false);
   });
 

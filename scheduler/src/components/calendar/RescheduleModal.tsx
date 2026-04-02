@@ -1,4 +1,9 @@
 "use client";
+
+/**
+ * Reschedule Modal component for tasks.
+ */
+
 import { useState } from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/Button";

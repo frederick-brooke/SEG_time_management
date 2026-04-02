@@ -7,9 +7,7 @@ import {
 } from "../EventFormParts";
 import type { RelativeOption } from "../EventFormParts";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("../LinkedTaskCard", () => ({
   LinkedTaskCard: ({ task, onRemove, onUpdate, index }: any) => (
@@ -34,9 +32,7 @@ jest.mock("../NewTaskForm", () => ({
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true });
 
-// ---------------------------------------------------------------------------
 // relativeTo
-// ---------------------------------------------------------------------------
 
 describe("relativeTo", () => {
   it('returns "custom" for custom mode', () => {
@@ -60,9 +56,7 @@ describe("relativeTo", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // RELATIVE_OPTIONS
-// ---------------------------------------------------------------------------
 
 describe("RELATIVE_OPTIONS", () => {
   it("contains 8 options", () => {
@@ -91,9 +85,7 @@ describe("RELATIVE_OPTIONS", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // TaskPromptSection
-// ---------------------------------------------------------------------------
 
 const defaultProps = {
   createdEventId: "event-123",

@@ -1,3 +1,7 @@
+/**
+ * Tasks Button component.
+ */
+
 import { Button } from "../ui/Button";
 
 /**

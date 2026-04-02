@@ -1,11 +1,14 @@
 "use client";
+
+/**
+ * Unscheduled Panel component
+ */
+
 import { format } from "date-fns";
 import { getNextOccurrenceDeadline } from "@/lib/scheduling/taskSchedulingUtils";
 import { Button } from "../ui/Button";
 
-// ---------------------------------------------------------------------------
 // DeadlineBadge
-// ---------------------------------------------------------------------------
 function DeadlineBadge({ task, events }: { task: any; events: any[] }) {
   const now = new Date();
 
@@ -74,9 +77,7 @@ function DeadlineBadge({ task, events }: { task: any; events: any[] }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // UnscheduledPanel
-// ---------------------------------------------------------------------------
 interface UnscheduledPanelProps {
   unscheduledTasks: any[];
   scheduleLogs: any[];

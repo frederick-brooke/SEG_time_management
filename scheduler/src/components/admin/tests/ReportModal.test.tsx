@@ -10,7 +10,7 @@ jest.mock("react-dom", () => ({
 }));
 
 // Mock UI components
-jest.mock("@/components/ui/lunar-card", () => ({
+jest.mock("@/components/ui/LunarCard", () => ({
 	LunarCard: ({ children }: any) => <div>{children}</div>,
 }));
 

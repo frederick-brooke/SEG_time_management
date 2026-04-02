@@ -1,3 +1,7 @@
+/**
+ * Testing for Card component.
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
@@ -24,7 +28,6 @@ describe("components/ui/Card", () => {
             Desc
           </CardDescription>
 
-          {/* CardAction is used by CardHeader styling via has-data selector */}
           <CardAction data-testid="card-action" className="action-class">
             Action
           </CardAction>
@@ -34,7 +37,6 @@ describe("components/ui/Card", () => {
           Content
         </CardContent>
 
-        {/* This specifically hits the uncovered line (CardFooter) */}
         <CardFooter data-testid="card-footer" className="footer-class">
           Footer
         </CardFooter>
@@ -78,7 +80,6 @@ describe("components/ui/Card", () => {
     expect(screen.getByTestId("card-content")).toHaveClass("content-class");
     expect(screen.getByText("Content")).toBeInTheDocument();
 
-    // CardFooter: this is the one that usually stays uncovered
     expect(screen.getByTestId("card-footer")).toHaveAttribute(
       "data-slot",
       "card-footer",

@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import AppealsManagement from "../AppealManagement";
 import { Button } from "@/components/ui/Button";
 
-// ---- Mocks ----
+// Mocks
 jest.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...props }: any) => (

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/Button";
 
 jest.useFakeTimers();
 
-// ---- mocks ----
+// Mocks
+
 jest.mock("@/hooks/useUsers", () => ({
   useUsers: () => ({
     users: [{ id: 1, username: "john" }],
@@ -46,7 +47,8 @@ jest.mock("@/components/layout/LunarDrawer", () => (props: any) =>
   ) : null
 );
 
-// ---- tests ----
+// Tests
+
 describe("SearchPanel", () => {
   test("renders main drawer when open", () => {
     render(<SearchPanel open={true} onClose={jest.fn()} />);

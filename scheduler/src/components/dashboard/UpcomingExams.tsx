@@ -9,7 +9,7 @@ import { useMemo } from "react";
 
 /**
  * Helper function to filter and sort exams by strict calendar days, ignoring time-of-day edge cases.
- * Separates business logic from presentation to satisfy V.2.3 (Pure Logic Unit).
+ * 
  * * @param {Array} exams - Array of Exam objects to be filtered and sorted.
  * @param {number} [daysWindow=14] - The number of calendar days ahead to look for upcoming exams.
  * @returns {Array} A filtered and sorted array of upcoming Exam objects.
@@ -35,8 +35,7 @@ export const getUpcomingExams = (exams, daysWindow = 14) => {
 
 /**
  * Component for the dashboard which displays exams occurring within the next 14 days.
- * Orchestrates the data flow and layout, maintaining Low Coupling (V.2.1).
- * Automatically sorts by proximity in date and provides direct link to the specific Exam Planner page.
+ * 
  * * @param {Object} props - The component props.
  * @param {Array} props.exams - Array of Exam objects, including subtasks.
  * @returns {JSX.Element | null} The rendered list of exams coming up, or null if no exams in the near future.
@@ -63,7 +62,7 @@ export function UpcomingExams({ exams = [] }) {
 
 /**
  * Sub-component that renders an individual exam link with "Lunar" styling.
- * Operates at one level of abstraction to keep nesting depth low (V.3.2).
+ * 
  * * @param {Object} props - The component props.
  * @param {Object} props.exam - The specific Exam object to display.
  * @returns {JSX.Element} The rendered exam card element.

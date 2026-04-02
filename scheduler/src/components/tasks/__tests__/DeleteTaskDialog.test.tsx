@@ -1,13 +1,15 @@
+/**
+ * Testing for Delete Task Dialog component.
+ */
+
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
 import { Delete } from "lucide-react";
 
-/**
- * Mock AlertDialog via RELATIVE PATHS to avoid alias mapping issues.
- * src/components/tasks/__tests__ -> src/components/ui
- */
+// Mocks
+
 jest.mock("../../ui/AlertDialog", () => {
   const React = require("react");
 
@@ -15,7 +17,6 @@ jest.mock("../../ui/AlertDialog", () => {
     if (!open) return null;
     return (
       <div data-testid="alert-dialog-root">
-        {/* Expose onOpenChange to test the !open && onCancel() branch */}
         <Button
           type="button"
           data-testid="simulate-open-change-true"
@@ -76,6 +77,8 @@ jest.mock("../../ui/AlertDialog", () => {
     AlertDialogTitle,
   };
 });
+
+// Tests
 
 describe("DeleteTaskDialog", () => {
   it("renders when open and shows text", () => {

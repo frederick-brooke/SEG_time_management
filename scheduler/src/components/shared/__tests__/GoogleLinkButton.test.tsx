@@ -1,9 +1,13 @@
+/**
+ * Testing for Google Link Button component.
+ */
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import GoogleLinkButton from "../GoogleLinkButton"; 
 import { signIn } from "next-auth/react";
 
-// 1. Mock the next-auth/react module
+// Mock the next-auth/react module
 jest.mock("next-auth/react", () => ({
   signIn: jest.fn(),
 }));
@@ -17,11 +21,11 @@ describe("GoogleLinkButton Component", () => {
     it("renders the connected status UI", () => {
       render(<GoogleLinkButton isConnected={true} />);
       
-      const connectedText = screen.getByText("Google Calendar Connected");
-      expect(connectedText).toBeInTheDocument();
-      
-      const button = screen.queryByRole("button");
-      expect(button).not.toBeInTheDocument();
+      expect(screen.getByText("Google Calendar Connected")).toBeInTheDocument();
+    
+      expect(
+        screen.getByRole("button", { name: /reconnect/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -48,12 +52,13 @@ describe("GoogleLinkButton Component", () => {
       
       const button = screen.getByRole("button", { name: /link google calendar/i });
       
-      // Simulate a user click
       await user.click(button);
       
-      // Assert that next-auth's signIn was triggered with the correct provider
       expect(signIn).toHaveBeenCalledTimes(1);
-      expect(signIn).toHaveBeenCalledWith("google");
+      expect(signIn).toHaveBeenCalledWith(
+        "google",
+        { callbackUrl: "/calendar" }
+      );
     });
   });
 });

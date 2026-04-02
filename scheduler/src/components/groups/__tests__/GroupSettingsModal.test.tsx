@@ -4,7 +4,8 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import "@testing-library/jest-dom";
 import GroupSettingsModal from "@/components/groups/GroupSettingsModal";
 
-// mocks
+// Mocks
+
 jest.mock("@/app/actions/groups", () => ({
   updateGroupSettings: jest.fn(),
   addGroupMember: jest.fn(),
@@ -30,7 +31,8 @@ const mockGroup = {
   members: [{ userId: "f1" }], // Bob is already in the group
 };
 
-// tests
+// Tests
+
 describe("GroupSettingsModal", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -94,8 +96,6 @@ describe("GroupSettingsModal", () => {
       expect(mockOnClose).not.toHaveBeenCalled(); // Modal stays open to add more friends
     });
   });
-
-  // --- Negative Path & Validation Tests ---
 
   // Confirms HTML5 validation natively protects the group name input from being empty
   it("requires a group name to submit natively via HTML5", async () => {

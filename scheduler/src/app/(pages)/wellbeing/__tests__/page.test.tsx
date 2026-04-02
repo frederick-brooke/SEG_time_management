@@ -8,11 +8,11 @@ import WellbeingPage from "../page";
 
 // Mocks
 
-jest.mock("components/wellbeing/quote_block", () => () => (
+jest.mock("components/wellbeing/QuoteBlock", () => () => (
   <div data-testid="quote-block">QuoteBlock</div>
 ));
 
-jest.mock("components/wellbeing/timer_controller", () => () => (
+jest.mock("components/wellbeing/TimerController", () => () => (
   <div data-testid="timer-controller">TimerController</div>
 ));
 

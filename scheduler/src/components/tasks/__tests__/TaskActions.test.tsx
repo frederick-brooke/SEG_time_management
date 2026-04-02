@@ -1,5 +1,13 @@
+/**
+ * Testing for Task Actions component.
+ */
+
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TaskActions } from "../TaskActions";
+
+const Button = ({ children, ...props }: any) => (
+  <button {...props}>{children}</button>
+);
 
 // Mock lucide-react icons
 jest.mock("lucide-react", () => ({
@@ -28,7 +36,7 @@ describe("TaskActions", () => {
     jest.clearAllMocks();
   });
 
-  // ─── Rendering ───────────────────────────────────────────────────────────────
+  // Rendering
 
   describe("default rendering", () => {
     it("renders all three action buttons by default", () => {
@@ -55,7 +63,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Visibility / Conditional Rendering ──────────────────────────────────────
+  // Visibility / Conditional Rendering
 
   describe("conditional rendering", () => {
     it("hides the Edit button when canEdit is false", () => {
@@ -95,7 +103,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Click Handlers ───────────────────────────────────────────────────────────
+  // Click Handlers
 
   describe("click handlers", () => {
     it("calls onView when the View button is clicked", () => {
@@ -135,7 +143,7 @@ describe("TaskActions", () => {
     });
   });
 
-  // ─── Props ────────────────────────────────────────────────────────────────────
+  // Props
 
   describe("props", () => {
     it("applies a custom className to the wrapper div", () => {
@@ -149,17 +157,15 @@ describe("TaskActions", () => {
     it("passes strokeWidth to the Eye icon", () => {
       render(<TaskActions {...mockHandlers} strokeWidth={3} />);
 
-      // strokeWidth is filtered out by the mock but the component should not crash
       expect(screen.getByTestId("eye-icon")).toBeInTheDocument();
     });
 
     it("uses the default strokeWidth of 2 when not provided", () => {
-      // Component should render without errors using the default
       expect(() => render(<TaskActions {...mockHandlers} />)).not.toThrow();
     });
   });
 
-  // ─── Accessibility ────────────────────────────────────────────────────────────
+  // Accessibility
 
   describe("accessibility", () => {
     it("has descriptive title attributes on all buttons", () => {

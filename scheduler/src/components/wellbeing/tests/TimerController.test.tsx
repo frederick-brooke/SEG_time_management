@@ -4,7 +4,7 @@ import TimerController from "../TimerController";
 import React from "react";
 import { Button } from "@/components/ui/Button";
 
-// ---- Mocks ----
+// Mocks
 
 const mockSetWellbeingOpen = jest.fn();
 
@@ -36,6 +36,8 @@ jest.mock("@/components/ui/reminderModal", () => ({
       </div>
     ) : null,
 }));
+
+// Tests
 
 describe("TimerController", () => {
   beforeEach(() => {
@@ -74,9 +76,6 @@ describe("TimerController", () => {
     await act(async () => {
       capturedOnTick(500);
     });
-
-    // DEBUG (keep this if needed)
-    // screen.debug();
 
     expect(screen.getByText(/Break time/i)).toBeInTheDocument();
     expect(mockSetWellbeingOpen).toHaveBeenCalledWith(false);

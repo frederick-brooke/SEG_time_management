@@ -1,7 +1,9 @@
 /**
  * @file TaskForm.tsx
- * @description An orchestrated form component for task lifecycle management, utilizing React Portals for modal rendering and atomic sub-components for field inputs.
+ * @description An orchestrated form component for task lifecycle management, utilizing React Portals for 
+ * modal rendering and atomic sub-components for field inputs.
  */
+
 import {
   Select,
   SelectContent,
@@ -16,7 +18,7 @@ import { createPortal } from "react-dom";
 import { LunarCard } from "../ui/LunarCard";
 import { ToggleGroup, ToggleGroupItem } from "../ui/ToggleGroup";
 
-// 1. Define and export the missing TaskFormData interface
+
 export interface TaskFormData {
   name?: string;
   description?: string;
@@ -30,7 +32,6 @@ export interface TaskFormData {
   [key: string]: any;
 }
 
-// 2. Apply it to your Props
 interface TaskFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;

@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/Button";
  * @param {Object} props.BanInfo - Ban data from backend
  * @param {Function} props.onAppeal - Opens appeal form
  */
-export default function BanInfo({ BanInfo, onAppeal }) {
-	const isPermanent = !BanInfo.expires;
+export default function BanInfo({ banInfo, onAppeal }) {
+	const isPermanent = !banInfo.expires;
 
 	return (
 		<>
@@ -35,7 +35,7 @@ export default function BanInfo({ BanInfo, onAppeal }) {
 
 			<div className="border-t border-white/10" />
 
-			<BanDetails BanInfo={BanInfo} isPermanent={isPermanent} />
+			<BanDetails banInfo={banInfo} isPermanent={isPermanent} />
 
 			<WarningNote />
 
@@ -52,12 +52,12 @@ export default function BanInfo({ BanInfo, onAppeal }) {
 *@param {boolean} props.isPermanent - Whether the ban is permanent.
 *@returns {JSX.Element} The ban details component.
 */
-function BanDetails({ BanInfo, isPermanent }) {
+function BanDetails({ banInfo, isPermanent }) {
 	return (
 		<div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
 			<div>
 				<p className="text-[10px] text-white/30 uppercase mb-1">Reason</p>
-				<p className="text-sm text-white/80">{BanInfo.reason}</p>
+				<p className="text-sm text-white/80">{banInfo.reason}</p>
 			</div>
 
 			<div className="border-t border-white/10" />
@@ -65,7 +65,7 @@ function BanDetails({ BanInfo, isPermanent }) {
 			<div>
 				<p className="text-[10px] text-white/30 uppercase mb-1">Ban Expires</p>
 				<p className={`text-sm font-semibold ${isPermanent ? "text-red-400" : "text-amber-400"}`}>
-					{isPermanent ? "Permanent" : new Date(BanInfo.expires).toLocaleString()}
+					{isPermanent ? "Permanent" : new Date(banInfo.expires).toLocaleString()}
 				</p>
 			</div>
 		</div>

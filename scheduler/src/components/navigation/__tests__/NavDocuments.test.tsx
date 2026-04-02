@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { NavDocuments } from "../NavDocuments"; 
 import { useSidebar } from "@/components/ui/Sidebar";
 
-// 1. Mock the icons
+// Mock the icons
 jest.mock("@tabler/icons-react", () => ({
   IconDots: () => <span data-testid="icon-dots" />,
   IconFolder: () => <span data-testid="icon-folder" />,
@@ -12,8 +12,8 @@ jest.mock("@tabler/icons-react", () => ({
   IconTrash: () => <span data-testid="icon-trash" />,
 }));
 
-// 2. Mock the DropdownMenu components
-jest.mock("components/ui/dropdown-menu", () => ({
+// Mock the DropdownMenu components
+jest.mock("components/ui/DropdownMenu", () => ({
   DropdownMenu: ({ children }: any) => <div data-testid="dropdown-menu">{children}</div>,
   DropdownMenuTrigger: ({ children, asChild }: any) => {
     if (asChild) return <>{children}</>;
@@ -30,7 +30,7 @@ jest.mock("components/ui/dropdown-menu", () => ({
   DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
 }));
 
-// 3. Mock the Sidebar components and hook
+// Mock the Sidebar components and hook
 jest.mock("@/components/ui/sidebar", () => ({
   SidebarGroup: ({ children, className }: any) => (
     <div data-testid="sidebar-group" className={className}>{children}</div>

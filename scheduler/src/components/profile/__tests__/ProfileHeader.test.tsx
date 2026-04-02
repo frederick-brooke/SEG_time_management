@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProfileHeader from "../ProfileHeader";
 import { sendFriendRequest, removeFriend, cancelSentRequest } from "@/app/actions/profile/friends";
+import { Button } from "@/components/ui/Button";
 
 jest.mock("@/app/actions/profile/friends", () => ({
   sendFriendRequest: jest.fn(),
@@ -13,7 +14,7 @@ jest.mock("@/components/profile/UserAvatar", () => ({
   default: () => <div data-testid="user-avatar" />,
 }));
 
-jest.mock("@/components/admin/report-modal", () => ({
+jest.mock("@/components/admin/ReportModal", () => ({
   __esModule: true,
   default: ({ onClose }: any) => (
     <div data-testid="report-modal">

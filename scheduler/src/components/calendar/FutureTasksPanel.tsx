@@ -1,11 +1,15 @@
 "use client";
-// src/components/calendar/FutureTasksPanel.tsx
+
+/**
+ * Future Tasks Panel component
+ */
+
 import type { ScheduleState } from "@/hooks/useSchedule";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import { format } from "date-fns";
 import { Button } from "../ui/Button";
 
-// ── Types 
+// Types 
 
 interface Task {
   id: string;
@@ -23,7 +27,7 @@ interface FutureTasksPanelProps {
   futureTasks: Task[];
 }
 
-// ── Reusable task row ──────
+// Reusable task row
 
 function TaskRow({
   task,
@@ -72,7 +76,7 @@ function TaskRow({
   );
 }
 
-// ── Main component ─
+// Main component
 
 export default function FutureTasksPanel({
   state,
