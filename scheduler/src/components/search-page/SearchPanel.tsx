@@ -7,7 +7,6 @@ import UserFilter from "@/components/admin/UserFilterPanel";
 
 import { useUsers } from "@/hooks/useUsers";
 
-//UI components
 import GlassCard from "@/components/ui/GlassCard";
 import LunarDrawer from "../layout/LunarDrawer";
 

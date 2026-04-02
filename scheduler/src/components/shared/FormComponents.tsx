@@ -42,7 +42,6 @@ interface ToggleProps {
 export function Toggle({ on, onToggle, label }: ToggleProps) {
   return (
     <div className="flex items-center gap-2 select-none">
-      {/* V.4.2 Polish: Semantic button with ARIA attributes instead of a clickable div */}
       <Button
         type="button"
         role="switch"
@@ -151,12 +150,10 @@ export function RecurrencePanel({
       {type === "weekly" && <DayPicker selected={days} onChange={onDays} />}
       
       <div>
-        {/* 1. ADDED htmlFor="until-date" HERE */}
         <label htmlFor="until-date" className="text-xs font-bold text-gray-400 block mb-1">
           Until
         </label>
         
-        {/* 2. ADDED id="until-date" HERE */}
         <input
           id="until-date"
           type="date"
