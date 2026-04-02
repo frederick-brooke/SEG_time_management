@@ -101,10 +101,9 @@ function DashboardContent() {
       <LunarThemeWrapper>
         <main className="max-w-7xl mx-auto pt-16 pb-12 px-4 lg:px-16 space-y-12 text-white/90">
 
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
 
-            {/* Left: title + progress + buttons */}
             <div className="flex flex-col gap-5 flex-1">
               <h1 className="lunar-page-title text-4xl sm:text-5xl lg:text-6xl leading-tight">
                 Welcome, {profile?.fname || session?.user?.name || "User"}!
@@ -130,7 +129,6 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Right: stats — below title on mobile, beside on desktop */}
             {profile && (
               <div className="shrink-0 lg:pt-2">
                 <ProfileStats profile={profile} />
@@ -140,7 +138,6 @@ function DashboardContent() {
 
           <hr className="border-white/5" />
 
-          {/* ── Main grid ── */}
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start">
             <div className="flex flex-col gap-8">
               <div className="lunar-glass p-6">
@@ -182,15 +179,11 @@ function DashboardContent() {
                 Wellbeing
             </span>
 
-            {/* Button wrapper */}
             <div className="relative">
-                {/* Pulse ring */}
                 <span className="absolute inline-flex h-full w-full rounded-full bg-purple-500 opacity-20 animate-ping" />
 
-                {/* Gradient glow layer */}
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-20 blur-xl group-hover:opacity-40 transition" />
 
-                {/* Button */}
                 <Button
                     onClick={() => { setWellbeingOpen(true); setWellbeingVisible(false); }}
                     className="relative flex h-16 w-16 items-center justify-center rounded-full bg-indigo-950 backdrop-blur-xl border border-white/10 text-red-300 shadow-[0_0_25px_rgba(168,85,247,0.45),0_0_60px_rgba(59,130,246,0.25)] hover:scale-110 hover:text-pink-300 hover:shadow-[0_0_35px_rgba(236,72,153,0.55),0_0_80px_rgba(168,85,247,0.35)] transition-all duration-300 animate-[pulse_4s_ease-in-out_infinite]"
