@@ -1,12 +1,14 @@
 "use client";
+
 // src/components/calendar/NewTaskForm.tsx
+
 import { useState } from "react";
 import { Toggle, RecurrencePanel } from "@/components/shared/FormComponents";
 import { RELATIVE_OPTIONS, RelativeOption, relativeTo } from "./EventFormParts";
+import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
 
-// ---------------------------------------------------------------------------
 // RelativePicker — grid of relative option buttons
-// ---------------------------------------------------------------------------
 function RelativePicker({
   value,
   onChange,
@@ -17,7 +19,7 @@ function RelativePicker({
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {RELATIVE_OPTIONS.map((opt) => (
-        <Button
+        <button
           key={opt.key}
           type="button"
           onClick={() => onChange(opt.key)}
@@ -28,15 +30,13 @@ function RelativePicker({
           }`}
         >
           {opt.label}
-        </Button>
+        </button>
       ))}
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
 // CustomDatePicker — single date or date range
-// ---------------------------------------------------------------------------
 function CustomDatePicker({
   useRange,
   setUseRange,
@@ -94,9 +94,7 @@ function CustomDatePicker({
   );
 }
 
-// ---------------------------------------------------------------------------
 // NewTaskForm
-// ---------------------------------------------------------------------------
 export function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState("60");
@@ -181,7 +179,7 @@ export function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
         <div>
           <label className="text-xs font-bold text-white/30">Priority</label>
           <div className="relative mt-1">
-            <Select
+            <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
               className={`${inputClass} appearance-none cursor-pointer pr-8`}
@@ -189,7 +187,7 @@ export function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
               <option value="Low" className="bg-[#1a1a24]">Low</option>
               <option value="Medium" className="bg-[#1a1a24]">Medium</option>
               <option value="High" className="bg-[#1a1a24]">High</option>
-            </Select>
+            </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">▼</span>
           </div>
         </div>
@@ -248,13 +246,13 @@ export function NewTaskForm({ eventStartDate, defaultUntil, onAdd }: any) {
           </div>
         )}
       </div>
-      <Button
+      <button
         type="button"
         onClick={handleAdd}
         className="w-full bg-indigo-600 text-white py-2 rounded-xl font-bold text-sm hover:bg-indigo-500 transition-all"
       >
         + Add Task
-      </Button>
+      </button>
     </div>
   );
 }

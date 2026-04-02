@@ -11,6 +11,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Button } from "../ui/Button";
+import { resolveAvatarSrc } from "@/lib/avatar";
+
 
 type Message = {
   id: string;
@@ -235,7 +237,7 @@ export function MessageBubble({
           <div className="w-7 shrink-0 self-end">
             {isLast ? (
               <SenderAvatar
-                src={msg.sender.pfp}
+                src={resolveAvatarSrc(msg.sender.pfp)}
                 username={msg.sender.username}
                 onClick={() => onAvatarClick?.(msg.sender.username)}
               />

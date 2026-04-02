@@ -1,10 +1,8 @@
 "use client";
-
 /**
  * User dashboard page displaying exams, tasks, leaderboard, and wellbeing tools.
  * Handles authentication, data fetching, and core dashboard layout.
  */
-
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo } from "react";
@@ -26,13 +24,10 @@ import { CalendarEvents } from "@/components/calendar/CalendarEvents";
 import { Button } from "@/components/ui/Button";
 
 function DashboardContent() {
-  // Session + auth state
   const { data: session, status }: { data: any; status: string } = useSession();
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Local UI state
   const [errorMessage, setErrorMessage] = useState("");
   const { wellbeingOpen, setWellbeingOpen } = useUI();
   const [exams, setExams] = useState([]);
@@ -40,26 +35,17 @@ function DashboardContent() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [wellbeingVisible, setWellbeingVisible] = useState(true);
 
-  // Get progress from context (cached, persists across navigation)
   const { progressPercentage, refreshProgress } = useTaskProgress();
-
-  // Extract userId from session first to prevent re-renders
   const userId = useMemo(() => session?.user?.id, [session?.user?.id]);
 
-  // Refresh progress on mount and when userId changes
   useEffect(() => {
     if (userId && status === "authenticated") {
       refreshProgress(userId);
     }
   }, [userId, status, refreshProgress]);
 
-  /**
-   * Load core dashboard data once user is authenticated.
-   * Uses Promise.all for parallel fetching.
-   */
   useEffect(() => {
     let isMounted = true;
-
     async function loadData() {
       if (status === "authenticated" && !profile) {
         const [examData, profileData, leaderboardData] = await Promise.all([
@@ -67,8 +53,6 @@ function DashboardContent() {
           getMyProfile(),
           getFriendsLeaderboard("week"),
         ]);
-
-        // Prevent state update if component unmounted
         if (isMounted) {
           setExams(examData);
           setProfile(profileData);
@@ -76,23 +60,16 @@ function DashboardContent() {
         }
       }
     }
-
     loadData();
     return () => { isMounted = false; };
   }, [status]);
 
-  /**
-   * Redirect unauthenticated users to login page
-   */
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
   }, [status, router]);
 
-  /**
-   * Reload exams when session becomes available
-   */
   useEffect(() => {
     async function loadExams() {
       if (session?.user?.id) {
@@ -103,21 +80,16 @@ function DashboardContent() {
     loadExams();
   }, [session]);
 
-  /**
-   * Handle OAuth-related errors from query params
-   */
   useEffect(() => {
     const error = searchParams.get("error");
-
     if (error === "GoogleAccountTaken" || error === "OAuthAccountNotLinked") {
       setErrorMessage("This Google Account is already linked to another user.");
       router.replace("/dashboard");
     }
   }, [searchParams, router]);
 
-  // Check if Google account is linked
   const googleConnected = profile?.accounts?.some(
-    acc => acc.provider === "google"
+    (acc: any) => acc.provider === "google"
   );
 
   const handleLinkGoogle = () => {
@@ -127,22 +99,22 @@ function DashboardContent() {
   return (
     <>
       <LunarThemeWrapper>
-        <main className="max-w-7xl mx-auto pt-20 pb-12 lg:px-16 space-y-12 text-white/90">
+        <main className="max-w-7xl mx-auto pt-16 pb-12 px-4 lg:px-16 space-y-12 text-white/90">
 
-          {/* Header section */}
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
-            <div className="flex-1 space-y-4">
-              <h1 className="lunar-page-title">
+          {/* ── Header ── */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+
+            {/* Left: title + progress + buttons */}
+            <div className="flex flex-col gap-5 flex-1">
+              <h1 className="lunar-page-title text-4xl sm:text-5xl lg:text-6xl leading-tight">
                 Welcome, {profile?.fname || session?.user?.name || "User"}!
               </h1>
 
-              {/* Progress bar */}
-              <div className="w-full max-w-md mt-2">
+              <div className="w-full max-w-lg">
                 <RocketProgress progress={progressPercentage} />
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 {!googleConnected && (
                   <Button onClick={handleLinkGoogle} className="lunar-button-primary">
                     Connect Google Calendar
@@ -158,18 +130,18 @@ function DashboardContent() {
               </div>
             </div>
 
-            {/* Profile stats */}
-            <div className="flex flex-col gap-3 shrink-0">
-              <p className="lunar-page-subtitle">Your Progress</p>
-              {profile && <ProfileStats profile={profile} />}
-            </div>
+            {/* Right: stats — below title on mobile, beside on desktop */}
+            {profile && (
+              <div className="shrink-0 lg:pt-2">
+                <ProfileStats profile={profile} />
+              </div>
+            )}
           </div>
 
           <hr className="border-white/5" />
 
-          {/* Main dashboard grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start pt-12">
-
+          {/* ── Main grid ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.4fr] gap-8 items-start">
             <div className="flex flex-col gap-8">
               <div className="lunar-glass p-6">
                 <ComingUpSoon userId={session?.user?.id} exams={exams} />
@@ -183,7 +155,6 @@ function DashboardContent() {
 
             <div className="flex flex-col gap-8">
               <LeaderboardClient initialData={leaderboard} currentTimeframe="week" />
-
               <div className="lunar-glass p-6">
                 <CalendarEvents />
               </div>
@@ -236,9 +207,6 @@ function DashboardContent() {
   );
 }
 
-/**
- * Wrap dashboard in Suspense to handle async loading states
- */
 export default function Page() {
   return (
     <Suspense

@@ -52,10 +52,21 @@ export async function getMyProfile() {
       select: { completed: true, completedAt: true },
     }),
     prisma.friendRequest.findMany({
-      where: { receiverId: user.id, status: PrismaFriendStatus.PENDING },
+      where: { receiverId: user.id, status: PrismaFriendStatus.PENDING, senderId: { not: undefined } },
       include: { sender: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
     }),
+<<<<<<< HEAD
     fetchFriends(user.id),
+=======
+    prisma.friendRequest.findMany({
+      where: { senderId: user.id, status: PrismaFriendStatus.ACCEPTED, receiverId: { not: undefined } },
+      include: { receiver: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
+    }),
+    prisma.friendRequest.findMany({
+      where: { receiverId: user.id, status: PrismaFriendStatus.ACCEPTED, senderId: { not: undefined } },
+      include: { sender: { select: { id: true, username: true, fname: true, lname: true, pfp: true } } },
+    }),
+>>>>>>> c58a8f03767f48b722a554f4fe9f15483f0218e2
     countFriends(user.id),
     calculateStreak(user.id),
   ]);
