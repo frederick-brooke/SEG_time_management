@@ -1,5 +1,4 @@
 import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { CitySearch } from "../CitySearch"; 
 
@@ -11,6 +10,12 @@ class ResizeObserver {
 global.ResizeObserver = ResizeObserver;
 
 window.HTMLElement.prototype.scrollIntoView = jest.fn();
+
+jest.mock("@/components/ui/Popover", () => ({
+  Popover: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  PopoverContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 const mockCitiesResponse = [
   {
@@ -39,34 +44,28 @@ describe("CitySearch Component", () => {
   });
 
   afterEach(() => {
-    act(() => {
-      jest.runOnlyPendingTimers();
-    });
+    act(() => { jest.runOnlyPendingTimers(); });
     jest.useRealTimers();
   });
 
   it("renders with the default placeholder when no value is provided", () => {
     render(<CitySearch onChange={mockOnChange} />);
-    expect(screen.getByRole("combobox")).toHaveTextContent("Search for a city...");
+    expect(screen.getByRole("button", { name: /search for a city/i })).toBeInTheDocument();
   });
 
   it("renders the provided city name when a value is passed", () => {
     const initialValue = { name: "Paris", lat: 48.85, lng: 2.35 };
     render(<CitySearch value={initialValue} onChange={mockOnChange} />);
-    expect(screen.getByRole("combobox")).toHaveTextContent("Paris");
+    expect(screen.getByRole("button", { name: /paris/i })).toBeInTheDocument();
   });
 
   it("does not fetch if the search term is less than 2 characters", async () => {
     render(<CitySearch onChange={mockOnChange} />);
-    
-    fireEvent.click(screen.getByRole("combobox"));
-    
+
     const input = screen.getByPlaceholderText("Type a city name...");
     fireEvent.change(input, { target: { value: "L" } });
 
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
+    act(() => { jest.advanceTimersByTime(300); });
 
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -78,23 +77,15 @@ describe("CitySearch Component", () => {
     });
 
     render(<CitySearch onChange={mockOnChange} />);
-    
-    // Open popover and type
-    fireEvent.click(screen.getByRole("combobox"));
+
     const input = screen.getByPlaceholderText("Type a city name...");
     fireEvent.change(input, { target: { value: "London" } });
 
-    // Fast-forward through the 300ms debounce
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
+    act(() => { jest.advanceTimersByTime(300); });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("q=London")
-    );
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("q=London"), expect.any(Object));
 
-    // Wait for the mock results to render
     await waitFor(() => {
       expect(screen.getByText("London, Greater London, England, United Kingdom")).toBeInTheDocument();
       expect(screen.getByText("London, Middlesex County, Ontario, Canada")).toBeInTheDocument();
@@ -108,24 +99,18 @@ describe("CitySearch Component", () => {
     });
 
     render(<CitySearch onChange={mockOnChange} />);
-    
-    fireEvent.click(screen.getByRole("combobox"));
+
     const input = screen.getByPlaceholderText("Type a city name...");
     fireEvent.change(input, { target: { value: "London" } });
 
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
+    act(() => { jest.advanceTimersByTime(300); });
 
-    // Wait for options to appear
     await waitFor(() => {
       expect(screen.getByText("London, Greater London, England, United Kingdom")).toBeInTheDocument();
     });
 
-    // Click the first option
     fireEvent.click(screen.getByText("London, Greater London, England, United Kingdom"));
 
-    // Verify onChange was called with proper payload (strings converted to numbers)
     expect(mockOnChange).toHaveBeenCalledTimes(1);
     expect(mockOnChange).toHaveBeenCalledWith({
       name: "London, Greater London, England, United Kingdom",
@@ -134,22 +119,18 @@ describe("CitySearch Component", () => {
     });
   });
 
-  it("handles fetch errors gracefully and shows empty state", async () => {
-    // Mock a failed API request
+  it("handles fetch errors gracefully and shows error message", async () => {
     (global.fetch as jest.Mock).mockRejectedValueOnce(new Error("Network Error"));
 
     render(<CitySearch onChange={mockOnChange} />);
-    
-    fireEvent.click(screen.getByRole("combobox"));
+
     const input = screen.getByPlaceholderText("Type a city name...");
     fireEvent.change(input, { target: { value: "InvalidCity" } });
 
-    act(() => {
-      jest.advanceTimersByTime(300);
-    });
+    act(() => { jest.advanceTimersByTime(300); });
 
     await waitFor(() => {
-      expect(screen.getByText("No cities found.")).toBeInTheDocument();
+      expect(screen.getByText("Failed to load cities. Please try again.")).toBeInTheDocument();
     });
   });
 });
