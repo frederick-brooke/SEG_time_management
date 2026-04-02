@@ -259,16 +259,23 @@ function useTaskForm(
 
   const handleSubmitTask = async (mergedData?: Partial<TaskFormData>): Promise<void> => {
     const data = { ...formData, ...mergedData };
-    if (!data.name?.trim()) throw new Error("Please enter a task name.");
-    const payload = buildTaskPayload(data, userId);
-    if (editingTaskId !== null) {
-      await updateTask(editingTaskId, payload);
-    } else {
-      await createTask(payload);
+    if (!data.name?.trim()) {
+      window.alert("Please enter a task name.");
+      return;
     }
-    await notifyTaskSaved(userId, payload.title, editingTaskId !== null);
-    setIsDialogOpen(false);
-    resetForm();
+    try {
+      const payload = buildTaskPayload(data, userId);
+      if (editingTaskId !== null) {
+        await updateTask(editingTaskId, payload);
+      } else {
+        await createTask(payload);
+      }
+      await notifyTaskSaved(userId, payload.title, editingTaskId !== null);
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (err: any) {
+      window.alert(`Failed to save task: ${err.message}`);
+    }
   };
 
   return { isDialogOpen, setIsDialogOpen, editingTaskId, formData, handleFormChange, resetForm, handleEditTask, handleSubmitTask };
@@ -317,8 +324,12 @@ function useTaskActions(
 
   const confirmDeleteTask = async (): Promise<void> => {
     if (!taskToDelete) return;
-    await deleteTask(taskToDelete);
-    setTaskToDelete(null);
+    try {
+      await deleteTask(taskToDelete);
+      setTaskToDelete(null);
+    } catch {
+      window.alert("Failed to delete task.");
+    }
   };
 
   const cancelDelete = () => setTaskToDelete(null);

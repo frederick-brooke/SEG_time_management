@@ -50,25 +50,28 @@ interface ScheduleResponse {
 
 // Constants
 
-const INITIAL_STATE: ScheduleState = {
-  showScheduleDialog: false,
-  scheduleMode: "day",
-  scheduleDate: format(new Date(), "yyyy-MM-dd"),
-  scheduleWeekStart: format(startOfWeek(new Date()), "yyyy-MM-dd"),
-  selectedTaskIds: [],
-  unavailableDays: [],
-  showFutureTasks: false,
-  futureModeAuto: true,
-  selectedFutureTaskIds: [],
-  skipBreaks: false,
-  breakSessionMins: 60,
-  breakLengthMins: 15,
-  isScheduling: false,
-  requiresConfirmation: false,
-  overCapacityTasks: [],
-  missedDeadlineTasks: [],
-  scheduleDialogTasks: [],
-};
+function makeInitialState(): ScheduleState {
+  const now = new Date();
+  return {
+    showScheduleDialog:    false,
+    scheduleMode:          "day",
+    scheduleDate:          format(now, "yyyy-MM-dd"),
+    scheduleWeekStart:     format(startOfWeek(now), "yyyy-MM-dd"),
+    selectedTaskIds:       [],
+    unavailableDays:       [],
+    showFutureTasks:       false,
+    futureModeAuto:        true,
+    selectedFutureTaskIds: [],
+    skipBreaks:            false,
+    breakSessionMins:      60,
+    breakLengthMins:       15,
+    isScheduling:          false,
+    requiresConfirmation:  false,
+    overCapacityTasks:     [],
+    missedDeadlineTasks:   [],
+    scheduleDialogTasks:   [],
+  };
+}
 
 // Pure utilities
 
@@ -170,7 +173,8 @@ export function useSchedule(
   refreshTasks: () => Promise<any>,
   fetchScheduleLogs: () => Promise<void>,
 ) {
-  const [state, setState] = useState<ScheduleState>(INITIAL_STATE);
+  
+  const [state, setState] = useState<ScheduleState>(makeInitialState);
 
   const patch = (p: Partial<ScheduleState>) =>
     setState((prev) => ({ ...prev, ...p }));
