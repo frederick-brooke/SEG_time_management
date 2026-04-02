@@ -96,6 +96,7 @@ describe("Profile Server Actions", () => {
     it("aggregates and returns the user's full profile data", async () => {
       (getServerSession as jest.Mock).mockResolvedValue({ user: { email: mockEmail } });
       
+      // Mock DB responses
       const mockDbUser = { id: mockUserId, username: "testuser", email: mockEmail };
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockDbUser);
       (prisma.userProgress.findUnique as jest.Mock).mockResolvedValue({ level: 5 });
@@ -103,18 +104,12 @@ describe("Profile Server Actions", () => {
         { completed: true }, { completed: false }
       ]);
       
-      (prisma.friendRequest.findMany as jest.Mock).mockResolvedValue([
-        { sender: { id: "sender-1" } }
-      ]);
+      // Mock Friend Requests (Pending, Sent Accepted, Received Accepted)
+      (prisma.friendRequest.findMany as jest.Mock)
+        .mockResolvedValueOnce([{ sender: { id: "sender-1" } }]) // Pending
+        .mockResolvedValueOnce([{ receiver: { id: "friend-1" } }]) // Sent Accepted
+        .mockResolvedValueOnce([{ sender: { id: "friend-2" } }]); // Received Accepted
 
-      (fetchFriends as jest.Mock).mockResolvedValue([
-        { id: "friend-1" }, { id: "friend-2" }
-      ]);
-      (computeTaskStats as jest.Mock).mockReturnValue({
-        completedTasks: 1,
-        totalTasks: 2,
-        completionRate: 50
-      });
       (countFriends as jest.Mock).mockResolvedValue(2);
       (calculateStreak as jest.Mock).mockResolvedValue(10);
 

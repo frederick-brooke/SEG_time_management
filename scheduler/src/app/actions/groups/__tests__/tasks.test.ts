@@ -124,9 +124,7 @@ describe("Group Tasks Actions", () => {
     // Confirms only valid group members can update shared tasks.
     it("should fail if the user is not a member", async () => {
       (isGroupMember as jest.Mock).mockResolvedValue(false);
-      const result = await updateGroupTask("shared-task-id", "group-1", {
-        title: "Updated task"
-      });
+      const result = await updateGroupTask("shared-task-id", "group-1", {});
       expect(result.success).toBe(false);
     });
 
