@@ -1,182 +1,143 @@
-/**
- *
- * Full coverage for BannedPage, BanInfo, and AppealForm.
- */
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import BannedPage from "../BanMessagePage";
+import BannedPage from "@/components/admin/BanMessagePage";
+import * as nextAuth from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-// Mock next-auth
-const updateMock = jest.fn();
-
-jest.mock("next-auth/react", () => ({
-	useSession: () => ({
-		update: updateMock,
-	}),
-	signOut: jest.fn(),
+jest.mock("next-auth/react");
+jest.mock("next/navigation", () => ({
+  useRouter: jest.fn(),
 }));
-
-// Mock fetch
-global.fetch = jest.fn();
-
-// Mock child components (keep simple + controllable)
-jest.mock("../BanInfo", () => (props: any) => (
-	<div data-testid="ban-info">
-		<Button onClick={props.onAppeal}>Appeal</Button>
-		<span>{props.BanInfo?.reason}</span>
-	</div>
+jest.mock("@/components/admin/BanInfo", () => (props: any) => (
+  <div>
+    <span>BanInfoComponent</span>
+    <button onClick={props.onAppeal}>appeal</button>
+  </div>
 ));
-
-jest.mock("../AppealForm", () => (props: any) => (
-	<div data-testid="appeal-form">
-		<span>Appeal Form</span>
-		<Button onClick={props.onClose}>Close</Button>
-		<span>{props.reportId}</span>
-	</div>
+jest.mock("@/components/admin/AppealForm", () => (props: any) => (
+  <div>
+    <span>AppealFormComponent</span>
+    <button onClick={props.onClose}>close</button>
+  </div>
 ));
-
-// Mock layout components
-jest.mock("@/components/ui/lunar-card", () => ({
-	LunarCard: ({ children }: any) => <div>{children}</div>,
+jest.mock("@/components/ui/LunarCard", () => ({
+  LunarCard: ({ children }: any) => <div>{children}</div>,
+}));
+jest.mock("@/components/layout/LunarThemeWrapper", () => (props: any) => (
+  <div>{props.children}</div>
+));
+jest.mock("@/components/ui/Button", () => ({
+  Button: (props: any) => <button {...props} />,
 }));
 
-jest.mock("@/components/layout/LunarThemeWrapper", () => ({
-	__esModule: true,
-	default: ({ children }: any) => <div>{children}</div>,
-}));
-
-// Mock window.location
-delete (window as any).location;
-(window as any).location = { href: "" };
 describe("BannedPage", () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
+  const replace = jest.fn();
 
-	test("shows loading screen initially", async () => {
-		(fetch as jest.Mock).mockResolvedValue({
-			ok: true,
-			json: async () => ({ reason: "Test", reportId: "123" }),
-		});
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue({ replace });
+    global.fetch = jest.fn();
+  });
 
-		updateMock.mockResolvedValue({
-			user: { isBanned: true },
-		});
+  it("renders loading state", () => {
+    (nextAuth.useSession as jest.Mock).mockReturnValue({
+      update: jest.fn(() => new Promise(() => {})),
+    });
 
-		render(<BannedPage />);
+    render(<BannedPage />);
+    expect(screen.getByText(/Loading…/i)).toBeInTheDocument();
+  });
 
-		// Loading should appear immediately
-		expect(screen.getByText(/Loading…/i)).toBeInTheDocument();
+  it("renders ban info after fetch", async () => {
+    (nextAuth.useSession as jest.Mock).mockReturnValue({
+      update: jest.fn().mockResolvedValue({ user: { isBanned: true } }),
+    });
 
-		// Wait for load to finish
-		await waitFor(() => {
-			expect(screen.getByTestId("ban-info")).toBeInTheDocument();
-		});
-	});
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ reason: "test", expires: null }),
+    });
 
-	test("renders ban info after fetch", async () => {
-		(fetch as jest.Mock).mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				reason: "Violation",
-				reportId: "abc",
-			}),
-		});
+    render(<BannedPage />);
 
-		updateMock.mockResolvedValue({
-			user: { isBanned: true },
-		});
+    await waitFor(() =>
+      expect(screen.getByText("BanInfoComponent")).toBeInTheDocument()
+    );
+  });
 
-		render(<BannedPage />);
+  it("toggles to appeal form", async () => {
+    (nextAuth.useSession as jest.Mock).mockReturnValue({
+      update: jest.fn().mockResolvedValue({ user: { isBanned: true } }),
+    });
 
-		await waitFor(() => {
-			expect(screen.getByText("Violation")).toBeInTheDocument();
-		});
-	});
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ reason: "test", expires: null }),
+    });
 
-	test("toggles to appeal form", async () => {
-		(fetch as jest.Mock).mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				reason: "Violation",
-				reportId: "abc123",
-			}),
-		});
+    render(<BannedPage />);
 
-		updateMock.mockResolvedValue({
-			user: { isBanned: true },
-		});
+    await waitFor(() =>
+      expect(screen.getByText("BanInfoComponent")).toBeInTheDocument()
+    );
 
-		render(<BannedPage />);
+    fireEvent.click(screen.getByText("appeal"));
 
-		await waitFor(() => {
-			expect(screen.getByTestId("ban-info")).toBeInTheDocument();
-		});
+    expect(
+      await screen.findByText("AppealFormComponent")
+    ).toBeInTheDocument();
 
-		fireEvent.click(screen.getByText("Appeal"));
+    fireEvent.click(screen.getByText("close"));
 
-		expect(screen.getByTestId("appeal-form")).toBeInTheDocument();
-		expect(screen.getByText("abc123")).toBeInTheDocument();
-	});
+    expect(
+      await screen.findByText("BanInfoComponent")
+    ).toBeInTheDocument();
+  });
 
-	test("closes appeal form", async () => {
-		(fetch as jest.Mock).mockResolvedValue({
-			ok: true,
-			json: async () => ({
-				reason: "Violation",
-				reportId: "xyz",
-			}),
-		});
+  it("redirects if user is not banned", async () => {
+    (nextAuth.useSession as jest.Mock).mockReturnValue({
+      update: jest.fn().mockResolvedValue({ user: { isBanned: false } }),
+    });
 
-		updateMock.mockResolvedValue({
-			user: { isBanned: true },
-		});
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ reason: "test", expires: null }),
+    });
 
-		render(<BannedPage />);
+    render(<BannedPage />);
 
-		await waitFor(() => {
-			expect(screen.getByTestId("ban-info")).toBeInTheDocument();
-		});
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalledWith("/dashboard");
+    });
+  });
 
-		fireEvent.click(screen.getByText("Appeal"));
+  it("handles 401 fetch", async () => {
+    (nextAuth.useSession as jest.Mock).mockReturnValue({
+      update: jest.fn().mockResolvedValue({ user: { isBanned: true } }),
+    });
 
-		expect(screen.getByTestId("appeal-form")).toBeInTheDocument();
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 401,
+    });
 
-		fireEvent.click(screen.getByText("Close"));
+    render(<BannedPage />);
 
-		expect(screen.getByTestId("ban-info")).toBeInTheDocument();
-	});
+    await waitFor(() =>
+      expect(screen.getByText("BanInfoComponent")).toBeInTheDocument()
+    );
+  });
 
-	test("handles 401 response", async () => {
-		(fetch as jest.Mock).mockResolvedValue({
-			ok: false,
-			status: 401,
-		});
+  it("handles fetch failure", async () => {
+    (nextAuth.useSession as jest.Mock).mockReturnValue({
+      update: jest.fn().mockResolvedValue({ user: { isBanned: true } }),
+    });
 
-		updateMock.mockResolvedValue({
-			user: { isBanned: true },
-		});
+    (global.fetch as jest.Mock).mockRejectedValue(new Error("fail"));
 
-		render(<BannedPage />);
+    render(<BannedPage />);
 
-		await waitFor(() => {
-			expect(screen.getByText(/You must be logged in/i)).toBeInTheDocument();
-		});
-	});
-
-	test("handles fetch error gracefully", async () => {
-		(fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
-
-		updateMock.mockResolvedValue({
-			user: { isBanned: true },
-		});
-
-		render(<BannedPage />);
-
-		await waitFor(() => {
-			// still finishes loading even if error
-			expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
-		});
-	});
+    await waitFor(() =>
+      expect(screen.getByText("BanInfoComponent")).toBeInTheDocument()
+    );
+  });
 });

@@ -7,9 +7,9 @@ import { AlertTriangle, ShieldOff, X } from "lucide-react";
 import { LunarCard } from "@/components/ui/LunarCard";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { useSession } from "next-auth/react";
-import BanInfo from "./BanInfo";
 import AppealForm from "./AppealForm";
-
+import BanInfo from "@/components/admin/BanInfo";
+import { useRouter } from "next/navigation";
 /**
  * BannedPage
  * 
@@ -22,7 +22,7 @@ import AppealForm from "./AppealForm";
  * @returns {JSX.Element} Banned page UI
  */
 export default function BannedPage() {
-	const { BanInfo, loading } = useBanInfo();
+	const { banInfo, loading } = useBanInfo();
 	const [showAppeal, setShowAppeal] = useState(false);
 
 	if (loading) return <LoadingScreen />;
@@ -32,9 +32,9 @@ export default function BannedPage() {
 			<div className="min-h-screen flex items-center justify-center px-4">
 				<LunarCard className="w-full max-w-md p-7 space-y-6 hover:-translate-y-0">
 					{!showAppeal ? (
-						<BanInfo BanInfo={BanInfo} onAppeal={() => setShowAppeal(true)} />
+						<BanInfo banInfo={banInfo} onAppeal={() => setShowAppeal(true)} />
 					) : (
-						<AppealForm reportId={BanInfo?.reportId} onClose={() => setShowAppeal(false)} />
+						<AppealForm reportId={banInfo?.reportId} onClose={() => setShowAppeal(false)} />
 					)}
 				</LunarCard>
 			</div>
@@ -49,20 +49,21 @@ export default function BannedPage() {
 *@returns {boolean} returns.loading - Whether the ban info is currently loading.
 */
 function useBanInfo() {
-	const [BanInfo, setBanInfo] = useState(null);
+	const [banInfo, setBanInfo] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const { update } = useSession();
+	const router = useRouter();
 
 	useEffect(() => {
 		async function init() {
 			await fetchBan(setBanInfo);
-			await validateSession(update);
+			await validateSession(update, router);
 			setLoading(false);
 		}
 		init();
 	}, []);
 
-	return { BanInfo, loading };
+	return { banInfo, loading };
 }
 
 /**
@@ -93,10 +94,10 @@ async function fetchBan(setBanInfo) {
 *@param {Function} update - NextAuth session update function.
 *@returns {Promise<void>}
 */
-async function validateSession(update) {
+async function validateSession(update, router) {
 	const updatedSession = await update();
 	if (!updatedSession?.user?.isBanned) {
-		window.location.href = "/dashboard";
+		router.replace("/dashboard");
 	}
 }
 
