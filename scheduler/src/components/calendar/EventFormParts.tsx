@@ -1,10 +1,13 @@
 "use client";
-// src/components/calendar/EventFormParts.tsx
-import { useState } from "react";
 
-// ---------------------------------------------------------------------------
+/**
+ * Event Form Parts component
+ */
+
+import { useState } from "react";
+import { Button } from "../ui/Button";
+
 // Constants
-// ---------------------------------------------------------------------------
 export type RelativeOption =
   | "3-before"
   | "2-before"
@@ -37,9 +40,7 @@ export function relativeTo(mode: RelativeOption) {
   return "after";
 }
 
-// ---------------------------------------------------------------------------
 // TaskPromptSection
-// ---------------------------------------------------------------------------
 import { LinkedTaskCard } from "./LinkedTaskCard";
 import { NewTaskForm } from "./NewTaskForm";
 
@@ -115,12 +116,12 @@ export function TaskPromptSection({
         onAdd={handleAdd}
       />
 
-      <button
+      <Button
         onClick={handleSave}
         className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all"
       >
         {linkedTasks.length > 0 ? "Save Tasks & Finish" : "Skip — No Tasks"}
-      </button>
+      </Button>
     </div>
   );
 }

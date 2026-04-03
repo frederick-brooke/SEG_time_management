@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/modules/ModuleMembersList.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ModuleMembersList from '../ModuleMembersList';
 import '@testing-library/jest-dom';
@@ -89,7 +90,7 @@ describe('ModuleMembersList Component', () => {
     expect(badges.length).toBe(2); 
   });
 
-  // --- HIERARCHY & PERMISSION TESTS ---
+  // HIERARCHY & PERMISSION TESTS
 
   it('hides all management buttons for standard members', () => {
     render(<ModuleMembersList members={mockMembers} isOwner={false} moduleId="mod1" currentUserRole="MEMBER" />);

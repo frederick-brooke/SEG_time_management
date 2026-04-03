@@ -1,4 +1,6 @@
+//test for scheduler/src/components/modules/CreateModule.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CreateModule from "@/components/modules/CreateModule";

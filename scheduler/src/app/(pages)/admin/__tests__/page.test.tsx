@@ -3,6 +3,7 @@
  */
 
 import { render, screen, fireEvent } from "@testing-library/react";
+import { Button } from "@/components/ui/Button";
 
 // Mocks 
 
@@ -21,97 +22,97 @@ jest.mock("@/components/layout/LunarThemeWrapper", () => ({
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/effects/starField", () => ({
+jest.mock("@/components/effects/StarField", () => ({
   __esModule: true,
   default: () => null,
 }));
 
-jest.mock("@/components/ui/glowBackground", () => ({
+jest.mock("@/components/ui/GlowBackground", () => ({
   __esModule: true,
   default: () => null,
 }));
 
-jest.mock("@/components/ui/glassCard", () => ({
+jest.mock("@/components/ui/GlassCard", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));
 
-jest.mock("@/components/admin/admin-statistics", () => ({
+jest.mock("@/components/admin/AdminStatistics", () => ({
   __esModule: true,
   default: () => <div>AdminStatistics</div>,
 }));
 
-jest.mock("@/components/admin/userManagement", () => ({
+jest.mock("@/components/admin/UserManagement", () => ({
   __esModule: true,
   default: ({ setIsUserFilterOpen, resetFilters, setFilters }: any) => (
     <div>
       <div>UserManagement</div>
-      <button onClick={() => setIsUserFilterOpen(true)}>Open User Filter</button>
-      <button onClick={() => resetFilters()}>Reset User Filters</button>
-      <button onClick={() => setFilters({ sortBy: "email" })}>Set User Filters</button>
+      <Button onClick={() => setIsUserFilterOpen(true)}>Open User Filter</Button>
+      <Button onClick={() => resetFilters()}>Reset User Filters</Button>
+      <Button onClick={() => setFilters({ sortBy: "email" })}>Set User Filters</Button>
     </div>
   ),
 }));
 
-jest.mock("@/components/admin/reportManagement", () => ({
+jest.mock("@/components/admin/ReportManagement", () => ({
   __esModule: true,
   default: ({ setIsReportFilterOpen, resetFilters, setFilters }: any) => (
     <div>
       <div>ReportManagement</div>
-      <button onClick={() => setIsReportFilterOpen(true)}>Open Report Filter</button>
-      <button onClick={() => resetFilters()}>Reset Report Filters</button>
-      <button onClick={() => setFilters({ sortBy: "status" })}>Set Report Filters</button>
+      <Button onClick={() => setIsReportFilterOpen(true)}>Open Report Filter</Button>
+      <Button onClick={() => resetFilters()}>Reset Report Filters</Button>
+      <Button onClick={() => setFilters({ sortBy: "status" })}>Set Report Filters</Button>
     </div>
   ),
 }));
 
-jest.mock("@/components/admin/appealManagement", () => ({
+jest.mock("@/components/admin/AppealManagement", () => ({
   __esModule: true,
   default: ({ setIsAppealFilterOpen, resetFilters, setFilters }: any) => (
     <div>
       <div>AppealsManagement</div>
-      <button onClick={() => setIsAppealFilterOpen(true)}>Open Appeal Filter</button>
-      <button onClick={() => resetFilters()}>Reset Appeal Filters</button>
-      <button onClick={() => setFilters({ sortBy: "date" })}>Set Appeal Filters</button>
+      <Button onClick={() => setIsAppealFilterOpen(true)}>Open Appeal Filter</Button>
+      <Button onClick={() => resetFilters()}>Reset Appeal Filters</Button>
+      <Button onClick={() => setFilters({ sortBy: "date" })}>Set Appeal Filters</Button>
     </div>
   ),
 }));
 
-jest.mock("@/components/admin/user-filter-panel", () => ({
+jest.mock("@/components/admin/UserFilterPanel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
     <div>
       <div>UserFilter</div>
-      <button onClick={onClose}>Close User Filter</button>
-      <button onClick={applyFilters}>Apply User Filters</button>
-      <button onClick={resetFilters}>Reset User Filter Panel</button>
-      <button onClick={() => setFilters({ sortBy: "username" })}>Set User Draft Filters</button>
+      <Button onClick={onClose}>Close User Filter</Button>
+      <Button onClick={applyFilters}>Apply User Filters</Button>
+      <Button onClick={resetFilters}>Reset User Filter Panel</Button>
+      <Button onClick={() => setFilters({ sortBy: "username" })}>Set User Draft Filters</Button>
     </div>
   ),
 }));
 
-jest.mock("@/components/admin/report-filter-panel", () => ({
+jest.mock("@/components/admin/ReportFilterPanel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
     <div>
       <div>ReportFilter</div>
-      <button onClick={onClose}>Close Report Filter</button>
-      <button onClick={applyFilters}>Apply Report Filters</button>
-      <button onClick={resetFilters}>Reset Report Filter Panel</button>
-      <button onClick={() => setFilters({ sortBy: "createdAt" })}>Set Report Draft Filters</button>
+      <Button onClick={onClose}>Close Report Filter</Button>
+      <Button onClick={applyFilters}>Apply Report Filters</Button>
+      <Button onClick={resetFilters}>Reset Report Filter Panel</Button>
+      <Button onClick={() => setFilters({ sortBy: "createdAt" })}>Set Report Draft Filters</Button>
     </div>
   ),
 }));
 
-jest.mock("@/components/admin/appeal-filter-panel", () => ({
+jest.mock("@/components/admin/AppealFilterPanel", () => ({
   __esModule: true,
   default: ({ onClose, applyFilters, resetFilters, setFilters }: any) => (
     <div>
       <div>AppealFilter</div>
-      <button onClick={onClose}>Close Appeal Filter</button>
-      <button onClick={applyFilters}>Apply Appeal Filters</button>
-      <button onClick={resetFilters}>Reset Appeal Filter Panel</button>
-      <button onClick={() => setFilters({ sortBy: "createdAt" })}>Set Appeal Draft Filters</button>
+      <Button onClick={onClose}>Close Appeal Filter</Button>
+      <Button onClick={applyFilters}>Apply Appeal Filters</Button>
+      <Button onClick={resetFilters}>Reset Appeal Filter Panel</Button>
+      <Button onClick={() => setFilters({ sortBy: "createdAt" })}>Set Appeal Draft Filters</Button>
     </div>
   ),
 }));

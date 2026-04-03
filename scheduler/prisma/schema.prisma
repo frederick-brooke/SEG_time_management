@@ -450,8 +450,8 @@ model Group {
   id          String  @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?
-  creatorId   String  @db.ObjectId
-  creator     User    @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId   String?  @db.ObjectId
+  creator     User?    @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   members     GroupMember[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -3,11 +3,12 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CalendarBody from "../CalendarBody";
 
-// ── Mocks ─────────
+// Mocks
 
 jest.mock("../CalendarBody.module.css", () =>
   new Proxy({}, { get: (_, key) => String(key) })
@@ -20,7 +21,6 @@ jest.mock("@/lib/ui", () => ({
   CATEGORY_COLORS: { work: "#ff0000", personal: "#00ff00" },
 }));
 
-// Capture prop getters and event component so we can call them directly in tests
 let capturedEventPropGetter: (event: any) => any;
 let capturedDayPropGetter: (date: Date) => any;
 let capturedEventComponent: React.ComponentType<{ event: any }>;
@@ -41,26 +41,26 @@ jest.mock("react-big-calendar", () => ({
     return (
       <div data-testid="rbc-calendar">
         {events.map((ev: any) => (
-          <button
+          <Button
             key={ev.id}
             data-testid={`event-${ev.id}`}
             onClick={() => onSelectEvent(ev)}
           >
             {ev.title}
-          </button>
+          </Button>
         ))}
-        <button
+        <Button
           data-testid="select-slot"
           onClick={() => onSelectSlot({ start: new Date("2024-06-03") })}
         >
           Select Slot
-        </button>
-        <button
+        </Button>
+        <Button
           data-testid="navigate"
           onClick={() => onNavigate(new Date("2024-06-10"))}
         >
           Navigate
-        </button>
+        </Button>
       </div>
     );
   },
@@ -73,8 +73,6 @@ jest.mock("date-fns", () => ({
     return date.toString();
   }),
 }));
-
-// ── Factory helpers 
 
 const mockLocalizer = {} as any;
 
@@ -151,11 +149,9 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests 
+// Tests
 
 describe("CalendarBody", () => {
-
-  // ── Rendering ────
 
   describe("rendering", () => {
     it("should render the calendar grid", () => {
@@ -174,8 +170,6 @@ describe("CalendarBody", () => {
       expect(screen.queryByPlaceholderText("Search events...")).not.toBeInTheDocument();
     });
   });
-
-  // ── Search input ─
 
   describe("search input", () => {
     it("should call onSearchChange when the user types in the search box", () => {
@@ -213,8 +207,6 @@ describe("CalendarBody", () => {
       expect(onSearchClear).toHaveBeenCalled();
     });
   });
-
-  // ── Search results ───────
 
   describe("search results", () => {
     it("should show the search dropdown when showSearchResults is true", () => {
@@ -380,8 +372,6 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── Undo bar ─────
-
   describe("undo bar", () => {
     it("should call onUndo when the Undo button is clicked", () => {
       const onUndo = jest.fn();
@@ -399,8 +389,6 @@ describe("CalendarBody", () => {
       expect(onUndoDismiss).toHaveBeenCalled();
     });
   });
-
-  // ── Event selection ──────
 
   describe("event selection", () => {
     it("should call onSelectEvent when a regular event is clicked", () => {
@@ -439,8 +427,6 @@ describe("CalendarBody", () => {
       expect(onSelectEvent).not.toHaveBeenCalled();
     });
   });
-
-  // ── Slot and navigation callbacks ──
 
   describe("slot selection and navigation", () => {
     it("should call onSelectSlot with a formatted date string when a slot is selected", () => {
@@ -509,8 +495,6 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── makeEventPropGetter ───
-
   describe("makeEventPropGetter", () => {
     const categories = [
       { id: "1", name: "work", color: "#ff0000" },
@@ -577,8 +561,6 @@ describe("CalendarBody", () => {
     });
   });
 
-  // ── makeDayPropGetter ─────
-
   describe("makeDayPropGetter", () => {
     it("does not highlight a day not matching a day-mode schedule log", () => {
       const scheduleLogs = [{ mode: "day", scheduledAt: "2024-06-03T12:00:00" }];
@@ -611,8 +593,6 @@ describe("CalendarBody", () => {
       expect(getter(new Date("2024-06-03T12:00:00"))).toEqual({});
     });
   });
-
-  // ── hexToRgb ──────
 
   describe("hexToRgb (via makeEventPropGetter travel branch)", () => {
     it("correctly converts a valid hex colour to r, g, b in gradient", () => {

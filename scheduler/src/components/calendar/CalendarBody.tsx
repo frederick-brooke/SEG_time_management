@@ -9,6 +9,7 @@ import { Calendar } from "react-big-calendar";
 import { format } from "date-fns";
 import styles from "./CalendarBody.module.css";
 import searchStyles from "./SearchBar.module.css";
+import { Button } from "@/components/ui/Button";
 
 interface Props {
 	localizer: any;
@@ -217,146 +218,88 @@ export default function CalendarBody({
 		(e) => e._type !== "_travel",
 	);
 
-	return (
-		<div className={styles.wrapper}>
-			<div className={styles.outerPanel}>
-				{/* Search / undo bar */}
-				<div className={searchStyles.searchBar}>
-					{showUndo ? (
-						<div className={searchStyles.undoBar}>
-							<div className={searchStyles.undoLabel}>
-								<span className={searchStyles.undoIcon}>!</span>
-								<p className={searchStyles.undoText}>
-									Event deleted
-								</p>
-							</div>
-							<div className={searchStyles.undoActions}>
-								<button
-									onClick={onUndo}
-									className={searchStyles.undoButton}
-								>
-									<span className={searchStyles.undoArrow}>
-										↺
-									</span>{" "}
-									Undo
-								</button>
-								<button
-									onClick={onUndoDismiss}
-									className={searchStyles.undoDismiss}
-								>
-									✕
-								</button>
-							</div>
-						</div>
-					) : (
-						<div
-							className={searchStyles.searchContainer}
-							ref={searchRef}
-						>
-							<input
-								type="text"
-								value={searchQuery}
-								onChange={(e) => onSearchChange(e.target.value)}
-								onFocus={onSearchFocus}
-								placeholder="Search events..."
-								className={searchStyles.searchInput}
-							/>
-							<div className={searchStyles.searchIcon}>
-								<svg
-									width="14"
-									height="14"
-									viewBox="0 0 14 14"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<circle
-										cx="6"
-										cy="6"
-										r="4.5"
-										stroke="currentColor"
-										strokeWidth="1.5"
-									/>
-									<line
-										x1="9.5"
-										y1="9.5"
-										x2="13"
-										y2="13"
-										stroke="currentColor"
-										strokeWidth="1.5"
-										strokeLinecap="round"
-									/>
-								</svg>
-							</div>
-							{searchQuery && (
-								<button
-									onClick={onSearchClear}
-									className={searchStyles.searchClear}
-								>
-									✕
-								</button>
-							)}
-							{showSearchResults && (
-								<div className={searchStyles.searchDropdown}>
-									{realSearchResults.length > 0 ? (
-										realSearchResults.map((ev) => (
-											<button
-												key={ev.occurrenceId || ev.id}
-												onClick={() =>
-													onSearchResultClick(ev)
-												}
-												className={
-													searchStyles.searchResultItem
-												}
-											>
-												<div
-													className={
-														searchStyles.searchResultDot
-													}
-													style={{
-														// Use dynamic categories, not static map
-														backgroundColor:
-															getCategoryColor(
-																ev.category,
-																categories,
-																"#6366f1",
-															),
-													}}
-												/>
-												<div>
-													<div
-														className={
-															searchStyles.searchResultTitle
-														}
-													>
-														{ev.title}
-													</div>
-													<div
-														className={
-															searchStyles.searchResultMeta
-														}
-													>
-														{format(
-															ev.start,
-															"PPP",
-														)}
-														{ev.isRecurring &&
-															" · Recurring"}
-													</div>
-												</div>
-											</button>
-										))
-									) : (
-										<div
-											className={searchStyles.searchEmpty}
-										>
-											No matching events
-										</div>
-									)}
-								</div>
-							)}
-						</div>
-					)}
-				</div>
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.outerPanel}>
+        {/* Search / undo bar */}
+        <div className={searchStyles.searchBar}>
+          {showUndo ? (
+            <div className={searchStyles.undoBar}>
+              <div className={searchStyles.undoLabel}>
+                <span className={searchStyles.undoIcon}>!</span>
+                <p className={searchStyles.undoText}>Event deleted</p>
+              </div>
+              <div className={searchStyles.undoActions}>
+                <Button onClick={onUndo} className={searchStyles.undoButton}>
+                  <span className={searchStyles.undoArrow}>↺</span> Undo
+                </Button>
+                <Button onClick={onUndoDismiss} className={searchStyles.undoDismiss}>
+                  ✕
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className={searchStyles.searchContainer} ref={searchRef}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onFocus={onSearchFocus}
+                placeholder="Search events..."
+                className={searchStyles.searchInput}
+              />
+              <div className={searchStyles.searchIcon}>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+                  <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </div>
+              {searchQuery && (
+                <Button onClick={onSearchClear} className={searchStyles.searchClear}>
+                  ✕
+                </Button>
+              )}
+              {showSearchResults && (
+                <div className={searchStyles.searchDropdown}>
+                  {realSearchResults.length > 0 ? (
+                    realSearchResults.map((ev) => (
+                      <Button
+                        key={ev.occurrenceId || ev.id}
+                        onClick={() => onSearchResultClick(ev)}
+                        className={searchStyles.searchResultItem}
+                      >
+                        <div
+                          className={searchStyles.searchResultDot}
+                          style={{
+                            backgroundColor:
+                              CATEGORY_COLORS[ev.category] || "#6366f1",
+                          }}
+                        />
+                        <div>
+                          <div className={searchStyles.searchResultTitle}>
+                            {ev.title}
+                          </div>
+                          <div className={searchStyles.searchResultMeta}>
+                            {format(ev.start, "PPP")}
+                            {ev.isRecurring && " · Recurring"}
+                          </div>
+                        </div>
+                      </Button>
+                    ))
+                  ) : (
+                    <div className={searchStyles.searchEmpty}>No matching events</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
 				{/* Calendar grid */}
 				<div className={styles.calendarCard}>

@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/UserAvatar.tsx
 import { render, screen } from "@testing-library/react";
 import UserAvatar from "../UserAvatar";
 import { resolveAvatarSrc } from "@/lib/avatar";

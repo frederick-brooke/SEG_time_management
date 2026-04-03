@@ -8,8 +8,8 @@ import { MAP_HEIGHT } from "@/lib/map/constants";
  * Props for the LocationController component.
  */
 interface LocationControllerProps {
-  /** The latitude and longitude to center the map on */
   center: [number, number];
+  zoom?: number;  
 }
 
 /**
@@ -18,7 +18,7 @@ interface LocationControllerProps {
  *
  * @param {LocationControllerProps} props - Component properties
  */
-export function LocationController({ center }: LocationControllerProps) {
+export function LocationController({ center, zoom }: LocationControllerProps) {
   const map = useMap();
   const isFirstRender = useRef(true);
 
@@ -88,7 +88,7 @@ export function BaseMap({
       />
 
       {/* Handles dynamic panning when `center` changes */}
-      <LocationController center={center} />
+      <LocationController center={center} zoom={zoom}/>
 
       {/* Render any child layers/components passed into the map */}
       {children}

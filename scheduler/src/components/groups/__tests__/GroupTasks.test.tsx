@@ -1,4 +1,6 @@
+//tests for scheduler/src/components/groups/GroupTasks.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupTasks from "@/components/groups/GroupTasks";

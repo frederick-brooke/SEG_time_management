@@ -5,25 +5,26 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PagesLayout from "../layout";
+import { Button } from "@/components/ui/Button";
 
-jest.mock("@/components/layout/app-sidebar", () => ({
+jest.mock("@/components/layout/AppSidebar", () => ({
   AppSidebar: ({ onSearchClick }: any) => (
-    <button onClick={onSearchClick}>open-sidebar-search</button>
+    <Button onClick={onSearchClick}>open-sidebar-search</Button>
   ),
 }));
 
-jest.mock("@/components/search-page/search-panel", () => ({
+jest.mock("@/components/search-page/SearchPanel", () => ({
   __esModule: true,
   default: ({ onClose }: any) => (
-    <button onClick={onClose}>close-search</button>
+    <Button onClick={onClose}>close-search</Button>
   ),
 }));
 
-jest.mock("@/components/ui/sidebar", () => ({
+jest.mock("@/components/ui/Sidebar", () => ({
   SidebarProvider: ({ children }: any) => <div>{children}</div>,
   SidebarInset: ({ children }: any) => <div>{children}</div>,
   SidebarTrigger: ({ onClick }: any) => (
-    <button onClick={onClick}>toggle-sidebar</button>
+    <Button onClick={onClick}>toggle-sidebar</Button>
   ),
 }));
 

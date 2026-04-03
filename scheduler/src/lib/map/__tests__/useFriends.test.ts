@@ -3,7 +3,7 @@
  */
 
 import { renderHook, waitFor } from "@testing-library/react";
-import { useFriends } from "../useFriends";
+import { useFriends, validateFriendsResponse } from "../useFriends";
 import { Friend } from "../types";
 
 // Mock fetch
@@ -188,5 +188,70 @@ describe("useFriends", () => {
 
     expect(result.current.friends).toEqual([]);
     expect(result.current.error).toBeNull();
+  });
+});
+
+describe("validateFriendsResponse", () => {
+  it("returns parsed JSON for successful response", async () => {
+    const mockResponse = {
+      ok: true,
+      json: async () => mockFriends,
+    } as Response;
+
+    const result = await validateFriendsResponse(mockResponse);
+    expect(result).toEqual(mockFriends);
+  });
+
+  it("returns empty array for 401 unauthorized", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 401,
+    } as Response;
+
+    const result = await validateFriendsResponse(mockResponse);
+    expect(result).toEqual([]);
+  });
+
+  it("throws error for 500 server error", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 500,
+    } as Response;
+
+    await expect(validateFriendsResponse(mockResponse)).rejects.toThrow(
+      "Failed to fetch friends: 500"
+    );
+  });
+
+  it("throws error for 403 forbidden", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 403,
+    } as Response;
+
+    await expect(validateFriendsResponse(mockResponse)).rejects.toThrow(
+      "Failed to fetch friends: 403"
+    );
+  });
+
+  it("throws error for 404 not found", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 404,
+    } as Response;
+
+    await expect(validateFriendsResponse(mockResponse)).rejects.toThrow(
+      "Failed to fetch friends: 404"
+    );
+  });
+
+  it("returns empty array for successful response with no friends", async () => {
+    const mockResponse = {
+      ok: true,
+      json: async () => [],
+    } as Response;
+
+    const result = await validateFriendsResponse(mockResponse);
+    expect(result).toEqual([]);
   });
 });

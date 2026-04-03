@@ -1,4 +1,9 @@
+/**
+ * Testing for User Search component.
+ */
+
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import UserSearch from "../UserSearch";
 
@@ -62,7 +67,6 @@ function setupFetch({
       return Promise.resolve({ json: async () => friends });
     if (url === "/api/conversations")
       return Promise.resolve({ json: async () => conversations });
-    // /api/conversations/new
     return Promise.resolve({ json: async () => ({ id: "conv-new" }) });
   });
 }
@@ -103,7 +107,7 @@ describe("UserSearch – rendering", () => {
   it("shows the dropdown once query reaches 2 characters", async () => {
     setupFetch();
     render(<UserSearch />);
-    await waitFor(() => {}); // let fetch settle
+    await waitFor(() => {});
     await typeQuery("al");
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
   });

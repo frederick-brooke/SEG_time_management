@@ -6,7 +6,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProfilePageClient from "../ProfilePageClient";
 import { removeFriend } from "@/app/actions/profile";
 import { calculateLevelProgress } from "@/app/actions/profile/xpUtils";
-
+import { Button } from "@/components/ui/Button";
 
 // Mocks
 
@@ -24,13 +24,13 @@ jest.mock("@/app/actions/profile/xpUtils", () => ({
 
 jest.mock("@/components/profile/ProfileHeader", () => ({ onEditToggle }: any) => (
   <div data-testid="profile-header">
-    <button onClick={onEditToggle}>Toggle Edit</button>
+    <Button onClick={onEditToggle}>Toggle Edit</Button>
   </div>
 ));
 
 jest.mock("@/components/profile/EditProfileForm", () => ({ onClose }: any) => (
   <div data-testid="edit-profile-form">
-    <button onClick={onClose}>Close Edit</button>
+    <Button onClick={onClose}>Close Edit</Button>
   </div>
 ));
 
@@ -40,7 +40,7 @@ jest.mock("@/components/profile/StreakCard", () => () => <div data-testid="strea
 
 jest.mock("@/components/profile/FriendStatCard", () => ({ onToggle }: any) => (
   <div data-testid="friend-stat-card">
-    <button onClick={onToggle}>Toggle Friends</button>
+    <Button onClick={onToggle}>Toggle Friends</Button>
   </div>
 ));
 
@@ -48,8 +48,8 @@ jest.mock("@/components/profile/TaskStatsCard", () => () => <div data-testid="ta
 
 jest.mock("@/components/profile/FriendsList", () => ({ onClose, onRemoveFriend }: any) => (
   <div data-testid="friends-list">
-    <button onClick={onClose}>Close Friends</button>
-    <button onClick={(e) => onRemoveFriend("friend-123", e)}>Remove Friend</button>
+    <Button onClick={onClose}>Close Friends</Button>
+    <Button onClick={(e) => onRemoveFriend("friend-123", e)}>Remove Friend</Button>
   </div>
 ));
 

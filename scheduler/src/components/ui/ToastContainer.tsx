@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { CheckCircle, AlertCircle, Info, X } from "lucide-react";
+import { Button } from "./Button";
 
 interface Toast {
   id: string;
@@ -44,12 +45,12 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         <p className="text-sm font-semibold">{toast.title}</p>
         <p className="text-xs text-white/60 mt-0.5">{toast.message}</p>
       </div>
-      <button
+      <Button
         onClick={() => onDismiss(toast.id)}
         className="flex-shrink-0 text-white/40 hover:text-white transition-colors"
       >
         <X className="w-4 h-4" />
-      </button>
+      </Button>
     </div>
   );
 }

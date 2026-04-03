@@ -9,6 +9,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Mail, AlertCircle, CheckCircle2, ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -79,13 +80,13 @@ export default function ForgotPasswordPage() {
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={status === "sending"}
                 className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-all disabled:opacity-50"
               >
                 {status === "sending" ? "Sending..." : "Send Reset Link"}
-              </button>
+              </Button>
             </form>
           ) : (
             <Link href="/login" className="w-full inline-block bg-white/5 hover:bg-white/10 text-white text-center font-semibold py-3.5 rounded-xl transition-all">

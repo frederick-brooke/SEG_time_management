@@ -1,4 +1,9 @@
+/**
+ * Testing for Message Input
+ */
+
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MessageInput } from "../MessageInput";
 

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-
+import { Button } from "@/components/ui/Button";
 import {
   relativeTo,
   RELATIVE_OPTIONS,
@@ -7,36 +7,32 @@ import {
 } from "../EventFormParts";
 import type { RelativeOption } from "../EventFormParts";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("../LinkedTaskCard", () => ({
   LinkedTaskCard: ({ task, onRemove, onUpdate, index }: any) => (
     <div data-testid={`linked-task-${index}`}>
       <span>{task.title}</span>
-      <button onClick={() => onUpdate(index, { ...task, title: "Updated Task" })}>Update</button>
-      <button onClick={() => onRemove(index)}>Remove</button>
+      <Button onClick={() => onUpdate(index, { ...task, title: "Updated Task" })}>Update</Button>
+      <Button onClick={() => onRemove(index)}>Remove</Button>
     </div>
   ),
 }));
 
 jest.mock("../NewTaskForm", () => ({
   NewTaskForm: ({ onAdd }: any) => (
-    <button
+    <Button
       data-testid="add-task-btn"
       onClick={() => onAdd({ title: "New Task", duration: 60, priority: "Medium" })}
     >
       Add Task
-    </button>
+    </Button>
   ),
 }));
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true });
 
-// ---------------------------------------------------------------------------
 // relativeTo
-// ---------------------------------------------------------------------------
 
 describe("relativeTo", () => {
   it('returns "custom" for custom mode', () => {
@@ -60,9 +56,7 @@ describe("relativeTo", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // RELATIVE_OPTIONS
-// ---------------------------------------------------------------------------
 
 describe("RELATIVE_OPTIONS", () => {
   it("contains 8 options", () => {
@@ -91,9 +85,7 @@ describe("RELATIVE_OPTIONS", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // TaskPromptSection
-// ---------------------------------------------------------------------------
 
 const defaultProps = {
   createdEventId: "event-123",

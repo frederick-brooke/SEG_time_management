@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/FriendsList.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import FriendsList from '../FriendsList';
 import '@testing-library/jest-dom';

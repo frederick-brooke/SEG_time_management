@@ -1,14 +1,15 @@
+//tests for scheduler/src/components/profile/PointsCard.tsx
 import { render, screen } from '@testing-library/react';
 import PointsCard from '../PointsCard';
 import '@testing-library/jest-dom';
 
-// mocks
+// Mocks
 // Replaces icons and custom UI components with testable SVG elements
 jest.mock('lucide-react', () => ({
   Star: () => <svg data-testid="star-icon" />,
 }));
 
-jest.mock('@/components/ui/gold-coin', () => ({
+jest.mock('@/components/ui/GoldCoin', () => ({
   GoldCoin: () => <svg data-testid="gold-coin-icon" />
 }));
 

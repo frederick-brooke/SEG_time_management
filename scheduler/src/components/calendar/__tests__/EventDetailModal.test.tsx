@@ -3,6 +3,7 @@
  */
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import EventDetailModal from "../EventDetailModal";
@@ -16,8 +17,8 @@ jest.mock("date-fns", () => ({
 jest.mock("@/components/tasks/TaskForm", () => ({
   TaskForm: ({ onSubmit, onDelete }: any) => (
     <div data-testid="task-form">
-      <button onClick={onSubmit}>Submit Task</button>
-      <button onClick={onDelete}>Delete From Form</button>
+      <Button onClick={onSubmit}>Submit Task</Button>
+      <Button onClick={onDelete}>Delete From Form</Button>
     </div>
   ),
 }));
@@ -27,7 +28,7 @@ jest.mock("@/components/calendar/EventForm", () => ({
   default: ({ initialEvent, onSuccess }: any) => (
     <div data-testid="event-form">
       <span>{initialEvent ? "edit-mode" : "new-mode"}</span>
-      <button onClick={onSuccess}>Event Success</button>
+      <Button onClick={onSuccess}>Event Success</Button>
     </div>
   ),
 }));

@@ -1,15 +1,26 @@
+/**
+ * @file StreakCard.tsx
+ * @description Renders a user's current day streak and optional leaderboard rank 
+ * within a styled stat card. Includes navigation to the leaderboard if a rank is present.
+ */
 'use client';
 
 import Link from "next/link";
 
 /**
+ * Props for the StreakCard component.
+ */
+interface StreakCardProps {
+  streak: number;
+  rank?: number;
+}
+
+/**
  * Renders the user's current day streak and optional leaderboard rank.
- * @param {object} props - Component props.
- * @param {number} props.streak - The user's current day streak.
- * @param {number} [props.rank] - The user's leaderboard rank (optional).
+ * * @param {StreakCardProps} props - Component props.
  * @return {JSX.Element} The streak card UI.
  */
-export default function StreakCard({ streak, rank }: { streak: number; rank?: number }) {
+export default function StreakCard({ streak, rank }: StreakCardProps) {
   return (
     <div className="lunar-card flex flex-col justify-center items-center text-center p-6">
       <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-full mb-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]">

@@ -20,7 +20,7 @@ jest.mock("../SettingsClient", () => ({
   ),
 }));
 
-jest.mock("@/components/ui/page-header", () => ({
+jest.mock("@/components/ui/PageHeader", () => ({
   PageHeader: ({
     title,
     subtitle,
@@ -48,6 +48,7 @@ jest.mock("lucide-react", () => ({
 // Helpers
 
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import SettingsPage from "../page";
 

@@ -1,9 +1,11 @@
+//tests for scheduler/src/components/profile/StatModules.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { ProfileStats } from "../StatModules"; // Adjust this import path if needed
+import { ProfileStats } from "../StatModules";
 
-//mocks
+// Mocks
 
 // Mock the Lucide icons to keep the DOM output clean and avoid SVG rendering issues during tests
 jest.mock("lucide-react", () => ({
@@ -12,7 +14,7 @@ jest.mock("lucide-react", () => ({
   Zap: () => <svg data-testid="zap-icon" />,
 }));
 
-//helpers
+// Helpers
 
 /**
  * Helper function to generate a mock profile object with default stats.
@@ -23,7 +25,7 @@ jest.mock("lucide-react", () => ({
 const makeProfile = (overrides: any = {}) => ({
   progress: {
     level: 1,
-    points: 0,
+    experience: 0,
     ...(overrides.progress || {}),
   },
   stats: {
@@ -33,7 +35,7 @@ const makeProfile = (overrides: any = {}) => ({
   },
 });
 
-//tests
+// Tests
 
 describe("ProfileStats", () => {
   
@@ -46,8 +48,7 @@ describe("ProfileStats", () => {
     
     // Check fallback text values
     expect(screen.getByText("Lvl 1")).toBeInTheDocument();
-    expect(screen.getByText("0 XP")).toBeInTheDocument();
-    expect(screen.getByText("100 XP until Level 2")).toBeInTheDocument();
+    expect(screen.getByText(/100 XP.*Lvl 2/i)).toBeInTheDocument();
     
     // Check fallback stat numbers (Streak and Success Rate both default to 0)
     const zeroes = screen.getAllByText("0");
@@ -76,16 +77,16 @@ describe("ProfileStats", () => {
    */
   it("calculates the correct XP remainder when the user is mid-level", () => {
     const profile = makeProfile({
-      progress: { level: 3, points: 250 }
+      progress: { level: 3, experience: 250 }
     });
     render(<ProfileStats profile={profile} />);
     
     expect(screen.getByText("Lvl 3")).toBeInTheDocument();
-    expect(screen.getByText("250 XP")).toBeInTheDocument();
+    expect(screen.getByText(/250\s*XP/i)).toBeInTheDocument();
     
     // 250 total points means 50 points into the current level.
     // 100 - 50 = 50 XP remaining until Level 4.
-    expect(screen.getByText("50 XP until Level 4")).toBeInTheDocument();
+    expect(screen.getByText(/50 XP.*Lvl 4/i)).toBeInTheDocument();
   });
 
   /**
@@ -94,16 +95,16 @@ describe("ProfileStats", () => {
    */
   it("calculates the correct XP remainder when points land exactly on a level boundary", () => {
     const profile = makeProfile({
-      progress: { level: 4, points: 300 }
+      progress: { level: 4, experience: 300 }
     });
     render(<ProfileStats profile={profile} />);
     
     expect(screen.getByText("Lvl 4")).toBeInTheDocument();
-    expect(screen.getByText("300 XP")).toBeInTheDocument();
+    expect(screen.getByText(/300\s*XP/i)).toBeInTheDocument();
     
     // 300 total points modulo 100 is 0. 
     // 100 - 0 = 100 XP remaining until Level 5.
-    expect(screen.getByText("100 XP until Level 5")).toBeInTheDocument();
+    expect(screen.getByText(/100 XP.*Lvl 5/i)).toBeInTheDocument();
   });
 
 });

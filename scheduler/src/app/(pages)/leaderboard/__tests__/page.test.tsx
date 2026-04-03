@@ -37,7 +37,7 @@ jest.mock('../LeaderboardClient', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/page-header', () => ({
+jest.mock('@/components/ui/PageHeader', () => ({
   PageHeader: ({ title, subtitle }: { title: string; subtitle: string }) => (
     <div>
       <h1>{title}</h1>

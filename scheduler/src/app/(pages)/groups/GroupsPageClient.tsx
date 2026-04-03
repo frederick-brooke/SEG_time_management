@@ -12,6 +12,7 @@ import { GroupCard } from "@/components/groups/GroupCard";
 import CreateGroup from "@/components/groups/CreateGroup";
 import { Plus, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
+import { Button } from "@/components/ui/Button";
 
 /**
  * Global constants for pagination and sorting logic.
@@ -49,6 +50,7 @@ function sortGroups(groups: any[], key: SortKey): any[] {
   // Default fallback (handles "newest" and any unexpected values)
   return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
+
 /**
  * Renders the numeric pagination footer, which persists even for small lists.
  * @param {object} props - Component properties.
@@ -62,16 +64,16 @@ function Pagination({ page, total, onPageChange }: { page: number; total: number
   
   return (
     <div className="flex items-center justify-center gap-2 mt-8 py-4 border-t border-white/5">
-      <button 
+      <Button 
         onClick={() => onPageChange(page - 1)} 
         disabled={page === 1} 
         className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
       >
         <ChevronLeft size={16} />
-      </button>
+      </Button>
       
       {Array.from({ length: safeTotal }, (_, i) => i + 1).map((p) => (
-        <button 
+        <Button 
           key={p} 
           onClick={() => onPageChange(p)} 
           className={`w-10 h-10 rounded-xl text-[12px] font-bold transition-all border ${
@@ -81,16 +83,16 @@ function Pagination({ page, total, onPageChange }: { page: number; total: number
           }`}
         >
           {p}
-        </button>
+        </Button>
       ))}
       
-      <button 
+      <Button 
         onClick={() => onPageChange(page + 1)} 
         disabled={page === safeTotal} 
         className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
       >
         <ChevronRight size={16} />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -124,20 +126,22 @@ export default function GroupsPageClient({ groups: initialGroups }: { groups: an
 
   return (
     <LunarThemeWrapper>
-      <div className="lunar-page">
+      
+      <div className="lunar-page w-full px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        
         {/* Header Section */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="lunar-page-title">My Groups</h1>
             <p className="lunar-page-subtitle">Collaborate with friends on shared tasks</p>
           </div>
-          <button
+          <Button
             onClick={() => setShowCreate(true)}
             className="lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 flex items-center gap-2"
           >
             <Plus size={18} />
             <span>Create Group</span>
-          </button>
+          </Button>
         </div>
 
         {/* Status and Sort Control Bar */}
@@ -149,17 +153,17 @@ export default function GroupsPageClient({ groups: initialGroups }: { groups: an
           </div>
 
           <div className="relative z-20">
-            <button
+            <Button
               onClick={() => setShowSortMenu(!showSortMenu)}
               className="lunar-button-ghost flex items-center gap-2"
             >
               <ArrowUpDown size={14} />
               {SORT_OPTIONS.find((o) => o.value === sortKey)?.label ?? "Sort"}
-            </button>
+            </Button>
             {showSortMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-[#0d1117] border border-white/10 rounded-xl z-20 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {SORT_OPTIONS.map((option) => (
-                  <button
+                  <Button
                     key={option.value}
                     onClick={() => { setSortKey(option.value); setPage(1); setShowSortMenu(false); }}
                     className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors ${
@@ -169,7 +173,7 @@ export default function GroupsPageClient({ groups: initialGroups }: { groups: an
                     }`}
                   >
                     {option.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}

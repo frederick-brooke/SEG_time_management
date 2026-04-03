@@ -1,9 +1,11 @@
+//tests for scheduler/src/components/groups/GroupMembersList.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupMembersList from "@/components/groups/GroupMembersList";
 
-// mocks
+// Mocks
 jest.mock("@/app/actions/groups", () => ({
   removeGroupMember: jest.fn(),
 }));
@@ -27,7 +29,7 @@ const mockMembers = [
   { id: "m3", role: "MEMBER", user: { id: "u3", username: "charlie", fname: null, lname: null, pfp: null } },
 ];
 
-// tests
+// Tests
 describe("GroupMembersList", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -35,7 +37,7 @@ describe("GroupMembersList", () => {
     window.alert = jest.fn();
   });
 
-  // --- Initial Render & UI States ---
+  // Initial Render & UI States
 
   // Confirms the component renders strictly as a closed accordion by default
   it("renders closed by default with member count", () => {
@@ -65,7 +67,7 @@ describe("GroupMembersList", () => {
     expect(screen.getByText("Owner")).toBeInTheDocument();
   });
 
-  // --- Member Management & Permissions ---
+  // Member Management & Permissions
 
   // Confirms the Remove button is only visible to the Owner, and only for non-owner members
   it("shows remove buttons for standard members only when viewer is owner", () => {
@@ -93,8 +95,6 @@ describe("GroupMembersList", () => {
       expect(removeGroupMember).toHaveBeenCalledWith("grp1", "u2");
     });
   });
-
-  // --- Negative Path Tests ---
 
   // Confirms member removal is aborted if the user clicks Cancel on the confirmation prompt
   it("aborts member removal when confirmation is cancelled", () => {

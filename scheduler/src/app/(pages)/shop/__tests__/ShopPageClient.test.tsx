@@ -22,7 +22,7 @@ jest.mock("lucide-react", () => ({
   Sparkles: () => <div>SparklesIcon</div>,
 }));
 
-jest.mock("@/components/ui/gold-coin", () => ({
+jest.mock("@/components/ui/GoldCoin", () => ({
   GoldCoin: () => <div>Coin</div>,
 }));
 

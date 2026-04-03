@@ -1,11 +1,13 @@
+//tests for scheduler/src/components/groups/GroupHeader.tsx
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupHeader from "@/components/groups/GroupHeader";
 import { useRouter } from "next/navigation";
 import { leaveGroup, deleteGroup } from "@/app/actions/groups";
 
-// mocks
+// Mocks
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
@@ -36,7 +38,7 @@ const mockGroup = {
   creator: { username: "einstein" },
 };
 
-// tests
+// Tests
 describe("GroupHeader", () => {
   const mockPush = jest.fn();
 
@@ -162,8 +164,6 @@ describe("GroupHeader", () => {
       expect(mockPush).toHaveBeenCalledWith("/groups");
     });
   });
-
-  // --- Negative Path Tests (Coverage for lines 47 & 58) ---
 
   // Confirms leaving the group is aborted if the user clicks Cancel on the prompt
   it("aborts leave group when confirmation is cancelled", () => {

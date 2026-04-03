@@ -21,10 +21,14 @@ import ScheduleDrawer from "./ScheduleDrawer";
 import UnscheduledPanel from "./UnscheduledPanel";
 import FilterSidebar from "./FilterSidebar";
 import CalendarBody from "./CalendarBody";
+import MobileCalendarToolbar from "./MobileCalendarToolbar";
 
 import { useCalendarData } from "@/hooks/useCalendarData";
 import { useSchedule } from "@/hooks/useSchedule";
 import { useCalendarInteractions } from "@/hooks/useCalendarInteractions";
+import { Button } from "../ui/Button";
+
+type CategoryWithColor = { id: string; name: string; color: string };
 
 const localizer = dateFnsLocalizer({
   format,
@@ -99,23 +103,38 @@ export default function CalendarView({
   }, []);
 
   /**
+   * Cast data.categories to the shape expected by child components.
+   * The shared Category type is missing `color` — once that type is updated
+   * upstream (add `color: string` to the Category interface), this cast can be removed.
+   */
+  const categories = data.categories as unknown as CategoryWithColor[];
+
+  /**
    * Builds the list of calendar items to display based on active filters.
-   * Events are filtered by category; tasks by completion status and priority.
    */
   const getFilteredItems = () => {
     const items: any[] = [];
     data.events.forEach((e) => {
-      const cat = data.categories.find((c) => c.name === e.category);
-      if (cat && data.categoryFilters[cat.id]) items.push(e);
-      else if (!cat && activeFilters.events) items.push(e);
+      if ('category' in e) {
+        const cat = categories.find((c) => c.name === e.category);
+        if (cat && data.categoryFilters[cat.id]) items.push(e);
+        else if (!cat && activeFilters.events) items.push(e);
+      } else if (activeFilters.events) {
+        items.push(e);
+      }
     });
+
     if (activeFilters.tasks)
       items.push(
-        ...data.tasks.filter((t) => !t.completed && t.priority !== "High"),
+        ...data.tasks.filter(
+          (t) => !t.completed && (!('priority' in t) || t.priority !== "High")
+        )
       );
     if (activeFilters.priorityTasks)
       items.push(
-        ...data.tasks.filter((t) => !t.completed && t.priority === "High"),
+        ...data.tasks.filter(
+          (t) => !t.completed && 'priority' in t && t.priority === "High"
+        )
       );
     if (activeFilters.completed)
       items.push(...data.tasks.filter((t) => t.completed));
@@ -124,8 +143,6 @@ export default function CalendarView({
 
   /**
    * Called when the check-in modal completes.
-   * Refreshes tasks directly if nothing needs rescheduling,
-   * otherwise queues the tasks and shows the reschedule modal.
    */
   const handleCheckInDone = async (toReschedule: any[]) => {
     setShowCheckIn(false);
@@ -139,8 +156,6 @@ export default function CalendarView({
 
   /**
    * Called when the reschedule modal confirms a set of task IDs.
-   * Patches task durations to their remaining values, then posts a
-   * week-mode schedule request for today through the coming Sunday.
    */
   const handleRescheduleConfirm = async (ids: string[]) => {
     setShowReschedule(false);
@@ -188,7 +203,6 @@ export default function CalendarView({
     await data.fetchScheduleLogs();
   };
 
-  /** Returns the start (today at midnight) and end (coming Sunday) of the current week. */
   const weekBounds = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -197,22 +211,53 @@ export default function CalendarView({
     return { weekStart: today, weekEnd: sunday };
   };
 
-  /** Opens the event detail modal with the given event selected and editing disabled. */
   const openModal = (event: any) => {
     setSelectedEvent(event);
     setIsEditing(false);
     setIsModalOpen(true);
   };
-  
-  /** Closes the event detail modal and resets editing and task edit state. */
+
   const closeModal = () => {
     setIsModalOpen(false);
     setIsEditing(false);
     ix.setIsTaskEditOpen(false);
   };
 
+  const filterProps = {
+    activeFilters,
+    categories,
+    categoryFilters: data.categoryFilters,
+    onToggleFilter: (key: string) =>
+      setActiveFilters((p) => ({ ...p, [key]: !p[key] })),
+    onToggleCategory: (id: string) =>
+      data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] })),
+    onManageCategories: () => setShowCategoryManager(true),
+  };
+
+  const unscheduledProps = {
+    unscheduledTasks: data.unscheduledTasks,
+    scheduleLogs: data.scheduleLogs,
+    events: data.events,
+    categories,
+    onTaskClick: setQuickScheduleTask,
+    onEditLog: (log: any) => {
+      sched.patch({
+        scheduleMode: log.mode,
+        showScheduleDialog: true,
+        ...(log.mode === "day"
+          ? { scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd") }
+          : { scheduleWeekStart: format(new Date(log.scheduledAt), "yyyy-MM-dd") }),
+      });
+    },
+    onDeleteLog: async (id: string) => {
+      await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
+      await data.refreshTasks();
+      data.fetchScheduleLogs();
+    },
+  };
+
   return (
-    <div className="flex gap-6">
+    <div className="w-full flex justify-center px-4">
       {showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
       {showReschedule &&
         rescheduleQueue.length > 0 &&
@@ -233,44 +278,32 @@ export default function CalendarView({
           );
         })()}
 
-      {/* Hidden on small screens, visible from lg breakpoint */}
       <div className="hidden lg:block">
-        <FilterSidebar
-          activeFilters={activeFilters}
-          categories={data.categories}
-          categoryFilters={data.categoryFilters}
-          onToggleFilter={(key) =>
-            setActiveFilters((p) => ({ ...p, [key]: !p[key] }))
-          }
-          onToggleCategory={(id) =>
-            data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] }))
-          }
-          onManageCategories={() => setShowCategoryManager(true)}
-        />
+        <FilterSidebar {...filterProps} />
       </div>
 
       <div className="flex-1 min-w-0">
-        {/* Schedule buttons hidden on small screens */}
         <div className="hidden lg:flex gap-2 mb-4">
-          <button
+          <Button
             onClick={() => sched.open("day", calendarDate)}
             className="flex-1 bg-gray-900 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-black transition-all"
           >
             Schedule My Day
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => sched.open("week", calendarDate)}
             className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
           >
             Schedule My Week
-          </button>
+          </Button>
         </div>
+
         <CalendarBody
           localizer={localizer}
           filteredItems={getFilteredItems()}
           calendarDate={calendarDate}
           scheduleLogs={data.scheduleLogs}
-          categories={data.categories}
+          categories={categories}
           searchQuery={ix.searchQuery}
           searchResults={ix.searchResults}
           showSearchResults={ix.showSearchResults}
@@ -294,37 +327,16 @@ export default function CalendarView({
         />
       </div>
 
-      {/* Hidden on small screens, visible from lg breakpoint */}
       <div className="hidden lg:block">
-        <UnscheduledPanel
-          unscheduledTasks={data.unscheduledTasks}
-          scheduleLogs={data.scheduleLogs}
-          events={data.events}
-          categories={data.categories}
-          onTaskClick={setQuickScheduleTask}
-          onEditLog={(log) => {
-            sched.patch({
-              scheduleMode: log.mode,
-              showScheduleDialog: true,
-              ...(log.mode === "day"
-                ? {
-                    scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd"),
-                  }
-                : {
-                    scheduleWeekStart: format(
-                      new Date(log.scheduledAt),
-                      "yyyy-MM-dd",
-                    ),
-                  }),
-            });
-          }}
-          onDeleteLog={async (id) => {
-            await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
-            await data.refreshTasks();
-            data.fetchScheduleLogs();
-          }}
-        />
+        <UnscheduledPanel {...unscheduledProps} />
       </div>
+
+      <MobileCalendarToolbar
+        onScheduleDay={() => sched.open("day", calendarDate)}
+        onScheduleWeek={() => sched.open("week", calendarDate)}
+        {...filterProps}
+        {...unscheduledProps}
+      />
 
       {isModalOpen && (
         <EventDetailModal

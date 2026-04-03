@@ -16,52 +16,38 @@ import { useEffect, useState } from "react";
  *
  * @returns {Object} Report data and control state
  */
+export function useAdminReports(filters: Record<string, string>) {
+  const [reports, setReports] = useState([]);
+  const [reportLoading, setReportLoading] = useState(true);
+  const [totalReportPages, setTotalReportPages] = useState(1);
+  const [totalReports, setTotalReports] = useState<number | null>(null);
 
-export function useAdminReports(filters) {
-    const [reports, setReports] = useState([]); //track if reports get rendered
-    const [reportLoading, setReportLoading] = useState(true);		// Loading indicator for UI feedback
-    const [totalReportPages, setTotalReportPages] = useState(1);	// Pagination metadata
-    const [totalReports, setTotalReports] = useState(null);
+  useEffect(() => {
+    fetchReports();
+  }, [JSON.stringify(filters)]);
 
-    useEffect(() => {
-        fetchReports();
-    }, [filters]);
 
-	/**
-     * fetchReports
-     *
-     * Fetches report data from backend API using current filters.
-     * Handles:
-     * - Building query string
-     * - API request
-     * - Updating state with response data
-     */
-    async function fetchReports() {
-        try {
-            setReportLoading(true);		//start loading the state
-            const query = new URLSearchParams(filters);		// Convert filters object → query string
+  async function fetchReports() {
+    try {
+      setReportLoading(true);
+      const query = new URLSearchParams(filters);
+      const res = await fetch(`/api/admin/reports?${query.toString()}`);
 
-            const res = await fetch(`/api/admin/reports?${query.toString()}`);
+      if (!res.ok) {
+        console.log("Failed to fetch reports");
+        return;
+      }
 
-            if (!res.ok) {
-                console.log("Failed to fetch reports");
-                return;
-            }
-
-            const data = await res.json();
-
-            setReports(data.reports);		// Update report data
-            setTotalReportPages(data.totalPages);		// Update pagination info
-            setTotalReports(data.totalMatchingReports);
-        } 
-        catch (err) {
-            console.error(err);		// Handle network / unexpected errors
-            setReportLoading(false);
-        }
-        finally {
-            setReportLoading(false);		// Ensure loading state is always reset
-        }
+      const data = await res.json();
+      setReports(data.reports);
+      setTotalReportPages(data.totalPages);
+      setTotalReports(data.totalMatchingReports);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReportLoading(false);
     }
+  }
 
-    return {reports, totalReportPages, totalReports, reportLoading, fetchReports };
+  return { reports, totalReportPages, totalReports, reportLoading, fetchReports };
 }

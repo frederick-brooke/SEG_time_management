@@ -1,8 +1,13 @@
 "use client";
 
+/**
+ * Event Detail Modal component
+ */
+
 import { format } from "date-fns";
 import { MapPin } from "lucide-react";
 import { TaskForm, type TaskFormData } from "@/components/tasks/TaskForm";
+import { Button } from "../ui/Button";
 import EventForm from "@/components/calendar/EventForm";
 
 // Colour maps for the category/priority indicator stripe at the top of the modal.
@@ -86,12 +91,12 @@ export default function EventDetailModal({
         className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
+        <Button
           onClick={onClose}
           className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
         >
           ✕
-        </button>
+        </Button>
 
         {/* detail view */}
         {selectedEvent && !isEditing && !isTaskEditOpen ? (
@@ -175,12 +180,12 @@ export default function EventDetailModal({
 
                 {canEdit ? (
                   <>
-                    <button onClick={() => onSetTaskEdit(true)} className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all mt-2">
+                    <Button onClick={() => onSetTaskEdit(true)} className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all mt-2">
                       Edit Task
-                    </button>
-                    <button onClick={onDeleteTask} className="w-full bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-2xl font-bold hover:bg-red-500/20 transition-all">
+                    </Button>
+                    <Button onClick={onDeleteTask} className="w-full bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-2xl font-bold hover:bg-red-500/20 transition-all">
                       Delete Task
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <p className="text-xs text-white/30 text-center mt-4 border border-white/10 bg-white/5 p-3 rounded-xl">
@@ -202,22 +207,22 @@ export default function EventDetailModal({
 
                 {canEdit ? (
                   <>
-                    <button onClick={() => onSetEditing(true)} className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all mt-2">
+                    <Button onClick={() => onSetEditing(true)} className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all mt-2">
                       Edit Event
-                    </button>
+                    </Button>
                     {(selectedEvent.recurrence?.type && selectedEvent.recurrence.type !== "none") || selectedEvent.isRecurring ? (
                       <div className="flex flex-col gap-2">
-                        <button onClick={() => onDeleteEvent("single")} className="bg-red-500/10 text-red-400 border border-red-500/20 py-3 rounded-2xl font-bold hover:bg-red-500/20 transition-all text-sm">
+                        <Button onClick={() => onDeleteEvent("single")} className="bg-red-500/10 text-red-400 border border-red-500/20 py-3 rounded-2xl font-bold hover:bg-red-500/20 transition-all text-sm">
                           Delete Only This Instance
-                        </button>
-                        <button onClick={() => onDeleteEvent("series")} className="bg-red-500 text-white py-3 rounded-2xl font-bold hover:bg-red-600 transition-all text-sm">
+                        </Button>
+                        <Button onClick={() => onDeleteEvent("series")} className="bg-red-500 text-white py-3 rounded-2xl font-bold hover:bg-red-600 transition-all text-sm">
                           Delete Entire Series
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <button onClick={() => onDeleteEvent("series")} className="bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-2xl font-bold hover:bg-red-500/20 transition-all">
+                      <Button onClick={() => onDeleteEvent("series")} className="bg-red-500/10 text-red-400 border border-red-500/20 py-4 rounded-2xl font-bold hover:bg-red-500/20 transition-all">
                         Delete Event
-                      </button>
+                      </Button>
                     )}
                   </>
                 ) : (
@@ -232,9 +237,9 @@ export default function EventDetailModal({
         ) : /* task edit form */
         selectedEvent && isTaskEditOpen ? (
           <div>
-            <button onClick={() => onSetTaskEdit(false)} className="flex items-center gap-2 text-sm text-white/30 hover:text-white/70 mb-6 transition-colors">
+            <Button onClick={() => onSetTaskEdit(false)} className="flex items-center gap-2 text-sm text-white/30 hover:text-white/70 mb-6 transition-colors">
               ← Back
-            </button>
+            </Button>
             <h3 className="text-2xl font-black mb-6 text-white">Edit Task</h3>
             <TaskForm
               isOpen={true}

@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/modules/ModuleEvents.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import ModuleEvents, { ModuleEvent } from '../ModuleEvents';
 import '@testing-library/jest-dom';

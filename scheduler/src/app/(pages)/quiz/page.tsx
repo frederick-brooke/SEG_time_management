@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LunarCard } from "@/components/ui/lunar-card";
+import { LunarCard } from "@/components/ui/LunarCard";
+import { Button } from "@/components/ui/Button";
 
 const DAYS = [
   { label: "Monday",    abbr: "Mon" },
@@ -102,13 +103,13 @@ export default function QuizPage() {
             <div className="flex items-center gap-3">
               <span className="lunar-page-subtitle">{Math.round((currentStep / 4) * 100)}%</span>
               {/* Skip button */}
-              <button
+              <Button
                 onClick={handleSkip}
                 disabled={isLoading}
                 className="lunar-page-subtitle px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white/70 hover:bg-white/10 transition-all text-xs disabled:opacity-30"
               >
                 Skip setup →
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -170,7 +171,7 @@ export default function QuizPage() {
                 {DAYS.map(({ label, abbr }) => {
                   const checked = formData.daysOff.includes(abbr);
                   return (
-                    <button key={abbr} type="button"
+                    <Button key={abbr} type="button"
                       onClick={() => handleChange("daysOff",
                         checked ? formData.daysOff.filter((d) => d !== abbr) : [...formData.daysOff, abbr]
                       )}
@@ -184,7 +185,7 @@ export default function QuizPage() {
                         {checked && <span className="text-white text-[10px] font-bold">✓</span>}
                       </div>
                       <span className="text-sm font-medium">{label}</span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -236,7 +237,7 @@ export default function QuizPage() {
               	<label className="block text-sm font-semibold text-white/70 mb-2">How many breaks per day?</label>
 				<div className="flex gap-2">
 					{[1, 2, 3, 4, 5, 6].map((n) => (
-						<button key={n} type="button"
+						<Button key={n} type="button"
 							onClick={() => handleChange("breaksPerDay", n)}
 							className={`flex-1 py-2.5 rounded-xl text-sm font-bold border transition-all
 							${formData.breaksPerDay === n
@@ -244,7 +245,7 @@ export default function QuizPage() {
 								: "bg-white/5 text-white/60 border-white/10 hover:border-white/30"}`}
 						>
 							{n}
-						</button>
+						</Button>
 					))}
 				</div>
             </div>
@@ -281,7 +282,7 @@ export default function QuizPage() {
                   { value: "duration_asc",  label: "Shortest first",    desc: "Get quick wins early in the day" },
                   { value: "duration_desc", label: "Longest first",     desc: "Tackle big tasks while energy is high" },
                 ].map(({ value, label, desc }) => (
-                  <button key={value} type="button"
+                  <Button key={value} type="button"
                     onClick={() => handleChange("taskOrder", value)}
                     className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all
                       ${formData.taskOrder === value
@@ -296,7 +297,7 @@ export default function QuizPage() {
                       <p className="text-sm font-semibold text-white">{label}</p>
                       <p className="text-xs text-white/40">{desc}</p>
                     </div>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -331,7 +332,7 @@ export default function QuizPage() {
 					</label>
 					<div className="flex gap-2 flex-wrap">
 						{[0, 1, 2, 3, 5, 7, 14].map((n) => (
-						<button key={n} type="button"
+						<Button key={n} type="button"
 							onClick={() => handleChange("reminderDays", n)}
 							className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all
 							${formData.reminderDays === n
@@ -339,7 +340,7 @@ export default function QuizPage() {
 								: "bg-white/5 text-white/60 border-white/10 hover:border-white/30"}`}
 						>
 							{n === 0 ? "Day of" : `${n}d`}
-						</button>
+						</Button>
 						))}
 					</div>
 					
@@ -377,21 +378,21 @@ export default function QuizPage() {
 
         {/* Navigation*/}
         <div className="lunar-page-subtitle flex justify-between mt-8">
-			<button onClick={handleBack} disabled={currentStep === 1}
+			<Button onClick={handleBack} disabled={currentStep === 1}
 				className="px-5 py-2 rounded-full bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 disabled:opacity-30 transition-all">
 				Back
-			</button>
+			</Button>
 
 			{currentStep < 4 ? (
-				<button onClick={handleNext}
+				<Button onClick={handleNext}
 				className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg hover:scale-105 active:scale-95 transition-all">
 				Next →
-				</button>
+				</Button>
 			) : (
-				<button onClick={handleSubmit} disabled={isLoading}
+				<Button onClick={handleSubmit} disabled={isLoading}
 				className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all">
 				{isLoading ? "Saving…" : "Complete Setup ✓"}
-				</button>
+				</Button>
 			)}
         </div>
       </LunarCard>

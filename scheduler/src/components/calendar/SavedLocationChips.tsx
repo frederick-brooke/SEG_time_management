@@ -6,6 +6,7 @@
  */
 
 import { SavedLocation } from "hooks/useSavedLocations";
+import { Button } from "@/components/ui/Button";
 
 const TYPE_ICONS: Record<string, string> = {
   HOME: "🏠",
@@ -24,7 +25,7 @@ export default function SavedLocationChips({ locations, onSelect }: SavedLocatio
   return (
     <div className="flex flex-wrap gap-1.5 mt-1 mb-1">
       {locations.map((loc) => (
-        <button
+        <Button
           key={loc.id}
           type="button"
           onClick={() => onSelect(loc)}
@@ -32,7 +33,7 @@ export default function SavedLocationChips({ locations, onSelect }: SavedLocatio
           title={loc.address}
         >
           {TYPE_ICONS[loc.type]} {loc.label}
-        </button>
+        </Button>
       ))}
     </div>
   );

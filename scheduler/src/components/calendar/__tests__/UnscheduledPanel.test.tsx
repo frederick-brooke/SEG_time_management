@@ -1,15 +1,13 @@
 import React from "react";
+import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { format } from "date-fns";
 import UnscheduledPanel from "../UnscheduledPanel";
 
-// ---------------------------------------------------------------------------
 // Mocks
-// ---------------------------------------------------------------------------
 
 jest.mock("date-fns", () => ({
   format: jest.fn((date: Date, fmt: string) => {
-    // Deterministic output so snapshots are stable
     return `formatted(${date.toISOString()},${fmt})`;
   }),
 }));
@@ -21,13 +19,10 @@ jest.mock("@/lib/scheduling/taskSchedulingUtils", () => ({
 import { getNextOccurrenceDeadline } from "@/lib/scheduling/taskSchedulingUtils";
 const mockGetNextOccurrenceDeadline = getNextOccurrenceDeadline as jest.Mock;
 
-// ---------------------------------------------------------------------------
 // Shared fixture helpers
-// ---------------------------------------------------------------------------
 
 const NOW = new Date("2024-06-15T12:00:00.000Z");
 
-// Freeze time so all "daysLeft" calculations are deterministic
 beforeAll(() => {
   jest.useFakeTimers();
   jest.setSystemTime(NOW);
@@ -55,9 +50,7 @@ const baseProps = {
 const daysFromNow = (days: number) =>
   new Date(NOW.getTime() + days * 86_400_000);
 
-// ---------------------------------------------------------------------------
-// UnscheduledPanel — empty states
-// ---------------------------------------------------------------------------
+// UnscheduledPanel — empty states=
 
 describe("UnscheduledPanel — empty states", () => {
   it("renders the 'Unscheduled Tasks' heading", () => {
@@ -81,9 +74,7 @@ describe("UnscheduledPanel — empty states", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // UnscheduledPanel — unscheduled tasks list
-// ---------------------------------------------------------------------------
 
 describe("UnscheduledPanel — task cards", () => {
   const task = {
@@ -154,7 +145,6 @@ describe("UnscheduledPanel — task cards", () => {
     );
 
     expect(screen.getByText("Work")).toBeInTheDocument();
-    // The coloured stripe div should exist
     const stripe = document.querySelector("div.h-0\\.5");
     expect(stripe).toBeInTheDocument();
     expect(stripe).toHaveStyle({ backgroundColor: "#ff0000" });
@@ -162,7 +152,6 @@ describe("UnscheduledPanel — task cards", () => {
 
   it("does NOT render the category badge when there is no linked event", () => {
     render(<UnscheduledPanel {...baseProps} unscheduledTasks={[task]} />);
-    // 'Work' text should not appear
     expect(screen.queryByText("Work")).not.toBeInTheDocument();
   });
 
@@ -181,7 +170,6 @@ describe("UnscheduledPanel — task cards", () => {
     );
     const card = screen.getByText("Write tests").closest("div.group")!;
     fireEvent.mouseEnter(card);
-    // tagColor + "18"
     expect(card).toHaveStyle({ background: "#aabbcc18" });
     fireEvent.mouseLeave(card);
     expect(card).toHaveStyle({ background: "rgba(255,255,255,0.02)" });
@@ -198,9 +186,7 @@ describe("UnscheduledPanel — task cards", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // DeadlineBadge — dueDate branch
-// ---------------------------------------------------------------------------
 
 describe("DeadlineBadge — dueDate branch", () => {
   const makeTask = (dueDate: Date) => ({
@@ -222,7 +208,6 @@ describe("DeadlineBadge — dueDate branch", () => {
     );
     const badge = screen.getByText(/Due/);
     expect(badge).toBeInTheDocument();
-    // Should NOT contain urgency suffix
     expect(badge.textContent).not.toContain("d left");
     expect(badge.textContent).not.toContain("⚠️");
   });
@@ -286,9 +271,7 @@ describe("DeadlineBadge — dueDate branch", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // DeadlineBadge — eventId / relativeOffsetDays branch
-// ---------------------------------------------------------------------------
 
 describe("DeadlineBadge — eventId branch", () => {
   const eventStart = daysFromNow(20);
@@ -380,7 +363,7 @@ describe("DeadlineBadge — eventId branch", () => {
       <UnscheduledPanel
         {...baseProps}
         unscheduledTasks={[makeTask(0)]}
-        events={[]} // event not present
+        events={[]}
       />,
     );
     expect(screen.getByText("No deadline")).toBeInTheDocument();
@@ -404,9 +387,7 @@ describe("DeadlineBadge — eventId branch", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // DeadlineBadge — no deadline branch
-// ---------------------------------------------------------------------------
 
 describe("DeadlineBadge — no deadline", () => {
   it("renders 'No deadline' when task has no dueDate and no eventId", () => {
@@ -438,9 +419,7 @@ describe("DeadlineBadge — no deadline", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // Schedule Log
-// ---------------------------------------------------------------------------
 
 describe("UnscheduledPanel — schedule log", () => {
   const dayLog = {

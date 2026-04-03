@@ -1,10 +1,15 @@
 "use client";
-// src/components/calendar/FutureTasksPanel.tsx
+
+/**
+ * Future Tasks Panel component
+ */
+
 import type { ScheduleState } from "@/hooks/useSchedule";
 import { PRIORITY_TEXT } from "@/lib/ui";
 import { format } from "date-fns";
+import { Button } from "../ui/Button";
 
-// ── Types 
+// Types 
 
 interface Task {
   id: string;
@@ -22,7 +27,7 @@ interface FutureTasksPanelProps {
   futureTasks: Task[];
 }
 
-// ── Reusable task row ──────
+// Reusable task row
 
 function TaskRow({
   task,
@@ -71,7 +76,7 @@ function TaskRow({
   );
 }
 
-// ── Main component ─
+// Main component
 
 export default function FutureTasksPanel({
   state,
@@ -115,7 +120,7 @@ export default function FutureTasksPanel({
         <div className="p-4 border-t border-purple-500/20">
           <div className="flex gap-2 mb-3">
             {(["auto", "manual"] as const).map((m) => (
-              <button
+              <Button
                 key={m}
                 onClick={() => patch({ futureModeAuto: m === "auto" })}
                 className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
@@ -125,7 +130,7 @@ export default function FutureTasksPanel({
                 }`}
               >
                 {m === "auto" ? "✨ Auto-pick" : "✋ I'll choose"}
-              </button>
+              </Button>
             ))}
           </div>
 
