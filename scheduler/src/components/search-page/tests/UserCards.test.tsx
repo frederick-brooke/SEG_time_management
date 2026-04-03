@@ -1,65 +1,151 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import UserCard from "../UserCards";
+/**
+ * @jest-environment jsdom
+ */
 
-// Mocks
-
-jest.mock("@/components/ui/GlassCard", () => (props: any) => (
-  <div data-testid="glass-card" onClick={props.onClick}>
-    {props.children}
-  </div>
-));
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { resolveAvatarSrc } from "@/lib/avatar";
+import UserCard from "@/components/search-page/UserCards";
 
 jest.mock("@/lib/avatar", () => ({
-  resolveAvatarSrc: jest.fn(),
+	resolveAvatarSrc: jest.fn(),
 }));
 
-import { resolveAvatarSrc } from "@/lib/avatar";
+jest.mock("@/components/ui/GlassCard", () => (props: any) => (
+	<div data-testid="glass-card" onClick={props.onClick}>
+		{props.children}
+	</div>
+));
 
-// Tests
+jest.mock("@tabler/icons-react", () => ({
+	IconX: () => <svg data-testid="icon-x" />,
+}));
+
+const mockedResolveAvatarSrc = resolveAvatarSrc as jest.MockedFunction<typeof resolveAvatarSrc>;
 
 describe("UserCard", () => {
-  const baseUser = {
-    username: "johndoe",
-    fname: "John",
-    lname: "Doe",
-    pfp: "avatar.png",
-  };
+	let user: ReturnType<typeof userEvent.setup>;
 
-  test("renders avatar image when resolveAvatarSrc returns src", () => {
-    (resolveAvatarSrc as jest.Mock).mockReturnValue("avatar-url");
+	beforeEach(() => {
+		user = userEvent.setup();
+		jest.clearAllMocks();
+	});
 
-    render(<UserCard user={baseUser} onClick={jest.fn()} />);
+	it("renders with avatar image", () => {
+		mockedResolveAvatarSrc.mockReturnValue("avatar.png");
 
-    const img = screen.getByAltText("Profile");
-    expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute("src", "avatar-url");
-  });
+		render(
+			<UserCard
+				user={{ username: "testuser", pfp: "img.png" }}
+				onClick={jest.fn()}
+			/>
+		);
 
-  test("renders initials fallback when no avatar", () => {
-    (resolveAvatarSrc as jest.Mock).mockReturnValue(null);
+		expect(screen.getByRole("img")).toBeInTheDocument();
+		expect(screen.getByText("testuser")).toBeInTheDocument();
+	});
 
-    render(<UserCard user={baseUser} onClick={jest.fn()} />);
+	it("renders fallback initials when no avatar", () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
 
-    expect(screen.getByText("JD")).toBeInTheDocument();
-  });
+		render(
+			<UserCard
+				user={{ username: "testuser", fname: "John", lname: "Doe" }}
+				onClick={jest.fn()}
+			/>
+		);
 
-  test("renders username and full name", () => {
-    (resolveAvatarSrc as jest.Mock).mockReturnValue(null);
+		expect(screen.getByText("JD")).toBeInTheDocument();
+	});
 
-    render(<UserCard user={baseUser} onClick={jest.fn()} />);
+	it("renders username fallback initial when no names", () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
 
-    expect(screen.getByText("johndoe")).toBeInTheDocument();
-    expect(screen.getByText("John Doe")).toBeInTheDocument();
-  });
+		render(
+			<UserCard
+				user={{ username: "alpha" }}
+				onClick={jest.fn()}
+			/>
+		);
 
-  test("calls onClick when card is clicked", () => {
-    (resolveAvatarSrc as jest.Mock).mockReturnValue(null);
-    const handleClick = jest.fn();
+		expect(screen.getByText("a")).toBeInTheDocument();
+	});
 
-    render(<UserCard user={baseUser} onClick={handleClick} />);
+	it("renders full name when available", () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
 
-    fireEvent.click(screen.getByTestId("glass-card"));
+		render(
+			<UserCard
+				user={{ username: "testuser", fname: "John", lname: "Doe" }}
+				onClick={jest.fn()}
+			/>
+		);
 
-    expect(handleClick).toHaveBeenCalled();
-  });
+		expect(screen.getByText("John Doe")).toBeInTheDocument();
+	});
+
+	it("calls onClick when card is clicked", async () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
+
+		const onClick = jest.fn();
+
+		render(
+			<UserCard
+				user={{ username: "testuser" }}
+				onClick={onClick}
+			/>
+		);
+
+		await user.click(screen.getByTestId("glass-card"));
+
+		expect(onClick).toHaveBeenCalled();
+	});
+
+	it("renders remove button when onRemove exists", () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
+
+		render(
+			<UserCard
+				user={{ username: "testuser" }}
+				onClick={jest.fn()}
+				onRemove={jest.fn()}
+			/>
+		);
+
+		expect(screen.getByTestId("icon-x")).toBeInTheDocument();
+	});
+
+	it("calls onRemove and stops propagation", async () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
+
+		const onClick = jest.fn();
+		const onRemove = jest.fn();
+
+		render(
+			<UserCard
+				user={{ username: "testuser" }}
+				onClick={onClick}
+				onRemove={onRemove}
+			/>
+		);
+
+		await user.click(screen.getByTestId("icon-x"));
+
+		expect(onRemove).toHaveBeenCalled();
+		expect(onClick).not.toHaveBeenCalled();
+	});
+
+	it("does not render remove button when onRemove is not provided", () => {
+		mockedResolveAvatarSrc.mockReturnValue("");
+
+		render(
+			<UserCard
+				user={{ username: "testuser" }}
+				onClick={jest.fn()}
+			/>
+		);
+
+		expect(screen.queryByTestId("icon-x")).not.toBeInTheDocument();
+	});
 });
