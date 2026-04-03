@@ -6,13 +6,13 @@ jest.mock("components/ui/Button", () => ({
   Button: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-jest.mock("components/ui/separator", () => ({
+jest.mock("components/ui/Separator", () => ({
   Separator: ({ orientation, className }: any) => (
     <div data-testid="separator" data-orientation={orientation} className={className} />
   ),
 }));
 
-jest.mock("@/components/ui/sidebar", () => ({
+jest.mock("@/components/ui/Sidebar", () => ({
   SidebarTrigger: ({ className }: any) => (
     <button data-testid="sidebar-trigger" className={className}>
       Trigger

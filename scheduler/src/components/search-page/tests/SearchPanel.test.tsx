@@ -23,7 +23,7 @@ jest.mock("@/components/search-page/SearchControls", () => (props: any) => (
   </Button>
 ));
 
-jest.mock("@/components/search-page/searchUsers", () => () => (
+jest.mock("@/components/search-page/SearchUsers", () => () => (
   <div data-testid="search-users" />
 ));
 

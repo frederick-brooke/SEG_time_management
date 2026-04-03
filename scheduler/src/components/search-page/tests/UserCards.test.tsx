@@ -3,7 +3,7 @@ import UserCard from "../UserCards";
 
 // Mocks
 
-jest.mock("@/components/ui/glassCard", () => (props: any) => (
+jest.mock("@/components/ui/GlassCard", () => (props: any) => (
   <div data-testid="glass-card" onClick={props.onClick}>
     {props.children}
   </div>

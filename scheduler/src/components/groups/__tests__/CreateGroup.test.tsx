@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/groups/CreateGroup.tsx
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";

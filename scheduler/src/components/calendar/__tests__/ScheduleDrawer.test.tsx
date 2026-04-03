@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ScheduleDrawer from "../ScheduleDrawer";
 
-// ── Mocks 
 
 jest.mock("@/lib/ui", () => ({
   PRIORITY_TEXT: { high: "text-red-400", medium: "text-yellow-400", low: "text-green-400" },
@@ -16,7 +15,7 @@ jest.mock("../FutureTasksPanel", () => ({
   ),
 }));
 
-jest.mock("@/components/ui/drawer", () => ({
+jest.mock("@/components/ui/Drawer", () => ({
   Drawer: ({ children, open }: any) => open ? <div>{children}</div> : null,
   DrawerContent: ({ children }: any) => <div>{children}</div>,
   DrawerHeader: ({ children }: any) => <div>{children}</div>,
@@ -26,7 +25,6 @@ jest.mock("@/components/ui/drawer", () => ({
   DrawerClose: ({ children, onClick }: any) => <Button onClick={onClick}>{children}</Button>,
 }));
 
-// ── Helpers ────────
 
 const baseState = {
   showScheduleDialog: true,
@@ -67,7 +65,6 @@ function renderDrawer(stateOverrides = {}) {
 
 beforeEach(() => jest.clearAllMocks());
 
-// ── Rendering ──────
 
 describe("ScheduleDrawer — rendering", () => {
   it("renders nothing when showScheduleDialog is false", () => {
@@ -101,7 +98,6 @@ describe("ScheduleDrawer — rendering", () => {
   });
 });
 
-// ── Scheduled tasks panel ──
 
 describe("ScheduleDrawer — scheduled tasks panel", () => {
   it("shows empty message when no tasks scheduled for the period", () => {
@@ -128,7 +124,6 @@ describe("ScheduleDrawer — scheduled tasks panel", () => {
   });
 });
 
-// ── Unscheduled tasks ──────
 
 describe("ScheduleDrawer — unscheduled tasks", () => {
   const unscheduledTask = {
@@ -170,7 +165,6 @@ describe("ScheduleDrawer — unscheduled tasks", () => {
   });
 });
 
-// ── Unavailable days ───────
 
 describe("ScheduleDrawer — unavailable days", () => {
   it("shows day buttons in week mode", () => {
@@ -195,8 +189,6 @@ describe("ScheduleDrawer — unavailable days", () => {
     expect(mockPatch).toHaveBeenCalledWith({ unavailableDays: [] });
   });
 });
-
-// ── Break settings ─
 
 describe("ScheduleDrawer — break settings", () => {
   it("shows session and break length inputs when skipBreaks is false", () => {
@@ -228,8 +220,6 @@ describe("ScheduleDrawer — break settings", () => {
     expect(mockPatch).toHaveBeenCalledWith({ breakLengthMins: 10 });
   });
 });
-
-// ── Warning banners 
 
 describe("ScheduleDrawer — over capacity warning", () => {
   const overCapacityState = {
@@ -284,8 +274,6 @@ describe("ScheduleDrawer — missed deadline warning", () => {
   });
 });
 
-// ── Footer ─────────
-
 describe("ScheduleDrawer — footer", () => {
   it("shows Create Schedule button when no warnings", () => {
     renderDrawer();
@@ -308,8 +296,6 @@ describe("ScheduleDrawer — footer", () => {
     expect(screen.getByText("Scheduling…").closest("button")).toBeDisabled();
   });
 });
-
-// ── Date input ─────
 
 describe("ScheduleDrawer — date input", () => {
   it("patches scheduleDate in day mode on date change", () => {
@@ -334,8 +320,6 @@ describe("ScheduleDrawer — date input", () => {
     }));
   });
 });
-
-// ── Close button ───
 
 describe("ScheduleDrawer — close", () => {
   it("calls onClose when the X button is clicked", () => {

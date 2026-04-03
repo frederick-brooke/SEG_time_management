@@ -8,7 +8,10 @@ collectCoverageFrom: [
   "src/**/*.{js,jsx,ts,tsx}",
   "!src/**/*.d.ts",
   "!src/**/types.ts",
-  "!index.ts"
+  "!src/**/index.ts",
+  "!src/app/(pages)/groups/page.tsx",
+  "!src/app/(pages)/groups/[groupId]/page.tsx"
+
 ],
 setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 forceExit: true,

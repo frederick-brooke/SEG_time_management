@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/ProfileHeader.tsx
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProfileHeader from "../ProfileHeader";
 import { sendFriendRequest, removeFriend, cancelSentRequest } from "@/app/actions/profile/friends";

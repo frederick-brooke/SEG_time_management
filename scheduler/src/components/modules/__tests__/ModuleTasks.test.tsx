@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/modules/ModuleTasks.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import ModuleTasks, { ModuleTask, TaskWithProgress } from '../ModuleTasks';
 import '@testing-library/jest-dom';

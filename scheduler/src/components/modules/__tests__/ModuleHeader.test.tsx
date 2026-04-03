@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/modules/ModuleHeader.tsx
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import ModuleHeader from '../ModuleHeader';
 import '@testing-library/jest-dom';

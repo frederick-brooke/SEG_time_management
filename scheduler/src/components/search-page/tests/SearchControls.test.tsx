@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import SearchControls from "../SearchControls";
 
-jest.mock("@/components/ui/glassCard", () => (props: any) => (
+jest.mock("@/components/ui/GlassCard", () => (props: any) => (
   <div>{props.children}</div>
 ));
 

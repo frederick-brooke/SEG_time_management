@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import QuoteBlock from "../QuoteBlock";
 
 // Mock GlassCard to avoid styling noise
-jest.mock("@/components/ui/glassCard", () => {
+jest.mock("@/components/ui/GlassCard", () => {
   return ({ children }: any) => <div>{children}</div>;
 });
 

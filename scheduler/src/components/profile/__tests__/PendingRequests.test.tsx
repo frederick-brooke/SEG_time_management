@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/PendingRequests.tsx
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import PendingRequests from "../PendingRequests";
 import { acceptFriendRequest, declineFriendRequest } from "@/app/actions/profile/friends";
