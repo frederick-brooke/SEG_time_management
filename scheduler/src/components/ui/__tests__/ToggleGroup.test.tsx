@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react";
 
 const toggleVariantsMock = jest.fn((_args: { variant?: string; size?: string }) => "toggle-variants-class");
 
-jest.mock("components/ui/toggle", () => ({
+jest.mock("components/ui/Toggle", () => ({
   __esModule: true,
   toggleVariants: (args: { variant?: string; size?: string }) => toggleVariantsMock(args),
 }));
@@ -33,7 +33,7 @@ jest.mock("@radix-ui/react-toggle-group", () => {
 
 import { ToggleGroup, ToggleGroupItem } from "../ToggleGroup";
 
-describe("components/ui/toggle-group", () => {
+describe("components/ui/ToggleGroup", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

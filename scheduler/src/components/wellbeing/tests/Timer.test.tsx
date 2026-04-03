@@ -1,7 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Timer from "../Timer";
 import React from "react";
-import { Button } from "@/components/ui/Button";
 
 // Mocks
 
@@ -14,7 +13,7 @@ global.fetch = jest.fn(() =>
 ) as jest.Mock;
 
 // mock Reminders
-jest.mock("../reminders", () => ({
+jest.mock("../Reminders", () => ({
   __esModule: true,
   default: () => <div>MockReminders</div>,
 }));

@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/FriendStatCard.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import FriendStatCard from '../FriendStatCard';
 import '@testing-library/jest-dom';

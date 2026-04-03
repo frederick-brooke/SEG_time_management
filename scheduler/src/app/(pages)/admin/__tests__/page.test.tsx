@@ -27,12 +27,12 @@ jest.mock("@/components/effects/StarField", () => ({
   default: () => null,
 }));
 
-jest.mock("@/components/ui/glowBackground", () => ({
+jest.mock("@/components/ui/GlowBackground", () => ({
   __esModule: true,
   default: () => null,
 }));
 
-jest.mock("@/components/ui/glassCard", () => ({
+jest.mock("@/components/ui/GlassCard", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));

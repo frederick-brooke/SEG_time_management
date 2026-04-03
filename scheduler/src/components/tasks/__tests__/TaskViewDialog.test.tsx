@@ -8,7 +8,7 @@ import { TaskViewDialog } from "../TaskViewDialog";
 
 // Mocks
 
-jest.mock("../../ui/dialog", () => {
+jest.mock("../../ui/Dialog", () => {
   const React = require("react");
 
   function Dialog({ open, onOpenChange, children }: any) {
@@ -60,7 +60,7 @@ jest.mock("../../ui/dialog", () => {
   };
 });
 
-jest.mock("../../ui/label", () => {
+jest.mock("../../ui/Label", () => {
   const React = require("react");
   return {
     Label: ({ children, className }: any) => (

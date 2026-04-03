@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AppSidebar } from '../AppSidebar';
 import { Button } from "@/components/ui/Button";
 
-// ── Mocks ─────────────────────────────────────────────────────────────────────
 
 const mockPush = jest.fn();
 const mockPathname = jest.fn().mockReturnValue('/dashboard');
@@ -70,7 +69,7 @@ jest.mock('@/components/search-page/SearchPanel', () => ({
     ) : null,
 }));
 
-jest.mock('@/components/ui/sidebar', () => ({
+jest.mock('@/components/ui/Sidebar', () => ({
   Sidebar: ({ children, ...props }: any) => <div data-testid="sidebar" {...props}>{children}</div>,
   SidebarContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   SidebarFooter: ({ children, ...props }: any) => <div {...props}>{children}</div>,
@@ -79,7 +78,6 @@ jest.mock('@/components/ui/sidebar', () => ({
   SidebarMenuItem: ({ children }: any) => <div>{children}</div>,
 }));
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const { useSession, signOut } = require('next-auth/react');
 const { getNotifications } = require('@/app/actions/notifications');
@@ -103,8 +101,6 @@ const mockSession = (overrides = {}) => {
   });
 };
 
-// ── Tests ─────────────────────────────────────────────────────────────────────
-
 describe('AppSidebar', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -117,8 +113,6 @@ describe('AppSidebar', () => {
     checkUpcomingEventNotifications.mockResolvedValue(undefined);
     checkUpcomingDeadlines.mockResolvedValue(undefined);
   });
-
-  // ── Rendering ──────────────────────────────────────────────────────────────
 
   describe('rendering', () => {
     it('renders the sidebar', async () => {
@@ -217,7 +211,6 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Active state ───────────────────────────────────────────────────────────
 
   describe('active state', () => {
     it('marks dashboard as active when on /dashboard', async () => {
@@ -227,8 +220,6 @@ describe('AppSidebar', () => {
       expect(dashLink?.className).toContain('w-full');
     });
   });
-
-  // ── Search ─────────────────────────────────────────────────────────────────
 
   describe('search panel', () => {
     it('opens search panel when search pill clicked', async () => {
@@ -245,7 +236,6 @@ describe('AppSidebar', () => {
     });
   });
 
-  // ── Notifications ──────────────────────────────────────────────────────────
 
   describe('notifications', () => {
     it('opens notification modal when bell clicked', async () => {
@@ -343,8 +333,6 @@ describe('AppSidebar', () => {
 
   });
 
-  // ── Unread messages ────────────────────────────────────────────────────────
-
   describe('unread messages', () => {
     it('shows message badge when unread conversations exist', async () => {
       global.fetch = jest.fn().mockResolvedValue({
@@ -376,8 +364,6 @@ describe('AppSidebar', () => {
       expect(screen.getByTestId('sidebar')).toBeInTheDocument();
     });
   });
-
-  // ── User footer dropdown ───────────────────────────────────────────────────
 
   describe('user footer dropdown', () => {
     it('opens dropdown when 3-dots clicked', async () => {
@@ -443,8 +429,6 @@ describe('AppSidebar', () => {
       });
     });
   });
-
-  // ── Session-driven effects ─────────────────────────────────────────────────
 
   describe('session effects', () => {
     it('calls checkUpcomingDeadlines when session has user id', async () => {

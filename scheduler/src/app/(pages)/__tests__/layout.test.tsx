@@ -20,7 +20,7 @@ jest.mock("@/components/search-page/SearchPanel", () => ({
   ),
 }));
 
-jest.mock("@/components/ui/sidebar", () => ({
+jest.mock("@/components/ui/Sidebar", () => ({
   SidebarProvider: ({ children }: any) => <div>{children}</div>,
   SidebarInset: ({ children }: any) => <div>{children}</div>,
   SidebarTrigger: ({ onClick }: any) => (

@@ -17,7 +17,7 @@ jest.mock("@/context/UIContext", () => ({
 
 let capturedOnTick;
 
-jest.mock("@/components/wellbeing/timer", () => ({
+jest.mock("@/components/wellbeing/Timer", () => ({
   __esModule: true,
   default: ({ onTick }) => {
     capturedOnTick = onTick;
@@ -25,7 +25,7 @@ jest.mock("@/components/wellbeing/timer", () => ({
   },
 }));
 
-jest.mock("@/components/ui/reminderModal", () => ({
+jest.mock("@/components/ui/ReminderModal", () => ({
   __esModule: true,
   default: ({ open, onClose, title, children }) =>
     open ? (

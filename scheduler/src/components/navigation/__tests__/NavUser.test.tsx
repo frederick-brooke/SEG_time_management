@@ -4,7 +4,7 @@ import { useSidebar } from "@/components/ui/Sidebar";
 import { Button } from "@/components/ui/Button";
 
 // Mock the Sidebar components and hook
-jest.mock("@/components/ui/sidebar", () => ({
+jest.mock("@/components/ui/Sidebar", () => ({
   SidebarMenu: ({ children }: { children: React.ReactNode }) => <div data-testid="sidebar-menu">{children}</div>,
   SidebarMenuItem: ({ children }: { children: React.ReactNode }) => <div data-testid="sidebar-menu-item">{children}</div>,
   SidebarMenuButton: ({ children }: { children: React.ReactNode }) => <Button data-testid="sidebar-menu-button">{children}</Button>,
@@ -28,7 +28,7 @@ jest.mock("components/ui/DropdownMenu", () => ({
 }));
 
 // Mock the Avatar components
-jest.mock("@/components/ui/avatar", () => ({
+jest.mock("@/components/ui/Avatar", () => ({
   Avatar: ({ children }: { children: React.ReactNode }) => <div data-testid="avatar">{children}</div>,
   AvatarImage: ({ alt }: { alt: string }) => <img data-testid="avatar-image" alt={alt} />,
   AvatarFallback: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

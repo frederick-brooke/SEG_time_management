@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/StreakCard.tsx
 import { render, screen } from '@testing-library/react';
 import StreakCard from '../StreakCard';
 import '@testing-library/jest-dom';

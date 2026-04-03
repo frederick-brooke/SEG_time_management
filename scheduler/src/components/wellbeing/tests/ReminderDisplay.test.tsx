@@ -21,7 +21,7 @@ jest.mock("hooks/useReminders", () => ({
 }));
 
 // Mock UI components
-jest.mock("@/components/ui/glassCard", () => ({
+jest.mock("@/components/ui/GlassCard", () => ({
   __esModule: true,
   default: ({ children }: any) => <div>{children}</div>,
 }));
@@ -32,7 +32,7 @@ jest.mock("@/components/ui/Button", () => ({
   ),
 }));
 
-jest.mock("@/components/ui/reminderModal", () => ({
+jest.mock("@/components/ui/ReminderModal", () => ({
   __esModule: true,
   default: ({ open, title, children, onClose }: any) =>
     open ? (

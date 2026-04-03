@@ -1,3 +1,4 @@
+//tests for scheduler/src/components/profile/PointsCard.tsx
 import { render, screen } from '@testing-library/react';
 import PointsCard from '../PointsCard';
 import '@testing-library/jest-dom';

@@ -31,7 +31,7 @@ jest.mock("components/ui/DropdownMenu", () => ({
 }));
 
 // Mock the Sidebar components and hook
-jest.mock("@/components/ui/sidebar", () => ({
+jest.mock("@/components/ui/Sidebar", () => ({
   SidebarGroup: ({ children, className }: any) => (
     <div data-testid="sidebar-group" className={className}>{children}</div>
   ),

@@ -18,7 +18,7 @@ jest.mock("../UserCards", () => (props: any) => (
 ));
 
 // Mock GlassCard
-jest.mock("@/components/ui/glassCard", () => (props: any) => (
+jest.mock("@/components/ui/GlassCard", () => (props: any) => (
 	<div>{props.children}</div>
 ));
 

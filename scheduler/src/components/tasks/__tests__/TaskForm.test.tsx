@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/Select";
 
 // Mocks
 
-jest.mock("../../ui/dialog", () => {
+jest.mock("../../ui/Dialog", () => {
   const React = require("react");
 
   function Dialog({ open, children }) {

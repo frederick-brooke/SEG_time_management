@@ -7,7 +7,7 @@ jest.mock("@/hooks/useAdminStats", () => ({
 }));
 
 // Mock GlassCard (just render children)
-jest.mock("@/components/ui/glassCard", () => ({
+jest.mock("@/components/ui/GlassCard", () => ({
   __esModule: true,
   default: ({ children }) => <div>{children}</div>,
 }));
