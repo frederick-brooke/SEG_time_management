@@ -5,15 +5,6 @@ import { TooltipProvider } from "@/components/animate-ui/components/animate/Tool
 import { getStrictContext } from "lib/get-strict-context";
 import { cn } from "lib/utils";
 import {
-<<<<<<< HEAD:scheduler/src/components/animate-ui/components/radix/sidebar.context.tsx
-	SIDEBAR_COOKIE_MAX_AGE,
-	SIDEBAR_COOKIE_NAME,
-	SIDEBAR_KEYBOARD_SHORTCUT,
-	SIDEBAR_WIDTH,
-	SIDEBAR_WIDTH_ICON,
-} from "./sidebar.constants";
-import type { SidebarProviderProps } from "./sidebar.types";
-=======
   SIDEBAR_COOKIE_MAX_AGE,
   SIDEBAR_COOKIE_NAME,
   SIDEBAR_KEYBOARD_SHORTCUT,
@@ -21,7 +12,6 @@ import type { SidebarProviderProps } from "./sidebar.types";
   SIDEBAR_WIDTH_ICON,
 } from "./Sidebar.constants";
 import type { SidebarProviderProps } from "./Sidebar.types";
->>>>>>> 4244431b294b3274193d75e340ecadfeee33098c:scheduler/src/components/animate-ui/components/radix/Sidebar.context.tsx
 type SidebarContextValue = {
   state: "expanded" | "collapsed";
   open: boolean;

@@ -1,14 +1,3 @@
-<<<<<<< HEAD:scheduler/src/components/animate-ui/primitives/radix/checkbox.tsx
-"use client";
-import * as React from "react";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { motion } from "framer-motion";
-import type { SVGMotionProps } from "framer-motion";
-import { CheckIcon } from "lucide-react";
-import { getStrictContext } from "lib/get-strict-context";
-import { useControlledState } from "hooks/use-controlled-state";
-import { cn } from "lib/utils";
-=======
 'use client';
 import { Button } from "@/components/ui/Button";
 import * as React from 'react';
@@ -19,7 +8,6 @@ import { CheckIcon } from 'lucide-react';
 import { getStrictContext } from 'lib/get-strict-context';
 import { useControlledState } from 'hooks/use-controlled-state';
 import { cn } from 'lib/utils';
->>>>>>> 4244431b294b3274193d75e340ecadfeee33098c:scheduler/src/components/animate-ui/primitives/radix/Checkbox.tsx
 
 type CheckboxContextValue = {
 	isChecked: boolean | "indeterminate" | undefined;
