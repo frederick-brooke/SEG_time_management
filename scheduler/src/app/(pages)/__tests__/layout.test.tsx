@@ -7,6 +7,13 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import PagesLayout from "../layout";
 import { Button } from "@/components/ui/Button";
 
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({
+    data: { user: { id: "user-123", name: "Test User" } },
+    status: "authenticated",
+  }),
+}));
+
 jest.mock("@/components/layout/AppSidebar", () => ({
   AppSidebar: ({ onSearchClick }: any) => (
     <Button onClick={onSearchClick}>open-sidebar-search</Button>
