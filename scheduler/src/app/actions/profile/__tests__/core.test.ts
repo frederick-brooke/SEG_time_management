@@ -123,13 +123,16 @@ describe("Profile Server Actions", () => {
         ...mockDbUser,
         progress: { level: 5 },
         receivedRequests: [{ sender: { id: "sender-1" } }],
-        friends: [{ sender: { id: "sender-1" } }] as any,
+        friends: [
+          { id: "friend-1" },
+          { id: "friend-2" }
+        ],
         stats: {
           completedTasks: 1,
           totalTasks: 2,
           completionRate: 50,
-          friendCount: [{ sender: { id: "sender-1" } }] as any,
-          streak: 2, 
+          friendCount: 2,
+          streak: 10, 
         },
         friendStatus: "ME",
       });

@@ -17,6 +17,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/Sidebar";
 
+import { useSession } from "next-auth/react";
+
 /**
  * PagesLayout Component
  *
@@ -36,6 +38,13 @@ import {
 export default function PagesLayout({ children }: { children: React.ReactNode }) {
 	const [searchOpen, setSearchOpen] = useState(false);		// Controls whether the search panel is visible
 	const [sidebarOpen, setSidebarOpen] = useState(true);		// Controls sidebar open/collapsed state
+
+	const { data: session, status } = useSession();
+
+	if (status === "loading") return null;
+
+	//blocks the normal sidebar layout entirely if not logged in i.e. removes useUsers error
+	if (!session) return <>{children}</>;
 
 	return (
 		<SidebarProvider

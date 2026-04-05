@@ -69,18 +69,18 @@ function SettingsFormFields({ formData, currentMemberCount, onChange }: { formDa
   return (
     <>
       <div>
-        <label className="lunar-label">Module Name</label>
-        <input type="text" required value={formData.name} onChange={(e) => onChange({ name: e.target.value })} className="lunar-input w-full p-3 rounded-xl mt-1" />
+        <label htmlFor="module-name" className="lunar-label">Module Name</label>
+        <input id="module-name" type="text" required value={formData.name} onChange={(e) => onChange({ name: e.target.value })} className="lunar-input w-full p-3 rounded-xl mt-1" />
       </div>
 
       <div>
-        <label className="lunar-label">Description</label>
-        <textarea rows={3} value={formData.description} onChange={(e) => onChange({ description: e.target.value })} className="lunar-input w-full p-3 rounded-xl mt-1 resize-none" />
+        <label htmlFor="module-desc" className="lunar-label">Description</label>
+        <textarea id="module-desc" rows={3} value={formData.description} onChange={(e) => onChange({ description: e.target.value })} className="lunar-input w-full p-3 rounded-xl mt-1 resize-none" />
       </div>
 
       <div>
-        <label className="lunar-label">Max Members</label>
-        <input type="number" min={currentMemberCount} max={100} required value={formData.maxMembers} onChange={(e) => onChange({ maxMembers: parseInt(e.target.value) || currentMemberCount })} className="lunar-input w-full p-3 rounded-xl mt-1" />
+        <label htmlFor="module-max" className="lunar-label">Max Members</label>
+        <input id="module-max" type="number" min={currentMemberCount} max={100} required value={formData.maxMembers} onChange={(e) => onChange({ maxMembers: parseInt(e.target.value) || currentMemberCount })} className="lunar-input w-full p-3 rounded-xl mt-1" />
         <p className="text-[10px] text-white/30 mt-1 font-medium">
           Currently using {currentMemberCount} of {formData.maxMembers} spots.
         </p>
