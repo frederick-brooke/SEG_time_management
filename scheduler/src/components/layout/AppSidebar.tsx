@@ -49,7 +49,7 @@ import {
 
 import Link from "next/link";
 import SearchPanel from "@/components/search-page/SearchPanel";
-import NotificationModal from "@/app/components/NotificationModal";
+import NotificationModal from "@/components/notifications/NotificationModal";
 import { usePathname, useRouter } from "next/navigation";
 
 const NAV_SECTIONS = [

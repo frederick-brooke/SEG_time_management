@@ -14,7 +14,7 @@ import {
   getNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
-} from "../actions/notifications";
+} from "@/app/actions/notifications";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 
