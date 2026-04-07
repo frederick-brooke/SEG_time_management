@@ -27,7 +27,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   createNotification,
-} from "../../actions/notifications";
+} from "@/app/actions/notifications";
 import NotificationModal from "../NotificationModal";
 
 // Typed mock helpers 
