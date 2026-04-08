@@ -11,7 +11,6 @@ import { useSavedLocations, SavedLocation } from "hooks/useSavedLocations";
 import { useLocationSearch } from "@/lib/map";
 import LocationInput from "./LocationInput";
 import { Button } from "../ui/Button";
-import { Select } from "../ui/Select";
 
 interface TravelSectionProps {
   startLocationName: string;
