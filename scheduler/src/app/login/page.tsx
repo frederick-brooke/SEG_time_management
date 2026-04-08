@@ -11,7 +11,6 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, LogIn } from "lucide-react";
-import BannedPage from "@/components/admin/ban-message-page";
 
 function FormInput({
 	label,
@@ -50,7 +49,6 @@ function LoginForm() {
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, setIsPending] = useState(false);
-	const [showBannedInfo, setShowBannedInfo] = useState(false);
 
 	useEffect(() => {
 		if (status === "authenticated") {
@@ -82,7 +80,6 @@ function LoginForm() {
 			setIsPending(false);
 			if (result.error === "Banned") {
 				setError("Your account has been banned.");
-				setShowBannedInfo(true);
 			} else {
 				setError("Invalid email/username or password.");
 			}
@@ -185,8 +182,6 @@ function LoginForm() {
 						</Link>
 					</div>
 				</form>
-
-				{showBannedInfo && <BannedPage />}
 			</div>
 		</div>
 	);
