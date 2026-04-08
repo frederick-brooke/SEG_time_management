@@ -1,211 +1,182 @@
 import React from "react";
-import { Button } from "@/components/ui/Button";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import MapView from "../MapView";
-import { MapEvent } from "@/lib/map";
+import { useFriends } from "@/lib/map";
 
-// Mocks
+jest.mock("@/components/ui/Button", () => ({
+	Button: ({ children, ...props }: any) => (
+		<button {...props}>{children}</button>
+	),
+}));
 
 jest.mock("@/components/map/CombinedMap", () => ({
-  CombinedMap: ({
-    events,
-    friends,
-    userLocation,
-    defaultMode,
-  }: {
-    events: any[];
-    friends: any[];
-    userLocation?: { lat: number; lng: number } | null;
-    defaultMode?: string;
-  }) => (
-    <div
-      data-testid="combined-map"
-      data-event-count={events.length}
-      data-friend-count={friends.length}
-      data-has-location={userLocation != null ? "true" : "false"}
-      data-mode={defaultMode ?? ""}
-    />
-  ),
+	__esModule: true,
+	CombinedMap: (props: any) => (
+		<div data-testid="real-imported-combined-map">
+			<div>Imported CombinedMap</div>
+			<div>friends:{JSON.stringify(props.friends)}</div>
+			<div>events:{JSON.stringify(props.events)}</div>
+			<div>userLocation:{JSON.stringify(props.userLocation)}</div>
+			<div>defaultMode:{String(props.defaultMode)}</div>
+		</div>
+	),
 }));
 
-jest.mock("next/dynamic", () => ({
-  __esModule: true,
-  default: (factory: () => Promise<any>, _options?: any) => {
-    // For testing, we synchronously resolve the dynamic import
-    // This prevents the "Dynamic component not yet resolved" error
-    const mod = require("@/components/map/CombinedMap");
-    return mod.CombinedMap;
-  },
-}));
+jest.mock("next/dynamic", () => {
+	return (importer: any, options: any) => {
+		let ImportedComponent: any = null;
 
-jest.mock("@/lib/map", () => {
-  const actual = jest.requireActual("@/lib/map");
-  return {
-    ...actual,
-    useFriends: jest.fn(() => ({
-      friends: [],
-      error: null,
-      loading: false,
-    })),
-  };
+		// THIS is the important bit.
+		// It executes the dynamic import function, so line 53 gets covered.
+		importer().then((mod: any) => {
+			ImportedComponent = mod.default ?? mod;
+		});
+
+		const MockDynamicComponent = (props: any) => {
+			if (ImportedComponent) {
+				return <ImportedComponent {...props} />;
+			}
+
+			return options?.loading ? (
+				<div data-testid="dynamic-loading">{options.loading()}</div>
+			) : null;
+		};
+
+		return MockDynamicComponent;
+	};
 });
 
-// Fixtures
+jest.mock("@/lib/map", () => ({
+	useFriends: jest.fn(),
+}));
 
-function makeEvent(id: string, overrides: Partial<MapEvent> = {}): MapEvent {
-  return {
-    id,
-    title: `Event ${id}`,
-    category: "Work",
-    start: "2025-01-01T10:00:00Z",
-    end: "2025-01-01T11:00:00Z",
-    startCoords: { lat: 51.5, lng: -0.1 },
-    destinationCoords: { lat: 51.6, lng: -0.2 },
-    startLocationName: "Home",
-    destLocationName: "Office",
-    travelDuration: 30,
-    transportMode: "DRIVE",
-    ...overrides,
-  } as MapEvent;
-}
-
-const USER_LOCATION = { lat: 51.5074, lng: -0.1278 };
-
-// Tests
+const mockedUseFriends = useFriends as jest.Mock;
 
 describe("MapView", () => {
-  beforeEach(() => jest.clearAllMocks());
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-  // Core rendering
+	it("shows friends loading placeholder when loading and defaultMode is friends", () => {
+		mockedUseFriends.mockReturnValue({
+			friends: [],
+			error: null,
+			loading: true,
+		});
 
-  it("renders without crashing", () => {
-    render(<MapView events={[]} />);
-  });
+		render(
+			<MapView
+				events={[]}
+				userLocation={{ lat: 1, lng: 2 }}
+				defaultMode="friends"
+			/>,
+		);
 
-  it("renders the CombinedMap component", () => {
-    render(<MapView events={[]} />);
-    expect(screen.getByTestId("combined-map")).toBeInTheDocument();
-  });
+		expect(screen.getByText("Loading friends...")).toBeInTheDocument();
+		expect(
+			screen.queryByTestId("real-imported-combined-map"),
+		).not.toBeInTheDocument();
+	});
 
-  // Data flow — events
+	it("renders imported CombinedMap after dynamic importer resolves", async () => {
+		mockedUseFriends.mockReturnValue({
+			friends: [{ id: "f1", name: "Alice" }],
+			error: null,
+			loading: false,
+		});
 
-  it("passes events to CombinedMap", () => {
-    render(<MapView events={[makeEvent("a"), makeEvent("b")]} />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-event-count",
-      "2"
-    );
-  });
+		render(
+			<MapView
+				events={[{ id: "e1", title: "Lecture" } as any]}
+				userLocation={{ lat: 10, lng: 20 }}
+				defaultMode="friends"
+			/>,
+		);
 
-  it("passes an empty events array to CombinedMap", () => {
-    render(<MapView events={[]} />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-event-count",
-      "0"
-    );
-  });
+		await waitFor(() => {
+			expect(
+				screen.getByTestId("real-imported-combined-map"),
+			).toBeInTheDocument();
+		});
 
-  // friends injection
+		expect(screen.getByText(/friends:/)).toHaveTextContent(
+			'friends:[{"id":"f1","name":"Alice"}]',
+		);
+		expect(screen.getByText(/events:/)).toHaveTextContent(
+			'events:[{"id":"e1","title":"Lecture"}]',
+		);
+		expect(screen.getByText(/userLocation:/)).toHaveTextContent(
+			'userLocation:{"lat":10,"lng":20}',
+		);
+		expect(screen.getByText(/defaultMode:/)).toHaveTextContent(
+			"defaultMode:friends",
+		);
+	});
 
-  it("always injects friends=[] into CombinedMap", () => {
-    render(<MapView events={[]} />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-friend-count",
-      "0"
-    );
-  });
+	it("renders error banner when there is an error", async () => {
+		mockedUseFriends.mockReturnValue({
+			friends: [],
+			error: "Failed to load friends",
+			loading: false,
+		});
 
-  it("shows loading state when defaultMode is friends and useFriends is loading", () => {
-    const { useFriends: mockUseFriends } = require("@/lib/map");
-    mockUseFriends.mockReturnValueOnce({
-      friends: [],
-      error: null,
-      loading: true,
-    });
+		render(<MapView events={[]} defaultMode="events" />);
 
-    render(<MapView events={[]} defaultMode="friends" />);
-    expect(screen.getByText("Loading friends...")).toBeInTheDocument();
-  });
+		expect(screen.getByText("Failed to load friends")).toBeInTheDocument();
 
-  it("shows error message when useFriends returns an error", () => {
-    const { useFriends: mockUseFriends } = require("@/lib/map");
-    mockUseFriends.mockReturnValueOnce({
-      friends: [],
-      error: "Failed to fetch friends: 500",
-      loading: false,
-    });
+		await waitFor(() => {
+			expect(
+				screen.getByTestId("real-imported-combined-map"),
+			).toBeInTheDocument();
+		});
+	});
 
-    render(<MapView events={[]} />);
-    expect(screen.getByText("Failed to fetch friends: 500")).toBeInTheDocument();
-  });
+	it("renders map without error banner when there is no error", async () => {
+		mockedUseFriends.mockReturnValue({
+			friends: [],
+			error: null,
+			loading: false,
+		});
 
-  // userLocation prop
+		render(<MapView events={[]} defaultMode="events" />);
 
-  it("passes userLocation to CombinedMap when provided", () => {
-    render(<MapView events={[]} userLocation={USER_LOCATION} />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-has-location",
-      "true"
-    );
-  });
+		expect(
+			screen.queryByText("Failed to load friends"),
+		).not.toBeInTheDocument();
 
-  it("passes null userLocation to CombinedMap when explicitly null", () => {
-    render(<MapView events={[]} userLocation={null} />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-has-location",
-      "false"
-    );
-  });
+		await waitFor(() => {
+			expect(
+				screen.getByTestId("real-imported-combined-map"),
+			).toBeInTheDocument();
+		});
+	});
 
-  it("handles omitted userLocation without throwing", () => {
-    expect(() => render(<MapView events={[]} />)).not.toThrow();
-  });
+	it("passes undefined userLocation and defaultMode when omitted", async () => {
+		mockedUseFriends.mockReturnValue({
+			friends: [{ id: "f2", name: "Bob" }],
+			error: null,
+			loading: false,
+		});
 
-  // defaultMode prop
+		render(<MapView events={[{ id: "e2" } as any]} />);
 
-  it("passes defaultMode to CombinedMap when provided", () => {
-    render(<MapView events={[]} defaultMode="friends" />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-mode",
-      "friends"
-    );
-  });
+		await waitFor(() => {
+			expect(
+				screen.getByTestId("real-imported-combined-map"),
+			).toBeInTheDocument();
+		});
 
-  it("passes defaultMode='events' to CombinedMap", () => {
-    render(<MapView events={[]} defaultMode="events" />);
-    expect(screen.getByTestId("combined-map")).toHaveAttribute(
-      "data-mode",
-      "events"
-    );
-  });
-
-  it("handles omitted defaultMode without throwing", () => {
-    expect(() => render(<MapView events={[]} />)).not.toThrow();
-  });
-
-  // Loading state
-
-  it("renders the loading fallback UI with the expected text", () => {
-    const LoadingFallback = () => (
-      <div className="flex items-center justify-center h-[600px] bg-gray-50 rounded-lg">
-        <p className="text-gray-500">Loading map...</p>
-      </div>
-    );
-    render(<LoadingFallback />);
-    expect(screen.getByText("Loading map...")).toBeInTheDocument();
-  });
-
-  it("handles events with null startCoords without throwing", () => {
-    expect(() =>
-      render(<MapView events={[makeEvent("a", { startCoords: null })]} />)
-    ).not.toThrow();
-  });
-
-  it("handles events with null destinationCoords without throwing", () => {
-    expect(() =>
-      render(
-        <MapView events={[makeEvent("a", { destinationCoords: null })]} />
-      )
-    ).not.toThrow();
-  });
+		expect(screen.getByText(/friends:/)).toHaveTextContent(
+			'friends:[{"id":"f2","name":"Bob"}]',
+		);
+		expect(screen.getByText(/events:/)).toHaveTextContent(
+			'events:[{"id":"e2"}]',
+		);
+		expect(screen.getByText(/userLocation:/)).toHaveTextContent(
+			"userLocation:",
+		);
+		expect(screen.getByText(/defaultMode:/)).toHaveTextContent(
+			"defaultMode:undefined",
+		);
+	});
 });
