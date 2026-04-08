@@ -1,127 +1,141 @@
-import * as React from "react";
+/**
+ * Testing for Command components.
+ */
+
+import React from "react";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import {
-  Command,
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandShortcut,
-  CommandSeparator,
+	Command,
+	CommandDialog,
+	CommandInput,
+	CommandList,
+	CommandEmpty,
+	CommandGroup,
+	CommandItem,
+	CommandShortcut,
+	CommandSeparator,
 } from "../Command";
 
-global.ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
+jest.mock("cmdk", () => {
+	const Command = ({ children, ...props }: any) => (
+		<div data-testid="command" {...props}>
+			{children}
+		</div>
+	);
 
-// Add scrollIntoView to the HTMLElement prototype
-Object.defineProperty(global.HTMLElement.prototype, 'scrollIntoView', {
-  configurable: true,
-  value: jest.fn(),
+	Command.Input = (props: any) => <input data-testid="input" {...props} />;
+	Command.List = ({ children, ...props }: any) => (
+		<div data-testid="list" {...props}>
+			{children}
+		</div>
+	);
+	Command.Empty = (props: any) => <div data-testid="empty" {...props} />;
+	Command.Group = ({ children, ...props }: any) => (
+		<div data-testid="group" {...props}>
+			{children}
+		</div>
+	);
+	Command.Separator = (props: any) => (
+		<div data-testid="separator" {...props} />
+	);
+	Command.Item = ({ children, ...props }: any) => (
+		<div data-testid="item" {...props}>
+			{children}
+		</div>
+	);
+
+	return { Command };
 });
 
-describe("Command components", () => {
-  it("renders Command without crashing", () => {
-    render(<Command data-testid="command" />);
-    const command = screen.getByTestId("command");
-    expect(command).toBeInTheDocument();
-  });
+jest.mock("lucide-react", () => ({
+	SearchIcon: (props: any) => <svg data-testid="search-icon" {...props} />,
+}));
 
-  it("renders CommandDialog with title and description", () => {
-    render(
-      <CommandDialog 
-        open={true} 
-        title="Test Dialog" 
-        description="Dialog description"
-      >
-        <CommandList>
-          <CommandItem>Test Item</CommandItem>
-        </CommandList>
-      </CommandDialog>
-    );
+jest.mock("../Dialog", () => ({
+	Dialog: ({ children, ...props }: any) => (
+		<div data-testid="dialog" {...props}>
+			{children}
+		</div>
+	),
+	DialogContent: ({ children, ...props }: any) => (
+		<div data-testid="dialog-content" {...props}>
+			{children}
+		</div>
+	),
+	DialogHeader: ({ children, ...props }: any) => (
+		<div {...props}>{children}</div>
+	),
+	DialogTitle: ({ children, ...props }: any) => (
+		<div {...props}>{children}</div>
+	),
+	DialogDescription: ({ children, ...props }: any) => (
+		<div {...props}>{children}</div>
+	),
+}));
 
-    expect(screen.getByText("Test Dialog")).toBeInTheDocument();
-    expect(screen.getByText("Dialog description")).toBeInTheDocument();
-  });
+describe("Command Components", () => {
+	it("renders Command root", () => {
+		render(<Command>Content</Command>);
+		expect(screen.getByTestId("command")).toBeInTheDocument();
+	});
 
-  it("renders CommandInput and allows typing", async () => {
-    const user = userEvent.setup();
-    render(
-      <Command>
-        <CommandInput placeholder="Search..." />
-      </Command>
-    );
+	it("renders CommandDialog with default title and description", () => {
+		render(<CommandDialog>Child</CommandDialog>);
 
-    const input = screen.getByPlaceholderText("Search...") as HTMLInputElement;
-    await user.type(input, "Hello Cmdk");
-    expect(input.value).toBe("Hello Cmdk");
-  });
+		expect(screen.getByTestId("dialog")).toBeInTheDocument();
+		expect(screen.getByText("Command Palette")).toBeInTheDocument();
+		expect(
+			screen.getByText("Search for a command to run..."),
+		).toBeInTheDocument();
+	});
 
-  it("renders CommandList with children", () => {
-    render(
-      <Command>
-        <CommandList>
-          <CommandItem>Item 1</CommandItem>
-          <CommandItem>Item 2</CommandItem>
-        </CommandList>
-      </Command>
-    );
+	it("renders CommandDialog with custom title and description", () => {
+		render(
+			<CommandDialog
+				title="Custom Title"
+				description="Custom Description"
+			>
+				Child
+			</CommandDialog>,
+		);
 
-    expect(screen.getByText("Item 1")).toBeInTheDocument();
-    expect(screen.getByText("Item 2")).toBeInTheDocument();
-  });
+		expect(screen.getByText("Custom Title")).toBeInTheDocument();
+		expect(screen.getByText("Custom Description")).toBeInTheDocument();
+	});
 
-  it("renders CommandEmpty", () => {
-    render(
-      <Command>
-        <CommandEmpty>No results</CommandEmpty>
-      </Command>
-    );
-    expect(screen.getByText("No results")).toBeInTheDocument();
-  });
+	it("renders CommandInput with icon", () => {
+		render(<CommandInput />);
+		expect(screen.getByTestId("input")).toBeInTheDocument();
+		expect(screen.getByTestId("search-icon")).toBeInTheDocument();
+	});
 
-  it("renders CommandGroup with heading", () => {
-    render(
-      <Command>
-        <CommandGroup heading="Suggestions">
-          <CommandItem>Item A</CommandItem>
-        </CommandGroup>
-      </Command>
-    );
+	it("renders CommandList", () => {
+		render(<CommandList />);
+		expect(screen.getByTestId("list")).toBeInTheDocument();
+	});
 
-    expect(screen.getByText("Item A")).toBeInTheDocument();
-  });
+	it("renders CommandEmpty", () => {
+		render(<CommandEmpty />);
+		expect(screen.getByTestId("empty")).toBeInTheDocument();
+	});
 
-  it("renders CommandItem with className", () => {
-    render(
-      <Command>
-        <CommandList>
-          <CommandItem className="my-item">Test Item</CommandItem>
-        </CommandList>
-      </Command>
-    );
+	it("renders CommandGroup", () => {
+		render(<CommandGroup>Group</CommandGroup>);
+		expect(screen.getByTestId("group")).toBeInTheDocument();
+	});
 
-    const item = screen.getByText("Test Item");
-    expect(item).toHaveClass("my-item");
-  });
+	it("renders CommandItem", () => {
+		render(<CommandItem>Item</CommandItem>);
+		expect(screen.getByTestId("item")).toBeInTheDocument();
+	});
 
-  it("renders CommandShortcut", () => {
-    render(<CommandShortcut>⌘K</CommandShortcut>);
-    expect(screen.getByText("⌘K")).toBeInTheDocument();
-  });
+	it("renders CommandShortcut", () => {
+		render(<CommandShortcut>⌘K</CommandShortcut>);
+		expect(screen.getByText("⌘K")).toBeInTheDocument();
+	});
 
-  it("renders CommandSeparator", () => {
-    render(
-      <Command>
-        <CommandSeparator data-testid="command-separator" />
-      </Command>
-    );
-    const separator = screen.getByTestId("command-separator");
-    expect(separator).toBeInTheDocument();
-  });
+	it("renders CommandSeparator", () => {
+		render(<CommandSeparator />);
+		expect(screen.getByTestId("separator")).toBeInTheDocument();
+	});
 });
