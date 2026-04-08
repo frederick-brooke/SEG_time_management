@@ -16,14 +16,15 @@ import { ConversationRow, type Conversation } from "./ConversationRow";
 import { Button } from "../ui/Button";
 
 const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+	cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
 });
 
 type Friend = {
-  id: string;
-  username: string;
-  fname: string | null;
-  pfp: string | null;
+	id: string;
+	username: string;
+	fname: string | null;
+	lname: string | null;
+	pfp: string | null;
 };
 
 type ConversationUpdatePayload = {
@@ -38,15 +39,15 @@ type ConversationUpdatePayload = {
  * Sidebar list of all conversations for the current user.
  */
 export default function ConversationList() {
-  const { data: session } = useSession();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [showModal, setShowModal] = useState(false);
-  const router = useRouter();
-  const params = useParams();
+	const { data: session } = useSession();
+	const [conversations, setConversations] = useState<Conversation[]>([]);
+	const [friends, setFriends] = useState<Friend[]>([]);
+	const [showModal, setShowModal] = useState(false);
+	const router = useRouter();
+	const params = useParams();
 
-  /** The conversation ID from the URL to highlight the active row. */
-  const activeId = params?.conversationId as string;
+	/** The conversation ID from the URL to highlight the active row. */
+	const activeId = params?.conversationId as string;
 
   /** Fetches the full conversation list from the API and updates state. */
   const fetchConversations = useCallback(() => {
@@ -173,19 +174,19 @@ export default function ConversationList() {
         ))}
       </div>
 
-      {showModal && (
-        <CreateGroupModal
-          friends={friends}
-          onClose={() => setShowModal(false)}
-          onCreated={(conv) => {
-            setConversations((prev) => {
-              const exists = prev.some((c) => c.id === conv.id);
-              return exists ? prev : [conv, ...prev];
-            });
-            router.push(`/messages/${conv.id}`);
-          }}
-        />
-      )}
-    </>
-  );
+			{showModal && (
+				<CreateGroupModal
+					friends={friends}
+					onClose={() => setShowModal(false)}
+					onCreated={(conv) => {
+						setConversations((prev) => {
+							const exists = prev.some((c) => c.id === conv.id);
+							return exists ? prev : [conv, ...prev];
+						});
+						router.push(`/messages/${conv.id}`);
+					}}
+				/>
+			)}
+		</>
+	);
 }

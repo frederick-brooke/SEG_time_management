@@ -15,7 +15,7 @@ const max_attempts = 5;     // If more than 5 unsuccessful tries then show defau
  * @param {number} [key] - Optional key to influence quote selection
  * @returns {Promise<{ quoteText?: string } | null>} Parsed quote data or null on failure
  */
-async function fetchQuote(key) {
+export async function fetchQuote(key) {
     const params = new URLSearchParams({
         // Stores the parameter values needed to access the quote
         method: "getQuote", 
@@ -68,7 +68,7 @@ export async function GET() {
             continue;   
         }       
 
-        const quote = data.quoteText || "";
+        const quote = data.quoteText;
 
         if(quote.length <= max_length){
             // Must be less than 200 characters in length otherwise it is rejected

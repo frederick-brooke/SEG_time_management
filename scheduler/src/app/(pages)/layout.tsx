@@ -67,7 +67,7 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
 				<SearchPanel open={searchOpen} onClose={() => setSearchOpen(false)}/>
 			)}
 
-			<SidebarInset className="" style={{background: "transparent", minHeight: "100vh",}}>
+			<SidebarInset className="" style={{background: "transparent", minHeight: "100vh", flex: 1, minWidth: 0, width: sidebarOpen ? undefined : "100vw", transition: "width 0.2s ease, margin 0.2s ease"}}>
 				{/* Sidebar toggle trigger */}
 				<div className="p-2">
 					<SidebarTrigger className="text-white" onClick={() => setSidebarOpen(prev => !prev)}/>

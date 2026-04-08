@@ -25,235 +25,262 @@ import { motion } from "framer-motion";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { Button } from "@/components/ui/Button";
 
-/**
- * Main admin dashboard component managing users, reports, and appeals with filtering and pagination.
- * @param {Object} props - Component props.
- * @returns {JSX.Element} The admin dashboard page.
- */
 export default function AdminPage() {
-  // User management states
-  const defaultUserFilters = { sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page:1, limit: 10}; 
-  const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
-  const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
-  
-  function resetUserFilters(){
-    setDraftUserFilters(defaultUserFilters);
-    setAppliedUserFilters(defaultUserFilters);
-  }
+	// User management states
+	const defaultUserFilters = {
+		sortBy: "username",
+		order: "desc",
+		startDate: "",
+		endDate: "",
+		categories: [],
+		page: 1,
+		limit: 10,
+	};
+	const [appliedUserFilters, setAppliedUserFilters] =
+		useState(defaultUserFilters);
+	const [draftUserFilters, setDraftUserFilters] =
+		useState(defaultUserFilters);
 
-  const [selectedUser, setSelectedUser] = useState(null);   
-  const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);  
+	function resetUserFilters() {
+		setDraftUserFilters(defaultUserFilters);
+		setAppliedUserFilters(defaultUserFilters);
+	}
 
-  // Report management
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
+	const [selectedUser, setSelectedUser] = useState(null);
+	const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);
 
-  // Report filter states
-  const defaultReportFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:"12", page:"1" };
-  const [appliedReportFilters, setAppliedReportFilters] = useState(defaultReportFilters);
-  const [draftReportFilters, setDraftReportFilters] = useState(defaultReportFilters);
+	const [currentReportPage, setCurrentReportPage] = useState(1);
+	const [selectedReport, setSelectedReport] = useState(null);
+	const [isReportFilterOpen, setIsReportFilterOpen] = useState(false);
 
-  function resetReportFilters(){
-    setDraftReportFilters(defaultReportFilters);
-    setAppliedReportFilters(defaultReportFilters);
-  }
+	// Report filter states
+	const defaultReportFilters = {
+		sortBy: "createdAt",
+		order: "desc",
+		startDate: "",
+		endDate: "",
+		reportStatus: "",
+		limit: "12",
+		page: "1",
+	};
+	const [appliedReportFilters, setAppliedReportFilters] =
+		useState(defaultReportFilters);
+	const [draftReportFilters, setDraftReportFilters] =
+		useState(defaultReportFilters);
 
-  // Appeal management
-  const [currentAppealPage, setCurrentAppealPage] = useState(1);
-  const [selectedAppeal, setSelectedAppeal] = useState(null);
-  const defaultAppealFilters = { sortBy:"createdAt", order:"desc", startDate:"", endDate:"", reportStatus:"", limit:"12"};
-  const [appliedAppealFilters, setAppliedAppealFilters] = useState(defaultAppealFilters);
-  const [draftAppealFilters, setDraftAppealFilters] = useState(defaultAppealFilters);
-  const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);  
+	function resetReportFilters() {
+		setDraftReportFilters(defaultReportFilters);
+		setAppliedReportFilters(defaultReportFilters);
+	}
 
-  function resetAppealFilters(){
-    setDraftAppealFilters(defaultAppealFilters);
-    setAppliedAppealFilters(defaultAppealFilters);
-  }
+	// Appeal management
+	const [currentAppealPage, setCurrentAppealPage] = useState(1);
+	const [selectedAppeal, setSelectedAppeal] = useState(null);
+	const defaultAppealFilters = {
+		sortBy: "createdAt",
+		order: "desc",
+		startDate: "",
+		endDate: "",
+		reportStatus: "",
+		limit: "12",
+	};
+	const [appliedAppealFilters, setAppliedAppealFilters] =
+		useState(defaultAppealFilters);
+	const [draftAppealFilters, setDraftAppealFilters] =
+		useState(defaultAppealFilters);
+	const [isAppealFilterOpen, setIsAppealFilterOpen] = useState(false);
 
-  const {users, totalUserPages, totalUsers, loading} = useUsers(appliedUserFilters, "/api/admin/users");
-  const { reports, totalReportPages, totalReports, reportLoading, fetchReports} = useAdminReports(appliedReportFilters);
-  const { appeals, totalAppealPages, totalAppeals, fetchAppeals} = useAdminAppeals(appliedAppealFilters);
+	function resetAppealFilters() {
+		setDraftAppealFilters(defaultAppealFilters);
+		setAppliedAppealFilters(defaultAppealFilters);
+	}
 
-  const [currentTab, setCurrentTab] = useState("reports");
+	const { users, totalUserPages, totalUsers, loading } = useUsers(
+		appliedUserFilters,
+		"/api/admin/users",
+	);
+	const {
+		reports,
+		totalReportPages,
+		totalReports,
+		reportLoading,
+		fetchReports,
+	} = useAdminReports(appliedReportFilters);
+	const { appeals, totalAppealPages, totalAppeals, fetchAppeals } =
+		useAdminAppeals(appliedAppealFilters);
 
-  if (loading || reportLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
-        <p className="p-6 animate-pulse">Loading...</p>
-      </div>
-    );
-  }
-  
-  const tabs: Record<string, React.ReactNode> = {
-    reports: (
-      <ReportManagement
-        reports={reports}
-        totalReports={totalReports}
-        totalReportPages={totalReportPages}
-        setIsReportFilterOpen={setIsReportFilterOpen}
-        selectedReport={selectedReport}
-        setSelectedReport={setSelectedReport}
-        fetchReports={fetchReports}
-        filters={appliedReportFilters}
-        setFilters={setAppliedReportFilters}
-        resetFilters={resetReportFilters}
-      />
-    ),
-    appeals: (
-      <AppealsManagement
-        appeals={appeals}
-        totalAppeals={totalAppeals}
-        totalAppealPages={totalAppealPages}
-        currentAppealPage={currentAppealPage}
-        setCurrentAppealPage={setCurrentAppealPage}
-        selectedAppeal={selectedAppeal}
-        setSelectedAppeal={setSelectedAppeal}
-        fetchAppeals={fetchAppeals}
-        setIsAppealFilterOpen={setIsAppealFilterOpen}
-        filters={appliedAppealFilters}
-        setFilters={setAppliedAppealFilters}
-        resetFilters={resetAppealFilters}
-      />
-    )
-  }
+	const [currentTab, setCurrentTab] = useState("reports");
 
-  return (
-    <LunarThemeWrapper>
-      <div className="min-h-screen bg-gray-950 text-white relative overflow-hidden pb-12">
-        
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <StarField density={100} />
-          <GlowBackground />
-        </div>
+	if (loading || reportLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
+				<p className="p-6 animate-pulse">Loading...</p>
+			</div>
+		);
+	}
 
-        <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pt-8 space-y-6 lg:space-y-8">
-          
-          <h1 className="lunar-page-title">
-            Admin Dashboard
-          </h1>
+	const tabs: Record<string, React.ReactNode> = {
+		reports: (
+			<ReportManagement
+				reports={reports}
+				totalReports={totalReports}
+				totalReportPages={totalReportPages}
+				setIsReportFilterOpen={setIsReportFilterOpen}
+				selectedReport={selectedReport}
+				setSelectedReport={setSelectedReport}
+				fetchReports={fetchReports}
+				filters={appliedReportFilters}
+				setFilters={setAppliedReportFilters}
+				resetFilters={resetReportFilters}
+			/>
+		),
+		appeals: (
+			<AppealsManagement
+				appeals={appeals}
+				totalAppeals={totalAppeals}
+				totalAppealPages={totalAppealPages}
+				currentAppealPage={currentAppealPage}
+				setCurrentAppealPage={setCurrentAppealPage}
+				selectedAppeal={selectedAppeal}
+				setSelectedAppeal={setSelectedAppeal}
+				fetchAppeals={fetchAppeals}
+				setIsAppealFilterOpen={setIsAppealFilterOpen}
+				filters={appliedAppealFilters}
+				setFilters={setAppliedAppealFilters}
+				resetFilters={resetAppealFilters}
+			/>
+		),
+	};
 
-          {/* Admin statistics */}
-          <AdminStatistics />
+	return (
+		<LunarThemeWrapper>
+			<div className="min-h-screen bg-gray-950 text-white relative overflow-hidden pb-12">
+				<div className="absolute inset-0 z-0 pointer-events-none">
+					<StarField />
+					<GlowBackground />
+				</div>
 
-          {/* Container for the user reporting system */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-            
-            {/* User Management Column */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col h-full"
-            >
-              <GlassCard className="h-full flex-1">
-                <UserManagement
-                  users={users}
-                  totalUsers={totalUsers}
-                  totalUserPages={totalUserPages}
-                  setIsUserFilterOpen={setIsUserFilterOpen}
-                  selectedUser={selectedUser}
-                  setSelectedUser={setSelectedUser}
-                  filters={appliedUserFilters}
-                  setFilters={setAppliedUserFilters}
-                  resetFilters={resetUserFilters}
-                />
-              </GlassCard>
-            </motion.div>
+				<div className="relative z-10 w-full px-4 sm:px-6 lg:px-8 pt-8 space-y-6 lg:space-y-8">
+					<h1 className="lunar-page-title">Admin Dashboard</h1>
 
-            {/* Reports & Appeals Column */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col h-full"
-            >
-              <GlassCard className="h-full flex-1">
-                
-                {/* Scrollable Tabs header for mobile */}
-                <div className="flex overflow-x-auto hide-scrollbar border-b border-white/10 mb-4 gap-2 pb-1">
-                  <Button
-                    onClick={() => setCurrentTab("reports")}
-                    className={`whitespace-nowrap px-4 py-2 font-medium transition-colors ${
-                      currentTab === "reports" 
-                        ? "border-b-2 border-blue-500 text-blue-500" 
-                        : "text-gray-400 hover:text-gray-200"
-                    }`}
-                  >
-                    Reports
-                  </Button>
+					{/* Admin statistics */}
+					<AdminStatistics />
 
-                  <Button
-                    onClick={() => setCurrentTab("appeals")}
-                    className={`whitespace-nowrap px-4 py-2 font-medium transition-colors ${
-                      currentTab === "appeals" 
-                        ? "border-b-2 border-blue-500 text-blue-500" 
-                        : "text-gray-400 hover:text-gray-200"
-                    }`}
-                  >
-                    Appeals
-                  </Button>
-                </div>
+					{/* Container for the user reporting system */}
+					<div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+						{/* User Management Column */}
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							animate={{ opacity: 1, y: 0 }}
+							className="flex flex-col h-full"
+						>
+							<GlassCard className="h-full flex-1">
+								<UserManagement
+									users={users}
+									totalUsers={totalUsers}
+									totalUserPages={totalUserPages}
+									setIsUserFilterOpen={setIsUserFilterOpen}
+									selectedUser={selectedUser}
+									setSelectedUser={setSelectedUser}
+									filters={appliedUserFilters}
+									setFilters={setAppliedUserFilters}
+									resetFilters={resetUserFilters}
+								/>
+							</GlassCard>
+						</motion.div>
 
-                {/* Render the active tab */}
-                <div className="min-h-[400px]">
-                  {tabs[currentTab]}
-                </div>
-              </GlassCard>
-            </motion.div>
+						{/* Reports & Appeals Column */}
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							animate={{ opacity: 1, y: 0 }}
+							className="flex flex-col h-full"
+						>
+							<GlassCard className="h-full flex-1">
+								{/* Scrollable Tabs header for mobile */}
+								<div className="flex overflow-x-auto hide-scrollbar border-b border-white/10 mb-4 gap-2 pb-1">
+									<Button
+										onClick={() => setCurrentTab("reports")}
+										className={`whitespace-nowrap px-4 py-2 font-medium transition-colors ${
+											currentTab === "reports"
+												? "border-b-2 border-blue-500 text-blue-500"
+												: "text-gray-400 hover:text-gray-200"
+										}`}
+									>
+										Reports
+									</Button>
 
-          </div>
+									<Button
+										onClick={() => setCurrentTab("appeals")}
+										className={`whitespace-nowrap px-4 py-2 font-medium transition-colors ${
+											currentTab === "appeals"
+												? "border-b-2 border-blue-500 text-blue-500"
+												: "text-gray-400 hover:text-gray-200"
+										}`}
+									>
+										Appeals
+									</Button>
+								</div>
 
-          {/* Respective filter panels */}
-          {isUserFilterOpen && (
-            <UserFilter 
-              filters={draftUserFilters}
-              setFilters={setDraftUserFilters}
-              onClose={() => setIsUserFilterOpen(false)}
-              applyFilters={() => {
-                setAppliedUserFilters(prev => ({
-                  ...prev,
-                  ...draftUserFilters,
-                  page: 1
-                }));
-                setIsUserFilterOpen(false);
-              }}
-              resetFilters={() => {
-                setAppliedUserFilters(defaultUserFilters);
-              }} 
-              type={"admin"}      
-            />
-          )} 
-            
-          {isReportFilterOpen && (
-            <ReportFilter 
-              filters={draftReportFilters}
-              setFilters={setDraftReportFilters}
-              onClose={() => setIsReportFilterOpen(false)}
-              applyFilters={() => {
-                setAppliedReportFilters(draftReportFilters);
-                setIsReportFilterOpen(false);
-              }}
-              resetFilters={() => {
-                setAppliedReportFilters(defaultReportFilters);
-              }}
-            />
-          )} 
+								{/* Render the active tab */}
+								<div className="min-h-[400px]">
+									{tabs[currentTab]}
+								</div>
+							</GlassCard>
+						</motion.div>
+					</div>
 
-          {isAppealFilterOpen && (
-            <AppealFilter
-              filters={draftAppealFilters}
-              setFilters={setDraftAppealFilters}
-              onClose={() => setIsAppealFilterOpen(false)}
-              applyFilters={() => {
-                setAppliedAppealFilters(draftAppealFilters);
-                setIsAppealFilterOpen(false);
-              }}
-              resetFilters={() => {
-                setAppliedAppealFilters(defaultAppealFilters);
-              }}
-            />
-          )}
-        </div>
-      </div>
-    </LunarThemeWrapper>
-  );
+					{/* Respective filter panels */}
+					{isUserFilterOpen && (
+						<UserFilter
+							filters={draftUserFilters}
+							setFilters={setDraftUserFilters}
+							onClose={() => setIsUserFilterOpen(false)}
+							applyFilters={() => {
+								setAppliedUserFilters((prev) => ({
+									...prev,
+									...draftUserFilters,
+									page: 1,
+								}));
+								setIsUserFilterOpen(false);
+							}}
+							resetFilters={() => {
+								setAppliedUserFilters(defaultUserFilters);
+							}}
+							type={"admin"}
+						/>
+					)}
+
+					{isReportFilterOpen && (
+						<ReportFilter
+							filters={draftReportFilters}
+							setFilters={setDraftReportFilters}
+							onClose={() => setIsReportFilterOpen(false)}
+							applyFilters={() => {
+								setAppliedReportFilters(draftReportFilters);
+								setIsReportFilterOpen(false);
+							}}
+							resetFilters={() => {
+								setAppliedReportFilters(defaultReportFilters);
+							}}
+						/>
+					)}
+
+					{isAppealFilterOpen && (
+						<AppealFilter
+							filters={draftAppealFilters}
+							setFilters={setDraftAppealFilters}
+							onClose={() => setIsAppealFilterOpen(false)}
+							applyFilters={() => {
+								setAppliedAppealFilters(draftAppealFilters);
+								setIsAppealFilterOpen(false);
+							}}
+							resetFilters={() => {
+								setAppliedAppealFilters(defaultAppealFilters);
+							}}
+						/>
+					)}
+				</div>
+			</div>
+		</LunarThemeWrapper>
+	);
 }

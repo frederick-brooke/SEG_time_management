@@ -3,21 +3,16 @@
  */
 
 import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import RootLayout from "@/app/layout";
 
-// Mock next/font/google
 jest.mock("next/font/google", () => ({
   Geist: () => ({ variable: "--font-geist-sans" }),
   Geist_Mono: () => ({ variable: "--font-geist-mono" }),
 }));
 
-// Mock globals.css and leaflet.css
 jest.mock("../src/app/globals.css", () => ({}), { virtual: true });
-jest.mock("leaflet/dist/leaflet.css", () => ({}), { virtual: true });
 
-// Mock Providers
 jest.mock("../app/providers", () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => (
@@ -25,14 +20,11 @@ jest.mock("../app/providers", () => ({
   ),
 }));
 
-// Mock UIProvider
 jest.mock("@/context/UIContext", () => ({
   UIProvider: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="mock-ui-provider">{children}</div>
   ),
 }));
-
-// Tests
 
 describe("RootLayout", () => {
   it("renders children inside the layout", () => {
@@ -41,6 +33,7 @@ describe("RootLayout", () => {
         <main data-testid="child-content">Hello World</main>
       </RootLayout>
     );
+
     expect(screen.getByTestId("child-content")).toBeInTheDocument();
     expect(screen.getByText("Hello World")).toBeInTheDocument();
   });
@@ -51,6 +44,7 @@ describe("RootLayout", () => {
         <span>test</span>
       </RootLayout>
     );
+
     expect(screen.getByTestId("mock-providers")).toBeInTheDocument();
   });
 
@@ -60,6 +54,7 @@ describe("RootLayout", () => {
         <span>test</span>
       </RootLayout>
     );
+
     expect(screen.getByTestId("mock-ui-provider")).toBeInTheDocument();
   });
 
@@ -69,6 +64,29 @@ describe("RootLayout", () => {
         <span>test</span>
       </RootLayout>
     );
+
     expect(document.getElementById("modal-root")).toBeInTheDocument();
+  });
+
+  it("sets the html lang and font classes", () => {
+    render(
+      <RootLayout>
+        <span>test</span>
+      </RootLayout>
+    );
+
+    expect(document.documentElement).toHaveAttribute("lang", "en");
+    expect(document.documentElement.className).toContain("--font-geist-sans");
+    expect(document.documentElement.className).toContain("--font-geist-mono");
+  });
+
+  it("sets body classes and suppressHydrationWarning", () => {
+    render(
+      <RootLayout>
+        <span>test</span>
+      </RootLayout>
+    );
+
+    expect(document.body.className).toContain("antialiased");
   });
 });

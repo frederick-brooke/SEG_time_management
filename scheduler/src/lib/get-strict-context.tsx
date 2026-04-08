@@ -4,21 +4,29 @@
  * Creates a typed React context with a required Provider guard,
  * ensuring hooks throw if used outside their provider.
  */
-
 import * as React from "react";
 
-export function getStrictContext<T>(name: string) {
-  const Context = React.createContext<T | null>(null);
+function getStrictContext<T>(
+	name?: string,
+): [React.FC<{ value: T; children: React.ReactNode }>, () => T] {
+	const Context = React.createContext<T | undefined>(undefined);
 
-  function useStrictContext(): T {
-    const context = React.useContext(Context);
+	const Provider: React.FC<{ value: T; children: React.ReactNode }> = ({
+		value,
+		children,
+	}) => <Context.Provider value={value}>{children}</Context.Provider>;
 
-    if (!context) {
-      throw new Error(`${name} must be used within ${name}.Provider`);
-    }
+	const useSafeContext = (): T => {
+		const ctx = React.useContext(Context);
+		if (ctx === undefined) {
+			throw new Error(
+				`useContext must be used within ${name ?? "a Provider"}`,
+			);
+		}
+		return ctx;
+	};
 
-    return context;
-  }
-
-  return [Context.Provider, useStrictContext] as const;
+	return [Provider, useSafeContext];
 }
+
+export { getStrictContext };

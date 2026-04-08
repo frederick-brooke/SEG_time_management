@@ -11,7 +11,7 @@
  *
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { addDays, addWeeks, addMonths, addMinutes, subMinutes } from "date-fns";
 import { shouldShowAsUnscheduled } from "@/lib/scheduling/taskSchedulingUtils";
 
@@ -74,8 +74,21 @@ interface ProgressCache {
 }
 
 const DAY_MAP: Record<string, number> = {
-  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+	Sun: 0,
+	Mon: 1,
+	Tue: 2,
+	Wed: 3,
+	Thu: 4,
+	Fri: 5,
+	Sat: 6,
 };
+
+// ⚡ PERF: Simple cache for expanded recurring tasks to avoid re-expansion
+const expandedTaskCache = new Map<string, any[]>();
+
+function getCacheKey(task: any): string {
+	return `${task.id}-${task.recurrence?.type}-${task.scheduledTime}-${task.duration}`;
+}
 
 /**
  * Fetches JSON from a URL, throwing on non-OK responses.
@@ -91,32 +104,32 @@ async function fetchJson(url: string): Promise<any> {
 
 /** Returns occurrences for a single daily or monthly recurrence step. */
 function getDailyOrMonthlyOccurrences(
-  type: string,
-  cursor: Date,
+	type: string,
+	cursor: Date,
 ): { occurrences: Date[]; next: Date } {
-  if (type === "daily") {
-    return { occurrences: [new Date(cursor)], next: addDays(cursor, 1) };
-  }
-  return { occurrences: [new Date(cursor)], next: addMonths(cursor, 1) };
+	if (type === "daily") {
+		return { occurrences: [new Date(cursor)], next: addDays(cursor, 1) };
+	}
+	return { occurrences: [new Date(cursor)], next: addMonths(cursor, 1) };
 }
 
 /** Returns all valid occurrences within a week for a weekly recurrence. */
 function getWeeklyOccurrences(
-  cursor: Date,
-  days: string[],
-  baseDate: Date,
-  limitDate: Date,
+	cursor: Date,
+	days: string[],
+	baseDate: Date,
+	limitDate: Date,
 ): Date[] {
-  const weekStart = new Date(cursor);
-  weekStart.setDate(cursor.getDate() - cursor.getDay());
-  return days.flatMap((day) => {
-    const idx = DAY_MAP[day];
-    if (idx === undefined) return [];
-    const occ = new Date(weekStart);
-    occ.setDate(weekStart.getDate() + idx);
-    occ.setHours(baseDate.getHours(), baseDate.getMinutes(), 0, 0);
-    return occ >= baseDate && occ <= limitDate ? [occ] : [];
-  });
+	const weekStart = new Date(cursor);
+	weekStart.setDate(cursor.getDate() - cursor.getDay());
+	return days.flatMap((day) => {
+		const idx = DAY_MAP[day];
+		if (idx === undefined) return [];
+		const occ = new Date(weekStart);
+		occ.setDate(weekStart.getDate() + idx);
+		occ.setHours(baseDate.getHours(), baseDate.getMinutes(), 0, 0);
+		return occ >= baseDate && occ <= limitDate ? [occ] : [];
+	});
 }
 
 /** Converts a list of occurrence dates into calendar-ready task objects. */
@@ -181,9 +194,9 @@ export function expandRecurringTasks(tasks: Task[]): (Task | ScheduledTask)[] {
 }
 
 function formatTravelDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  if (minutes % 60 === 0) return `${Math.floor(minutes / 60)}h`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+	if (minutes < 60) return `${minutes} min`;
+	if (minutes % 60 === 0) return `${Math.floor(minutes / 60)}h`;
+	return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
 /** Returns true if an event is eligible for a travel block. */
@@ -334,9 +347,9 @@ function applyTaskState(
 
 /** Provides the refreshTasks action. */
 function useRefreshTasks(
-  state: ReturnType<typeof useCalendarState>,
-  userId: string,
-  computeUnscheduled: ReturnType<typeof useComputeUnscheduled>,
+	state: ReturnType<typeof useCalendarState>,
+	userId: string,
+	computeUnscheduled: ReturnType<typeof useComputeUnscheduled>,
 ) {
   return useCallback(async (latestEvents?: (CalendarEvent | TravelBlock)[]): Promise<Task[] | null> => {
     try {
@@ -352,7 +365,8 @@ function useRefreshTasks(
 
 /** Provides category, schedule log, and exam fetch actions. */
 function useMetaActions(state: ReturnType<typeof useCalendarState>) {
-  const { setCategories, setCategoryFilters, setScheduleLogs, setExams } = state;
+	const { setCategories, setCategoryFilters, setScheduleLogs, setExams } =
+		state;
 
   const fetchCategories = useCallback(async (): Promise<void> => {
     const { cats, filters } = await fetchCategoryData();
@@ -374,7 +388,7 @@ function useMetaActions(state: ReturnType<typeof useCalendarState>) {
     }
   }, [setExams]);
 
-  return { fetchCategories, fetchScheduleLogs, fetchExams };
+	return { fetchCategories, fetchScheduleLogs, fetchExams };
 }
 
 /**

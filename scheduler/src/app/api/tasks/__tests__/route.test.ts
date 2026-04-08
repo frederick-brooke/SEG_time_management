@@ -1,632 +1,844 @@
-/**
- * Testing for tasks api route.
- */
-
-import { GET, POST } from "@/app/api/tasks/route";
+import { GET, POST } from "../route";
 import { prisma } from "@/lib/prisma";
-import { addDays, addMonths } from "date-fns";
-
-// Mocks
 
 jest.mock("next/server", () => ({
-  NextResponse: {
-    json: jest.fn((body: unknown, init?: { status?: number }) => ({
-      status: init?.status ?? 200,
-      json: async () => body,
-    })),
-  },
+	NextResponse: {
+		json: (body: any, init?: any) =>
+			new Response(JSON.stringify(body), {
+				status: init?.status ?? 200,
+				headers: { "Content-Type": "application/json" },
+			}),
+	},
 }));
 
 jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    task: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-    },
-    event: {
-      findUnique: jest.fn(),
-    },
-    exam: {
-      findUnique: jest.fn(),
-    },
-  },
+	prisma: {
+		task: {
+			count: jest.fn(),
+			findMany: jest.fn(),
+			create: jest.fn(),
+		},
+		event: {
+			findMany: jest.fn(),
+		},
+		exam: {
+			findUnique: jest.fn(),
+		},
+	},
 }));
 
-jest.mock("date-fns", () => {
-  const actual = jest.requireActual("date-fns");
-  return {
-    ...actual,
-    addDays: jest.fn(actual.addDays),
-    addWeeks: jest.fn(actual.addWeeks),
-    addMonths: jest.fn(actual.addMonths),
-  };
-});
-
-const mockFindMany = prisma.task.findMany as jest.Mock;
-const mockCreate = prisma.task.create as jest.Mock;
-const mockEventFindUnique = prisma.event.findUnique as jest.Mock;
-const mockExamFindUnique = prisma.exam.findUnique as jest.Mock;
-
-// Helpers
-
-function makeRequest(url: string): Request {
-  return { url } as unknown as Request;
+function mockRequest(url: string, body?: any) {
+	return {
+		url,
+		json: jest.fn().mockResolvedValue(body),
+	} as any;
 }
 
-function makePostRequest(body: unknown): Request {
-  return {
-    json: async () => body,
-  } as unknown as Request;
-}
-
-// Tests
-
-// GET
 describe("GET /api/tasks", () => {
-  beforeEach(() => jest.clearAllMocks());
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-  test("returns 400 when userId is missing", async () => {
-    const req = makeRequest("http://localhost/api/tasks");
-    const res = await GET(req);
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toBe("User ID required");
-  });
+	it("returns 400 if no userId", async () => {
+		const req = mockRequest("http://localhost/api/tasks");
 
-  test("returns tasks for a valid userId", async () => {
-    const fakeTasks = [{ id: "t1", title: "Test task" }];
-    mockFindMany.mockResolvedValue(fakeTasks);
+		const res = await GET(req);
+		const data = await res.json();
 
-    const req = makeRequest("http://localhost/api/tasks?userId=user1");
-    const res = await GET(req);
-    const json = await res.json();
+		expect(res.status).toBe(400);
+		expect(data.error).toBe("User ID required");
+	});
 
-    expect(mockFindMany).toHaveBeenCalledWith({
-      where: { userId: "user1" },
-      include: { exam: true, event: true },
-      orderBy: { createdAt: "desc" },
-    });
-    expect(json.tasks).toEqual(fakeTasks);
-  });
+	it("returns tasks with pagination", async () => {
+		(prisma.task.count as jest.Mock).mockResolvedValue(10);
+		(prisma.task.findMany as jest.Mock).mockResolvedValue([{ id: 1 }]);
 
-  test("returns 500 on database error", async () => {
-    mockFindMany.mockRejectedValue(new Error("DB error"));
-    const req = makeRequest("http://localhost/api/tasks?userId=user1");
-    const res = await GET(req);
-    expect(res.status).toBe(500);
-  });
+		const req = mockRequest(
+			"http://localhost/api/tasks?userId=1&page=1&limit=5",
+		);
+
+		const res = await GET(req);
+		const data = await res.json();
+
+		expect(data.tasks).toEqual([{ id: 1 }]);
+		expect(data.pagination.total).toBe(10);
+		expect(data.pagination.page).toBe(1);
+		expect(data.pagination.limit).toBe(5);
+		expect(data.pagination.pages).toBe(2);
+
+		expect(prisma.task.count).toHaveBeenCalledWith({
+			where: { userId: "1" },
+		});
+		expect(prisma.task.findMany).toHaveBeenCalledWith({
+			where: { userId: "1" },
+			include: { exam: true, event: true },
+			orderBy: { createdAt: "desc" },
+			take: 5,
+			skip: 0,
+		});
+	});
+
+	it("clamps invalid page and limit values", async () => {
+		(prisma.task.count as jest.Mock).mockResolvedValue(0);
+		(prisma.task.findMany as jest.Mock).mockResolvedValue([]);
+
+		const req = mockRequest(
+			"http://localhost/api/tasks?userId=u1&page=0&limit=999",
+		);
+
+		const res = await GET(req);
+		const data = await res.json();
+
+		expect(res.status).toBe(200);
+		expect(data.pagination.page).toBe(1);
+		expect(data.pagination.limit).toBe(100);
+
+		expect(prisma.task.findMany).toHaveBeenCalledWith({
+			where: { userId: "u1" },
+			include: { exam: true, event: true },
+			orderBy: { createdAt: "desc" },
+			take: 100,
+			skip: 0,
+		});
+	});
+
+	it("handles GET error", async () => {
+		(prisma.task.count as jest.Mock).mockRejectedValue(new Error("fail"));
+
+		const req = mockRequest("http://localhost/api/tasks?userId=1");
+
+		const res = await GET(req);
+		const data = await res.json();
+
+		expect(res.status).toBe(500);
+		expect(data.error).toBe("Failed to fetch tasks");
+	});
 });
 
-// POST
-describe("POST /api/tasks — single task", () => {
-  beforeEach(() => jest.clearAllMocks());
+describe("POST /api/tasks - bulk", () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-  test("creates a task with all fields populated", async () => {
-    const createdTask = { id: "t1", title: "My Task", exam: null };
-    mockCreate.mockResolvedValue(createdTask);
-    mockExamFindUnique.mockResolvedValue(null);
+	it("creates bulk tasks with event mapping", async () => {
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{ id: "e1", start: new Date(), recurrence: { type: "none" } },
+		]);
 
-    const body = {
-      title: "My Task",
-      description: "desc",
-      dueDate: "2025-06-01",
-      userId: "user1",
-      priority: "High",
-      duration: 90,
-      subtasks: [{ title: "sub1" }],
-      examId: "none",
-      eventId: "evt1",
-      isRecurring: true,
-      recurrence: { type: "daily" },
-      scheduledDate: "2025-06-01",
-      scheduledTime: "2025-06-01T10:00:00",
-      bufferDays: 2,
-      url: "https://example.com",
-      scheduledRelativeTo: "event",
-      relativeOffsetDays: -1,
-      eventLinkMode: "before",
-    };
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t1" });
 
-    const req = makePostRequest(body);
-    const res = await POST(req);
-    const json = await res.json();
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Task 1",
+					userId: "u1",
+					eventId: "e1",
+					relativeOffsetDays: 1,
+					scheduleTime: false,
+				},
+			],
+		});
 
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          title: "My Task",
-          priority: "High",
-          category: "General",
-          examId: null,
-        }),
-      })
-    );
-    expect(json.task.id).toBe("t1");
-  });
+		const res = await POST(req);
+		const data = await res.json();
 
-  test("fetches exam category when valid examId is provided", async () => {
-    mockExamFindUnique.mockResolvedValue({ id: "exam1", title: "Maths Final" });
-    mockCreate.mockResolvedValue({ id: "t2", exam: { title: "Maths Final" } });
+		expect(data.tasks.length).toBe(1);
+		expect(prisma.event.findMany).toHaveBeenCalledWith({
+			where: { id: { in: ["e1"] } },
+		});
+		expect(prisma.task.create).toHaveBeenCalled();
+	});
 
-    const body = { title: "Revision", userId: "user1", examId: "exam1" };
-    const req = makePostRequest(body);
-    await POST(req);
+	it("handles bulk with no events", async () => {
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([]);
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t1" });
 
-    expect(mockExamFindUnique).toHaveBeenCalledWith({ where: { id: "exam1" } });
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ category: "Maths Final" }),
-      })
-    );
-  });
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [{ title: "Task", userId: "u1" }],
+		});
 
-  test("uses 'General' category when exam is not found", async () => {
-    mockExamFindUnique.mockResolvedValue(null);
-    mockCreate.mockResolvedValue({ id: "t3", exam: null });
+		const res = await POST(req);
+		const data = await res.json();
 
-    const body = { title: "Orphan Task", userId: "user1", examId: "missing-exam" };
-    const req = makePostRequest(body);
-    await POST(req);
+		expect(data.tasks.length).toBe(1);
+		expect(prisma.task.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				title: "Task",
+				userId: "u1",
+				scheduledDate: null,
+				scheduledTime: null,
+				duration: 60,
+				priority: "Medium",
+				eventId: null,
+				examId: null,
+				isRecurring: false,
+				recurrence: null,
+				bufferDays: null,
+				url: null,
+				scheduledRelativeTo: null,
+				relativeOffsetDays: null,
+				eventLinkMode: null,
+				status: "todo",
+				completed: false,
+				subtasks: [],
+			}),
+		});
+	});
 
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ category: "General" }),
-      })
-    );
-  });
+	it("creates bulk task using custom date and specific time", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t-custom" });
 
-  test("uses default values when optional fields are omitted", async () => {
-    mockCreate.mockResolvedValue({ id: "t4", exam: null });
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Custom task",
+					userId: "u1",
+					relativeMode: "custom",
+					customDate: "2026-04-10T15:30:00.000Z",
+					scheduleTime: true,
+					specificTime: "14:45",
+					description: "desc",
+					duration: 30,
+					priority: "High",
+					bufferDays: 2,
+					url: "https://example.com",
+					scheduledRelativeTo: "event",
+					relativeOffsetDays: 3,
+					eventLinkMode: "before",
+				},
+			],
+		});
 
-    const body = { title: "Minimal Task", userId: "user1" };
-    const req = makePostRequest(body);
-    await POST(req);
+		const res = await POST(req);
+		const data = await res.json();
 
-    expect(mockCreate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          priority: "Medium",
-          duration: 0,
-          subtasks: [],
-          isRecurring: false,
-          completed: false,
-          completedAt: null,
-          scheduledDate: null,
-          scheduledTime: null,
-          dueDate: null,
-          description: null,
-          examId: null,
-          eventId: null,
-          recurrence: null,
-          bufferDays: null,
-          url: null,
-          scheduledRelativeTo: null,
-          relativeOffsetDays: null,
-          eventLinkMode: null,
-        }),
-      })
-    );
-  });
+		expect(res.status).toBe(200);
+		expect(data.tasks).toEqual([{ id: "t-custom" }]);
 
-  test("returns 500 on database error", async () => {
-    mockCreate.mockRejectedValue(new Error("DB error"));
-    const req = makePostRequest({ title: "Task", userId: "user1" });
-    const res = await POST(req);
-    expect(res.status).toBe(500);
-  });
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.title).toBe("Custom task");
+		expect(call.description).toBe("desc");
+		expect(call.userId).toBe("u1");
+		expect(call.duration).toBe(30);
+		expect(call.priority).toBe("High");
+		expect(call.bufferDays).toBe(2);
+		expect(call.url).toBe("https://example.com");
+		expect(call.scheduledRelativeTo).toBe("event");
+		expect(call.relativeOffsetDays).toBe(3);
+		expect(call.eventLinkMode).toBe("before");
+
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledDate.toISOString()).toBe(
+			"2026-04-10T00:00:00.000Z",
+		);
+
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getUTCHours()).toBe(14);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(45);
+	});
+
+	it("uses customRangeStart when customDate is absent", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t-range" });
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Range task",
+					userId: "u1",
+					relativeMode: "custom",
+					customRangeStart: "2026-05-01T09:00:00.000Z",
+					scheduleTime: true,
+					specificTime: "09:15",
+				},
+			],
+		});
+
+		await POST(req);
+
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledDate.toISOString()).toBe(
+			"2026-05-01T00:00:00.000Z",
+		);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getUTCHours()).toBe(9);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(15);
+	});
+
+	it("creates recurring bulk task from recurrence start date", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({
+			id: "t-recurring",
+		});
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Recurring task",
+					userId: "u1",
+					isRecurring: true,
+					recurrence: {
+						startDate: "2026-06-20T12:00:00.000Z",
+						type: "weekly",
+					},
+					scheduleTime: true,
+					specificTime: "08:30",
+				},
+			],
+		});
+
+		await POST(req);
+
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.isRecurring).toBe(true);
+		expect(call.recurrence).toEqual({
+			startDate: "2026-06-20T12:00:00.000Z",
+			type: "weekly",
+		});
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledDate.toISOString()).toBe(
+			"2026-06-20T00:00:00.000Z",
+		);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getUTCHours()).toBe(8);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(30);
+	});
+
+	it("clears scheduledDate and scheduledTime when scheduleTime is false", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({
+			id: "t-unscheduled",
+		});
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Unscheduled relative task",
+					userId: "u1",
+					relativeMode: "custom",
+					customDate: "2026-04-15T10:00:00.000Z",
+					scheduleTime: false,
+				},
+			],
+		});
+
+		await POST(req);
+
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.scheduledDate).toBeNull();
+		expect(call.scheduledTime).toBeNull();
+	});
+
+	it("computes date from non-recurring event when relativeOffsetDays is set", async () => {
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{
+				id: "event-1",
+				start: "2026-04-20T16:00:00.000Z",
+				recurrence: { type: "none" },
+			},
+		]);
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t-event" });
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Relative event task",
+					userId: "u1",
+					eventId: "event-1",
+					relativeOffsetDays: 2,
+					scheduleTime: true,
+					specificTime: "11:20",
+				},
+			],
+		});
+
+		await POST(req);
+
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.eventId).toBe("event-1");
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledDate.toISOString()).toBe(
+			"2026-04-22T00:00:00.000Z",
+		);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getUTCHours()).toBe(11);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(20);
+	});
+
+	it("computes date from weekly recurring event", async () => {
+		const futureStart = new Date();
+		futureStart.setUTCDate(futureStart.getUTCDate() + 1);
+		futureStart.setUTCHours(10, 0, 0, 0);
+
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{
+				id: "weekly-1",
+				start: futureStart,
+				recurrence: {
+					type: "weekly",
+					days: ["Mon", "Wed", "Fri"],
+				},
+			},
+		]);
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t-weekly" });
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Weekly linked task",
+					userId: "u1",
+					eventId: "weekly-1",
+					relativeOffsetDays: 0,
+					scheduleTime: true,
+					specificTime: "07:00",
+				},
+			],
+		});
+
+		await POST(req);
+
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getUTCHours()).toBe(7);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(0);
+	});
+
+	it("falls back to event start when recurrence type is unsupported", async () => {
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{
+				id: "weird-event",
+				start: "2026-07-01T12:00:00.000Z",
+				recurrence: {
+					type: "yearly",
+				},
+			},
+		]);
+		(prisma.task.create as jest.Mock).mockResolvedValue({
+			id: "t-fallback",
+		});
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Fallback task",
+					userId: "u1",
+					eventId: "weird-event",
+					relativeOffsetDays: 1,
+					scheduleTime: true,
+					specificTime: "10:10",
+				},
+			],
+		});
+
+		await POST(req);
+
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledDate.toISOString()).toBe(
+			"2026-07-02T00:00:00.000Z",
+		);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getUTCHours()).toBe(10);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(10);
+	});
+
+	it("does not fetch events when there are no eventIds in bulk payload", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t1" });
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{ title: "A", userId: "u1", eventId: null },
+				{ title: "B", userId: "u1" },
+			],
+		});
+
+		await POST(req);
+
+		expect(prisma.event.findMany).not.toHaveBeenCalled();
+		expect(prisma.task.create).toHaveBeenCalledTimes(2);
+	});
+
+	it("normalises examId none to null in bulk payload", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({
+			id: "t-exam-none",
+		});
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Task",
+					userId: "u1",
+					examId: "none",
+				},
+			],
+		});
+
+		await POST(req);
+
+		expect(prisma.task.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				examId: null,
+			}),
+		});
+	});
+
+	it("handles POST error in bulk branch", async () => {
+		(prisma.task.create as jest.Mock).mockRejectedValue(new Error("fail"));
+
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [{ title: "Broken task", userId: "u1" }],
+		});
+
+		const res = await POST(req);
+		const data = await res.json();
+
+		expect(res.status).toBe(500);
+		expect(data.error).toBe("Failed to create task");
+	});
 });
 
-describe("POST /api/tasks — bulk creation", () => {
-  beforeEach(() => jest.clearAllMocks());
+describe("POST /api/tasks - single", () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+	});
 
-  test("creates multiple tasks and returns them all", async () => {
-    const t1 = { id: "t1", title: "Task A" };
-    const t2 = { id: "t2", title: "Task B" };
-    mockCreate.mockResolvedValueOnce(t1).mockResolvedValueOnce(t2);
+	it("creates single task with exam category", async () => {
+		(prisma.exam.findUnique as jest.Mock).mockResolvedValue({
+			title: "Math",
+		});
 
-    const body = {
-      tasks: [
-        { title: "Task A", userId: "u1" },
-        { title: "Task B", userId: "u1" },
-      ],
-    };
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t1" });
 
-    const req = makePostRequest(body);
-    const res = await POST(req);
-    const json = await res.json();
+		const req = mockRequest("http://localhost/api/tasks", {
+			title: "Study",
+			userId: "u1",
+			examId: "exam1",
+		});
 
-    expect(mockCreate).toHaveBeenCalledTimes(2);
-    expect(json.tasks).toHaveLength(2);
-    expect(json.tasks[0].id).toBe("t1");
-  });
+		const res = await POST(req);
+		const data = await res.json();
 
-  test("bulk: sets scheduledDate and scheduledTime when relativeMode=custom + scheduleTime=true", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+		expect(data.task).toEqual({ id: "t1" });
+		expect(prisma.exam.findUnique).toHaveBeenCalledWith({
+			where: { id: "exam1" },
+		});
+		expect(prisma.task.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				title: "Study",
+				userId: "u1",
+				examId: "exam1",
+				category: "Math",
+				completed: false,
+				completedAt: null,
+				priority: "Medium",
+				duration: 0,
+				subtasks: [],
+				description: null,
+				dueDate: null,
+				eventId: null,
+				isRecurring: false,
+				recurrence: null,
+				scheduledDate: null,
+				scheduledTime: null,
+				bufferDays: null,
+				url: null,
+				scheduledRelativeTo: null,
+				relativeOffsetDays: null,
+				eventLinkMode: null,
+			}),
+			include: { exam: true },
+		});
+	});
 
-    const body = {
-      tasks: [
-        {
-          title: "Custom Date Task",
-          userId: "u1",
-          relativeMode: "custom",
-          customDate: "2025-08-15",
-          scheduleTime: true,
-          specificTime: "09:30",
-        },
-      ],
-    };
+	it("creates single task without exam", async () => {
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t2" });
 
-    const req = makePostRequest(body);
-    await POST(req);
+		const req = mockRequest("http://localhost/api/tasks", {
+			title: "Task",
+			userId: "u1",
+			examId: "none",
+		});
 
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).not.toBeNull();
-    expect(data.scheduledTime).not.toBeNull();
+		const res = await POST(req);
+		const data = await res.json();
 
-    const st = data.scheduledTime as Date;
-    expect(st.getHours()).toBe(9);
-    expect(st.getMinutes()).toBe(30);
-  });
+		expect(data.task).toEqual({ id: "t2" });
+		expect(prisma.exam.findUnique).not.toHaveBeenCalled();
+		expect(prisma.task.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				title: "Task",
+				userId: "u1",
+				examId: null,
+				category: "General",
+			}),
+			include: { exam: true },
+		});
+	});
 
-  test("bulk: clears scheduledDate/Time when relativeMode=custom + scheduleTime=false", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+	it("uses General category when exam lookup returns null", async () => {
+		(prisma.exam.findUnique as jest.Mock).mockResolvedValue(null);
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t3" });
 
-    const body = {
-      tasks: [
-        {
-          title: "Custom No Time",
-          userId: "u1",
-          relativeMode: "custom",
-          customDate: "2025-08-15",
-          scheduleTime: false,
-        },
-      ],
-    };
+		const req = mockRequest("http://localhost/api/tasks", {
+			title: "Task",
+			userId: "u1",
+			examId: "missing-exam",
+		});
 
-    const req = makePostRequest(body);
-    await POST(req);
+		await POST(req);
 
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).toBeNull();
-    expect(data.scheduledTime).toBeNull();
-  });
+		expect(prisma.task.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				examId: "missing-exam",
+				category: "General",
+			}),
+			include: { exam: true },
+		});
+	});
 
-  test("bulk: uses customRangeStart as fallback when customDate is absent", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+	it("passes through all optional single-task fields", async () => {
+		(prisma.exam.findUnique as jest.Mock).mockResolvedValue({
+			title: "Physics",
+		});
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t4" });
 
-    const body = {
-      tasks: [
-        {
-          title: "Range Task",
-          userId: "u1",
-          relativeMode: "custom",
-          customRangeStart: "2025-09-01",
-          scheduleTime: true,
-          specificTime: "14:00",
-        },
-      ],
-    };
+		const req = mockRequest("http://localhost/api/tasks", {
+			title: "Revise",
+			description: "Chapter 1",
+			dueDate: "2026-08-10T00:00:00.000Z",
+			userId: "u1",
+			priority: "High",
+			duration: 90,
+			subtasks: ["A", "B"],
+			examId: "exam-1",
+			eventId: "event-1",
+			isRecurring: true,
+			recurrence: { type: "weekly" },
+			scheduledDate: "2026-08-01T00:00:00.000Z",
+			scheduledTime: "2026-08-01T09:30:00.000Z",
+			bufferDays: 4,
+			url: "https://example.com/task",
+			scheduledRelativeTo: "exam",
+			relativeOffsetDays: 5,
+			eventLinkMode: "after",
+		});
 
-    const req = makePostRequest(body);
-    await POST(req);
+		await POST(req);
 
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).not.toBeNull();
-    const d = data.scheduledDate as Date;
-    expect(d.getMonth()).toBe(8);
-  });
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0];
 
-  test("bulk: computes date from non-recurring event + relativeOffsetDays", async () => {
-    const eventStart = new Date("2025-10-10");
-    mockEventFindUnique.mockResolvedValue({
-      id: "evt1",
-      start: eventStart.toISOString(),
-      recurrence: null,
-    });
-    mockCreate.mockResolvedValue({ id: "t1" });
+		expect(call.include).toEqual({ exam: true });
+		expect(call.data).toEqual(
+			expect.objectContaining({
+				title: "Revise",
+				description: "Chapter 1",
+				userId: "u1",
+				priority: "High",
+				duration: 90,
+				subtasks: ["A", "B"],
+				examId: "exam-1",
+				category: "Physics",
+				eventId: "event-1",
+				isRecurring: true,
+				recurrence: { type: "weekly" },
+				bufferDays: 4,
+				url: "https://example.com/task",
+				scheduledRelativeTo: "exam",
+				relativeOffsetDays: 5,
+				eventLinkMode: "after",
+			}),
+		);
 
-    const body = {
-      tasks: [
-        {
-          title: "Pre-event Task",
-          userId: "u1",
-          eventId: "evt1",
-          relativeOffsetDays: -2,
-          scheduleTime: true,
-          specificTime: "08:00",
-        },
-      ],
-    };
+		expect(call.data.dueDate).toBeInstanceOf(Date);
+		expect(call.data.scheduledDate).toBeInstanceOf(Date);
+		expect(call.data.scheduledTime).toBeInstanceOf(Date);
+	});
 
-    const req = makePostRequest(body);
-    await POST(req);
+	it("handles POST error", async () => {
+		(prisma.task.create as jest.Mock).mockRejectedValue(new Error("fail"));
 
-    const data = mockCreate.mock.calls[0][0].data;
-    const sd = data.scheduledDate as Date;
-    expect(sd.getDate()).toBe(8);
-    expect(sd.getMonth()).toBe(9);
-  });
+		const req = mockRequest("http://localhost/api/tasks", {
+			title: "Task",
+			userId: "u1",
+		});
 
-  test("bulk: skips event lookup when eventId is absent even with relativeOffsetDays", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+		const res = await POST(req);
+		const data = await res.json();
 
-    const body = {
-      tasks: [
-        {
-          title: "No Event",
-          userId: "u1",
-          relativeOffsetDays: -1,
-        },
-      ],
-    };
+		expect(res.status).toBe(500);
+		expect(data.error).toBe("Failed to create task");
+	});
 
-    const req = makePostRequest(body);
-    await POST(req);
+	it("handles request.json throwing", async () => {
+		const req = {
+			url: "http://localhost/api/tasks",
+			json: jest.fn().mockRejectedValue(new Error("bad json")),
+		} as any;
 
-    expect(mockEventFindUnique).not.toHaveBeenCalled();
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).toBeNull();
-  });
+		const res = await POST(req);
+		const data = await res.json();
 
-  test("bulk: handles event not found in DB gracefully", async () => {
-    mockEventFindUnique.mockResolvedValue(null);
-    mockCreate.mockResolvedValue({ id: "t1" });
+		expect(res.status).toBe(500);
+		expect(data.error).toBe("Failed to create task");
+	});
 
-    const body = {
-      tasks: [
-        {
-          title: "Ghost Event Task",
-          userId: "u1",
-          eventId: "nonexistent",
-          relativeOffsetDays: 0,
-        },
-      ],
-    };
+	it("computes date from daily recurring event after advancing from a past start", async () => {
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		yesterday.setHours(10, 0, 0, 0);
 
-    const req = makePostRequest(body);
-    await POST(req);
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{
+				id: "daily-1",
+				start: yesterday,
+				recurrence: {
+					type: "daily",
+				},
+			},
+		]);
 
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).toBeNull();
-  });
+		(prisma.task.create as jest.Mock).mockResolvedValue({ id: "t-daily" });
 
-  test("bulk: sets scheduledDate from recurrence.startDate for recurring task", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Daily linked task",
+					userId: "u1",
+					eventId: "daily-1",
+					relativeOffsetDays: 1,
+					scheduleTime: true,
+					specificTime: "09:00",
+				},
+			],
+		});
 
-    const body = {
-      tasks: [
-        {
-          title: "Recurring Task",
-          userId: "u1",
-          isRecurring: true,
-          recurrence: { startDate: "2025-11-01", type: "weekly" },
-          scheduleTime: true,
-          specificTime: "07:00",
-        },
-      ],
-    };
+		await POST(req);
 
-    const req = makePostRequest(body);
-    await POST(req);
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
 
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).not.toBeNull();
-    const sd = data.scheduledDate as Date;
-    expect(sd.getMonth()).toBe(10);
-    expect(sd.getDate()).toBe(1);
-  });
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getHours()).toBe(9);
+		expect(call.scheduledTime.getMinutes()).toBe(0);
 
-  test("bulk: taskDate stays null when no date source is configured", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 
-    const body = {
-      tasks: [
-        {
-          title: "Unscheduled",
-          userId: "u1",
-        },
-      ],
-    };
+		// Since event started yesterday and recurs daily, next occurrence is today,
+		// then offsetDays=1 should push it to tomorrow.
+		const expected = new Date(today);
+		expected.setDate(expected.getDate() + 1);
 
-    const req = makePostRequest(body);
-    await POST(req);
+		expect(call.scheduledDate.getTime()).toBe(expected.getTime());
+	});
 
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).toBeNull();
-    expect(data.scheduledTime).toBeNull();
-  });
+	it("computes date from monthly recurring event after advancing from a past month", async () => {
+		const lastMonth = new Date();
+		lastMonth.setMonth(lastMonth.getMonth() - 1);
+		lastMonth.setHours(12, 0, 0, 0);
 
-  test("bulk: returns 500 on database error", async () => {
-    mockCreate.mockRejectedValue(new Error("DB error"));
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{
+				id: "monthly-1",
+				start: lastMonth,
+				recurrence: {
+					type: "monthly",
+				},
+			},
+		]);
 
-    const body = {
-      tasks: [{ title: "Fail Task", userId: "u1" }],
-    };
+		(prisma.task.create as jest.Mock).mockResolvedValue({
+			id: "t-monthly",
+		});
 
-    const req = makePostRequest(body);
-    const res = await POST(req);
-    expect(res.status).toBe(500);
-  });
-});
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Monthly linked task",
+					userId: "u1",
+					eventId: "monthly-1",
+					relativeOffsetDays: 0,
+					scheduleTime: true,
+					specificTime: "13:30",
+				},
+			],
+		});
 
+		await POST(req);
 
-describe("computeTaskDateFromEvent — recurrence branches", () => {
-  beforeEach(() => jest.clearAllMocks());
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
 
-  // Helper to call POST with a single event-linked task and return the
-  // scheduledDate that was written to prisma.task.create.
-  async function getScheduledDateForEvent(event: object, offsetDays = 0): Promise<Date | null> {
-    mockEventFindUnique.mockResolvedValue(event);
-    mockCreate.mockResolvedValue({ id: "t1" });
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getHours()).toBe(13);
+		expect(call.scheduledTime.getMinutes()).toBe(30);
 
-    const body = {
-      tasks: [
-        {
-          title: "T",
-          userId: "u1",
-          eventId: "evt1",
-          relativeOffsetDays: offsetDays,
-          scheduleTime: true,
-          specificTime: "12:00",
-        },
-      ],
-    };
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 
-    await POST(makePostRequest(body));
-    return mockCreate.mock.calls[0][0].data.scheduledDate as Date | null;
-  }
+		// We mainly want to prove it advanced through the monthly branch
+		// and returned a valid occurrence on or after today.
+		expect(call.scheduledDate.getTime()).toBeGreaterThanOrEqual(
+			today.getTime(),
+		);
+	});
 
-  test("non-recurring event: returns event start + offset", async () => {
-    // Use local noon so setHours(0,0,0,0) always lands on the same calendar
-    // date regardless of the test runner's UTC offset.
-    const base = new Date(2025, 6, 20, 12, 0, 0); // July 20 noon
-    const event = { id: "evt1", start: base.toISOString(), recurrence: { type: "none" } };
-    const date = await getScheduledDateForEvent(event, -3);
-    expect(date).not.toBeNull();
-    expect(date!.getDate()).toBe(17);
-    expect(date!.getMonth()).toBe(6);
-  });
+	it("falls back after weekly recurrence has no valid mapped days", async () => {
+		const today = new Date();
+		today.setHours(10, 0, 0, 0);
 
-  test("null recurrence treated as non-recurring", async () => {
-    const base = new Date(2025, 6, 20, 12, 0, 0); // July 20 noon
-    const event = { id: "evt1", start: base.toISOString(), recurrence: null };
-    const date = await getScheduledDateForEvent(event, 0);
-    expect(date).not.toBeNull();
-    expect(date!.getDate()).toBe(20);
-    expect(date!.getMonth()).toBe(6);
-  });
+		const until = new Date(today);
+		until.setHours(23, 59, 59, 999);
 
-  test("daily recurrence: returns next occurrence >= today + offset", async () => {
-    // Use a past start so the loop must advance to find today or later.
-    const pastStart = addDays(new Date(), -5);
-    const event = {
-      id: "evt1",
-      start: pastStart.toISOString(),
-      recurrence: { type: "daily", until: null },
-    };
-    const date = await getScheduledDateForEvent(event, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expect(date!.getTime()).toBeGreaterThanOrEqual(today.getTime());
-  });
+		(prisma.event.findMany as jest.Mock).mockResolvedValue([
+			{
+				id: "weekly-invalid",
+				start: today,
+				recurrence: {
+					type: "weekly",
+					days: ["NotADay"],
+					until,
+				},
+			},
+		]);
 
-  test("monthly recurrence: returns next occurrence >= today + offset", async () => {
-    const pastStart = addMonths(new Date(), -2);
-    const event = {
-      id: "evt1",
-      start: pastStart.toISOString(),
-      recurrence: { type: "monthly", until: null },
-    };
-    const date = await getScheduledDateForEvent(event, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expect(date!.getTime()).toBeGreaterThanOrEqual(today.getTime());
-  });
+		(prisma.task.create as jest.Mock).mockResolvedValue({
+			id: "t-weekly-invalid",
+		});
 
-  test("weekly recurrence: returns the soonest matching weekday + offset", async () => {
-    // Start a week in the past so the loop needs at least one iteration.
-    const pastStart = addDays(new Date(), -7);
-    const event = {
-      id: "evt1",
-      start: pastStart.toISOString(),
-      recurrence: {
-        type: "weekly",
-        days: ["Mon", "Wed", "Fri"],
-        until: null,
-      },
-    };
-    const date = await getScheduledDateForEvent(event, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expect(date!.getTime()).toBeGreaterThanOrEqual(today.getTime());
-  });
+		const req = mockRequest("http://localhost/api/tasks", {
+			tasks: [
+				{
+					title: "Weekly invalid task",
+					userId: "u1",
+					eventId: "weekly-invalid",
+					relativeOffsetDays: 2,
+					scheduleTime: true,
+					specificTime: "15:10",
+				},
+			],
+		});
 
-  test("weekly recurrence with no matching days returns fallback", async () => {
-    const yesterday = addDays(new Date(), -1);
-    const event = {
-      id: "evt1",
-      start: yesterday.toISOString(),
-      recurrence: {
-        type: "weekly",
-        days: ["Mon"],
-        until: yesterday.toISOString(),
-      },
-    };
-    const date = await getScheduledDateForEvent(event, 0);
-    expect(date).not.toBeNull();
-    expect(date).toBeInstanceOf(Date);
-  });
+		await POST(req);
 
-  test("weekly with empty days array hits fallback/break", async () => {
-    const event = {
-      id: "evt1",
-      start: new Date().toISOString(),
-      recurrence: {
-        type: "weekly",
-        days: [],
-        until: null,
-      },
-    };
-    const date = await getScheduledDateForEvent(event, 0);
-    expect(date).not.toBeNull();
-    expect(date).toBeInstanceOf(Date);
-  });
+		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
 
-  test("unknown recurrence type hits break / fallback", async () => {
-    const event = {
-      id: "evt1",
-      start: new Date().toISOString(),
-      recurrence: { type: "unknown_type", until: null },
-    };
-    const date = await getScheduledDateForEvent(event, 0);
-    expect(date).not.toBeNull();
-    expect(date).toBeInstanceOf(Date);
-  });
+		expect(call.scheduledDate).toBeInstanceOf(Date);
+		expect(call.scheduledTime).toBeInstanceOf(Date);
+		expect(call.scheduledTime.getHours()).toBe(15);
+		expect(call.scheduledTime.getMinutes()).toBe(10);
 
-  test("relativeOffsetDays:null skips event branch (scheduledDate stays null)", async () => {
-    mockCreate.mockResolvedValue({ id: "t1" });
+		// Since no weekly day is valid, helper should fall back to event start + offset
+		const expected = new Date(today);
+		expected.setHours(0, 0, 0, 0);
+		expected.setDate(expected.getDate() + 2);
 
-    const body = {
-      tasks: [
-        {
-          title: "Null Offset",
-          userId: "u1",
-          eventId: "evt1",
-          relativeOffsetDays: null,
-          scheduleTime: true,
-          specificTime: "12:00",
-        },
-      ],
-    };
-
-    await POST(makePostRequest(body));
-    const data = mockCreate.mock.calls[0][0].data;
-    expect(data.scheduledDate).toBeNull();
-    expect(mockEventFindUnique).not.toHaveBeenCalled();
-  });
-
-  test("relativeOffsetDays:0 passes 0 into computeTaskDateFromEvent (no offset applied)", async () => {
-    const base = new Date(2025, 11, 25, 12, 0, 0); // Dec 25 noon
-    const event = { id: "evt1", start: base.toISOString(), recurrence: { type: "none" } };
-    mockEventFindUnique.mockResolvedValue(event);
-    mockCreate.mockResolvedValue({ id: "t1" });
-
-    const body = {
-      tasks: [
-        {
-          title: "Zero Offset",
-          userId: "u1",
-          eventId: "evt1",
-          relativeOffsetDays: 0,
-          scheduleTime: true,
-          specificTime: "12:00",
-        },
-      ],
-    };
-
-    await POST(makePostRequest(body));
-    const sd = mockCreate.mock.calls[0][0].data.scheduledDate as Date;
-    expect(sd.getDate()).toBe(25);
-    expect(sd.getMonth()).toBe(11);
-  });
+		expect(call.scheduledDate.getTime()).toBe(expected.getTime());
+	});
 });

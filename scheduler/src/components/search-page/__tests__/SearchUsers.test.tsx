@@ -3,18 +3,19 @@ import SearchUsers from "../SearchUsers";
 
 // Mock UserPanel
 jest.mock("@/components/admin/AdminUserPanel", () => (props: any) => (
-	<div data-testid="user-panel">{props.user ? "OPEN" : "CLOSED"}</div>
+	<div data-testid="user-panel">
+		{props.user ? "OPEN" : "CLOSED"}
+		<button onClick={props.onClose}>close-panel</button>
+	</div>
 ));
 
 // Mock UserCard
 jest.mock("../UserCards", () => (props: any) => (
-    <div data-testid="user-card">
-        <span>{props.user.username}</span>
-        <button onClick={props.onClick}>open</button>
-        {props.onRemove && (
-            <button onClick={props.onRemove}>remove</button>
-        )}
-    </div>
+	<div data-testid="user-card">
+		<span>{props.user.username}</span>
+		<button onClick={props.onClick}>open</button>
+		{props.onRemove && <button onClick={props.onRemove}>remove</button>}
+	</div>
 ));
 
 // Mock GlassCard
@@ -35,13 +36,9 @@ jest.mock("@/lib/recent-users", () => ({
 	clearRecentUsers: () => clearRecentUsers(),
 }));
 
-// Mock navigation
-delete (window as any).location;
-(window as any).location = {
-	assign: jest.fn(),
-};
-
 describe("SearchUsers", () => {
+	let consoleErrorSpy: jest.SpyInstance;
+
 	const baseProps = {
 		users: [],
 		totalUsers: 0,
@@ -56,9 +53,15 @@ describe("SearchUsers", () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks();
+		consoleErrorSpy = jest
+			.spyOn(console, "error")
+			.mockImplementation(() => {});
 	});
 
-	//recent users
+	afterEach(() => {
+		consoleErrorSpy.mockRestore();
+	});
+
 	test("shows recent users when not searching", () => {
 		getRecentUsers.mockReturnValue([
 			{ username: "alice" },
@@ -77,9 +80,17 @@ describe("SearchUsers", () => {
 
 		render(<SearchUsers {...baseProps} />);
 
+		expect(screen.getByText(/No recent searches/i)).toBeInTheDocument();
+	});
+
+	test("does not show Clear All when there are no recent users", () => {
+		getRecentUsers.mockReturnValue([]);
+
+		render(<SearchUsers {...baseProps} />);
+
 		expect(
-			screen.getByText(/No recent searches/i)
-		).toBeInTheDocument();
+			screen.queryByRole("button", { name: "Clear All" }),
+		).not.toBeInTheDocument();
 	});
 
 	test("clear recent users", () => {
@@ -87,17 +98,15 @@ describe("SearchUsers", () => {
 
 		render(<SearchUsers {...baseProps} />);
 
-		fireEvent.click(
-			screen.getByRole("button", { name: "Clear All" })
-		);
+		fireEvent.click(screen.getByRole("button", { name: "Clear All" }));
 
 		expect(clearRecentUsers).toHaveBeenCalled();
 	});
 
 	test("remove single recent user", () => {
 		getRecentUsers
-			.mockReturnValueOnce([{ username: "alice" }]) // initial
-			.mockReturnValueOnce([]); // after removal
+			.mockReturnValueOnce([{ username: "alice" }])
+			.mockReturnValueOnce([]);
 
 		render(<SearchUsers {...baseProps} />);
 
@@ -106,14 +115,23 @@ describe("SearchUsers", () => {
 		expect(removeRecentUser).toHaveBeenCalledWith("alice");
 	});
 
-	//search mode
+	test("clicking a recent user adds them to recent users", () => {
+		getRecentUsers.mockReturnValue([{ username: "alice" }]);
+
+		render(<SearchUsers {...baseProps} />);
+
+		fireEvent.click(screen.getByRole("button", { name: "open" }));
+
+		expect(addRecentUser).toHaveBeenCalledWith({ username: "alice" });
+	});
+
 	test("shows search results", () => {
 		render(
 			<SearchUsers
 				{...baseProps}
 				filters={{ ...baseProps.filters, search: "a" }}
 				users={[{ id: 1, username: "alex" }]}
-			/>
+			/>,
 		);
 
 		expect(screen.getByText("Users")).toBeInTheDocument();
@@ -126,16 +144,34 @@ describe("SearchUsers", () => {
 				{...baseProps}
 				filters={{ ...baseProps.filters, search: "a" }}
 				users={[]}
-			/>
+			/>,
 		);
 
-		expect(
-			screen.getByText(/No users found/i)
-		).toBeInTheDocument();
+		expect(screen.getByText(/No users found/i)).toBeInTheDocument();
 	});
 
-	//pagination
-	test("renders pagination and navigates pages", () => {
+	test("clicking a search result adds them to recent users", () => {
+		render(
+			<SearchUsers
+				{...baseProps}
+				filters={{ ...baseProps.filters, search: "al" }}
+				users={[{ id: 1, username: "alex" }]}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "open" }));
+
+		expect(addRecentUser).toHaveBeenCalledWith({ id: 1, username: "alex" });
+	});
+
+	test("renders pagination and executes previous/next page updater functions", () => {
+		const setFilters = jest.fn((updater) => {
+			if (typeof updater === "function") {
+				return updater({ search: "a", page: 2, limit: 10 });
+			}
+			return updater;
+		});
+
 		render(
 			<SearchUsers
 				{...baseProps}
@@ -143,18 +179,31 @@ describe("SearchUsers", () => {
 				totalUsers={25}
 				totalUserPages={3}
 				users={[{ id: 1, username: "alex" }]}
-			/>
+				setFilters={setFilters}
+			/>,
 		);
 
 		expect(screen.getByText("11-20 of 25")).toBeInTheDocument();
 
 		fireEvent.click(screen.getByRole("button", { name: "Previous" }));
-
-		expect(baseProps.setFilters).toHaveBeenCalled();
-
 		fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
-		expect(baseProps.setFilters).toHaveBeenCalled();
+		expect(setFilters).toHaveBeenCalledTimes(2);
+
+		const prevUpdater = setFilters.mock.calls[0][0];
+		const nextUpdater = setFilters.mock.calls[1][0];
+
+		expect(prevUpdater({ search: "a", page: 2, limit: 10 })).toEqual({
+			search: "a",
+			page: 1,
+			limit: 10,
+		});
+
+		expect(nextUpdater({ search: "a", page: 2, limit: 10 })).toEqual({
+			search: "a",
+			page: 3,
+			limit: 10,
+		});
 	});
 
 	test("pagination buttons disabled correctly", () => {
@@ -165,29 +214,28 @@ describe("SearchUsers", () => {
 				totalUsers={5}
 				totalUserPages={1}
 				users={[{ id: 1, username: "alex" }]}
-			/>
+			/>,
 		);
 
-		expect(
-			screen.getByRole("button", { name: "Previous" })
-		).toBeDisabled();
-
-		expect(
-			screen.getByRole("button", { name: "Next" })
-		).toBeDisabled();
+		expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
 	});
 
-	//user panel
 	test("user panel reflects selected user", () => {
 		render(
-			<SearchUsers
-				{...baseProps}
-				selectedUser={{ username: "alice" }}
-			/>
+			<SearchUsers {...baseProps} selectedUser={{ username: "alice" }} />,
 		);
 
-		expect(screen.getByTestId("user-panel")).toHaveTextContent(
-			"OPEN"
+		expect(screen.getByTestId("user-panel")).toHaveTextContent("OPEN");
+	});
+
+	test("closes the user panel when onClose is triggered", () => {
+		render(
+			<SearchUsers {...baseProps} selectedUser={{ username: "alice" }} />,
 		);
+
+		fireEvent.click(screen.getByRole("button", { name: "close-panel" }));
+
+		expect(baseProps.setSelectedUser).toHaveBeenCalledWith(null);
 	});
 });

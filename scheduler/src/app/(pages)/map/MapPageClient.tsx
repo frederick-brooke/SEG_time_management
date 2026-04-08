@@ -7,6 +7,9 @@
  * the user's location visibility status (visible or hidden to friends).
  */
 
+// ⚡ PERF: Lazily import Leaflet CSS only on map page
+import "leaflet/dist/leaflet.css";
+
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import MapView from "@/components/map/MapView";
@@ -14,36 +17,37 @@ import { SavedLocationsPanel } from "@/components/map/SavedLocationsPanel";
 import { Button } from "@/components/ui/Button";
 
 const SetLocationModal = dynamic(
-  () => import("@/components/map/SetLocationModal").then((mod) => mod.default),
-  { ssr: false }
+	() =>
+		import("@/components/map/SetLocationModal").then((mod) => mod.default),
+	{ ssr: false },
 );
 
 interface Event {
-  id: string;
-  title: string;
-  category: string;
-  start: string;
-  end: string;
-  startCoords: { lat: number; lng: number } | null;
-  destinationCoords: { lat: number; lng: number } | null;
-  startLocationName: string | null;
-  destLocationName: string | null;
-  travelDuration: number | null;
-  transportMode: string;
+	id: string;
+	title: string;
+	category: string;
+	start: string;
+	end: string;
+	startCoords: { lat: number; lng: number } | null;
+	destinationCoords: { lat: number; lng: number } | null;
+	startLocationName: string | null;
+	destLocationName: string | null;
+	travelDuration: number | null;
+	transportMode: string;
 }
 
 interface MapPageClientProps {
-  events: Event[];
-  userLocation: { lat: number; lng: number } | null;
-  userLocationHidden: boolean;
+	events: Event[];
+	userLocation: { lat: number; lng: number } | null;
+	userLocationHidden: boolean;
 }
 
 export default function MapPageClient({
-  events,
-  userLocation,
-  userLocationHidden,
+	events,
+	userLocation,
+	userLocationHidden,
 }: MapPageClientProps) {
-  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+	const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   return (
     <>
@@ -60,38 +64,40 @@ export default function MapPageClient({
             📍 Set Your Location
           </Button>
 
-          {/* Location Visibility Info */}
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  userLocationHidden ? "bg-red-400" : "bg-green-400"
-                }`}
-              />
-              <div>
-                <p className="text-sm font-medium text-white">
-                  {userLocationHidden
-                    ? "Location hidden from friends"
-                    : "Location visible to friends"}
-                </p>
-                <p className="text-xs text-white/50 mt-0.5">
-                  {userLocationHidden
-                    ? "Friends cannot see your location"
-                    : "Friends can see your location"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+					{/* Location Visibility Info */}
+					<div className="bg-white/5 border border-white/10 rounded-lg p-4">
+						<div className="flex items-center gap-2">
+							<div
+								className={`w-3 h-3 rounded-full ${
+									userLocationHidden
+										? "bg-red-400"
+										: "bg-green-400"
+								}`}
+							/>
+							<div>
+								<p className="text-sm font-medium text-white">
+									{userLocationHidden
+										? "Location hidden from friends"
+										: "Location visible to friends"}
+								</p>
+								<p className="text-xs text-white/50 mt-0.5">
+									{userLocationHidden
+										? "Friends cannot see your location"
+										: "Friends can see your location"}
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-      {/* Location Modal */}
-      <SetLocationModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        initialLocation={userLocation}
-        initialHidden={userLocationHidden}
-      />
-    </>
-  );
+			{/* Location Modal */}
+			<SetLocationModal
+				isOpen={isLocationModalOpen}
+				onClose={() => setIsLocationModalOpen(false)}
+				initialLocation={userLocation}
+				initialHidden={userLocationHidden}
+			/>
+		</>
+	);
 }

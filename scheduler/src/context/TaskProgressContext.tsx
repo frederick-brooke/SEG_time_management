@@ -182,20 +182,20 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
     broadcastProgressUpdate();
   }, []);
 
-  const value: TaskProgressContextType = {
-    progressPercentage,
-    tasks,
-    isLoading,
-    lastUpdatedAt,
-    refreshProgress,
-    triggerProgressUpdate,
-  };
+	const value: TaskProgressContextType = {
+		progressPercentage,
+		tasks,
+		isLoading,
+		lastUpdatedAt,
+		refreshProgress,
+		triggerProgressUpdate,
+	};
 
-  return (
-    <TaskProgressContext.Provider value={value}>
-      {children}
-    </TaskProgressContext.Provider>
-  );
+	return (
+		<TaskProgressContext.Provider value={value}>
+			{children}
+		</TaskProgressContext.Provider>
+	);
 }
 
 /**

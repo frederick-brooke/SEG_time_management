@@ -1,110 +1,151 @@
-/**
- * Testing for lib/streak
- */
+import {
+	toUniqueDays,
+	daysSinceMostRecent,
+	countStreak,
+	calculateStreak,
+} from "../streak";
 
-import { toUniqueDays, daysSinceMostRecent, countStreak } from "lib/streak";
+import { prisma } from "lib/prisma";
 
-// Tests
+jest.mock("lib/prisma", () => ({
+	prisma: {
+		task: {
+			findMany: jest.fn(),
+		},
+	},
+}));
 
-describe("toUniqueDays", () => {
-  it("returns empty array for empty input", () => {
-    expect(toUniqueDays([])).toEqual([]);
-  });
+const mockedFindMany = prisma.task.findMany as jest.Mock;
 
-  it("filters out null values", () => {
-    const result = toUniqueDays([null, null]);
-    expect(result).toEqual([]);
-  });
+describe("streak utilities", () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+		jest.useFakeTimers();
+		jest.setSystemTime(new Date("2026-04-06T12:00:00.000Z"));
+	});
 
-  it("normalises dates to midnight and deduplicates", () => {
-    const d1 = new Date("2026-03-15T09:00:00.000Z");
-    const d2 = new Date("2026-03-15T21:00:00.000Z");
-    const result = toUniqueDays([d1, d2]);
-    expect(result).toHaveLength(1);
-  });
+	afterEach(() => {
+		jest.useRealTimers();
+	});
 
-  it("returns dates sorted descending", () => {
-    const d1 = new Date("2026-03-13T00:00:00.000Z");
-    const d2 = new Date("2026-03-15T00:00:00.000Z");
-    const d3 = new Date("2026-03-14T00:00:00.000Z");
-    const result = toUniqueDays([d1, d2, d3]);
-    expect(result[0]).toBeGreaterThan(result[1]);
-    expect(result[1]).toBeGreaterThan(result[2]);
-  });
+	describe("toUniqueDays", () => {
+		it("returns unique normalized days sorted descending and ignores nulls", () => {
+			const result = toUniqueDays([
+				new Date("2026-04-06T10:30:00.000Z"),
+				new Date("2026-04-06T23:59:00.000Z"), // same day, should dedupe
+				null,
+				new Date("2026-04-04T08:00:00.000Z"),
+				new Date("2026-04-05T15:00:00.000Z"),
+			]);
 
-  it("handles mixed null and valid dates", () => {
-    const d = new Date("2026-03-15T00:00:00.000Z");
-    const result = toUniqueDays([null, d, null]);
-    expect(result).toHaveLength(1);
-  });
-});
+			expect(result).toEqual([
+				new Date("2026-04-06T00:00:00.000Z").getTime(),
+				new Date("2026-04-05T00:00:00.000Z").getTime(),
+				new Date("2026-04-04T00:00:00.000Z").getTime(),
+			]);
+		});
 
-// daysSinceMostRecent
-describe("daysSinceMostRecent", () => {
-  it("returns Infinity for empty array", () => {
-    expect(daysSinceMostRecent([], Date.now())).toBe(Infinity);
-  });
+		it("returns an empty array when all values are null", () => {
+			expect(toUniqueDays([null, null])).toEqual([]);
+		});
+	});
 
-  it("returns 0 when most recent day is today", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const result = daysSinceMostRecent([today.getTime()], today.getTime());
-    expect(result).toBe(0);
-  });
+	describe("daysSinceMostRecent", () => {
+		it("returns Infinity when there are no completion days", () => {
+			const today = new Date("2026-04-06T00:00:00.000Z").getTime();
+			expect(daysSinceMostRecent([], today)).toBe(Infinity);
+		});
 
-  it("returns 1 when most recent day was yesterday", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = today.getTime() - 86_400_000;
-    const result = daysSinceMostRecent([yesterday], today.getTime());
-    expect(result).toBe(1);
-  });
+		it("returns the number of days since the most recent completion", () => {
+			const today = new Date("2026-04-06T00:00:00.000Z").getTime();
+			const uniqueDays = [new Date("2026-04-04T00:00:00.000Z").getTime()];
 
-  it("returns 2 when most recent day was two days ago", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const twoDaysAgo = today.getTime() - 2 * 86_400_000;
-    const result = daysSinceMostRecent([twoDaysAgo], today.getTime());
-    expect(result).toBe(2);
-  });
-});
+			expect(daysSinceMostRecent(uniqueDays, today)).toBe(2);
+		});
+	});
 
-// countStreak
-describe("countStreak", () => {
-  it("returns 0 for empty array", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expect(countStreak([], today.getTime())).toBe(0);
-  });
+	describe("countStreak", () => {
+		it("counts a streak including today and previous consecutive days", () => {
+			const today = new Date("2026-04-06T00:00:00.000Z").getTime();
+			const uniqueDays = [
+				new Date("2026-04-06T00:00:00.000Z").getTime(),
+				new Date("2026-04-05T00:00:00.000Z").getTime(),
+				new Date("2026-04-04T00:00:00.000Z").getTime(),
+			];
 
-  it("returns 1 for a single entry today", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    expect(countStreak([today.getTime()], today.getTime())).toBe(1);
-  });
+			expect(countStreak(uniqueDays, today)).toBe(3);
+		});
 
-  it("returns 1 for a single entry yesterday", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const yesterday = today.getTime() - 86_400_000;
-    expect(countStreak([yesterday], today.getTime())).toBe(1);
-  });
+		it("counts a streak starting from yesterday when today is not completed", () => {
+			const today = new Date("2026-04-06T00:00:00.000Z").getTime();
+			const uniqueDays = [
+				new Date("2026-04-05T00:00:00.000Z").getTime(),
+				new Date("2026-04-04T00:00:00.000Z").getTime(),
+			];
 
-  it("counts consecutive days correctly", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const days = [0, 1, 2, 3].map((n) => today.getTime() - n * 86_400_000);
-    expect(countStreak(days, today.getTime())).toBe(4);
-  });
+			expect(countStreak(uniqueDays, today)).toBe(2);
+		});
 
-  it("stops counting at a gap", () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const days = [
-      today.getTime(),
-      today.getTime() - 86_400_000,
-      today.getTime() - 4 * 86_400_000,
-    ];
-    expect(countStreak(days, today.getTime())).toBe(2);
-  });
+		it("breaks the streak when the gap is greater than one day", () => {
+			const today = new Date("2026-04-06T00:00:00.000Z").getTime();
+			const uniqueDays = [
+				new Date("2026-04-06T00:00:00.000Z").getTime(),
+				new Date("2026-04-04T00:00:00.000Z").getTime(), // skips 2026-04-05
+				new Date("2026-04-03T00:00:00.000Z").getTime(),
+			];
+
+			expect(countStreak(uniqueDays, today)).toBe(1);
+		});
+
+		it("returns 0 when there are no completion days", () => {
+			const today = new Date("2026-04-06T00:00:00.000Z").getTime();
+			expect(countStreak([], today)).toBe(0);
+		});
+	});
+
+	describe("calculateStreak", () => {
+		it("returns 0 when the user has no completed tasks", async () => {
+			mockedFindMany.mockResolvedValue([]);
+
+			await expect(calculateStreak("user-1")).resolves.toBe(0);
+
+			expect(mockedFindMany).toHaveBeenCalledWith({
+				where: {
+					userId: "user-1",
+					completed: true,
+					completedAt: { not: null },
+				},
+				select: { completedAt: true },
+			});
+		});
+
+		it("returns 0 when the most recent completion gap is greater than 2 days", async () => {
+			mockedFindMany.mockResolvedValue([
+				{ completedAt: new Date("2026-04-03T10:00:00.000Z") }, // gap = 3 from Apr 6
+				{ completedAt: new Date("2026-04-02T10:00:00.000Z") },
+			]);
+
+			await expect(calculateStreak("user-2")).resolves.toBe(0);
+		});
+
+		it("returns the current streak when the gap is within the allowed range", async () => {
+			mockedFindMany.mockResolvedValue([
+				{ completedAt: new Date("2026-04-06T09:00:00.000Z") },
+				{ completedAt: new Date("2026-04-05T14:00:00.000Z") },
+				{ completedAt: new Date("2026-04-04T18:00:00.000Z") },
+			]);
+
+			await expect(calculateStreak("user-3")).resolves.toBe(3);
+		});
+
+		it("deduplicates multiple completed tasks on the same day when calculating streak", async () => {
+			mockedFindMany.mockResolvedValue([
+				{ completedAt: new Date("2026-04-06T09:00:00.000Z") },
+				{ completedAt: new Date("2026-04-06T20:00:00.000Z") }, // same day
+				{ completedAt: new Date("2026-04-05T10:00:00.000Z") },
+			]);
+
+			await expect(calculateStreak("user-4")).resolves.toBe(2);
+		});
+	});
 });

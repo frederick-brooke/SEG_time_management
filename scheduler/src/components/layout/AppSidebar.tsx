@@ -18,22 +18,22 @@ import { checkUpcomingEventNotifications } from "@/app/actions/calendar/calendar
 import { Button } from "../ui/Button";
 
 import {
-  IconDashboard,
-  IconMessages,
-  IconListDetails,
-  IconTrophy,
-  IconBook,
-  IconBell,
-  IconCalendar,
-  IconUsersGroup,
-  IconShoppingCart,
-  IconDeviceGamepad2,
-  IconUserCog,
-  IconSettings,
-  IconLogout,
-  IconUser,
-  IconSearch,
-  IconDotsVertical,
+	IconDashboard,
+	IconMessages,
+	IconListDetails,
+	IconTrophy,
+	IconBook,
+	IconBell,
+	IconCalendar,
+	IconUsersGroup,
+	IconShoppingCart,
+	IconDeviceGamepad2,
+	IconUserCog,
+	IconSettings,
+	IconLogout,
+	IconUser,
+	IconSearch,
+	IconDotsVertical,
 } from "@tabler/icons-react";
 
 import { GraduationCap, Map } from "lucide-react";
@@ -53,66 +53,81 @@ import NotificationModal from "@/components/notifications/NotificationModal";
 import { usePathname, useRouter } from "next/navigation";
 
 const NAV_SECTIONS = [
-  {
-    label: "Workspace",
-    items: [
-      { title: "Dashboard",    url: "/dashboard",    icon: IconDashboard },
-      { title: "Tasks",        url: "/tasks",        icon: IconListDetails },
-      { title: "Calendar",     url: "/calendar",     icon: IconCalendar },
-      { title: "Exam Planner", url: "/exam-planner", icon: GraduationCap },
-      { title: "Modules",      url: "/modules",      icon: IconBook },
-    ],
-  },
-  {
-    label: "Social",
-    items: [
-      { title: "Messages",    url: "/messages",    icon: IconMessages },
-      { title: "Leaderboard", url: "/leaderboard", icon: IconTrophy },
-      { title: "Map",         url: "/map",         icon: Map },
-      { title: "Groups",      url: "/groups",      icon: IconUsersGroup },
-    ],
-  },
-  {
-    label: "Extras",
-    items: [
-      { title: "Shop",      url: "/shop",  icon: IconShoppingCart },
-      { title: "Minigames", url: "/games", icon: IconDeviceGamepad2 },
-    ],
-  },
+	{
+		label: "Workspace",
+		items: [
+			{ title: "Dashboard", url: "/dashboard", icon: IconDashboard },
+			{ title: "Tasks", url: "/tasks", icon: IconListDetails },
+			{ title: "Calendar", url: "/calendar", icon: IconCalendar },
+			{
+				title: "Exam Planner",
+				url: "/exam-planner",
+				icon: GraduationCap,
+			},
+			{ title: "Modules", url: "/modules", icon: IconBook },
+		],
+	},
+	{
+		label: "Social",
+		items: [
+			{ title: "Messages", url: "/messages", icon: IconMessages },
+			{ title: "Leaderboard", url: "/leaderboard", icon: IconTrophy },
+			{ title: "Map", url: "/map", icon: Map },
+			{ title: "Groups", url: "/groups", icon: IconUsersGroup },
+		],
+	},
+	{
+		label: "Extras",
+		items: [
+			{ title: "Shop", url: "/shop", icon: IconShoppingCart },
+			{ title: "Minigames", url: "/games", icon: IconDeviceGamepad2 },
+		],
+	},
 ];
 
 const ADMIN_ITEM = { title: "Admin", url: "/admin", icon: IconUserCog };
 
-/**
- * Renders a single navigation item as either a link or a button.
- *
- * @param {{ item: any; isActive?: boolean; badge?: number; onClick?: () => void }} props
- * @returns {JSX.Element} A styled nav item element
- */
-function NavItem({ item, isActive, badge, onClick }: {
-  item: any;
-  isActive?: boolean;
-  badge?: number;
-  onClick?: () => void;
+function NavItem({
+	item,
+	isActive,
+	badge,
+	onClick,
+}: {
+	item: any;
+	isActive?: boolean;
+	badge?: number;
+	onClick?: () => void;
 }) {
-  const Icon = item.icon;
-
-  const inner = (
-    <span className={`
+	const Icon = item.icon;
+	const inner = (
+		<span
+			className={`
       group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 w-full
-      ${isActive
-        ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-        : "text-white/55 hover:text-white/90 hover:bg-white/[0.06]"}
-    `}>
-      <Icon size={17} className={isActive ? "text-blue-400" : "text-white/40 group-hover:text-white/70"} />
-      <span className="flex-1 tracking-wide uppercase text-[11px] font-semibold">{item.title}</span>
-      {badge != null && badge > 0 && (
-        <span className="text-[10px] font-bold bg-blue-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-          {badge > 99 ? "99+" : badge}
-        </span>
-      )}
-    </span>
-  );
+      ${
+			isActive
+				? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+				: "text-white/55 hover:text-white/90 hover:bg-white/[0.06]"
+		}
+    `}
+		>
+			<Icon
+				size={17}
+				className={
+					isActive
+						? "text-blue-400"
+						: "text-white/40 group-hover:text-white/70"
+				}
+			/>
+			<span className="flex-1 tracking-wide uppercase text-[11px] font-semibold">
+				{item.title}
+			</span>
+			{badge != null && badge > 0 && (
+				<span className="text-[10px] font-bold bg-blue-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+					{badge > 99 ? "99+" : badge}
+				</span>
+			)}
+		</span>
+	);
 
   if (onClick) return <Button onClick={onClick} className="w-full text-left">{inner}</Button>;
   return <Link href={item.url} className="w-full">{inner}</Link>;
@@ -141,45 +156,61 @@ function NavSection({ label, children }: { label: string; children: React.ReactN
  * @returns {JSX.Element} The user footer element
  */
 function UserFooter({ session, status }: { session: any; status: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
+	const [open, setOpen] = useState(false);
+	const ref = useRef<HTMLDivElement>(null);
+	const router = useRouter();
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+	useEffect(() => {
+		const handler = (e: MouseEvent) => {
+			if (ref.current && !ref.current.contains(e.target as Node))
+				setOpen(false);
+		};
+		document.addEventListener("mousedown", handler);
+		return () => document.removeEventListener("mousedown", handler);
+	}, []);
 
-  if (status === "loading") {
-    return (
-      <div className="flex items-center gap-3 px-3 py-2.5">
-        <div className="w-7 h-7 rounded-full bg-white/10 animate-pulse" />
-        <div className="h-3 w-24 rounded bg-white/10 animate-pulse" />
-      </div>
-    );
-  }
+	// FIX 2: don't render anything until session is resolved to prevent "User" flash
+	if (status === "loading") {
+		return (
+			<div className="flex items-center gap-3 px-3 py-2.5">
+				<div className="w-7 h-7 rounded-full bg-white/10 animate-pulse" />
+				<div className="h-3 w-24 rounded bg-white/10 animate-pulse" />
+			</div>
+		);
+	}
 
-  const name    = session?.user?.name || session?.user?.username || "User";
-  const email   = session?.user?.email || "";
-  const pfp     = session?.user?.image || null;
-  const initial = name[0]?.toUpperCase() ?? "U";
+	const name = session?.user?.name || session?.user?.username || "User";
+	const email = session?.user?.email || "";
+	const pfp = session?.user?.image || null;
+	const initial = name[0]?.toUpperCase() ?? "U";
 
-  return (
-    <div ref={ref} className="relative">
-      {open && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 rounded-2xl border border-white/10 bg-gray-900/95 backdrop-blur-md overflow-hidden shadow-xl shadow-black/50">
-          <div className="px-4 py-3 border-b border-white/[0.08] flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-sm font-bold flex-shrink-0 overflow-hidden">
-              {pfp ? <img src={pfp} alt={name} className="w-full h-full object-cover" /> : initial}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white/90 truncate">{name}</p>
-              <p className="text-xs text-white/35 truncate">{email}</p>
-            </div>
-          </div>
+	return (
+		<div ref={ref} className="relative">
+			{/* Dropdown — renders above */}
+			{open && (
+				<div className="absolute bottom-full left-0 right-0 mb-2 rounded-2xl border border-white/10 bg-gray-900/95 backdrop-blur-md overflow-hidden shadow-xl shadow-black/50">
+					{/* User info header */}
+					<div className="px-4 py-3 border-b border-white/[0.08] flex items-center gap-3">
+						<div className="w-9 h-9 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-sm font-bold flex-shrink-0 overflow-hidden">
+							{pfp ? (
+								<img
+									src={pfp}
+									alt={name}
+									className="w-full h-full object-cover"
+								/>
+							) : (
+								initial
+							)}
+						</div>
+						<div className="min-w-0">
+							<p className="text-sm font-semibold text-white/90 truncate">
+								{name}
+							</p>
+							<p className="text-xs text-white/35 truncate">
+								{email}
+							</p>
+						</div>
+					</div>
 
           <div className="p-1.5 space-y-0.5">
             <Button
@@ -261,104 +292,163 @@ function NotificationBell({ count, onClick }: { count: number; onClick: () => vo
  * @returns {JSX.Element} The full sidebar with modals and toast container
  */
 export function AppSidebar({ onSearchClick, ...props }: any) {
-  const [searchOpen, setSearchOpen]           = useState(false);
-  const [notifOpen, setNotifOpen]             = useState(false);
-  const [mounted, setMounted]                 = useState(false);
-  const [unreadCount, setUnreadCount]         = useState(0);
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-  const [toasts, setToasts]                   = useState<any[]>([]);
-  const prevIdsRef                            = useRef(new Set<string>());
-  const { data: session, status }             = useSession();
-  const pathname                              = usePathname();
-  const isAuthenticated                       = status === "authenticated";
+	const [searchOpen, setSearchOpen] = useState(false);
+	const [notifOpen, setNotifOpen] = useState(false);
+	const [mounted, setMounted] = useState(false);
+	const [unreadCount, setUnreadCount] = useState(0);
+	const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+	const [toasts, setToasts] = useState<any[]>([]);
+	const [isPageVisible, setIsPageVisible] = useState(true);
+	const prevIdsRef = useRef(new Set<string>());
+	const { data: session, status } = useSession();
+	const pathname = usePathname();
 
-  const dismissToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+	const dismissToast = useCallback((id: string) => {
+		setToasts((prev) => prev.filter((t) => t.id !== id));
+	}, []);
 
-  const pollNotifications = useCallback(async () => {
-    const data = await getNotifications();
-    if (!data.notifications) return;
+	const pollNotifications = useCallback(async () => {
+		try {
+			const data = await getNotifications();
+			if (!data.notifications) return;
+			const notifications = data.notifications;
+			const newNotifs = notifications.filter(
+				(n: any) => !prevIdsRef.current.has(n.id),
+			);
+			if (prevIdsRef.current.size > 0 && newNotifs.length > 0) {
+				setToasts((prev) => [
+					...prev,
+					...newNotifs.slice(0, 3).map((n: any) => ({
+						id: n.id,
+						title: n.title,
+						message: n.message,
+						type: n.type,
+					})),
+				]);
+			}
+			prevIdsRef.current = new Set(notifications.map((n: any) => n.id));
+			setUnreadCount(notifications.length);
+		} catch (err) {
+			console.error("Failed to poll notifications:", err);
+		}
+	}, []);
 
-    const notifications = data.notifications;
-    const newNotifs = notifications.filter((n: any) => !prevIdsRef.current.has(n.id));
+	const pollUnreadMessages = useCallback(async () => {
+		try {
+			const res = await fetch("/api/conversations");
+			if (!res.ok) return;
+			const convs = await res.json();
+			if (!Array.isArray(convs)) return;
+			setUnreadMessageCount(convs.filter((c: any) => c.hasUnread).length);
+		} catch (err) {
+			console.error("Failed to poll unread messages:", err);
+		}
+	}, []);
 
-    if (prevIdsRef.current.size > 0 && newNotifs.length > 0) {
-      setToasts((prev) => [
-        ...prev,
-        ...newNotifs.slice(0, 3).map((n: any) => ({
-          id: n.id, title: n.title, message: n.message, type: n.type,
-        })),
-      ]);
-    }
+	React.useEffect(() => {
+		setMounted(true);
+	}, []);
 
-    prevIdsRef.current = new Set(notifications.map((n: any) => n.id));
-    setUnreadCount(notifications.length);
-  }, []);
+	// ⚡ PERF: Pause polling when page is not visible (tab not focused)
+	React.useEffect(() => {
+		const handleVisibilityChange = () => {
+			setIsPageVisible(document.visibilityState === "visible");
+		};
+		document.addEventListener("visibilitychange", handleVisibilityChange);
+		return () =>
+			document.removeEventListener(
+				"visibilitychange",
+				handleVisibilityChange,
+			);
+	}, []);
 
-  const pollUnreadMessages = useCallback(async () => {
-    const res = await fetch("/api/conversations");
-    if (!res.ok) return;
-    const convs = await res.json();
-    if (!Array.isArray(convs)) return;
-    setUnreadMessageCount(convs.filter((c: any) => c.hasUnread).length);
-  }, []);
+	React.useEffect(() => {
+		if (session?.user?.id) {
+			checkUpcomingDeadlines(session.user.id);
+			checkUpcomingEventNotifications(session.user.id).then(() =>
+				pollNotifications(),
+			);
+		}
+	}, [session]);
 
-  useEffect(() => { setMounted(true); }, []);
+	// ⚡ PERF: Reduced from 3 minutes to 5 minutes, only when page is visible
+	React.useEffect(() => {
+		if (!session?.user?.id || !isPageVisible) return;
+		const interval = setInterval(
+			() => {
+				checkUpcomingEventNotifications(session.user.id).then(() =>
+					pollNotifications(),
+				);
+			},
+			5 * 60 * 1000,
+		); // 5 minutes instead of 3
+		return () => clearInterval(interval);
+	}, [session, isPageVisible]);
 
-  useEffect(() => {
-    if (!isAuthenticated || !session?.user?.id) return;
-    checkUpcomingDeadlines(session.user.id);
-    checkUpcomingEventNotifications(session.user.id).then(() => pollNotifications());
-  }, [isAuthenticated, session?.user?.id]);
+	// ⚡ PERF: Increased from 30 seconds to 2 minutes, only when page is visible
+	useEffect(() => {
+		if (!isPageVisible) return;
+		pollNotifications();
+		const interval = setInterval(pollNotifications, 2 * 60 * 1000); // 2 minutes instead of 30 seconds
+		return () => clearInterval(interval);
+	}, [pollNotifications, isPageVisible]);
 
-  useEffect(() => {
-    if (!isAuthenticated || !session?.user?.id) return;
-    const interval = setInterval(() => {
-      checkUpcomingEventNotifications(session.user.id).then(() => pollNotifications());
-    }, 3 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, session?.user?.id, pollNotifications]);
+	// ⚡ PERF: Increased from 30 seconds to 3 minutes, only when page is visible
+	useEffect(() => {
+		if (!isPageVisible) return;
+		const run = async () => {
+			await pollUnreadMessages();
+		};
+		run();
+		const interval = setInterval(run, 3 * 60 * 1000); // 3 minutes instead of 30 seconds
+		return () => clearInterval(interval);
+	}, [pollUnreadMessages, isPageVisible]);
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    pollNotifications();
-    const interval = setInterval(pollNotifications, 30_000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, pollNotifications]);
+	const isAdmin = session?.user?.role === "SUPERUSER";
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    pollUnreadMessages();
-    const interval = setInterval(pollUnreadMessages, 30_000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, pollUnreadMessages]);
-
-  const handleBellClick = () => {
-    setNotifOpen(true);
-    setUnreadCount(0);
-  };
-
-  const isAdmin = session?.user?.role === "SUPERUSER";
-
-  return (
-    <>
-      <Sidebar collapsible="offcanvas" className="!bg-transparent !border-none !shadow-none" {...props}>
-        <div className="lunar-sidebar-ink flex flex-col h-full">
-
-          <SidebarHeader>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <div className="flex items-center justify-between px-1.5 py-1">
-                  <Link href="/dashboard" className="flex items-center gap-2">
-                    <GraduationCap className="text-blue-400 !size-7 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
-                    <span className="lunar-header text-xl">Lunar</span>
-                  </Link>
-                  <NotificationBell count={unreadCount} onClick={handleBellClick} />
-                </div>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarHeader>
+	return (
+		<>
+			<Sidebar
+				collapsible="offcanvas"
+				className="!bg-transparent !border-none !shadow-none"
+				{...props}
+			>
+				<div className="lunar-sidebar-ink flex flex-col h-full">
+					{/* ── Header: logo + bell ── */}
+					<SidebarHeader>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<div className="flex items-center justify-between px-1.5 py-1">
+									<Link
+										href="/dashboard"
+										className="flex items-center gap-2"
+									>
+										<GraduationCap className="text-blue-400 !size-7 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+										<span className="lunar-header text-xl">
+											Lunar
+										</span>
+									</Link>
+									<button
+										data-testid="bell-button"
+										onClick={() => {
+											setNotifOpen(true);
+											setUnreadCount(0);
+										}}
+										className="relative w-8 h-8 flex items-center justify-center rounded-xl text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+									>
+										<IconBell size={19} />
+										{unreadCount > 0 && (
+											<span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+												{unreadCount > 99
+													? "99+"
+													: unreadCount}
+											</span>
+										)}
+									</button>
+								</div>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarHeader>
 
           <SidebarContent className="lunar-scroll px-2 flex-1 overflow-y-auto">
             <Button
@@ -370,41 +460,58 @@ export function AppSidebar({ onSearchClick, ...props }: any) {
               <span className="ml-auto text-[10px] border border-white/10 rounded px-1.5 py-0.5 text-white/25">⌘K</span>
             </Button>
 
-            {NAV_SECTIONS.map((section) => (
-              <NavSection key={section.label} label={section.label}>
-                {section.items.map((item) => (
-                  <NavItem
-                    key={item.url}
-                    item={item}
-                    isActive={pathname === item.url}
-                    badge={item.url === "/messages" ? unreadMessageCount : undefined}
-                  />
-                ))}
-              </NavSection>
-            ))}
+						{/* ── Nav sections ── */}
+						{NAV_SECTIONS.map((section) => (
+							<NavSection
+								key={section.label}
+								label={section.label}
+							>
+								{section.items.map((item) => (
+									<NavItem
+										key={item.url}
+										item={item}
+										isActive={pathname === item.url}
+										badge={
+											item.url === "/messages"
+												? unreadMessageCount
+												: undefined
+										}
+									/>
+								))}
+							</NavSection>
+						))}
 
-            {isAdmin && (
-              <NavSection label="Admin">
-                <NavItem item={ADMIN_ITEM} isActive={pathname === "/admin"} />
-              </NavSection>
-            )}
-          </SidebarContent>
+						{isAdmin && (
+							<NavSection label="Admin">
+								<NavItem
+									item={ADMIN_ITEM}
+									isActive={pathname === "/admin"}
+								/>
+							</NavSection>
+						)}
+					</SidebarContent>
 
-          <SidebarFooter className="px-2 pb-3 pt-2 border-t border-white/[0.06]">
-            <UserFooter session={session} status={status} />
-          </SidebarFooter>
+					{/* ── Footer ── */}
+					<SidebarFooter className="px-2 pb-3 pt-2 border-t border-white/[0.06]">
+						<UserFooter session={session} status={status} />
+					</SidebarFooter>
+				</div>
+			</Sidebar>
 
-        </div>
-      </Sidebar>
+			<ToastContainer toasts={toasts} onDismiss={dismissToast} />
 
-      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-
-      {mounted && (
-        <NotificationModal isOpen={notifOpen} handleShowModal={() => setNotifOpen(false)} />
-      )}
-      {mounted && (
-        <SearchPanel open={searchOpen} onClose={() => setSearchOpen(false)} />
-      )}
-    </>
-  );
+			{mounted && (
+				<NotificationModal
+					isOpen={notifOpen}
+					handleShowModal={() => setNotifOpen(false)}
+				/>
+			)}
+			{mounted && (
+				<SearchPanel
+					open={searchOpen}
+					onClose={() => setSearchOpen(false)}
+				/>
+			)}
+		</>
+	);
 }

@@ -1,124 +1,132 @@
 "use client";
+import { useEffect, useRef, useState, useCallback } from "react";
 
-import { useEffect, useRef, useState } from "react";
+interface Star {
+	x: number;
+	y: number;
+	baseOpacity: number;
+	size: number;
+	twinkleSpeed: number;
+	twinkleOffset: number;
+	currentOpacity: number;
+}
 
-type StarFieldProps = {
-  density?: number;
-};
+const STAR_COUNT = 200;
+const PROXIMITY_RADIUS = 200;
+const GLOW_STRENGTH = 2;
+const THROTTLE_RATE = 16;
 
-type Star = {
-  x: number;
-  y: number;
-  size: number;
-  delay: number;
-  duration: number;
-  phase: number;
-};
+export default function StarField() {
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const starsRef = useRef<Star[]>([]);
+	const mouseRef = useRef({ x: -9999, y: -9999 });
+	const animationIdRef = useRef<number>(undefined); // ← added undefined
+	const lastMouseUpdateRef = useRef(0);
 
-export default function StarField({ density = 50 }: StarFieldProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: -9999, y: -9999 });
-  const starsRef = useRef<Star[]>([]);
-  const rafRef = useRef<number>(0);
-  const [mounted, setMounted] = useState(false);
+	useEffect(() => {
+		const initializeStars = () => {
+			const stars: Star[] = [];
+			for (let i = 0; i < STAR_COUNT; i++) {
+				stars.push({
+					x: Math.random() * window.innerWidth,
+					y: Math.random() * window.innerHeight,
+					baseOpacity: Math.random() * 0.5 + 0.3,
+					size: Math.random() * 1.5 + 0.5,
+					twinkleSpeed: Math.random() * 0.03 + 0.01,
+					twinkleOffset: Math.random() * Math.PI * 2,
+					currentOpacity: 0.5,
+				});
+			}
+			starsRef.current = stars;
+		};
+		initializeStars();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+		const handleResize = () => {
+			if (canvasRef.current) {
+				canvasRef.current.width = window.innerWidth;
+				canvasRef.current.height = window.innerHeight;
+			}
+		};
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
 
-  useEffect(() => {
-    if (!mounted) return;
+	const handleMouseMove = useCallback((e: MouseEvent) => {
+		const now = Date.now();
+		if (now - lastMouseUpdateRef.current < THROTTLE_RATE) return;
+		lastMouseUpdateRef.current = now;
+		mouseRef.current = { x: e.clientX, y: e.clientY };
+	}, []);
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+		const ctx = canvas.getContext("2d");
+		if (!ctx) return;
 
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resize();
-    window.addEventListener("resize", resize);
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
 
-    starsRef.current = Array.from({ length: 500 }, () => ({
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 2 + 0.6,
-      delay: Math.random() * 5,
-      duration: Math.random() * 3 + 2,
-      phase: Math.random() * Math.PI * 2,
-    }));
+		let frameCount = 0;
 
-    const handleMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener("mousemove", handleMove);
+		const animate = () => {
+			frameCount++;
+			ctx.fillStyle = "rgba(3, 7, 18, 0.2)";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const smoothMouse = { x: -9999, y: -9999 };
-    const LERP = 0.03;
+			const mouse = mouseRef.current;
 
-    const draw = (timestamp: number) => {
-      const { width, height } = canvas;
-      ctx.clearRect(0, 0, width, height);
+			starsRef.current.forEach((star) => {
+				const dx = star.x - mouse.x;
+				const dy = star.y - mouse.y;
+				const distance = Math.hypot(dx, dy);
+				const isNear = distance < PROXIMITY_RADIUS;
 
-      smoothMouse.x += (mouseRef.current.x - smoothMouse.x) * LERP;
-      smoothMouse.y += (mouseRef.current.y - smoothMouse.y) * LERP;
+				const twinkle =
+					(Math.sin(
+						frameCount * star.twinkleSpeed + star.twinkleOffset,
+					) +
+						1) /
+					2;
+				const proximityBoost = isNear
+					? Math.max(0, 1 - distance / PROXIMITY_RADIUS) *
+						GLOW_STRENGTH
+					: 0;
+				star.currentOpacity =
+					star.baseOpacity + twinkle * 0.3 + proximityBoost;
 
-      for (const s of starsRef.current) {
-        const px = (s.x / 100) * width;
-        const py = (s.y / 100) * height;
+				ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, star.currentOpacity)})`;
+				ctx.beginPath();
+				ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+				ctx.fill();
 
-        const dist = Math.hypot(px - smoothMouse.x, py - smoothMouse.y);
-        const isNear = dist < 150;
-        const proximity = isNear ? Math.max(0, 1 - dist / 150) : 0;
+				if (isNear && proximityBoost > 0.1) {
+					ctx.fillStyle = `rgba(200, 220, 255, ${proximityBoost * 0.3})`;
+					ctx.beginPath();
+					ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2);
+					ctx.fill();
+				}
+			});
 
-        const t = (timestamp / 1000 + s.delay) / s.duration;
-        const twinkle = 0.5 + 0.5 * Math.sin(t * Math.PI * 2 + s.phase);
+			animationIdRef.current = requestAnimationFrame(animate);
+		};
 
-        const baseOpacity = isNear
-          ? 0.6 + twinkle * 1.4
-          : 0.1 + twinkle * 0.4;
+		window.addEventListener("mousemove", handleMouseMove);
+		animationIdRef.current = requestAnimationFrame(animate);
 
-        const opacity = Math.min(1, baseOpacity);
-        const scale = 1 + proximity * 0.8;
-        const radius = (s.size / 2) * scale;
+		return () => {
+			window.removeEventListener("mousemove", handleMouseMove);
+			if (animationIdRef.current)
+				cancelAnimationFrame(animationIdRef.current);
+		};
+	}, [handleMouseMove]);
 
-        if (isNear && proximity > 0.1) {
-          const glow = ctx.createRadialGradient(px, py, 0, px, py, radius * 3);
-          glow.addColorStop(0, `rgba(255,255,255,${opacity * 0.18 * proximity})`);
-          glow.addColorStop(1, "rgba(255,255,255,0)");
-          ctx.beginPath();
-          ctx.arc(px, py, radius * 3, 0, Math.PI * 2);
-          ctx.fillStyle = glow;
-          ctx.fill();
-        }
-
-        ctx.beginPath();
-        ctx.arc(px, py, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${opacity})`;
-        ctx.fill();
-      }
-
-      rafRef.current = requestAnimationFrame(draw);
-    };
-
-    rafRef.current = requestAnimationFrame(draw);
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("resize", resize);
-    };
-  }, [mounted]);
-
-  if (!mounted) return null;
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 pointer-events-none"
-      style={{ display: "block" }}
-    />
-  );
+	return (
+		<canvas
+			ref={canvasRef}
+			className="absolute inset-0 pointer-events-none"
+			style={{ width: "100%", height: "100%" }}
+		/>
+	);
 }

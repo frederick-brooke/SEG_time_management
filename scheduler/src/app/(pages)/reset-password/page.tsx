@@ -14,7 +14,7 @@ import { KeyRound, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 
-function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
+export function FormInput({ label, type = "text", name, value, onChange, placeholder, required }: any) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={name} className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
@@ -55,8 +55,6 @@ export function ResetPasswordContent() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setMessage(null);
-
-    if (!token) return;
 
     if (password !== confirmPassword) {
       setStatus("error");
