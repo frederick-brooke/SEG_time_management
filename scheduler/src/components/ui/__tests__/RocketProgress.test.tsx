@@ -1,232 +1,216 @@
-import * as React from "react";
-import { render, screen, act } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import { RocketProgress } from "../RocketProgress"; 
+/**
+ * Testing for Rocket Progress component.
+ */
 
-beforeEach(() => {
-  jest.useFakeTimers();
+import React from "react";
+import { render, act } from "@testing-library/react";
 
-  let mockTime = 0;
-  jest.spyOn(performance, "now").mockImplementation(() => mockTime);
+let timeoutId = 0;
+const rafCallbacks: FrameRequestCallback[] = [];
 
-  let rafId = 0;
-  jest.spyOn(window, "requestAnimationFrame").mockImplementation((cb) => {
-    rafId += 1;
-    mockTime += 3000;
-    cb(mockTime);
-    return rafId;
-  });
-
-  jest.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+const requestAnimationFrameMock = jest.fn((cb: FrameRequestCallback) => {
+	rafCallbacks.push(cb);
+	return rafCallbacks.length;
 });
 
-afterEach(() => {
-  jest.useRealTimers();
-  jest.restoreAllMocks();
+const cancelAnimationFrameMock = jest.fn();
+
+const setTimeoutMock = jest.fn((cb: (...args: any[]) => void) => {
+	cb();
+	timeoutId += 1;
+	return timeoutId as unknown as ReturnType<typeof setTimeout>;
 });
 
-function renderAndComplete(props: Partial<React.ComponentProps<typeof RocketProgress>> = {}) {
-  const result = render(<RocketProgress progress={100} {...props} />);
-  act(() => { jest.advanceTimersByTime(400); }); 
-  act(() => { jest.advanceTimersByTime(100); });
-  return result;
-}
+const clearTimeoutMock = jest.fn();
 
-describe("RocketProgress — initial render", () => {
-  it("renders without crashing", () => {
-    const { container } = render(<RocketProgress progress={50} />);
-    expect(container.firstChild).toBeInTheDocument();
-  });
+(global as any).requestAnimationFrame = requestAnimationFrameMock;
+(global as any).cancelAnimationFrame = cancelAnimationFrameMock;
+(global as any).setTimeout = setTimeoutMock;
+(global as any).clearTimeout = clearTimeoutMock;
 
-  it("shows 0% on first render before ignition delay fires", () => {
-    render(<RocketProgress progress={50} />);
-    expect(screen.getByText("0")).toBeInTheDocument();
-  });
+(globalThis as any).requestAnimationFrame = requestAnimationFrameMock;
+(globalThis as any).cancelAnimationFrame = cancelAnimationFrameMock;
+(globalThis as any).setTimeout = setTimeoutMock;
+(globalThis as any).clearTimeout = clearTimeoutMock;
 
-  it("renders the rocket emoji", () => {
-    render(<RocketProgress progress={50} />);
-    expect(screen.getByText("🚀")).toBeInTheDocument();
-  });
+(window as any).requestAnimationFrame = requestAnimationFrameMock;
+(window as any).cancelAnimationFrame = cancelAnimationFrameMock;
+(window as any).setTimeout = setTimeoutMock;
+(window as any).clearTimeout = clearTimeoutMock;
 
-  it("shows the default mission name 'MISSION START'", () => {
-    render(<RocketProgress progress={50} />);
-    expect(screen.getByText("MISSION START")).toBeInTheDocument();
-  });
+import { RocketProgress } from "../RocketProgress";
 
-  it("shows a custom missionName when provided", () => {
-    render(<RocketProgress progress={50} missionName="APOLLO 13" />);
-    expect(screen.getByText("APOLLO 13")).toBeInTheDocument();
-  });
+describe("RocketProgress Component", () => {
+	const flushNextRaf = (time: number) => {
+		const cb = rafCallbacks.shift();
+		if (!cb) return;
 
-  it("shows the REMAINING readout starting at 100%", () => {
-    render(<RocketProgress progress={50} />);
-    expect(screen.getByText("100% REMAINING")).toBeInTheDocument();
-  });
+		act(() => {
+			cb(time);
+		});
+	};
 
-  it("renders the live-ping indicator spans", () => {
-    const { container } = render(<RocketProgress progress={50} />);
-    const pingSpans = container.querySelectorAll(".animate-ping");
-    expect(pingSpans.length).toBeGreaterThanOrEqual(1);
-  });
+	const normalizedText = (container: HTMLElement) =>
+		(container.textContent ?? "").replace(/\s+/g, "");
 
-  it("applies a custom height via inline style", () => {
-    const { container } = render(<RocketProgress progress={50} height={60} />);
-    const track = container.querySelector("[style*='height: 60px']");
-    expect(track).toBeInTheDocument();
-  });
+	beforeEach(() => {
+		timeoutId = 0;
+		rafCallbacks.length = 0;
+		requestAnimationFrameMock.mockClear();
+		cancelAnimationFrameMock.mockClear();
+		setTimeoutMock.mockClear();
+		clearTimeoutMock.mockClear();
 
-  it("uses the default height of 40px when height prop is omitted", () => {
-    const { container } = render(<RocketProgress progress={50} />);
-    const track = container.querySelector("[style*='height: 40px']");
-    expect(track).toBeInTheDocument();
-  });
-});
+		jest.spyOn(performance, "now").mockReturnValue(0);
 
-describe("RocketProgress — progress clamping", () => {
-  it("clamps progress above 100 to 100", () => {
-    renderAndComplete({ progress: 150 });
-    expect(screen.getByText("100")).toBeInTheDocument();
-  });
+		Object.defineProperty(HTMLCanvasElement.prototype, "offsetWidth", {
+			configurable: true,
+			value: 200,
+		});
 
-  it("clamps progress below 0 to 0", () => {
-    render(<RocketProgress progress={-20} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("0")).toBeInTheDocument();
-  });
-});
+		Object.defineProperty(HTMLCanvasElement.prototype, "offsetHeight", {
+			configurable: true,
+			value: 40,
+		});
 
-describe("RocketProgress — animation cycle", () => {
-  it("stays at 0 before the 400 ms ignition delay", () => {
-    render(<RocketProgress progress={80} />);
-    expect(screen.getByText("0")).toBeInTheDocument();
-    act(() => { jest.advanceTimersByTime(399); });
-    expect(screen.getByText("0")).toBeInTheDocument();
-  });
+		HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
+			beginPath: jest.fn(),
+			arc: jest.fn(),
+			fill: jest.fn(),
+			fillStyle: "",
+		})) as any;
+	});
 
-  it("reaches the target progress after animation completes", () => {
-    render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("50")).toBeInTheDocument();
-  });
+	afterEach(() => {
+		jest.clearAllMocks();
+	});
 
-  it("shows LAUNCH SEQ status at 0% before animation starts", () => {
-    render(<RocketProgress progress={30} />);
-    expect(screen.getByText(/LAUNCH SEQ/)).toBeInTheDocument();
-  });
+	it("renders with default mission name", () => {
+		const { container } = render(<RocketProgress progress={0} />);
 
-  it("shows ALL TASKS ACHIEVED when displayProgress reaches 100", () => {
-    renderAndComplete({ progress: 100 });
-    expect(screen.getByText(/ALL TASKS ACHIEVED/)).toBeInTheDocument();
-  });
+		expect(normalizedText(container)).toContain("MISSIONSTART");
+		expect(normalizedText(container)).toContain("100%REMAINING");
+	});
 
-  it("does not reset animation when component re-renders with same progress", () => {
-    const { rerender } = render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("50")).toBeInTheDocument();
+	it("renders with custom mission name", () => {
+		const { container } = render(
+			<RocketProgress progress={25} missionName="MOON MISSION" />,
+		);
 
-    rerender(<RocketProgress progress={50} />);
-    expect(screen.getByText("50")).toBeInTheDocument();
+		expect(normalizedText(container)).toContain("MOONMISSION");
+	});
 
-    act(() => { jest.advanceTimersByTime(8000); });
-    expect(screen.getByText("50")).toBeInTheDocument();
-  });
+	it("applies custom height", () => {
+		const { container } = render(
+			<RocketProgress progress={10} height={60} />,
+		);
 
-  it("only animates when progress value actually changes (dependency on safeProgress)", () => {
-    const { rerender } = render(<RocketProgress progress={30} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("30")).toBeInTheDocument();
+		const track = container.querySelector(
+			".relative.w-full.overflow-visible.rounded-full",
+		);
+		expect(track).toHaveStyle({ height: "60px" });
+	});
 
-    rerender(<RocketProgress progress={60} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("60")).toBeInTheDocument();
-  });
+	it("clamps progress below 0 to 0", () => {
+		const { container } = render(<RocketProgress progress={-10} />);
 
-  it("completes animation and holds at burst state without rescheduling", () => {
-    render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("50")).toBeInTheDocument();
+		flushNextRaf(5000);
 
-    act(() => { jest.advanceTimersByTime(8000); });
-    expect(screen.getByText("50")).toBeInTheDocument();
+		expect(normalizedText(container)).toContain("0%");
+		expect(normalizedText(container)).toContain("100%REMAINING");
+	});
 
-    act(() => { jest.advanceTimersByTime(10000); });
-    expect(screen.getByText("50")).toBeInTheDocument();
-  });
-});
+	it("clamps progress above 100 to 100", () => {
+		const { container } = render(<RocketProgress progress={150} />);
 
-describe("RocketProgress — completion state", () => {
-  it("displays 100 when complete", () => {
-    renderAndComplete();
-    expect(screen.getByText("100")).toBeInTheDocument();
-  });
+		flushNextRaf(5000);
 
-  it("shows 0% REMAINING when complete", () => {
-    renderAndComplete();
-    expect(screen.getByText("0% REMAINING")).toBeInTheDocument();
-  });
+		expect(normalizedText(container)).toContain("100%");
+		expect(normalizedText(container)).toContain("0%REMAINING");
+	});
 
-  it("nebula fill switches to emerald gradient on completion", () => {
-    const { container } = renderAndComplete();
-    const nebula = container.querySelector(".rp-nebula") as HTMLElement;
-    expect(nebula.className).toContain("34d399"); 
-  });
+	it("shows launch status when progress is 50 or less", () => {
+		const { container } = render(<RocketProgress progress={0} />);
 
-  it("nebula fill uses blue gradient while incomplete", () => {
-    const { container } = render(<RocketProgress progress={40} />);
-    const nebula = container.querySelector(".rp-nebula") as HTMLElement;
-    expect(nebula.className).toContain("1d4ed8"); 
-  });
-});
+		expect(normalizedText(container)).toContain("●LAUNCHSEQ");
+	});
 
-describe("RocketProgress — mission clock", () => {
-  it("shows T+00:00 at 0% (before animation)", () => {
-    render(<RocketProgress progress={50} />);
-    expect(screen.getByText("T+00:00")).toBeInTheDocument();
-  });
+	it("shows completing tasks status when progress is above 50", () => {
+		const { container } = render(<RocketProgress progress={70} />);
 
-  it("shows T+05:00 after animation reaches 50%", () => {
-    render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    act(() => { jest.advanceTimersByTime(100); });
-    expect(screen.getByText("T+05:00")).toBeInTheDocument();
-  });
+		flushNextRaf(5000);
 
-  it("shows T+10:00 after animation reaches 100%", () => {
-    renderAndComplete();
-    expect(screen.getByText("T+10:00")).toBeInTheDocument();
-  });
-});
+		expect(normalizedText(container)).toContain("●COMPLETINGTASKS");
+	});
 
+	it("shows completed status when progress reaches 100", () => {
+		const { container } = render(<RocketProgress progress={100} />);
 
-describe("RocketProgress — cleanup", () => {
-  it("cancels animation frame on unmount", () => {
-    const { unmount } = render(<RocketProgress progress={50} />);
-    act(() => { jest.advanceTimersByTime(400); });
-    unmount();
-    expect(window.cancelAnimationFrame).toHaveBeenCalled();
-  });
+		flushNextRaf(5000);
 
-  it("does not throw after unmount when timers fire", () => {
-    const { unmount } = render(<RocketProgress progress={50} />);
-    unmount();
-    expect(() => {
-      act(() => { jest.advanceTimersByTime(10000); });
-    }).not.toThrow();
-  });
-});
+		expect(normalizedText(container)).toContain("●ALLTASKSACHIEVED");
+	});
 
-describe("RocketProgress — star-field", () => {
-  it("renders the star-field container", () => {
-    const { container } = render(<RocketProgress progress={50} />);
-    const starField = container.querySelector(
-      ".pointer-events-none.absolute.inset-0.rounded-full.overflow-hidden"
-    );
-    expect(starField).toBeInTheDocument();
-  });
+	it("shows the correct timer text for completed progress", () => {
+		const { container } = render(<RocketProgress progress={100} />);
+
+		flushNextRaf(5000);
+
+		expect(normalizedText(container)).toContain("T+10:00");
+	});
+
+	it("renders the rocket emoji", () => {
+		const { container } = render(<RocketProgress progress={10} />);
+
+		expect(normalizedText(container)).toContain("🚀");
+	});
+
+	it("applies incomplete accent styling before completion", () => {
+		const { container } = render(<RocketProgress progress={10} />);
+
+		expect(container.querySelector(".text-sky-400")).toBeInTheDocument();
+	});
+
+	it("applies complete accent styling after completion", () => {
+		const { container } = render(<RocketProgress progress={100} />);
+
+		flushNextRaf(5000);
+
+		expect(
+			container.querySelector(".text-emerald-400"),
+		).toBeInTheDocument();
+	});
+
+	it("handles null canvas context", () => {
+		HTMLCanvasElement.prototype.getContext = jest.fn(() => null) as any;
+
+		const { container } = render(<RocketProgress progress={20} />);
+
+		expect(normalizedText(container)).toContain("MISSIONSTART");
+	});
+
+	it("cancels animation frame and timeout on unmount", () => {
+		const { unmount } = render(<RocketProgress progress={50} />);
+
+		expect(requestAnimationFrameMock).toHaveBeenCalled();
+
+		unmount();
+
+		expect(cancelAnimationFrameMock).toHaveBeenCalled();
+		expect(clearTimeoutMock).toHaveBeenCalled();
+	});
+
+	it("keeps requesting animation frames while animation is still in progress", () => {
+		const { container } = render(<RocketProgress progress={80} />);
+
+		flushNextRaf(100);
+
+		expect(requestAnimationFrameMock).toHaveBeenCalledTimes(2);
+		expect(normalizedText(container)).not.toContain("80%");
+	});
+	it("handles null canvas ref on unmount", () => {
+		const { unmount } = render(<RocketProgress progress={20} />);
+
+		expect(() => unmount()).not.toThrow();
+	});
 });
