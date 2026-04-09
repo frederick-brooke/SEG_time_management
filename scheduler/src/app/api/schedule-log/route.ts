@@ -27,7 +27,7 @@ async function restoreTaskSchedule(
 	await Promise.all(
 		taskIds.map((taskId) => {
 			const prev = snapshot[taskId];
-			return prisma.task.updateMany({
+			return prisma.task.update({
 				where: { id: taskId },
 				data: {
 					scheduledDate: prev?.scheduledDate
@@ -36,7 +36,7 @@ async function restoreTaskSchedule(
 					scheduledTime: prev?.scheduledTime
 						? new Date(prev.scheduledTime)
 						: null,
-				} as Parameters<typeof prisma.task.updateMany>[0]["data"],
+				} as Parameters<typeof prisma.task.update>[0]["data"],
 			});
 		}),
 	);
