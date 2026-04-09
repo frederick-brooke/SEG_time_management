@@ -34,6 +34,21 @@ function mockRequest(url: string, body?: any) {
 	} as any;
 }
 
+function toLocalMidnightISOString(value: string | Date) {
+	const date = new Date(value);
+	date.setHours(0, 0, 0, 0);
+	return date.toISOString();
+}
+
+function getExpectedUtcTimeFromLocalTime(hours: number, minutes: number) {
+	const date = new Date();
+	date.setHours(hours, minutes, 0, 0);
+	return {
+		hours: date.getUTCHours(),
+		minutes: date.getUTCMinutes(),
+	};
+}
+
 describe("GET /api/tasks", () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
@@ -216,6 +231,7 @@ describe("POST /api/tasks - bulk", () => {
 		expect(data.tasks).toEqual([{ id: "t-custom" }]);
 
 		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+		const expectedTime = getExpectedUtcTimeFromLocalTime(14, 45);
 
 		expect(call.title).toBe("Custom task");
 		expect(call.description).toBe("desc");
@@ -230,12 +246,12 @@ describe("POST /api/tasks - bulk", () => {
 
 		expect(call.scheduledDate).toBeInstanceOf(Date);
 		expect(call.scheduledDate.toISOString()).toBe(
-			"2026-04-10T00:00:00.000Z",
+			toLocalMidnightISOString("2026-04-10T15:30:00.000Z"),
 		);
 
 		expect(call.scheduledTime).toBeInstanceOf(Date);
-		expect(call.scheduledTime.getUTCHours()).toBe(14);
-		expect(call.scheduledTime.getUTCMinutes()).toBe(45);
+		expect(call.scheduledTime.getUTCHours()).toBe(expectedTime.hours);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(expectedTime.minutes);
 	});
 
 	it("uses customRangeStart when customDate is absent", async () => {
@@ -257,14 +273,15 @@ describe("POST /api/tasks - bulk", () => {
 		await POST(req);
 
 		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+		const expectedTime = getExpectedUtcTimeFromLocalTime(9, 15);
 
 		expect(call.scheduledDate).toBeInstanceOf(Date);
 		expect(call.scheduledDate.toISOString()).toBe(
-			"2026-05-01T00:00:00.000Z",
+			toLocalMidnightISOString("2026-05-01T09:00:00.000Z"),
 		);
 		expect(call.scheduledTime).toBeInstanceOf(Date);
-		expect(call.scheduledTime.getUTCHours()).toBe(9);
-		expect(call.scheduledTime.getUTCMinutes()).toBe(15);
+		expect(call.scheduledTime.getUTCHours()).toBe(expectedTime.hours);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(expectedTime.minutes);
 	});
 
 	it("creates recurring bulk task from recurrence start date", async () => {
@@ -291,6 +308,7 @@ describe("POST /api/tasks - bulk", () => {
 		await POST(req);
 
 		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+		const expectedTime = getExpectedUtcTimeFromLocalTime(8, 30);
 
 		expect(call.isRecurring).toBe(true);
 		expect(call.recurrence).toEqual({
@@ -299,11 +317,11 @@ describe("POST /api/tasks - bulk", () => {
 		});
 		expect(call.scheduledDate).toBeInstanceOf(Date);
 		expect(call.scheduledDate.toISOString()).toBe(
-			"2026-06-20T00:00:00.000Z",
+			toLocalMidnightISOString("2026-06-20T12:00:00.000Z"),
 		);
 		expect(call.scheduledTime).toBeInstanceOf(Date);
-		expect(call.scheduledTime.getUTCHours()).toBe(8);
-		expect(call.scheduledTime.getUTCMinutes()).toBe(30);
+		expect(call.scheduledTime.getUTCHours()).toBe(expectedTime.hours);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(expectedTime.minutes);
 	});
 
 	it("clears scheduledDate and scheduledTime when scheduleTime is false", async () => {
@@ -357,15 +375,16 @@ describe("POST /api/tasks - bulk", () => {
 		await POST(req);
 
 		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+		const expectedTime = getExpectedUtcTimeFromLocalTime(11, 20);
 
 		expect(call.eventId).toBe("event-1");
 		expect(call.scheduledDate).toBeInstanceOf(Date);
 		expect(call.scheduledDate.toISOString()).toBe(
-			"2026-04-22T00:00:00.000Z",
+			toLocalMidnightISOString("2026-04-22T16:00:00.000Z"),
 		);
 		expect(call.scheduledTime).toBeInstanceOf(Date);
-		expect(call.scheduledTime.getUTCHours()).toBe(11);
-		expect(call.scheduledTime.getUTCMinutes()).toBe(20);
+		expect(call.scheduledTime.getUTCHours()).toBe(expectedTime.hours);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(expectedTime.minutes);
 	});
 
 	it("computes date from weekly recurring event", async () => {
@@ -401,11 +420,12 @@ describe("POST /api/tasks - bulk", () => {
 		await POST(req);
 
 		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+		const expectedTime = getExpectedUtcTimeFromLocalTime(7, 0);
 
 		expect(call.scheduledDate).toBeInstanceOf(Date);
 		expect(call.scheduledTime).toBeInstanceOf(Date);
-		expect(call.scheduledTime.getUTCHours()).toBe(7);
-		expect(call.scheduledTime.getUTCMinutes()).toBe(0);
+		expect(call.scheduledTime.getUTCHours()).toBe(expectedTime.hours);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(expectedTime.minutes);
 	});
 
 	it("falls back to event start when recurrence type is unsupported", async () => {
@@ -438,14 +458,15 @@ describe("POST /api/tasks - bulk", () => {
 		await POST(req);
 
 		const call = (prisma.task.create as jest.Mock).mock.calls[0][0].data;
+		const expectedTime = getExpectedUtcTimeFromLocalTime(10, 10);
 
 		expect(call.scheduledDate).toBeInstanceOf(Date);
 		expect(call.scheduledDate.toISOString()).toBe(
-			"2026-07-02T00:00:00.000Z",
+			toLocalMidnightISOString("2026-07-02T12:00:00.000Z"),
 		);
 		expect(call.scheduledTime).toBeInstanceOf(Date);
-		expect(call.scheduledTime.getUTCHours()).toBe(10);
-		expect(call.scheduledTime.getUTCMinutes()).toBe(10);
+		expect(call.scheduledTime.getUTCHours()).toBe(expectedTime.hours);
+		expect(call.scheduledTime.getUTCMinutes()).toBe(expectedTime.minutes);
 	});
 
 	it("does not fetch events when there are no eventIds in bulk payload", async () => {
@@ -782,8 +803,6 @@ describe("POST /api/tasks - single", () => {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
-		// We mainly want to prove it advanced through the monthly branch
-		// and returned a valid occurrence on or after today.
 		expect(call.scheduledDate.getTime()).toBeGreaterThanOrEqual(
 			today.getTime(),
 		);
