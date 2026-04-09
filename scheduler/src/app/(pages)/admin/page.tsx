@@ -18,7 +18,6 @@ import AdminStatistics from "@/components/admin/AdminStatistics";
 import AppealFilter from "@/components/admin/AppealFilterPanel";
 
 // UI components
-import StarField from "@/components/effects/StarField";
 import GlowBackground from "@/components/ui/GlowBackground";
 import GlassCard from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
@@ -156,7 +155,6 @@ export default function AdminPage() {
 		<LunarThemeWrapper>
 			<div className="min-h-screen bg-gray-950 text-white relative overflow-hidden pb-12">
 				<div className="absolute inset-0 z-0 pointer-events-none">
-					<StarField />
 					<GlowBackground />
 				</div>
 
