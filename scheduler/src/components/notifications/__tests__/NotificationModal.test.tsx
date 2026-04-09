@@ -13,7 +13,7 @@ jest.mock("next-auth/react", () => ({
   useSession: jest.fn(),
 }));
 
-jest.mock("../../actions/notifications", () => ({
+jest.mock("@/app/actions/notifications", () => ({
   getNotifications: jest.fn(),
   markNotificationAsRead: jest.fn(),
   markAllNotificationsAsRead: jest.fn(),
