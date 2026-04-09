@@ -129,13 +129,32 @@ describe("POST /api/schedule — validation", () => {
     expect(await res.json()).toEqual({ scheduled: 0, overCapacity: [], missedDeadline: [], requiresConfirmation: false });
   });
 
-  it("returns 400 when preferences not found", async () => {
+  it("falls back to default preferences when preferences not found", async () => {
     mockTaskFindMany.mockResolvedValue(baseTasks);
     mockPrefsFindUnique.mockResolvedValue(null);
     mockEventFindMany.mockResolvedValue([]);
+    mockScheduleTasks.mockReturnValue(baseScheduleResult);
+    mockTaskUpdate.mockResolvedValue({});
+    mockScheduleLogCreate.mockResolvedValue({});
+
     const res = await POST(makeRequest({ taskIds: ["task-1"], days: ["2025-01-06"], mode: "day" }));
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "User preferences not found" });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ scheduled: 2, overCapacity: [], missedDeadline: [], requiresConfirmation: false });
+
+    const passedPrefs = mockScheduleTasks.mock.calls[0][2];
+    expect(passedPrefs).toEqual(expect.objectContaining({
+      workStartTime: "09:00",
+      workEndTime: "20:00",
+      daysOff: [],
+      sessionLength: 60,
+      breakLength: 15,
+      breaksPerDay: 2,
+      taskOrder: "hard-first",
+      maxTasksPerDay: 5,
+      defaultTaskDuration: 60,
+      reminderDays: 2,
+    }));
   });
 });
 
