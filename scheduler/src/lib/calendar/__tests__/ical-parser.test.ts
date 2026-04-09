@@ -2,7 +2,7 @@
  * Tests for src/lib/calendar/ical-parser.ts
  */
 
-import { parseICal, parseRRule, ParsedVEvent } from "../ical-parser";
+import { parseICal, parseRRule } from "../ical-parser";
 
 // Helpers
 

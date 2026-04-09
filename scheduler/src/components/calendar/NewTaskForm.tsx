@@ -7,8 +7,7 @@
 import { useState } from "react";
 import { Toggle, RecurrencePanel } from "@/components/shared/FormComponents";
 import { RELATIVE_OPTIONS, RelativeOption, relativeTo } from "./EventFormParts";
-import { Select } from "@/components/ui/Select";
-import { Button } from "@/components/ui/Button";
+
 
 // RelativePicker — grid of relative option buttons
 function RelativePicker({

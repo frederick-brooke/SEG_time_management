@@ -2,8 +2,6 @@
  * Testing for messages/layout.
  */
 
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MessagesLayout from "../layout";
 import { useParams, useRouter } from "next/navigation";

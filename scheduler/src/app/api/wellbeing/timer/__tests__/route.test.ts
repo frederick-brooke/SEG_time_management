@@ -2,7 +2,6 @@
  * Testing for wellbeing timer api route.
  */
 
-import { GET, POST } from "../route";
 
 // Mocks
 

@@ -2,8 +2,6 @@
  * Testing for Message Bubble component.
  */
 
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
 import { MessageBubble, formatDate } from "../MessageBubble";
 

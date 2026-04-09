@@ -1,5 +1,3 @@
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render } from "@testing-library/react";
 import { StarBackground } from "@/components/ui/StarBackground";
 

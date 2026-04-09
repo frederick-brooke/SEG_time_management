@@ -1,6 +1,5 @@
 //tests for scheduler/src/components/groups/GroupEvents.tsx
-import React from "react";
-import { Button } from "@/components/ui/Button";
+
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupEvents from "@/components/groups/GroupEvents";

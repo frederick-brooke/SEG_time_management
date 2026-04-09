@@ -4,7 +4,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { mockDeep, DeepMockProxy } from "jest-mock-extended";
+import { DeepMockProxy } from "jest-mock-extended";
 import { 
   createGroupTask, 
   getGroupTasksWithProgress, 

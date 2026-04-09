@@ -1,5 +1,4 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import React from "react";
 import Timer from "../Timer";
 import "@testing-library/jest-dom";
 

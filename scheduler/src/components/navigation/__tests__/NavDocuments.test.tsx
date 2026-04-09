@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import { NavDocuments } from "../NavDocuments"; 

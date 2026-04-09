@@ -1,6 +1,5 @@
 //tests for scheduler/src/components/modules/ModuleCard.tsx
-import React from "react";
-import { Button } from "@/components/ui/Button";
+
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { ModuleCard } from "@/components/modules/ModuleCard";

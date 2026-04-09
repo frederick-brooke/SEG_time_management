@@ -8,7 +8,6 @@
 
 "use client";
 
-import * as React from "react";
 import { TaskCard } from "../tasks/TaskCard";
 import { TaskForm } from "../tasks/TaskForm";
 import { TaskViewDialog } from "../tasks/TaskViewDialog";
