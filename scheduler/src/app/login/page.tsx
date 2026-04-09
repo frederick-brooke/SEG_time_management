@@ -176,10 +176,23 @@ function LoginForm() {
 						{isPending ? "Authenticating..." : "Initiate Launch"}
 					</button>
 
-					<div className="mt-6 text-center text-sm">
-						<Link href="/forgot-password">
+					{/* Forgot password + Sign up links */}
+					<div className="mt-6 flex flex-col items-center gap-3 text-sm">
+						<Link
+							href="/forgot-password"
+							className="text-white/50 hover:text-white/80 transition-colors"
+						>
 							Forgot your password?
 						</Link>
+						<p className="text-white/30">
+							Don&apos;t have an account?{" "}
+							<Link
+								href="/register"
+								className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+							>
+								Sign up
+							</Link>
+						</p>
 					</div>
 				</form>
 			</div>
