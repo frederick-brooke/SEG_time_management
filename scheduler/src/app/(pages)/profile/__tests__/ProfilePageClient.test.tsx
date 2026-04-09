@@ -5,7 +5,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProfilePageClient from "../ProfilePageClient";
 import { removeFriend } from "@/app/actions/profile";
-import { calculateLevelProgress } from "@/app/actions/profile/xpUtils";
 import { Button } from "@/components/ui/Button";
 
 // Mocks

@@ -3,7 +3,6 @@
  * @description Tests for conversation page.
  */
 
-import React from "react";
 import {
 	render,
 	screen,

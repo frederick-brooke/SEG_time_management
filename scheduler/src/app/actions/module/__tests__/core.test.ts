@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { ModuleRole } from "@prisma/client";
-import { mockDeep, DeepMockProxy } from "jest-mock-extended";
+import { DeepMockProxy } from "jest-mock-extended";
 import {
   createModule,
   joinModule,

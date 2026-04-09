@@ -1,5 +1,3 @@
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { format } from "date-fns";
 import UnscheduledPanel from "../UnscheduledPanel";

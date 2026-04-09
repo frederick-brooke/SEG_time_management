@@ -2,7 +2,6 @@
  * Testing for Drawer components.
  */
 
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import {
   Drawer,

@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { AppSidebar } from '../AppSidebar';
 import { Button } from "@/components/ui/Button";

@@ -16,7 +16,6 @@ import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import SetLocationModal from "@/components/map/SetLocationModal";
 import { TabKey } from "@/types/settings";
 import { Button } from "@/components/ui/Button";
-import { Select } from "@/components/ui/Select";
 
 interface SettingsClientProps {
   user: {

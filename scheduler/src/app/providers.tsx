@@ -1,5 +1,4 @@
 'use client';
-import { Button } from "@/components/ui/Button";
 
 /**
  * Global app providers wrapper

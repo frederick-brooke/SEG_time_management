@@ -1,5 +1,4 @@
 'use client';
-import { Button } from "@/components/ui/Button";
 
 export { Highlight } from './Highlight.primitives';
 export { HighlightItem } from './Highlight.item';

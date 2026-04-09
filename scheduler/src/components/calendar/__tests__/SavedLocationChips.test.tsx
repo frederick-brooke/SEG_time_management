@@ -2,8 +2,6 @@
  * Tests for src/components/calendar/SavedLocationChips.tsx
  */
 
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SavedLocationChips from "../SavedLocationChips";

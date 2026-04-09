@@ -3,7 +3,6 @@
  */
 
 import { expandRecurringEvents, buildGoogleRecurrenceRule } from "../eventHelpers";
-import { addMonths, endOfDay } from "date-fns";
 
 // Helpers
 

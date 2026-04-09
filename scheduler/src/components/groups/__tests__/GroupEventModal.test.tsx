@@ -1,6 +1,5 @@
 //tests for scheduler/src/components/groups/GroupEventModal.tsx
-import React from "react";
-import { Button } from "@/components/ui/Button";
+
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupEventModal from "@/components/groups/GroupEventModal";

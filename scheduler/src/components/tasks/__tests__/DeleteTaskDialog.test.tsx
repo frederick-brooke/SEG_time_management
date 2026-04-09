@@ -2,12 +2,9 @@
  * Testing for Delete Task Dialog component.
  */
 
-import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DeleteTaskDialog } from "../DeleteTaskDialog";
-import { Delete } from "lucide-react";
-
 // Mocks
 
 jest.mock("../../ui/AlertDialog", () => {

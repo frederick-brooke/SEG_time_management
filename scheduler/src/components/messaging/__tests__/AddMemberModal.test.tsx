@@ -2,8 +2,6 @@
  * Testing for Add Member Modal
  */
 
-import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { AddMemberModal } from "../AddMemberModal";
 

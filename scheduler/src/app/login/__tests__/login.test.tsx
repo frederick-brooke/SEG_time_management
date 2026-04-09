@@ -1,4 +1,3 @@
-import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import LoginPage from "../page";
 import { signIn, useSession } from "next-auth/react";

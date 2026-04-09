@@ -2,7 +2,6 @@
  * Tests for src/components/calendar/CalendarView.tsx
  */
 
-import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render, screen, fireEvent, act, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";

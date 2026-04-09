@@ -4,7 +4,6 @@ import GamesPage from "../page";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getGameBalance } from "@/app/actions/games";
-import GamesPageClient from "../GamesPageClient";
 
 // MOCKS
 jest.mock("next-auth", () => ({

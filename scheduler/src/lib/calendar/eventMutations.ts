@@ -7,7 +7,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { getGoogleCalendarClient } from "@/lib/calendar/googleCalendar";
-import { resetEventNotificationGuards } from "@/app/actions/calendar/calendarNotifications";
 
 async function patchGoogleInstance(
 	event: any,

@@ -1,6 +1,5 @@
 //tests for scheduler/src/components/groups/GroupHeader.tsx
-import React from "react";
-import { Button } from "@/components/ui/Button";
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import GroupHeader from "@/components/groups/GroupHeader";
