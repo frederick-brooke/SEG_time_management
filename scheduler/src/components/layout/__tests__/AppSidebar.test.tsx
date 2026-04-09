@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { AppSidebar } from '../AppSidebar';
 import { Button } from "@/components/ui/Button";
 
-
 const mockPush = jest.fn();
 const mockPathname = jest.fn().mockReturnValue('/dashboard');
 
@@ -49,7 +48,7 @@ jest.mock('@/components/ui/ToastContainer', () => ({
   ),
 }));
 
-jest.mock('@/app/components/NotificationModal', () => ({
+jest.mock('@/components/notifications/NotificationModal', () => ({
   __esModule: true,
   default: ({ isOpen, handleShowModal }: any) =>
     isOpen ? (
@@ -70,14 +69,13 @@ jest.mock('@/components/search-page/SearchPanel', () => ({
 }));
 
 jest.mock('@/components/ui/Sidebar', () => ({
-  Sidebar: ({ children, ...props }: any) => <div data-testid="sidebar" {...props}>{children}</div>,
-  SidebarContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  SidebarFooter: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  SidebarHeader: ({ children }: any) => <div>{children}</div>,
-  SidebarMenu: ({ children }: any) => <div>{children}</div>,
+  Sidebar:         ({ children, ...props }: any) => <div data-testid="sidebar" {...props}>{children}</div>,
+  SidebarContent:  ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  SidebarFooter:   ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  SidebarHeader:   ({ children }: any) => <div>{children}</div>,
+  SidebarMenu:     ({ children }: any) => <div>{children}</div>,
   SidebarMenuItem: ({ children }: any) => <div>{children}</div>,
 }));
-
 
 const { useSession, signOut } = require('next-auth/react');
 const { getNotifications } = require('@/app/actions/notifications');
@@ -88,12 +86,12 @@ const mockSession = (overrides = {}) => {
   useSession.mockReturnValue({
     data: {
       user: {
-        id: 'user-1',
-        name: 'Karim',
-        email: 'karim@karim.com',
+        id:       'user-1',
+        name:     'Karim',
+        email:    'karim@karim.com',
         username: 'karim',
-        role: 'BASIC',
-        image: null,
+        role:     'BASIC',
+        image:    null,
         ...overrides,
       },
     },
@@ -106,7 +104,7 @@ describe('AppSidebar', () => {
     jest.clearAllMocks();
     mockSession();
     global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
+      ok:   true,
       json: async () => [],
     });
     getNotifications.mockResolvedValue({ notifications: [] });
@@ -155,7 +153,7 @@ describe('AppSidebar', () => {
 
     it('renders bell icon button', async () => {
       await act(async () => { render(<AppSidebar />); });
-      expect(screen.getByText('Karim')).toBeInTheDocument();
+      expect(screen.getByTestId('bell-button')).toBeInTheDocument();
     });
 
     it('renders user name in footer', async () => {
@@ -197,7 +195,7 @@ describe('AppSidebar', () => {
 
     it('falls back to "User" when no session name', async () => {
       useSession.mockReturnValue({
-        data: { user: { id: '1', email: 'a@a.com', role: 'BASIC' } },
+        data:   { user: { id: '1', email: 'a@a.com', role: 'BASIC' } },
         status: 'authenticated',
       });
       await act(async () => { render(<AppSidebar />); });
@@ -210,7 +208,6 @@ describe('AppSidebar', () => {
       expect(screen.getByText('User')).toBeInTheDocument();
     });
   });
-
 
   describe('active state', () => {
     it('marks dashboard as active when on /dashboard', async () => {
@@ -236,7 +233,6 @@ describe('AppSidebar', () => {
     });
   });
 
-
   describe('notifications', () => {
     it('opens notification modal when bell clicked', async () => {
       await act(async () => { render(<AppSidebar />); });
@@ -257,7 +253,7 @@ describe('AppSidebar', () => {
     it('shows unread badge when notifications exist', async () => {
       getNotifications.mockResolvedValue({
         notifications: [
-          { id: 'n1', title: 'Test', message: 'msg', type: 'INFO' },
+          { id: 'n1', title: 'Test',  message: 'msg',  type: 'INFO' },
           { id: 'n2', title: 'Test2', message: 'msg2', type: 'WARNING' },
         ],
       });
@@ -294,13 +290,11 @@ describe('AppSidebar', () => {
       getNotifications
         .mockResolvedValueOnce({ notifications: [{ id: 'n1', title: 'First', message: 'msg', type: 'INFO' }] })
         .mockResolvedValueOnce({ notifications: [
-          { id: 'n1', title: 'First', message: 'msg', type: 'INFO' },
+          { id: 'n1', title: 'First',     message: 'msg',     type: 'INFO' },
           { id: 'n2', title: 'New Notif', message: 'new msg', type: 'SUCCESS' },
         ]});
-
       await act(async () => { render(<AppSidebar />); });
       await act(async () => { await getNotifications(); });
-
       await waitFor(() => {
         expect(screen.getByTestId('toast-container')).toBeInTheDocument();
       });
@@ -310,13 +304,11 @@ describe('AppSidebar', () => {
       getNotifications
         .mockResolvedValueOnce({ notifications: [{ id: 'n1', title: 'First', message: 'msg', type: 'INFO' }] })
         .mockResolvedValueOnce({ notifications: [
-          { id: 'n1', title: 'First', message: 'msg', type: 'INFO' },
+          { id: 'n1', title: 'First',  message: 'msg', type: 'INFO' },
           { id: 'n2', title: 'Toast!', message: 'msg', type: 'INFO' },
         ]});
-
       await act(async () => { render(<AppSidebar />); });
       await act(async () => { await getNotifications(); });
-
       await waitFor(() => screen.queryByText('dismiss'));
       const dismissBtns = screen.queryAllByText('dismiss');
       if (dismissBtns.length > 0) {
@@ -330,20 +322,19 @@ describe('AppSidebar', () => {
       await act(async () => { render(<AppSidebar />); });
       expect(screen.getByTestId('toast-container')).toBeInTheDocument();
     });
-
   });
 
   describe('unread messages', () => {
     it('shows message badge when unread conversations exist', async () => {
       global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
+        ok:   true,
         json: async () => [
           { id: 'c1', hasUnread: true },
           { id: 'c2', hasUnread: false },
         ],
       });
       await act(async () => { render(<AppSidebar />); });
-      await act(async () => {}); // flush pending microtasks
+      await act(async () => {});
       await waitFor(() => {
         expect(screen.getByText('1')).toBeInTheDocument();
       });
@@ -357,7 +348,7 @@ describe('AppSidebar', () => {
 
     it('handles fetch returning non-array', async () => {
       global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
+        ok:   true,
         json: async () => ({ error: 'bad' }),
       });
       await act(async () => { render(<AppSidebar />); });
@@ -433,7 +424,7 @@ describe('AppSidebar', () => {
   describe('session effects', () => {
     it('calls checkUpcomingDeadlines when session has user id', async () => {
       await act(async () => { render(<AppSidebar />); });
-      await act(async () => {}); // flush microtasks
+      await act(async () => {});
       await waitFor(() => {
         expect(checkUpcomingDeadlines).toHaveBeenCalledWith('user-1');
       });
@@ -441,7 +432,7 @@ describe('AppSidebar', () => {
 
     it('calls checkUpcomingEventNotifications when session has user id', async () => {
       await act(async () => { render(<AppSidebar />); });
-      await act(async () => {}); // flush microtasks
+      await act(async () => {});
       await waitFor(() => {
         expect(checkUpcomingEventNotifications).toHaveBeenCalledWith('user-1');
       });
