@@ -17,7 +17,7 @@ export function toUniqueDays(completedAts: (Date | null)[]): number[] {
     .filter((d): d is Date => d !== null)
     .map((d) => {
       const day = new Date(d);
-      day.setHours(0, 0, 0, 0);
+      day.setUTCHours(0, 0, 0, 0);
       return day.getTime();
     });
   return [...new Set(days)].sort((a, b) => b - a);
@@ -49,7 +49,7 @@ export function countStreak(uniqueDays: number[], today: number): number {
 
   for (const day of uniqueDays) {
     const diff = Math.floor((expected - day) / 86_400_000);
-    if (diff === 0 || diff === 1) {
+    if (streak === 0 ? diff === 0 || diff === 1 : diff === 0) {
       streak++;
       expected = day - 86_400_000;
     } else {
@@ -75,14 +75,13 @@ export async function calculateStreak(userId: string): Promise<number> {
   if (tasks.length === 0) return 0;
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
   const todayMs = today.getTime();
 
   const uniqueDays = toUniqueDays(tasks.map((t) => t.completedAt));
   const gap = daysSinceMostRecent(uniqueDays, todayMs);
 
   if (gap > 2) return 0;
-
 
   return countStreak(uniqueDays, todayMs);
 }
