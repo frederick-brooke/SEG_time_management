@@ -7,7 +7,10 @@ declare global {
 }
 
 // Use existing Prisma client if it exists (for hot reloads in dev)
-export const prisma = global.prisma || new PrismaClient();
+export const prisma =
+  process.env.NODE_ENV === 'production'
+    ? new PrismaClient()
+    : global.prisma || new PrismaClient();
 
 // Only assign to global in development to prevent multiple instances
 if (process.env.NODE_ENV !== 'production') {

@@ -277,7 +277,8 @@ export default function CalendarBody({
                         <div
                           className={searchStyles.searchResultDot}
                           style={{
-							backgroundColor: getCategoryColor(ev.category, categories),
+                            backgroundColor:
+                              getCategoryColor(ev.category, categories, "#6366f1"),
                           }}
                         />
                         <div>

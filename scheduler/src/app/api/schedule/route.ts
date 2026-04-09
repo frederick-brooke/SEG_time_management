@@ -158,10 +158,13 @@ export async function POST(req: NextRequest) {
 
 	if (!preferences) {
 		// Debug: check if preferences exist under any slight ID variation
-		const allPrefs = await (prisma.userPreferences as any).findMany({
-			take: 3,
-			select: { userId: true },
-		});
+		const allPrefs =
+			typeof (prisma.userPreferences as any).findMany === "function"
+				? await (prisma.userPreferences as any).findMany({
+						take: 3,
+						select: { userId: true },
+					})
+				: [];
 		console.warn(
 			`[schedule] No preferences found for userId="${userId}" (type: ${typeof userId})`,
 		);

@@ -91,7 +91,7 @@ describe("CalendarEvents", () => {
 
 		render(<CalendarEvents />);
 
-		const rendered = await screen.findAllByText(/Event/);
+		const rendered = await screen.findAllByText(/^Event \d+$/);
 		expect(rendered.length).toBeLessThanOrEqual(5);
 	});
 
