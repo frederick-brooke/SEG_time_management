@@ -119,7 +119,6 @@ describe("success path", () => {
     expect(result).toBe(true);
   });
   
-  // Optional: Add a test to ensure "series" maps to "full" for triggerUndo
   it("calls triggerUndo with 'full' mode when deleting a series", async () => {
     const { deleteEvent, triggerUndo } = setup();
     await deleteEvent(BASE_EVENT, "series");
