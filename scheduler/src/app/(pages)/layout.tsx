@@ -1,23 +1,24 @@
 "use client";
 
- /**
-  * Application layout wrapper.
-  * Provides sidebar navigation, search panel overlay, and shared page structure
-  * for all main authenticated pages.
-  */
- 
+/**
+ * Application layout wrapper.
+ * Provides sidebar navigation, search panel overlay, and shared page structure
+ * for all main authenticated pages.
+ */
+
 import { useState } from "react";
 
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import SearchPanel from "@/components/search-page/SearchPanel";
 
 import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
+	SidebarProvider,
+	SidebarInset,
+	SidebarTrigger,
 } from "@/components/ui/Sidebar";
 
 import { useSession } from "next-auth/react";
+import { useUI } from "@/context/UIContext";
 
 /**
  * PagesLayout Component
@@ -35,9 +36,14 @@ import { useSession } from "next-auth/react";
  * @param {React.ReactNode} props.children - Page content to be rendered inside the layout
  * @returns {JSX.Element} The application layout with sidebar and content area
  */
-export default function PagesLayout({ children }: { children: React.ReactNode }) {
-	const [searchOpen, setSearchOpen] = useState(false);		// Controls whether the search panel is visible
-	const [sidebarOpen, setSidebarOpen] = useState(true);		// Controls sidebar open/collapsed state
+export default function PagesLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	const [searchOpen, setSearchOpen] = useState(false); // Controls whether the search panel is visible
+	const [sidebarOpen, setSidebarOpen] = useState(true); // Controls sidebar open/collapsed state
+	const { isModalOpen } = useUI(); // Check if any modal is open
 
 	const { data: session, status } = useSession();
 
@@ -48,36 +54,57 @@ export default function PagesLayout({ children }: { children: React.ReactNode })
 
 	return (
 		<SidebarProvider
-			open={sidebarOpen}              // Sidebar state (controlled)
+			open={sidebarOpen} // Sidebar state (controlled)
 			onOpenChange={setSidebarOpen}
 			className=""
-			style={{
-				"--sidebar-width": "calc(var(--spacing) * 72)",
-				"--header-height": "calc(var(--spacing) * 12)",
-				background: "#070b18",
-			} as React.CSSProperties}       
+			style={
+				{
+					"--sidebar-width": "calc(var(--spacing) * 72)",
+					"--header-height": "calc(var(--spacing) * 12)",
+					background: "#070b18",
+				} as React.CSSProperties
+			}
 		>
-			{/* Sidebar disappears when search is open */}
-			{!searchOpen && (
-				<AppSidebar variant="inset" onSearchClick={() => setSearchOpen(true)}/>
+			{/* Sidebar is completely hidden when modal is open */}
+			{!searchOpen && !isModalOpen && (
+				<AppSidebar
+					variant="inset"
+					onSearchClick={() => setSearchOpen(true)}
+				/>
 			)}
 
 			{/* Search panel replaces sidebar */}
 			{searchOpen && (
-				<SearchPanel open={searchOpen} onClose={() => setSearchOpen(false)}/>
+				<SearchPanel
+					open={searchOpen}
+					onClose={() => setSearchOpen(false)}
+				/>
 			)}
 
-			<SidebarInset className="" style={{background: "transparent", minHeight: "100vh", flex: 1, minWidth: 0, width: sidebarOpen ? undefined : "100vw", transition: "width 0.2s ease, margin 0.2s ease"}}>
+			<SidebarInset
+				className="z-0"
+				style={{
+					background: "transparent",
+					minHeight: "100vh",
+					flex: 1,
+					minWidth: 0,
+					width: sidebarOpen ? undefined : "100vw",
+					transition: "width 0.2s ease, margin 0.2s ease",
+				}}
+			>
 				{/* Sidebar toggle trigger */}
-				<div className="p-2">
-					<SidebarTrigger className="text-white" onClick={() => setSidebarOpen(prev => !prev)}/>
+				<div className="p-2 relative z-50">
+					<SidebarTrigger
+						className="text-white"
+						onClick={() => setSidebarOpen((prev) => !prev)}
+					/>
 				</div>
 
 				{/* Render page-specific content */}
 				{children}
 
 				{/* Portal root for modals */}
-				<div id="modal-root"/>
+				<div id="modal-root" />
 			</SidebarInset>
 		</SidebarProvider>
 	);

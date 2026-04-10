@@ -13,6 +13,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { Geist, Geist_Mono as GeistMono } from "next/font/google";
 import { UIProvider } from "@/context/UIContext";
+import { ReactNode } from "react";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -24,7 +25,15 @@ const geistMono = GeistMono({
 	subsets: ["latin"],
 });
 
-export default function RootLayout({ children }) {
+export const metadata = {
+	title: "Lunar - Time Management",
+	description: "Your comprehensive time management and scheduling platform",
+	icons: {
+		icon: "/favicon.svg",
+	},
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html
 			lang="en"

@@ -11,6 +11,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AlertCircle, LogIn } from "lucide-react";
+import StarBackground from "@/components/StarBackground";
 
 function FormInput({
 	label,
@@ -22,10 +23,8 @@ function FormInput({
 	required,
 }: any) {
 	return (
-		<div className="space-y-1.5">
-			<label className="text-xs font-semibold tracking-wide text-white/55 uppercase block">
-				{label}
-			</label>
+		<div className="grid gap-2">
+			<label className="lunar-label">{label}</label>
 			<input
 				type={type}
 				name={name}
@@ -33,7 +32,7 @@ function FormInput({
 				onChange={onChange}
 				placeholder={placeholder}
 				required={required}
-				className="w-full bg-white/5 border border-white/10 text-white placeholder-white/25 p-3.5 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 outline-none transition-all appearance-none shadow-[inset_0_0_15px_rgba(0,0,0,0.2)]"
+				className="lunar-input"
 			/>
 		</div>
 	);
@@ -122,21 +121,20 @@ function LoginForm() {
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-[#0a0a0f] px-4 relative overflow-hidden">
+			<StarBackground />
 			<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 blur-[150px] rounded-full pointer-events-none" />
 
 			<div className="w-full max-w-md relative z-10">
 				<form
 					onSubmit={handleSubmit}
-					className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+					className="lunar-glass p-8 md:p-10"
 				>
 					<div className="text-center mb-8">
-						<div className="w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-							<LogIn size={28} className="text-blue-400" />
+						<div className="w-16 h-16 bg-blue-300/10 border border-blue-300/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+							<LogIn size={28} className="text-blue-300" />
 						</div>
-						<h1 className="text-3xl font-bold text-white mb-2">
-							Welcome Back
-						</h1>
-						<p className="text-white/50 text-sm">
+						<h1 className="lunar-header mb-2">Welcome Back</h1>
+						<p className="lunar-form-subtitle">
 							Enter your credentials to access your orbit.
 						</p>
 					</div>
@@ -148,7 +146,7 @@ function LoginForm() {
 						</div>
 					)}
 
-					<div className="space-y-5 mb-8">
+					<div className="space-y-6 mb-8">
 						<FormInput
 							label="Email or Username"
 							name="identifier"
@@ -171,7 +169,7 @@ function LoginForm() {
 					<button
 						type="submit"
 						disabled={isPending}
-						className="w-full bg-blue-600 text-white py-3.5 rounded-xl"
+						className="w-full px-6 py-3 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition disabled:opacity-50"
 					>
 						{isPending ? "Authenticating..." : "Initiate Launch"}
 					</button>
@@ -188,7 +186,7 @@ function LoginForm() {
 							Don&apos;t have an account?{" "}
 							<Link
 								href="/register"
-								className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+								className="text-blue-300 hover:text-blue-300/80 transition-colors font-medium"
 							>
 								Sign up
 							</Link>

@@ -1,8 +1,9 @@
 import BannedPage from "@/components/admin/BanMessagePage";
+import StarBackground from "@/components/StarBackground";
 
 /**
  * Renders the banned user page.
- * 
+ *
  * Behavior:
  * - Displays a message informing the user they are banned
  * - Delegates UI and logic to the `BannedPage` component
@@ -13,5 +14,10 @@ import BannedPage from "@/components/admin/BanMessagePage";
  * @returns {JSX.Element} Banned page UI
  */
 export default function Page() {
-  return <BannedPage />;
+	return (
+		<>
+			<StarBackground />
+			<BannedPage />
+		</>
+	);
 }

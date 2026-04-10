@@ -18,7 +18,6 @@ import AdminStatistics from "@/components/admin/AdminStatistics";
 import AppealFilter from "@/components/admin/AppealFilterPanel";
 
 // UI components
-import StarField from "@/components/effects/StarField";
 import GlowBackground from "@/components/ui/GlowBackground";
 import GlassCard from "@/components/ui/GlassCard";
 import { motion } from "framer-motion";
@@ -106,12 +105,17 @@ export default function AdminPage() {
 		reportLoading,
 		fetchReports,
 	} = useAdminReports(appliedReportFilters);
-	const { appeals, totalAppealPages, totalAppeals, fetchAppeals } =
-		useAdminAppeals(appliedAppealFilters);
+	const {
+		appeals,
+		totalAppealPages,
+		totalAppeals,
+		appealLoading,
+		fetchAppeals,
+	} = useAdminAppeals(appliedAppealFilters);
 
 	const [currentTab, setCurrentTab] = useState("reports");
 
-	if (loading || reportLoading) {
+	if (loading || reportLoading || appealLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
 				<p className="p-6 animate-pulse">Loading...</p>
@@ -123,7 +127,7 @@ export default function AdminPage() {
 		reports: (
 			<ReportManagement
 				reports={reports}
-				totalReports={totalReports}
+				totalReports={totalReports ?? 0}
 				totalReportPages={totalReportPages}
 				setIsReportFilterOpen={setIsReportFilterOpen}
 				selectedReport={selectedReport}
@@ -137,7 +141,7 @@ export default function AdminPage() {
 		appeals: (
 			<AppealsManagement
 				appeals={appeals}
-				totalAppeals={totalAppeals}
+				totalAppeals={(totalAppeals ?? 0) as number}
 				totalAppealPages={totalAppealPages}
 				currentAppealPage={currentAppealPage}
 				setCurrentAppealPage={setCurrentAppealPage}
@@ -154,9 +158,8 @@ export default function AdminPage() {
 
 	return (
 		<LunarThemeWrapper>
-			<div className="min-h-screen bg-gray-950 text-white relative overflow-hidden pb-12">
+			<div className="min-h-screen bg-gray-950 text-white relative overflow-y-auto pb-12">
 				<div className="absolute inset-0 z-0 pointer-events-none">
-					<StarField />
 					<GlowBackground />
 				</div>
 

@@ -31,369 +31,402 @@ import { Button } from "../ui/Button";
 type CategoryWithColor = { id: string; name: string; color: string };
 
 const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales: { "en-US": enUS },
+	format,
+	parse,
+	startOfWeek,
+	getDay,
+	locales: { "en-US": enUS },
 });
 
 export default function CalendarView({
-  userId,
-  googleConnected,
+	userId,
+	googleConnected,
 }: {
-  events?: any[];
-  tasks?: any[];
-  allTasks?: any[];
-  unscheduledTasks?: any[];
-  userId: string;
-  googleConnected?: boolean;
+	events?: any[];
+	tasks?: any[];
+	allTasks?: any[];
+	unscheduledTasks?: any[];
+	userId: string;
+	googleConnected?: boolean;
 }) {
-  const data = useCalendarData(userId);
-  const sched = useSchedule(
-    data.allFetchedTasks,
-    data.refreshTasks,
-    data.fetchScheduleLogs,
-  );
-  const ix = useCalendarInteractions(
-    data.events,
-    data.refreshEvents,
-    data.refreshTasks,
-  );
+	const data = useCalendarData(userId);
+	const sched = useSchedule(
+		data.allFetchedTasks,
+		data.refreshTasks,
+		data.fetchScheduleLogs,
+	);
+	const ix = useCalendarInteractions(
+		data.events,
+		data.refreshEvents,
+		data.refreshTasks,
+	);
 
-  const [calendarDate, setCalendarDate] = useState(new Date());
-  const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>({
-    events: true,
-    nonAcademic: true,
-    tasks: true,
-    priorityTasks: true,
-    completed: false,
-  });
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [showCategoryManager, setShowCategoryManager] = useState(false);
-  const [quickScheduleTask, setQuickScheduleTask] = useState<any | null>(null);
-  const [showCheckIn, setShowCheckIn] = useState(false);
-  const [rescheduleQueue, setRescheduleQueue] = useState<any[]>([]);
-  const [showReschedule, setShowReschedule] = useState(false);
+	const [calendarDate, setCalendarDate] = useState(new Date());
+	const [view, setView] = useState("month");
+	const [activeFilters, setActiveFilters] = useState<Record<string, boolean>>(
+		{
+			events: true,
+			nonAcademic: true,
+			tasks: true,
+			priorityTasks: true,
+			completed: false,
+		},
+	);
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+	const [selectedDate, setSelectedDate] = useState("");
+	const [showCategoryManager, setShowCategoryManager] = useState(false);
+	const [quickScheduleTask, setQuickScheduleTask] = useState<any | null>(
+		null,
+	);
+	const [showCheckIn, setShowCheckIn] = useState(false);
+	const [rescheduleQueue, setRescheduleQueue] = useState<any[]>([]);
+	const [showReschedule, setShowReschedule] = useState(false);
 
-  useEffect(() => {
-    data.fetchCategories();
-    data.fetchExams();
-  }, []);
+	useEffect(() => {
+		data.fetchCategories();
+		data.fetchExams();
+	}, []);
 
-  useEffect(() => {
-    const init = async () => {
-      const evts = await data.refreshEvents();
-      await data.refreshTasks(evts);
-      await data.fetchScheduleLogs();
-      setTimeout(() => setShowCheckIn(true), 900);
-    };
-    init();
-  }, []);
+	useEffect(() => {
+		const init = async () => {
+			const evts = await data.refreshEvents();
+			await data.refreshTasks(evts);
+			await data.fetchScheduleLogs();
+			setTimeout(() => setShowCheckIn(true), 900);
+		};
+		init();
+	}, []);
 
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === "visible") data.refreshTasks();
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, []);
+	useEffect(() => {
+		const onVisible = () => {
+			if (document.visibilityState === "visible") data.refreshTasks();
+		};
+		document.addEventListener("visibilitychange", onVisible);
+		return () =>
+			document.removeEventListener("visibilitychange", onVisible);
+	}, []);
 
-  /**
-   * Cast data.categories to the shape expected by child components.
-   * The shared Category type is missing `color` — once that type is updated
-   * upstream (add `color: string` to the Category interface), this cast can be removed.
-   */
-  const categories = data.categories as unknown as CategoryWithColor[];
+	/**
+	 * Cast data.categories to the shape expected by child components.
+	 * The shared Category type is missing `color` — once that type is updated
+	 * upstream (add `color: string` to the Category interface), this cast can be removed.
+	 */
+	const categories = data.categories as unknown as CategoryWithColor[];
 
-  /**
-   * Builds the list of calendar items to display based on active filters.
-   */
-  const getFilteredItems = () => {
-    const items: any[] = [];
-    data.events.forEach((e) => {
-      if ('category' in e) {
-        const cat = categories.find((c) => c.name === e.category);
-        if (cat && data.categoryFilters[cat.id]) items.push(e);
-        else if (!cat && activeFilters.events) items.push(e);
-      } else if (activeFilters.events) {
-        items.push(e);
-      }
-    });
+	/**
+	 * Builds the list of calendar items to display based on active filters.
+	 */
+	const getFilteredItems = () => {
+		const items: any[] = [];
+		data.events.forEach((e) => {
+			if ("category" in e) {
+				const cat = categories.find((c) => c.name === e.category);
+				if (cat && data.categoryFilters[cat.id]) items.push(e);
+				else if (!cat && activeFilters.events) items.push(e);
+			} else if (activeFilters.events) {
+				items.push(e);
+			}
+		});
 
-    if (activeFilters.tasks)
-      items.push(
-        ...data.tasks.filter(
-          (t) => !t.completed && (!('priority' in t) || t.priority !== "High")
-        )
-      );
-    if (activeFilters.priorityTasks)
-      items.push(
-        ...data.tasks.filter(
-          (t) => !t.completed && 'priority' in t && t.priority === "High"
-        )
-      );
-    if (activeFilters.completed)
-      items.push(...data.tasks.filter((t) => t.completed));
-    return items;
-  };
+		if (activeFilters.tasks)
+			items.push(
+				...data.tasks.filter(
+					(t) =>
+						!t.completed &&
+						(!("priority" in t) || t.priority !== "High"),
+				),
+			);
+		if (activeFilters.priorityTasks)
+			items.push(
+				...data.tasks.filter(
+					(t) =>
+						!t.completed &&
+						"priority" in t &&
+						t.priority === "High",
+				),
+			);
+		if (activeFilters.completed)
+			items.push(...data.tasks.filter((t) => t.completed));
+		return items;
+	};
 
-  /**
-   * Called when the check-in modal completes.
-   */
-  const handleCheckInDone = async (toReschedule: any[]) => {
-    setShowCheckIn(false);
-    if (toReschedule.length === 0) {
-      await data.refreshTasks();
-      return;
-    }
-    setRescheduleQueue(toReschedule);
-    setShowReschedule(true);
-  };
+	/**
+	 * Called when the check-in modal completes.
+	 */
+	const handleCheckInDone = async (toReschedule: any[]) => {
+		setShowCheckIn(false);
+		if (toReschedule.length === 0) {
+			await data.refreshTasks();
+			return;
+		}
+		setRescheduleQueue(toReschedule);
+		setShowReschedule(true);
+	};
 
-  /**
-   * Called when the reschedule modal confirms a set of task IDs.
-   */
-  const handleRescheduleConfirm = async (ids: string[]) => {
-    setShowReschedule(false);
-    if (ids.length === 0) {
-      await data.refreshTasks();
-      return;
-    }
-    await Promise.all(
-      rescheduleQueue
-        .filter((t) => ids.includes(t.id) && t.remainingDuration !== t.duration)
-        .map((t) =>
-          fetch(`/api/tasks/${t.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ duration: t.remainingDuration }),
-          }),
-        ),
-    );
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
-    const days: string[] = [];
-    for (let d = new Date(today); d <= sunday; d.setDate(d.getDate() + 1))
-      days.push(format(new Date(d), "yyyy-MM-dd"));
-    await fetch("/api/schedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        taskIds: ids,
-        days,
-        mode: "week",
-        ignoreCapacity: false,
-        dateLabel: `Rescheduled w/c ${format(today, "MMM d")}`,
-        breakOverrides: sched.state.skipBreaks
-          ? { sessionLength: 9999, breakLength: 0 }
-          : {
-              sessionLength: sched.state.breakSessionMins,
-              breakLength: sched.state.breakLengthMins,
-            },
-      }),
-    });
-    setRescheduleQueue([]);
-    await data.refreshTasks();
-    await data.fetchScheduleLogs();
-  };
+	/**
+	 * Called when the reschedule modal confirms a set of task IDs.
+	 */
+	const handleRescheduleConfirm = async (ids: string[]) => {
+		setShowReschedule(false);
+		if (ids.length === 0) {
+			await data.refreshTasks();
+			return;
+		}
+		await Promise.all(
+			rescheduleQueue
+				.filter(
+					(t) =>
+						ids.includes(t.id) &&
+						t.remainingDuration !== t.duration,
+				)
+				.map((t) =>
+					fetch(`/api/tasks/${t.id}`, {
+						method: "PATCH",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ duration: t.remainingDuration }),
+					}),
+				),
+		);
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		const sunday = new Date(today);
+		sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
+		const days: string[] = [];
+		for (let d = new Date(today); d <= sunday; d.setDate(d.getDate() + 1))
+			days.push(format(new Date(d), "yyyy-MM-dd"));
+		await fetch("/api/schedule", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				taskIds: ids,
+				days,
+				mode: "week",
+				ignoreCapacity: false,
+				dateLabel: `Rescheduled w/c ${format(today, "MMM d")}`,
+				breakOverrides: sched.state.skipBreaks
+					? { sessionLength: 9999, breakLength: 0 }
+					: {
+							sessionLength: sched.state.breakSessionMins,
+							breakLength: sched.state.breakLengthMins,
+						},
+			}),
+		});
+		setRescheduleQueue([]);
+		await data.refreshTasks();
+		await data.fetchScheduleLogs();
+	};
 
-  const weekBounds = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const sunday = new Date(today);
-    sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
-    return { weekStart: today, weekEnd: sunday };
-  };
+	const weekBounds = () => {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		const sunday = new Date(today);
+		sunday.setDate(today.getDate() + ((7 - today.getDay()) % 7));
+		return { weekStart: today, weekEnd: sunday };
+	};
 
-  const openModal = (event: any) => {
-    setSelectedEvent(event);
-    setIsEditing(false);
-    setIsModalOpen(true);
-  };
+	const openModal = (event: any) => {
+		setSelectedEvent(event);
+		setIsEditing(false);
+		setIsModalOpen(true);
+	};
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setIsEditing(false);
-    ix.setIsTaskEditOpen(false);
-  };
+	const closeModal = () => {
+		setIsModalOpen(false);
+		setIsEditing(false);
+		ix.setIsTaskEditOpen(false);
+	};
 
-  const filterProps = {
-    activeFilters,
-    categories,
-    categoryFilters: data.categoryFilters,
-    onToggleFilter: (key: string) =>
-      setActiveFilters((p) => ({ ...p, [key]: !p[key] })),
-    onToggleCategory: (id: string) =>
-      data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] })),
-    onManageCategories: () => setShowCategoryManager(true),
-  };
+	const filterProps = {
+		activeFilters,
+		categories,
+		categoryFilters: data.categoryFilters,
+		onToggleFilter: (key: string) =>
+			setActiveFilters((p) => ({ ...p, [key]: !p[key] })),
+		onToggleCategory: (id: string) =>
+			data.setCategoryFilters((p) => ({ ...p, [id]: !p[id] })),
+		onManageCategories: () => setShowCategoryManager(true),
+	};
 
-  const unscheduledProps = {
-    unscheduledTasks: data.unscheduledTasks,
-    scheduleLogs: data.scheduleLogs,
-    events: data.events,
-    categories,
-    onTaskClick: setQuickScheduleTask,
-    onEditLog: (log: any) => {
-      sched.patch({
-        scheduleMode: log.mode,
-        showScheduleDialog: true,
-        ...(log.mode === "day"
-          ? { scheduleDate: format(new Date(log.scheduledAt), "yyyy-MM-dd") }
-          : { scheduleWeekStart: format(new Date(log.scheduledAt), "yyyy-MM-dd") }),
-      });
-    },
-    onDeleteLog: async (id: string) => {
-      await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
-      await data.refreshTasks();
-      data.fetchScheduleLogs();
-    },
-  };
+	const unscheduledProps = {
+		unscheduledTasks: data.unscheduledTasks,
+		scheduleLogs: data.scheduleLogs,
+		events: data.events,
+		categories,
+		onTaskClick: setQuickScheduleTask,
+		onEditLog: (log: any) => {
+			sched.patch({
+				scheduleMode: log.mode,
+				showScheduleDialog: true,
+				...(log.mode === "day"
+					? {
+							scheduleDate: format(
+								new Date(log.scheduledAt),
+								"yyyy-MM-dd",
+							),
+						}
+					: {
+							scheduleWeekStart: format(
+								new Date(log.scheduledAt),
+								"yyyy-MM-dd",
+							),
+						}),
+			});
+		},
+		onDeleteLog: async (id: string) => {
+			await fetch(`/api/schedule-log?id=${id}`, { method: "DELETE" });
+			await data.refreshTasks();
+			data.fetchScheduleLogs();
+		},
+	};
 
-  return (
-    <div className="w-full flex justify-center px-4">
-      {showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
-      {showReschedule &&
-        rescheduleQueue.length > 0 &&
-        (() => {
-          const { weekStart, weekEnd } = weekBounds();
-          return (
-            <RescheduleModal
-              tasks={rescheduleQueue}
-              weekStart={weekStart}
-              weekEnd={weekEnd}
-              onConfirm={handleRescheduleConfirm}
-              onDismiss={async () => {
-                setShowReschedule(false);
-                setRescheduleQueue([]);
-                await data.refreshTasks();
-              }}
-            />
-          );
-        })()}
+	return (
+		<div className="w-full flex justify-center px-4 gap-8">
+			{showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
+			{showReschedule &&
+				rescheduleQueue.length > 0 &&
+				(() => {
+					const { weekStart, weekEnd } = weekBounds();
+					return (
+						<RescheduleModal
+							tasks={rescheduleQueue}
+							weekStart={weekStart}
+							weekEnd={weekEnd}
+							onConfirm={handleRescheduleConfirm}
+							onDismiss={async () => {
+								setShowReschedule(false);
+								setRescheduleQueue([]);
+								await data.refreshTasks();
+							}}
+						/>
+					);
+				})()}
 
-      <div className="hidden lg:block">
-        <FilterSidebar {...filterProps} />
-      </div>
+			<div className="hidden lg:block">
+				<FilterSidebar {...filterProps} />
+			</div>
 
-      <div className="flex-1 min-w-0">
-        <div className="hidden lg:flex gap-2 mb-4">
-          <Button
-            onClick={() => sched.open("day", calendarDate)}
-            className="flex-1 bg-gray-900 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-black transition-all"
-          >
-            Schedule My Day
-          </Button>
-          <Button
-            onClick={() => sched.open("week", calendarDate)}
-            className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all"
-          >
-            Schedule My Week
-          </Button>
-        </div>
+			<div className="flex-1 min-w-0">
+				<div className="hidden lg:flex gap-2 mb-4">
+					<Button
+						onClick={() => sched.open("day", calendarDate)}
+						className="flex-1 bg-white/5 ring-1 ring-white/10 text-white/80 font-medium py-2 px-4 rounded-xl text-sm hover:bg-white/10 transition-all"
+					>
+						Schedule My Day
+					</Button>
+					<Button
+						onClick={() => sched.open("week", calendarDate)}
+						className="flex-1 bg-blue-300 text-gray-950 font-semibold py-2 px-4 rounded-xl text-sm shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_40px_rgba(90,150,255,0.35)] transition-all"
+					>
+						Schedule My Week
+					</Button>
+				</div>
 
-        <CalendarBody
-          localizer={localizer}
-          filteredItems={getFilteredItems()}
-          calendarDate={calendarDate}
-          scheduleLogs={data.scheduleLogs}
-          categories={categories}
-          searchQuery={ix.searchQuery}
-          searchResults={ix.searchResults}
-          showSearchResults={ix.showSearchResults}
-          showUndo={ix.showUndo}
-          onNavigate={setCalendarDate}
-          onSelectSlot={(date) => {
-            setSelectedEvent(null);
-            setSelectedDate(date);
-            setIsModalOpen(true);
-          }}
-          onSelectEvent={openModal}
-          onSearchChange={ix.handleSearch}
-          onSearchFocus={ix.showSearchResultsFor}
-          onSearchClear={ix.clearSearch}
-          onSearchResultClick={(e) => {
-            setCalendarDate(new Date(e.start));
-            openModal(e);
-          }}
-          onUndo={ix.handleUndo}
-          onUndoDismiss={ix.dismissUndo}
-        />
-      </div>
+				<CalendarBody
+					localizer={localizer}
+					filteredItems={getFilteredItems()}
+					calendarDate={calendarDate}
+					view={view}
+					onView={setView}
+					scheduleLogs={data.scheduleLogs}
+					categories={categories}
+					searchQuery={ix.searchQuery}
+					searchResults={ix.searchResults}
+					showSearchResults={ix.showSearchResults}
+					showUndo={ix.showUndo}
+					onNavigate={setCalendarDate}
+					onSelectSlot={(date) => {
+						setSelectedEvent(null);
+						setSelectedDate(date);
+						setIsModalOpen(true);
+					}}
+					onSelectEvent={openModal}
+					onSearchChange={ix.handleSearch}
+					onSearchFocus={ix.showSearchResultsFor}
+					onSearchClear={ix.clearSearch}
+					onSearchResultClick={(e) => {
+						setCalendarDate(new Date(e.start));
+						openModal(e);
+					}}
+					onUndo={ix.handleUndo}
+					onUndoDismiss={ix.dismissUndo}
+				/>
+			</div>
 
-      <div className="hidden lg:block">
-        <UnscheduledPanel {...unscheduledProps} />
-      </div>
+			<div className="hidden lg:block">
+				<UnscheduledPanel {...unscheduledProps} />
+			</div>
 
-      <MobileCalendarToolbar
-        onScheduleDay={() => sched.open("day", calendarDate)}
-        onScheduleWeek={() => sched.open("week", calendarDate)}
-        {...filterProps}
-        {...unscheduledProps}
-      />
+			<MobileCalendarToolbar
+				onScheduleDay={() => sched.open("day", calendarDate)}
+				onScheduleWeek={() => sched.open("week", calendarDate)}
+				{...filterProps}
+				{...unscheduledProps}
+			/>
 
-      {isModalOpen && (
-        <EventDetailModal
-          selectedEvent={selectedEvent}
-          isEditing={isEditing}
-          isTaskEditOpen={ix.isTaskEditOpen}
-          taskFormData={ix.taskFormData}
-          selectedDate={selectedDate}
-          userId={userId}
-          events={data.events}
-          exams={data.exams}
-          onClose={closeModal}
-          onSetEditing={setIsEditing}
-          onSetTaskEdit={ix.setIsTaskEditOpen}
-          onFormChange={(c) => ix.setTaskFormData((p) => ({ ...p, ...c }))}
-          onTaskSubmit={(merged) =>
-            ix.submitTaskEdit(selectedEvent.id, merged ?? ix.taskFormData)
-          }
-          onDeleteTask={async () => {
-            if (await ix.deleteTask(selectedEvent.id)) closeModal();
-          }}
-          onDeleteEvent={async (mode) => {
-            if (await ix.deleteEvent(selectedEvent, mode)) closeModal();
-          }}
-          onEventSuccess={() => {
-            closeModal();
-            data.refreshEvents().then(() => data.refreshTasks());
-          }}
-        />
-      )}
+			{isModalOpen && (
+				<EventDetailModal
+					selectedEvent={selectedEvent}
+					isEditing={isEditing}
+					isTaskEditOpen={ix.isTaskEditOpen}
+					taskFormData={ix.taskFormData}
+					selectedDate={selectedDate}
+					userId={userId}
+					events={data.events}
+					exams={data.exams}
+					onClose={closeModal}
+					onSetEditing={setIsEditing}
+					onSetTaskEdit={ix.setIsTaskEditOpen}
+					onFormChange={(c) =>
+						ix.setTaskFormData((p) => ({ ...p, ...c }))
+					}
+					onTaskSubmit={(merged) =>
+						ix.submitTaskEdit(
+							selectedEvent.id,
+							merged ?? ix.taskFormData,
+						)
+					}
+					onDeleteTask={async () => {
+						if (await ix.deleteTask(selectedEvent.id)) closeModal();
+					}}
+					onDeleteEvent={async (mode) => {
+						if (await ix.deleteEvent(selectedEvent, mode))
+							closeModal();
+					}}
+					onEventSuccess={() => {
+						closeModal();
+						data.refreshEvents().then(() => data.refreshTasks());
+					}}
+				/>
+			)}
 
-      {quickScheduleTask && (
-        <QuickScheduleModal
-          task={quickScheduleTask}
-          onClose={() => setQuickScheduleTask(null)}
-          onSaved={async () => {
-            setQuickScheduleTask(null);
-            await data.refreshTasks();
-          }}
-        />
-      )}
+			{quickScheduleTask && (
+				<QuickScheduleModal
+					task={quickScheduleTask}
+					onClose={() => setQuickScheduleTask(null)}
+					onSaved={async () => {
+						setQuickScheduleTask(null);
+						await data.refreshTasks();
+					}}
+				/>
+			)}
 
-      {showCategoryManager && (
-        <CategoryManagerModal
-          categories={data.categories}
-          onClose={() => setShowCategoryManager(false)}
-          onCategoriesChange={data.fetchCategories}
-        />
-      )}
+			{showCategoryManager && (
+				<CategoryManagerModal
+					categories={data.categories}
+					onClose={() => setShowCategoryManager(false)}
+					onCategoriesChange={data.fetchCategories}
+				/>
+			)}
 
-      <ScheduleDrawer
-        state={sched.state}
-        patch={sched.patch}
-        onSchedule={() => sched.schedule(false)}
-        onScheduleForced={() => sched.schedule(true)}
-        onClose={sched.close}
-      />
-    </div>
-  );
+			<ScheduleDrawer
+				state={sched.state}
+				patch={sched.patch}
+				onSchedule={() => sched.schedule(false)}
+				onScheduleForced={() => sched.schedule(true)}
+				onClose={sched.close}
+			/>
+		</div>
+	);
 }

@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { getShopData } from "@/app/actions/shop";
 import ShopPageClient from "./ShopPageClient";
+import StarBackground from "@/components/StarBackground";
 import type { ShopData, ItemRarity } from "./shop.types";
 
 /**
@@ -36,8 +37,8 @@ export default async function ShopPage() {
       .filter((item) => item.type === "AVATAR")
       .map((item) => ({
         ...item,
-        type: "AVATAR", 
-        rarity: item.rarity as ItemRarity, 
+        type: "AVATAR",
+        rarity: item.rarity as ItemRarity,
       })),
   };
 
