@@ -257,7 +257,7 @@ export default function CalendarView({
   };
 
   return (
-    <div className="w-full flex justify-center px-4">
+    <div className="w-full flex justify-center px-4 gap-8">
       {showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
       {showReschedule &&
         rescheduleQueue.length > 0 &&
