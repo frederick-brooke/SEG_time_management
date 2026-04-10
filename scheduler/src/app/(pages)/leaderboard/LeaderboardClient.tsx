@@ -187,7 +187,7 @@ export default function LeaderboardClient({
 			{/* Card header */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-4 sm:p-5 border-b border-white/[0.06]">
 				<div className="flex items-center gap-3 min-w-0">
-					<h2 className="lunar-page-title text-2xl sm:text-3xl truncate">
+					<h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] truncate">
 						Live Rankings
 					</h2>
 					{isPending && (
@@ -205,7 +205,7 @@ export default function LeaderboardClient({
 							value={localTimeframe}
 							onChange={handleTimeframeChange}
 							disabled={isPending}
-							className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 lunar-label !mb-0 text-white/60 outline-none cursor-pointer hover:bg-white/[0.08] transition-colors disabled:opacity-40 appearance-none text-xs"
+							className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 lunar-label !mb-0 text-center text-white/60 outline-none cursor-pointer hover:bg-white/[0.08] transition-colors disabled:opacity-40 appearance-none text-xs"
 						>
 							<option value="day">Today</option>
 							<option value="week">This Week</option>
@@ -217,7 +217,7 @@ export default function LeaderboardClient({
 					<select
 						value={sortBy}
 						onChange={(e) => setSortBy(e.target.value as SortKey)}
-						className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 lunar-label !mb-0 text-white/60 outline-none cursor-pointer hover:bg-white/[0.08] transition-colors appearance-none text-xs"
+						className="px-5 py-2.5 rounded-full bg-white/5 border border-white/10 lunar-label !mb-0 text-center text-white/60 outline-none cursor-pointer hover:bg-white/[0.08] transition-colors appearance-none text-xs"
 					>
 						<option value="streak">By Streak</option>
 						<option value="focusTime">By Focus Time</option>

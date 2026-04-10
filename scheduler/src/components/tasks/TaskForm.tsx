@@ -69,7 +69,7 @@ export function TaskForm({
 			{showTrigger && (
 				<Button
 					onClick={() => onOpenChange(true)}
-					className="lunar-button-primary"
+					className="px-6 py-3 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition"
 				>
 					+ NEW TASK
 				</Button>

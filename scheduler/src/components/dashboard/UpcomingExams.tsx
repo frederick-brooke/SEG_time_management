@@ -56,21 +56,25 @@ export function UpcomingExams({ exams = [] }: { exams?: any[] }) {
 	// useMemo prevents heavy date recalculations on unrelated re-renders
 	const upcoming = useMemo(() => getUpcomingExams(exams), [exams]);
 
-	if (upcoming.length === 0) return null;
-
 	return (
 		<section className="space-y-6">
 			<h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
 				Exams Approaching
 			</h2>
-			<div
-				className="lunar-scroll-area space-y-4 overflow-y-auto pr-2"
-				style={{ maxHeight: "350px" }}
-			>
-				{upcoming.map((exam) => (
-					<ExamCard key={exam.id} exam={exam} />
-				))}
-			</div>
+			{upcoming.length === 0 ? (
+				<p className="text-sm text-white/30 text-center py-8 italic font-medium">
+					No exams scheduled
+				</p>
+			) : (
+				<div
+					className="lunar-scroll-area space-y-4 overflow-y-auto pr-2"
+					style={{ maxHeight: "350px" }}
+				>
+					{upcoming.map((exam) => (
+						<ExamCard key={exam.id} exam={exam} />
+					))}
+				</div>
+			)}
 		</section>
 	);
 }
