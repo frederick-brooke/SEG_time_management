@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import LunarDrawer from "@/components/layout/LunarDrawer";
 import WellbeingPage from "@/app/(pages)/wellbeing/page";
+import { useUI } from "@/context/UIContext";
 
 /**
  * WellbeingPanelProps
@@ -11,10 +13,10 @@ import WellbeingPage from "@/app/(pages)/wellbeing/page";
  * @property {React.ReactNode} [children] - Optional override content (currently unused)
  */
 interface WellbeingPanelProps {
-  open: boolean;
-  onClose: () => void;
-  title?: string;
-  children?: React.ReactNode;
+	open: boolean;
+	onClose: () => void;
+	title?: string;
+	children?: React.ReactNode;
 }
 
 /**
@@ -29,17 +31,29 @@ interface WellbeingPanelProps {
  * @param {WellbeingPanelProps} props
  * @returns {JSX.Element} Drawer panel containing wellbeing page
  */
-export default function WellbeingPanel({ open, onClose, title, children }: WellbeingPanelProps) {
-  return (
-    <LunarDrawer
-      open={open}
-      onClose={onClose}
-      side="right"
-      title="Wellbeing"
-    >
-      <div className="flex flex-1 flex-col min-h-0 p-4">
-        <WellbeingPage />
-      </div>
-    </LunarDrawer>
-  );
+export default function WellbeingPanel({
+	open,
+	onClose,
+	title,
+	children,
+}: WellbeingPanelProps) {
+	const { setIsModalOpen } = useUI();
+
+	useEffect(() => {
+		setIsModalOpen(open);
+		return () => setIsModalOpen(false);
+	}, [open, setIsModalOpen]);
+
+	return (
+		<LunarDrawer
+			open={open}
+			onClose={onClose}
+			side="right"
+			title="Wellbeing"
+		>
+			<div className="flex flex-1 flex-col min-h-0 p-4">
+				<WellbeingPage />
+			</div>
+		</LunarDrawer>
+	);
 }

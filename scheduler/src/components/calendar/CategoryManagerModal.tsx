@@ -5,7 +5,8 @@
  * Composed of CategoryRow (edit existing) and AddCategoryForm (create new).
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUI } from "@/context/UIContext";
 import { Button } from "../ui/Button";
 
 /**
@@ -173,6 +174,13 @@ export default function CategoryManagerModal({
 	onClose,
 	onCategoriesChange,
 }: CategoryManagerModalProps) {
+	const { setIsModalOpen } = useUI();
+
+	useEffect(() => {
+		setIsModalOpen(true);
+		return () => setIsModalOpen(false);
+	}, [setIsModalOpen]);
+
 	return (
 		<div
 			className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"

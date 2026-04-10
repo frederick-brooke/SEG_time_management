@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/Sidebar";
 
 import { useSession } from "next-auth/react";
+import { useUI } from "@/context/UIContext";
 
 /**
  * PagesLayout Component
@@ -42,6 +43,7 @@ export default function PagesLayout({
 }) {
 	const [searchOpen, setSearchOpen] = useState(false); // Controls whether the search panel is visible
 	const [sidebarOpen, setSidebarOpen] = useState(true); // Controls sidebar open/collapsed state
+	const { isModalOpen } = useUI(); // Check if any modal is open
 
 	const { data: session, status } = useSession();
 
@@ -63,8 +65,8 @@ export default function PagesLayout({
 				} as React.CSSProperties
 			}
 		>
-			{/* Sidebar disappears when search is open */}
-			{!searchOpen && (
+			{/* Sidebar is completely hidden when modal is open */}
+			{!searchOpen && !isModalOpen && (
 				<AppSidebar
 					variant="inset"
 					onSearchClick={() => setSearchOpen(true)}

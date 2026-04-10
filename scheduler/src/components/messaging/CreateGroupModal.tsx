@@ -8,10 +8,11 @@
  * and prompts the user to open the existing one instead.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { resolveAvatarSrc } from "@/lib/avatar";
 import { Button } from "../ui/Button";
+import { useUI } from "@/context/UIContext";
 
 type User = {
 	id: string;
@@ -33,6 +34,12 @@ export function CreateGroupModal({
 	const [selected, setSelected] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [duplicate, setDuplicate] = useState(false);
+	const { setIsModalOpen } = useUI();
+
+	useEffect(() => {
+		setIsModalOpen(true);
+		return () => setIsModalOpen(false);
+	}, [setIsModalOpen]);
 
 	const toggle = (id: string) => {
 		setDuplicate(false); // clear warning when selection changes

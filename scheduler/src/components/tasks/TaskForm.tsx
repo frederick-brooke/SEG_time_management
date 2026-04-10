@@ -12,11 +12,12 @@ import {
 	SelectValue,
 } from "@/components/ui/Select";
 import { X } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { createPortal } from "react-dom";
 import { LunarCard } from "../ui/LunarCard";
 import { ToggleGroup, ToggleGroupItem } from "../ui/ToggleGroup";
+import { useUI } from "@/context/UIContext";
 
 export interface TaskFormData {
 	name?: string;
@@ -53,9 +54,16 @@ export function TaskForm({
 	showTrigger = true,
 }: TaskFormProps) {
 	const [mounted, setMounted] = React.useState(false);
+	const { setIsModalOpen } = useUI();
+
 	React.useEffect(() => {
 		setMounted(true);
 	}, []);
+
+	useEffect(() => {
+		setIsModalOpen(isOpen);
+		return () => setIsModalOpen(false);
+	}, [isOpen, setIsModalOpen]);
 
 	const handleAction = () => {
 		if (!formData.name?.trim()) {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { updateUserLocation } from "@/app/actions/updateUserLocation";
+import { useUI } from "@/context/UIContext";
 import { Button } from "../ui/Button";
 import L from "leaflet";
 
@@ -135,6 +136,7 @@ export default function SetLocationModal({
 	const { userLocation } = useGeolocation();
 	const { searchQuery, suggestions, handleLocationSearch } =
 		useLocationSearch();
+	const { setIsModalOpen } = useUI();
 
 	const [location, setLocation] = useState<LatLng>(() =>
 		resolveInitialLocation(initialLocation, userLocation),
@@ -146,6 +148,11 @@ export default function SetLocationModal({
 	const [dropdownStyle, setDropdownStyle] = useState<any>(null);
 
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		setIsModalOpen(isOpen);
+		return () => setIsModalOpen(false);
+	}, [isOpen, setIsModalOpen]);
 
 	/**
 	 * Handles selecting a suggestion from the dropdown.
