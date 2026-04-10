@@ -102,23 +102,25 @@ export default function ExamForm({
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-5">
+		<form onSubmit={handleSubmit} className="grid gap-2 py-2">
 			{serverError && (
-				<div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl border border-red-200">
+				<div className="p-4 text-sm text-red-400 bg-red-500/10 rounded-xl border border-red-500/30">
 					{serverError}
 				</div>
 			)}
 
-			<div>
+			<div className="grid gap-2">
 				<label className="lunar-label">Exam Title</label>
 				<input
 					name="title"
+					type="text"
+					placeholder="Enter exam title"
 					defaultValue={editingExam?.title || ""}
 					required
 					className="lunar-input"
 				/>
 			</div>
-			<div>
+			<div className="grid gap-2">
 				<label className="lunar-label">Exam Date</label>
 				<input
 					name="examDate"
@@ -134,59 +136,46 @@ export default function ExamForm({
 					className="lunar-input"
 				/>
 			</div>
-			<div className="grid grid-cols-2 gap-3">
-				<div>
-					<label className="lunar-label">Start Time</label>
-					<input
-						name="startTime"
-						type="time"
-						defaultValue={
-							editingExam
-								? formatTime(editingExam.examDate)
-								: "09:00"
-						}
-						required
-						className="lunar-input"
-					/>
-				</div>
-				<div>
-					<label className="lunar-label">End Time</label>
-					<input
-						name="endTime"
-						type="time"
-						defaultValue={
-							editingExam
-								? formatTime(editingExam.examDate)
-								: "09:00"
-						}
-						required
-						className="lunar-input"
-					/>
-				</div>
+			<div className="grid gap-2">
+				<label className="lunar-label">Start Time</label>
+				<input
+					name="startTime"
+					type="time"
+					defaultValue={
+						editingExam ? formatTime(editingExam.examDate) : "09:00"
+					}
+					required
+					className="lunar-input"
+				/>
 			</div>
-			<div>
+			<div className="grid gap-2">
+				<label className="lunar-label">End Time</label>
+				<input
+					name="endTime"
+					type="time"
+					defaultValue={
+						editingExam ? formatTime(editingExam.examDate) : "09:00"
+					}
+					required
+					className="lunar-input"
+				/>
+			</div>
+			<div className="grid gap-2">
 				<label className="lunar-label">Daily Study Goal (mins)</label>
 				<input
 					name="maxTimePerDay"
 					type="number"
+					placeholder="Enter study goal in minutes"
 					defaultValue={editingExam?.maxTimePerDay || ""}
 					required
 					className="lunar-input"
 				/>
 			</div>
-			<div className="flex justify-between gap-3 pt-4">
-				<Button
-					type="button"
-					onClick={onSuccess}
-					disabled={isPending}
-					className="lunar-button-ghost"
-				>
-					Cancel
-				</Button>
+			<div className="mt-8 flex justify-end">
 				<Button
 					type="submit"
 					disabled={isPending}
-					className="lunar-button-primary flex-1"
+					className="px-6 py-3 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition w-full disabled:opacity-50"
 				>
 					{isPending
 						? "Saving..."

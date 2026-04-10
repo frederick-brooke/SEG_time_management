@@ -159,7 +159,7 @@ export default function ExamPlannerPage() {
 											onClick={() =>
 												handleDelete(exam.id)
 											}
-											className="lunar-button-ghost"
+											className="bg-red-500/20 text-red-400 border border-red-500/30 font-black uppercase tracking-widest text-xs py-2 px-6 rounded-xl hover:bg-red-500/30 transition-all"
 										>
 											Delete Exam
 										</Button>
