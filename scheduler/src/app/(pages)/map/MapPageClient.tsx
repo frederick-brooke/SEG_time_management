@@ -49,20 +49,20 @@ export default function MapPageClient({
 }: MapPageClientProps) {
 	const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
-  return (
-    <>
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 min-w-0">
-          <MapView events={events} userLocation={userLocation} />
-        </div>
-        <div className="w-full lg:w-72 shrink-0 space-y-4">
-          <SavedLocationsPanel />
-          <Button
-            onClick={() => setIsLocationModalOpen(true)}
-            className="w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            📍 Set Your Location
-          </Button>
+	return (
+		<>
+			<div className="flex flex-col lg:flex-row gap-6">
+				<div className="flex-1 min-w-0">
+					<MapView events={events} userLocation={userLocation} />
+				</div>
+				<div className="w-full lg:w-72 shrink-0 space-y-4">
+					<SavedLocationsPanel />
+					<Button
+						onClick={() => setIsLocationModalOpen(true)}
+						className="w-full px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+					>
+						📍 Set Your Location
+					</Button>
 
 					{/* Location Visibility Info */}
 					<div className="bg-white/5 border border-white/10 rounded-lg p-4">
