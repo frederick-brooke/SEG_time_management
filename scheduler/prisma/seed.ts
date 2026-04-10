@@ -115,6 +115,28 @@ async function seedUsers(passwordHash: string): Promise<{ id: string }[]> {
   return users
 }
 
+async function seedPreferencesForUser(userId: string): Promise<void> {
+  const workStart = faker.helpers.arrayElement(['07:00', '08:00', '09:00'])
+  const workEnd = faker.helpers.arrayElement(['17:00', '18:00', '19:00', '20:00'])
+  const daysOff = faker.helpers.arrayElements(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], { min: 1, max: 2 })
+
+  await prisma.userPreferences.create({
+    data: {
+      userId,
+      workStartTime: workStart,
+      workEndTime: workEnd,
+      daysOff,
+      sessionLength: faker.helpers.arrayElement([25, 45, 60, 90]),
+      breakLength: faker.helpers.arrayElement([5, 10, 15]),
+      breaksPerDay: faker.number.int({ min: 1, max: 5 }),
+      taskOrder: faker.helpers.arrayElement(['priority', 'dueDate', 'createdAt']),
+      maxTasksPerDay: faker.number.int({ min: 3, max: 10 }),
+      defaultTaskDuration: faker.helpers.arrayElement([15, 30, 45, 60]),
+      reminderDays: faker.number.int({ min: 1, max: 7 }),
+    },
+  })
+}
+
 async function seedProgressForUser(userId: string): Promise<void> {
   const level = faker.number.int({ min: 1, max: 20 })
   const points = level * faker.number.int({ min: 200, max: 800 })
@@ -134,10 +156,12 @@ async function seedProgressForUser(userId: string): Promise<void> {
   })
 }
 
-async function seedTasksForUser(userId: string): Promise<void> {
+async function seedTasksForUser(userId: string, examIds: string[], eventIds: string[]): Promise<void> {
   for (let i = 0; i < SEED_TASKS_PER_USER; i++) {
     const status = faker.helpers.arrayElement(TASK_STATUSES)
     const completed = status === 'done'
+    const dueDate = status === 'done' ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
+    const completedAt = status === 'done' ? faker.date.between({ from: dueDate, to: new Date() }) : null
 
     const subtasks = faker.datatype.boolean(0.5)
       ? Array.from(
@@ -148,8 +172,10 @@ async function seedTasksForUser(userId: string): Promise<void> {
 
     const durationMins = faker.helpers.arrayElement(EVENT_DURATION_OPTIONS)
 
-    const dueDate = status === 'done' ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
-    const completedAt = status === 'done' ? faker.date.between({ from: dueDate, to: new Date() }) : null
+    // ~20% linked to an exam, ~20% linked to an event, rest standalone
+    const roll = faker.number.float({ min: 0, max: 1 })
+    const examId = roll < 0.2 ? faker.helpers.arrayElement(examIds) : null
+    const eventId = roll >= 0.2 && roll < 0.4 ? faker.helpers.arrayElement(eventIds) : null
 
     await prisma.task.create({
       data: {
@@ -160,23 +186,27 @@ async function seedTasksForUser(userId: string): Promise<void> {
         status,
         completed,
         completedAt,
+        duration: durationMins,
         durationMins: String(durationMins),
         priority: faker.helpers.arrayElement(TASK_PRIORITIES),
         subtasks,
+        ...(examId && { examId }),
+        ...(eventId && { eventId }),
       },
     })
   }
 }
 
-async function seedEventsForUser(userId: string): Promise<void> {
+async function seedEventsForUser(userId: string): Promise<string[]> {
+  const eventIds: string[] = []
   for (let i = 0; i < SEED_EVENTS_PER_USER; i++) {
     const allDay = faker.datatype.boolean(0.2)
     const isPast = faker.datatype.boolean(0.4)
     const start = isPast ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
-    const end = randomEventEnd(start)
+    const end = allDay ? start : randomEventEnd(start)
     const hasTravelDetails = faker.datatype.boolean(0.3)
 
-    await prisma.event.create({
+    const event = await prisma.event.create({
       data: {
         userId,
         title: faker.lorem.words({ min: 2, max: 4 }),
@@ -186,6 +216,10 @@ async function seedEventsForUser(userId: string): Promise<void> {
         allDay,
         category: faker.helpers.arrayElement(EVENT_CATEGORIES),
         ...(hasTravelDetails && {
+          startCoords: {
+            lat: faker.location.latitude(),
+            lng: faker.location.longitude(),
+          },
           destinationCoords: {
             lat: faker.location.latitude(),
             lng: faker.location.longitude(),
@@ -195,12 +229,15 @@ async function seedEventsForUser(userId: string): Promise<void> {
         }),
       },
     })
+    eventIds.push(event.id)
   }
+  return eventIds
 }
 
-async function seedExamsForUser(userId: string): Promise<void> {
+async function seedExamsForUser(userId: string): Promise<string[]> {
+  const examIds: string[] = []
   for (let i = 0; i < SEED_EXAMS_PER_USER; i++) {
-    await prisma.exam.create({
+    const exam = await prisma.exam.create({
       data: {
         userId,
         title: faker.helpers.arrayElement(EXAM_TITLES),
@@ -208,7 +245,9 @@ async function seedExamsForUser(userId: string): Promise<void> {
         maxTimePerDay: faker.helpers.arrayElement(MAX_TIME_PER_DAY_OPTIONS),
       },
     })
+    examIds.push(exam.id)
   }
+  return examIds
 }
 
 async function seedFriendships(users: { id: string }[]): Promise<void> {
@@ -247,9 +286,10 @@ async function main(): Promise<void> {
   console.log('Creating progress, tasks, events, and exams...')
   for (const user of users) {
     await seedProgressForUser(user.id)
-    await seedTasksForUser(user.id)
-    await seedEventsForUser(user.id)
-    await seedExamsForUser(user.id)
+    await seedPreferencesForUser(user.id)
+    const examIds = await seedExamsForUser(user.id)
+    const eventIds = await seedEventsForUser(user.id)
+    await seedTasksForUser(user.id, examIds, eventIds)
   }
 
   await seedFriendships(users)
