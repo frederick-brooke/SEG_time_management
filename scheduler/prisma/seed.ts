@@ -14,11 +14,11 @@ const prisma = new PrismaClient()
 
 // Constants
 
-const SEED_USER_COUNT = 200
-const SEED_TASKS_PER_USER = 3
-const SEED_EVENTS_PER_USER = 6
-const SEED_EXAMS_PER_USER = 2
-const SEED_FRIENDS_PER_USER = 5
+const SEED_USER_COUNT = 300
+const SEED_TASKS_PER_USER = 12
+const SEED_EVENTS_PER_USER = 20
+const SEED_EXAMS_PER_USER = 4
+const SEED_FRIENDS_PER_USER = 15
 const SEED_PASSWORD = 'Password123'
 const MAX_EVENT_DURATION_HOURS = 3
 const MAX_DUE_DATE_DAYS = 20
@@ -57,6 +57,12 @@ async function clearAll(): Promise<void> {
 function randomFutureDate(maxDays: number): Date {
   const date = new Date()
   date.setDate(date.getDate() + faker.number.int({ min: 1, max: maxDays }))
+  return date
+}
+
+function randomPastDate(maxDays: number): Date {
+  const date = new Date()
+  date.setDate(date.getDate() - faker.number.int({ min: 1, max: maxDays }))
   return date
 }
 
@@ -110,15 +116,20 @@ async function seedUsers(passwordHash: string): Promise<{ id: string }[]> {
 }
 
 async function seedProgressForUser(userId: string): Promise<void> {
+  const level = faker.number.int({ min: 1, max: 20 })
+  const points = level * faker.number.int({ min: 200, max: 800 })
+  const coins = faker.number.int({ min: 0, max: 500 })
+  const streak = faker.number.int({ min: 0, max: 30 })
+
   await prisma.userProgress.create({
     data: {
       userId,
-      points: 0,
-      coins: 0,
-      level: 1,
-      experience: 0,
-      streak: 0,
-      streakShields: 0,
+      points,
+      coins,
+      level,
+      experience: faker.number.int({ min: 0, max: 1000 }),
+      streak,
+      streakShields: faker.number.int({ min: 0, max: 3 }),
     },
   })
 }
@@ -126,7 +137,6 @@ async function seedProgressForUser(userId: string): Promise<void> {
 async function seedTasksForUser(userId: string): Promise<void> {
   for (let i = 0; i < SEED_TASKS_PER_USER; i++) {
     const status = faker.helpers.arrayElement(TASK_STATUSES)
-    const completedAt = status === 'done' ? faker.date.recent({ days: 7 }) : null
     const completed = status === 'done'
 
     const subtasks = faker.datatype.boolean(0.5)
@@ -138,12 +148,15 @@ async function seedTasksForUser(userId: string): Promise<void> {
 
     const durationMins = faker.helpers.arrayElement(EVENT_DURATION_OPTIONS)
 
+    const dueDate = status === 'done' ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
+    const completedAt = status === 'done' ? faker.date.between({ from: dueDate, to: new Date() }) : null
+
     await prisma.task.create({
       data: {
         userId,
         title: faker.hacker.phrase(),
         description: faker.datatype.boolean(0.6) ? faker.lorem.sentence() : null,
-        dueDate: randomFutureDate(MAX_DUE_DATE_DAYS),
+        dueDate,
         status,
         completed,
         completedAt,
@@ -158,7 +171,8 @@ async function seedTasksForUser(userId: string): Promise<void> {
 async function seedEventsForUser(userId: string): Promise<void> {
   for (let i = 0; i < SEED_EVENTS_PER_USER; i++) {
     const allDay = faker.datatype.boolean(0.2)
-    const start = randomFutureDate(MAX_DUE_DATE_DAYS)
+    const isPast = faker.datatype.boolean(0.4)
+    const start = isPast ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
     const end = randomEventEnd(start)
     const hasTravelDetails = faker.datatype.boolean(0.3)
 
