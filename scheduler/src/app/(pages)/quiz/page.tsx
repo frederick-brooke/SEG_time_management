@@ -430,21 +430,22 @@ export default function QuizPage() {
 											handleChange("taskOrder", value)
 										}
 										className={`flex items-start gap-3 p-3.5 rounded-xl border text-left transition-all
-                      ${
-							formData.taskOrder === value
-								? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-400/40"
-								: "bg-white/5 border-white/10 hover:border-white/20"
-						}`}
+										${
+											formData.taskOrder === value
+												? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-400/40"
+												: "bg-white/5 border-white/10 hover:border-white/20"
+										}`}
 									>
 										<div
 											className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 border-2 transition-all
-                      ${formData.taskOrder === value ? "border-blue-400 bg-blue-500" : "border-white/20"}`}
+                      						${formData.taskOrder === value ? "border-blue-400 bg-blue-500" : "border-white/20"}`}
 										>
 											{formData.taskOrder === value && (
 												<div className="w-1.5 h-1.5 rounded-full bg-white" />
 											)}
 										</div>
-										<div>
+
+										<div className="flex items-center gap-2 w-full">
 											<p className="text-sm font-semibold text-white">
 												{label}
 											</p>
