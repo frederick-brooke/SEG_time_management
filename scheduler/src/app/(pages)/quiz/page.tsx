@@ -288,12 +288,16 @@ export default function QuizPage() {
 									{formData.sessionLength} min
 								</span>
 							</div>
-							<div className="flex justify-between text-[10px] text-white/30 mt-1 lunar-page-subtitle">
-								<span>15m</span>
-								<span>1h</span>
-								<span>2h</span>
-								<span>3h</span>
+
+							<div className="w-[70%] mx-auto">
+								<div className="flex justify-between w-full text-[10px] text-white/30 mt-1 lunar-page-subtitle">
+									<span>45m</span>
+									<span>90m</span>
+									<span>135m</span>
+									<span>180m</span>
+								</div>
 							</div>
+							
 						</div>
 
 						<div className="bg-white/5 p-4 rounded-2xl border border-white/10">
@@ -319,12 +323,15 @@ export default function QuizPage() {
 									{formData.breakLength} min
 								</span>
 							</div>
-							<div className="flex justify-between text-[10px] text-white/30 mt-1 lunar-page-subtitle">
-								<span>5m</span>
-								<span>15m</span>
-								<span>30m</span>
-								<span>60m</span>
+							<div className="w-[70%] mx-auto">
+								<div className="flex justify-between text-[10px] text-white/30 mt-1 lunar-page-subtitle">
+									<span>15m</span>
+									<span>30m</span>
+									<span>45m</span>
+									<span>60m</span>
+								</div>
 							</div>
+							
 						</div>
 
 						<div>
