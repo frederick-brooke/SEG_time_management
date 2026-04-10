@@ -58,7 +58,10 @@ export default function ReportModal({
 
 				<ReasonSelect value={reason} onChange={setReason} />
 
-				<DescriptionInput value={description} onChange={setDescription} />
+				<DescriptionInput
+					value={description}
+					onChange={setDescription}
+				/>
 
 				<ActionButtons
 					onClose={onClose}
@@ -68,18 +71,18 @@ export default function ReportModal({
 				/>
 			</LunarCard>
 		</div>,
-		document.body
+		document.body,
 	);
 }
 
 /**
-*Submits a report to the API endpoint.
-*@param {Object} params - The report submission parameters.
-*@param {string} params.reportedUserId - The ID of the user being reported.
-*@param {string} params.reason - The reason for the report.
-*@param {string} params.description - Additional details about the report.
-*@returns {Promise<boolean>} True if submission was successful, false otherwise.
-*/
+ *Submits a report to the API endpoint.
+ *@param {Object} params - The report submission parameters.
+ *@param {string} params.reportedUserId - The ID of the user being reported.
+ *@param {string} params.reason - The reason for the report.
+ *@param {string} params.description - Additional details about the report.
+ *@returns {Promise<boolean>} True if submission was successful, false otherwise.
+ */
 async function submitReport({ reportedUserId, reason, description }) {
 	try {
 		const res = await fetch("/api/report", {
@@ -104,12 +107,12 @@ async function submitReport({ reportedUserId, reason, description }) {
 }
 
 /**
-*Renders the header section of the report modal with user info and close button.
-*@param {Object} props - Component props.
-*@param {string} props.username - The username of the user being reported.
-*@param {Function} props.onClose - Callback to close the modal.
-*@returns {JSX.Element} The header component.
-*/
+ *Renders the header section of the report modal with user info and close button.
+ *@param {Object} props - Component props.
+ *@param {string} props.username - The username of the user being reported.
+ *@param {Function} props.onClose - Callback to close the modal.
+ *@returns {JSX.Element} The header component.
+ */
 function Header({ username, onClose }) {
 	return (
 		<div className="flex items-start justify-between">
@@ -123,7 +126,8 @@ function Header({ username, onClose }) {
 					</h2>
 					{username && (
 						<p className="text-xs text-white/40 mt-0.5">
-							Reporting <span className="text-white/70">@{username}</span>
+							Reporting{" "}
+							<span className="text-white/70">@{username}</span>
 						</p>
 					)}
 				</div>
@@ -137,24 +141,25 @@ function Header({ username, onClose }) {
 }
 
 /**
-*Renders informational text about the reporting process.
-*@returns {JSX.Element} The info text component.
-*/
+ *Renders informational text about the reporting process.
+ *@returns {JSX.Element} The info text component.
+ */
 function InfoText() {
 	return (
 		<p className="text-xs text-white/40">
-			Reports are reviewed by moderators. Please provide accurate information.
+			Reports are reviewed by moderators. Please provide accurate
+			information.
 		</p>
 	);
 }
 
 /**
-*Renders a dropdown select for choosing the report reason.
-*@param {Object} props - Component props.
-*@param {string} props.value - Currently selected reason.
-*@param {Function} props.onChange - Callback when reason changes.
-*@returns {JSX.Element} The reason select component.
-*/
+ *Renders a dropdown select for choosing the report reason.
+ *@param {Object} props - Component props.
+ *@param {string} props.value - Currently selected reason.
+ *@param {Function} props.onChange - Callback when reason changes.
+ *@returns {JSX.Element} The reason select component.
+ */
 function ReasonSelect({ value, onChange }) {
 	return (
 		<div>
@@ -169,7 +174,9 @@ function ReasonSelect({ value, onChange }) {
 				<option value="">Select a reason</option>
 				<option value="SPAM">Spam</option>
 				<option value="HARASSMENT">Harassment</option>
-				<option value="INAPPROPRIATE_CONTENT">Inappropriate Content</option>
+				<option value="INAPPROPRIATE_CONTENT">
+					Inappropriate Content
+				</option>
 				<option value="OTHER">Other</option>
 			</select>
 		</div>
@@ -177,12 +184,12 @@ function ReasonSelect({ value, onChange }) {
 }
 
 /**
-*Renders a textarea for additional report details.
-*@param {Object} props - Component props.
-*@param {string} props.value - Current description text.
-*@param {Function} props.onChange - Callback when description changes.
-*@returns {JSX.Element} The description input component.
-*/
+ *Renders a textarea for additional report details.
+ *@param {Object} props - Component props.
+ *@param {string} props.value - Current description text.
+ *@param {Function} props.onChange - Callback when description changes.
+ *@returns {JSX.Element} The description input component.
+ */
 function DescriptionInput({ value, onChange }) {
 	return (
 		<div>
@@ -200,14 +207,14 @@ function DescriptionInput({ value, onChange }) {
 }
 
 /**
-*Renders action buttons for canceling or submitting the report.
-*@param {Object} props - Component props.
-*@param {Function} props.onClose - Callback to close the modal.
-*@param {Function} props.onSubmit - Callback to submit the report.
-*@param {boolean} props.disabled - Whether the submit button is disabled.
-*@param {boolean} props.loading - Whether the report is being submitted.
-*@returns {JSX.Element} The action buttons component.
-*/
+ *Renders action buttons for canceling or submitting the report.
+ *@param {Object} props - Component props.
+ *@param {Function} props.onClose - Callback to close the modal.
+ *@param {Function} props.onSubmit - Callback to submit the report.
+ *@param {boolean} props.disabled - Whether the submit button is disabled.
+ *@param {boolean} props.loading - Whether the report is being submitted.
+ *@returns {JSX.Element} The action buttons component.
+ */
 function ActionButtons({ onClose, onSubmit, disabled, loading }) {
 	return (
 		<div className="flex justify-end gap-2 pt-1">
@@ -221,7 +228,7 @@ function ActionButtons({ onClose, onSubmit, disabled, loading }) {
 			<Button
 				onClick={onSubmit}
 				disabled={disabled}
-				className="lunar-page-subtitle px-5 py-2 rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-bold shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_28px_rgba(239,68,68,0.45)] hover:scale-105 active:scale-95 disabled:opacity-40 disabled:scale-100 disabled:shadow-none transition-all"
+				className="px-6 py-3 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition w-full disabled:opacity-50 disabled:cursor-not-allowed"
 			>
 				{loading ? "Submitting…" : "Submit Report"}
 			</Button>

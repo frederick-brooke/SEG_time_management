@@ -33,7 +33,7 @@ interface Event {
 	startLocationName: string | null;
 	destLocationName: string | null;
 	travelDuration: number | null;
-	transportMode: string;
+	transportMode: string | null;
 }
 
 interface MapPageClientProps {

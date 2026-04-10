@@ -127,7 +127,7 @@ export default function AdminPage() {
 		reports: (
 			<ReportManagement
 				reports={reports}
-				totalReports={totalReports}
+				totalReports={totalReports ?? 0}
 				totalReportPages={totalReportPages}
 				setIsReportFilterOpen={setIsReportFilterOpen}
 				selectedReport={selectedReport}
@@ -141,7 +141,7 @@ export default function AdminPage() {
 		appeals: (
 			<AppealsManagement
 				appeals={appeals}
-				totalAppeals={totalAppeals}
+				totalAppeals={(totalAppeals ?? 0) as number}
 				totalAppealPages={totalAppealPages}
 				currentAppealPage={currentAppealPage}
 				setCurrentAppealPage={setCurrentAppealPage}

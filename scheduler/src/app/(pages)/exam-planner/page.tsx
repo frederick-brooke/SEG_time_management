@@ -15,6 +15,8 @@ import Link from "next/link";
 import LunarThemeWrapper from "@/components/layout/LunarThemeWrapper";
 import { Button } from "@/components/ui/Button";
 
+type Exam = any;
+
 /**
  * The dashboard for exam planning.
  * Displays a grid of active exams with revision progress
@@ -23,7 +25,7 @@ import { Button } from "@/components/ui/Button";
 export default function ExamPlannerPage() {
 	const { data: session, status } = useSession();
 	const router = useRouter();
-	const [exams, setExams] = useState([]);
+	const [exams, setExams] = useState<Exam[]>([]);
 
 	useEffect(() => {
 		if (status === "unauthenticated") {
@@ -42,7 +44,7 @@ export default function ExamPlannerPage() {
 	 * Handler for removing an exam and its associated data.
 	 * @param {string}} id The database ID of the exam.
 	 */
-	const handleDelete = async (id) => {
+	const handleDelete = async (id: string) => {
 		if (confirm("Are you sure you want to delete this exam entry?")) {
 			try {
 				await deleteExam(id);
@@ -67,18 +69,20 @@ export default function ExamPlannerPage() {
 						</p>
 					</div>
 					<ExamFormDialog
-						onExamAdded={(newExam) => setExams([...exams, newExam])}
+						onExamAdded={(newExam: Exam) =>
+							setExams([...exams, newExam])
+						}
 					/>
 				</div>
 
 				{/* Exam Grid */}
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 					{exams.length > 0 ? (
-						exams.map((exam) => {
+						exams.map((exam: Exam) => {
 							const totalTasks = exam.tasks?.length || 0;
 							const completedTasks =
 								exam.tasks?.filter(
-									(t) => t.status === "completed",
+									(t: any) => t.status === "completed",
 								).length || 0;
 							const progress =
 								totalTasks > 0
@@ -141,9 +145,9 @@ export default function ExamPlannerPage() {
 									<div className="flex justify-end mt-4">
 										<ExamFormDialog
 											editingExam={exam}
-											onExamUpdated={(updated) => {
+											onExamUpdated={(updated: Exam) => {
 												setExams(
-													exams.map((e) =>
+													exams.map((e: Exam) =>
 														e.id === updated.id
 															? updated
 															: e,

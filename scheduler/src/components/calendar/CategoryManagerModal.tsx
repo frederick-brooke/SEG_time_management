@@ -13,87 +13,88 @@ import { Button } from "../ui/Button";
  * Validates against black and duplicate colours before saving.
  */
 function CategoryRow({
-  cat,
-  canDelete,
-  existingCategories,
-  onUpdate,
-  onDelete,
+	cat,
+	canDelete,
+	existingCategories,
+	onUpdate,
+	onDelete,
 }: any) {
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(cat.name);
-  const [color, setColor] = useState(cat.color);
-  const [error, setError] = useState("");
+	const [editing, setEditing] = useState(false);
+	const [name, setName] = useState(cat.name);
+	const [color, setColor] = useState(cat.color);
+	const [error, setError] = useState("");
 
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-3">
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => {
-            setColor(e.target.value);
-            setError("");
-          }}
-          className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
-          disabled={!editing}
-        />
-        {editing ? (
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="flex-1 bg-white/5 border border-white/10 text-white p-1 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-            autoFocus
-          />
-        ) : (
-          <span className="flex-1 text-sm font-medium text-white/70">
-            {cat.name}
-          </span>
-        )}
-        {editing ? (
-          <Button
-            onClick={() => {
-              if (!name.trim()) return;
-              if (color === "#000000") {
-                setError("Black is not allowed.");
-                return;
-              }
-              const dup = existingCategories.some(
-                (c: any) =>
-                  c.id !== cat.id &&
-                  c.color.toLowerCase() === color.toLowerCase(),
-              );
-              if (dup) {
-                setError("This colour is already used.");
-                return;
-              }
-              onUpdate(cat.id, name, color);
-              setEditing(false);
-              setError("");
-            }}
-            className="text-xs bg-white text-gray-900 px-3 py-1 rounded-lg font-bold hover:bg-white/90 transition-all"
-          >
-            Save
-          </Button>
-        ) : (
-          <Button
-            onClick={() => setEditing(true)}
-            className="text-xs text-white/30 hover:text-white/70 transition-colors"
-          >
-            Edit
-          </Button>
-        )}
-        {canDelete && (
-          <Button
-            onClick={() => onDelete(cat.id)}
-            className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
-          >
-            Delete
-          </Button>
-        )}
-      </div>
-      {error && <p className="text-xs text-red-400 pl-11">{error}</p>}
-    </div>
-  );
+	return (
+		<div className="flex flex-col gap-1">
+			<div className="flex items-center gap-3">
+				<input
+					type="color"
+					value={color}
+					onChange={(e) => {
+						setColor(e.target.value);
+						setError("");
+					}}
+					className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
+					disabled={!editing}
+				/>
+				{editing ? (
+					<input
+						value={name}
+						onChange={(e) => setName(e.target.value)}
+						className="flex-1 bg-white/5 border border-white/10 text-white p-1 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+						autoFocus
+					/>
+				) : (
+					<span className="flex-1 text-sm font-medium text-white/70">
+						{cat.name}
+					</span>
+				)}
+				{editing ? (
+					<Button
+						onClick={() => {
+							if (!name.trim()) return;
+							if (color === "#000000") {
+								setError("Black is not allowed.");
+								return;
+							}
+							const dup = existingCategories.some(
+								(c: any) =>
+									c.id !== cat.id &&
+									c.color.toLowerCase() ===
+										color.toLowerCase(),
+							);
+							if (dup) {
+								setError("This colour is already used.");
+								return;
+							}
+							onUpdate(cat.id, name, color);
+							setEditing(false);
+							setError("");
+						}}
+						className="text-xs bg-blue-300 text-gray-950 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 transition-all shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)]"
+					>
+						Save
+					</Button>
+				) : (
+					<Button
+						onClick={() => setEditing(true)}
+						className="text-xs text-white/30 hover:text-white/70 transition-colors"
+					>
+						Edit
+					</Button>
+				)}
+				{canDelete && (
+					<Button
+						onClick={() => onDelete(cat.id)}
+						className="text-xs text-red-400/60 hover:text-red-400 transition-colors"
+					>
+						Delete
+					</Button>
+				)}
+			</div>
+			{error && <p className="text-xs text-red-400 pl-11">{error}</p>}
+		</div>
+	);
 }
 
 /**
@@ -101,63 +102,65 @@ function CategoryRow({
  * Validates against black and duplicate colours before calling onAdd.
  */
 function AddCategoryForm({ onAdd, existingCategories }: any) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState("#6366f1");
-  const [error, setError] = useState("");
+	const [name, setName] = useState("");
+	const [color, setColor] = useState("#6366f1");
+	const [error, setError] = useState("");
 
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => {
-            setColor(e.target.value);
-            setError("");
-          }}
-          className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
-        />
-        <input
-          type="text"
-          placeholder="Category name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-        />
-        <Button
-          onClick={() => {
-            if (!name.trim()) return;
-            if (color === "#000000") {
-              setError("Black is not allowed.");
-              return;
-            }
-            if (
-              existingCategories.some(
-                (c: any) => c.color.toLowerCase() === color.toLowerCase(),
-              )
-            ) {
-              setError("This colour is already used.");
-              return;
-            }
-            onAdd(name.trim(), color);
-            setName("");
-            setColor("#6366f1");
-            setError("");
-          }}
-          className="text-xs bg-indigo-600 text-white px-3 py-2 rounded-lg font-bold hover:bg-indigo-500 transition-all"
-        >
-          Add
-        </Button>
-      </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
-    </div>
-  );
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="flex items-center gap-3">
+				<input
+					type="color"
+					value={color}
+					onChange={(e) => {
+						setColor(e.target.value);
+						setError("");
+					}}
+					className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
+				/>
+				<input
+					type="text"
+					placeholder="Category name"
+					value={name}
+					onChange={(e) => setName(e.target.value)}
+					className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+				/>
+				<Button
+					onClick={() => {
+						if (!name.trim()) return;
+						if (color === "#000000") {
+							setError("Black is not allowed.");
+							return;
+						}
+						if (
+							existingCategories.some(
+								(c: any) =>
+									c.color.toLowerCase() ===
+									color.toLowerCase(),
+							)
+						) {
+							setError("This colour is already used.");
+							return;
+						}
+						onAdd(name.trim(), color);
+						setName("");
+						setColor("#6366f1");
+						setError("");
+					}}
+					className="text-xs bg-blue-300 text-gray-950 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 transition-all shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)]"
+				>
+					Add
+				</Button>
+			</div>
+			{error && <p className="text-xs text-red-400">{error}</p>}
+		</div>
+	);
 }
 
 interface CategoryManagerModalProps {
-  categories: any[];
-  onClose: () => void;
-  onCategoriesChange: () => void;
+	categories: any[];
+	onClose: () => void;
+	onCategoriesChange: () => void;
 }
 
 /**
@@ -166,67 +169,77 @@ interface CategoryManagerModalProps {
  * The last remaining category cannot be deleted.
  */
 export default function CategoryManagerModal({
-  categories,
-  onClose,
-  onCategoriesChange,
+	categories,
+	onClose,
+	onCategoriesChange,
 }: CategoryManagerModalProps) {
-  return (
-    <div
-      className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Button
-          onClick={onClose}
-          className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
-        >
-          ✕
-        </Button>
-        <h3 className="text-2xl font-black mb-6 text-white">Categories</h3>
+	return (
+		<div
+			className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 backdrop-blur-md z-[9999]"
+			onClick={onClose}
+		>
+			<div
+				className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
+				onClick={(e) => e.stopPropagation()}
+			>
+				<Button
+					onClick={onClose}
+					className="absolute top-6 right-6 text-white/30 hover:text-white/80 text-xl transition-colors"
+				>
+					✕
+				</Button>
+				<h3 className="text-2xl font-black mb-6 text-white">
+					Categories
+				</h3>
 
-        <div className="flex flex-col gap-3 mb-6">
-          {categories.map((cat) => (
-            <CategoryRow
-              key={cat.id}
-              cat={cat}
-              canDelete={categories.length > 1}
-              existingCategories={categories}
-              onUpdate={async (id: string, name: string, color: string) => {
-                await fetch("/api/categories", {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ id, name, color }),
-                });
-                onCategoriesChange();
-              }}
-              onDelete={async (id: string) => {
-                await fetch(`/api/categories?id=${id}`, { method: "DELETE" });
-                onCategoriesChange();
-              }}
-            />
-          ))}
-        </div>
+				<div className="flex flex-col gap-3 mb-6">
+					{categories.map((cat) => (
+						<CategoryRow
+							key={cat.id}
+							cat={cat}
+							canDelete={categories.length > 1}
+							existingCategories={categories}
+							onUpdate={async (
+								id: string,
+								name: string,
+								color: string,
+							) => {
+								await fetch("/api/categories", {
+									method: "PATCH",
+									headers: {
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify({ id, name, color }),
+								});
+								onCategoriesChange();
+							}}
+							onDelete={async (id: string) => {
+								await fetch(`/api/categories?id=${id}`, {
+									method: "DELETE",
+								});
+								onCategoriesChange();
+							}}
+						/>
+					))}
+				</div>
 
-        <div className="border-t border-white/[0.06] pt-4">
-          <p className="text-xs font-bold uppercase text-white/30 mb-3">
-            Add New Category
-          </p>
-          <AddCategoryForm
-            existingCategories={categories}
-            onAdd={async (name: string, color: string) => {
-              await fetch("/api/categories", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, color }),
-              });
-              onCategoriesChange();
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
+				<div className="border-t border-white/[0.06] pt-4">
+					<p className="text-xs font-bold uppercase text-white/30 mb-3">
+						Add New Category
+					</p>
+					<AddCategoryForm
+						existingCategories={categories}
+						onAdd={async (name: string, color: string) => {
+							await fetch("/api/categories", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify({ name, color }),
+							});
+							onCategoriesChange();
+						}}
+					/>
+				</div>
+			</div>
+		</div>
+	);
 }

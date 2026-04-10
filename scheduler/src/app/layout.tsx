@@ -13,6 +13,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { Geist, Geist_Mono as GeistMono } from "next/font/google";
 import { UIProvider } from "@/context/UIContext";
+import { ReactNode } from "react";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -32,7 +33,7 @@ export const metadata = {
 	},
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
 		<html
 			lang="en"

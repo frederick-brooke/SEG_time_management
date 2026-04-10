@@ -82,7 +82,7 @@ export function UpcomingExams({ exams = [] }: { exams?: any[] }) {
  * @param {Object} props.exam - The specific Exam object to display.
  * @returns {JSX.Element} The rendered exam card element.
  */
-function ExamCard({ exam }) {
+function ExamCard({ exam }: { exam: any }) {
 	const taskCount = exam.tasks?.length || 0;
 	const formattedDate = new Date(exam.examDate).toLocaleDateString("en-GB", {
 		timeZone: "UTC",

@@ -100,7 +100,7 @@ export default async function MapPage() {
 			<main className="lunar-page">
 				<PageHeader count={serialisedEvents.length} />
 				<MapPageClient
-					events={serialisedEvents}
+					events={serialisedEvents as any}
 					userLocation={locationData.userLocation}
 					userLocationHidden={locationData.userLocationHidden}
 				/>
