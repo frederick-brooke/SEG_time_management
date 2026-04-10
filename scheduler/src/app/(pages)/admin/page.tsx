@@ -105,12 +105,17 @@ export default function AdminPage() {
 		reportLoading,
 		fetchReports,
 	} = useAdminReports(appliedReportFilters);
-	const { appeals, totalAppealPages, totalAppeals, fetchAppeals } =
-		useAdminAppeals(appliedAppealFilters);
+	const {
+		appeals,
+		totalAppealPages,
+		totalAppeals,
+		appealLoading,
+		fetchAppeals,
+	} = useAdminAppeals(appliedAppealFilters);
 
 	const [currentTab, setCurrentTab] = useState("reports");
 
-	if (loading || reportLoading) {
+	if (loading || reportLoading || appealLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gray-950 text-white">
 				<p className="p-6 animate-pulse">Loading...</p>
@@ -153,7 +158,7 @@ export default function AdminPage() {
 
 	return (
 		<LunarThemeWrapper>
-			<div className="min-h-screen bg-gray-950 text-white relative overflow-hidden pb-12">
+			<div className="min-h-screen bg-gray-950 text-white relative overflow-y-auto pb-12">
 				<div className="absolute inset-0 z-0 pointer-events-none">
 					<GlowBackground />
 				</div>
