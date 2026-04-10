@@ -34,7 +34,7 @@ describe('EditProfileForm Component', () => {
   });
 
   afterEach(() => {
-    // Clears lingering setTimeouts to fix the "Open Handles" Jest warning
+    // Clears lingering setTimeouts
     act(() => { jest.runOnlyPendingTimers(); });
     jest.useRealTimers();
   });

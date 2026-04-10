@@ -46,7 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <Comp
-        ref={ref} // this is the key fix
+        ref={ref}
         data-slot="button"
         data-variant={variant}
         data-size={size}

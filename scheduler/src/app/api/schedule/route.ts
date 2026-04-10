@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
 	]);
 
 	if (!preferences) {
-		// Debug: check if preferences exist under any slight ID variation
+		// Check if preferences exist under any slight ID variation
 		const allPrefs =
 			typeof (prisma.userPreferences as any).findMany === "function"
 				? await (prisma.userPreferences as any).findMany({
