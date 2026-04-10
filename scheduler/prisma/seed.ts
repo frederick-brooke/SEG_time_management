@@ -19,7 +19,7 @@ const SEED_TASKS_PER_USER = 12
 const SEED_EVENTS_PER_USER = 20
 const SEED_EXAMS_PER_USER = 4
 const SEED_FRIENDS_PER_USER = 15
-const SEED_PASSWORD = 'Password123'
+const SEED_PASSWORD = 'Password123!'
 const MAX_EVENT_DURATION_HOURS = 3
 const MAX_DUE_DATE_DAYS = 20
 const MAX_EXAM_DATE_DAYS = 30
@@ -51,6 +51,8 @@ async function clearAll(): Promise<void> {
   await prisma.category.deleteMany()
   await prisma.savedLocation.deleteMany()
   await prisma.account.deleteMany()
+  await prisma.appeal.deleteMany()
+  await prisma.report.deleteMany()
   await prisma.user.deleteMany()
 }
 
@@ -66,9 +68,19 @@ function randomPastDate(maxDays: number): Date {
   return date
 }
 
+function randomTimeOfDay(date: Date): Date {
+  const result = new Date(date)
+  result.setHours(faker.number.int({ min: 7, max: 20 }))
+  result.setMinutes(faker.helpers.arrayElement([0, 15, 30, 45]))
+  result.setSeconds(0)
+  result.setMilliseconds(0)
+  return result
+}
+
 function randomEventEnd(start: Date): Date {
   const end = new Date(start)
-  end.setHours(start.getHours() + faker.number.int({ min: 1, max: MAX_EVENT_DURATION_HOURS }))
+  const durationMins = faker.helpers.arrayElement(EVENT_DURATION_OPTIONS) // [15, 30, 45, 60, 90, 120]
+  end.setMinutes(start.getMinutes() + durationMins)
   return end
 }
 
@@ -172,7 +184,7 @@ async function seedTasksForUser(userId: string, examIds: string[], eventIds: str
 
     const durationMins = faker.helpers.arrayElement(EVENT_DURATION_OPTIONS)
 
-    // ~20% linked to an exam, ~20% linked to an event, rest standalone
+    // 20% linked to an exam, 20% linked to an event, rest standalone
     const roll = faker.number.float({ min: 0, max: 1 })
     const examId = roll < 0.2 ? faker.helpers.arrayElement(examIds) : null
     const eventId = roll >= 0.2 && roll < 0.4 ? faker.helpers.arrayElement(eventIds) : null
@@ -200,10 +212,11 @@ async function seedTasksForUser(userId: string, examIds: string[], eventIds: str
 async function seedEventsForUser(userId: string): Promise<string[]> {
   const eventIds: string[] = []
   for (let i = 0; i < SEED_EVENTS_PER_USER; i++) {
-    const allDay = faker.datatype.boolean(0.2)
+    const allDay = false
     const isPast = faker.datatype.boolean(0.4)
-    const start = isPast ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
-    const end = allDay ? start : randomEventEnd(start)
+    const rawStart = isPast ? randomPastDate(60) : randomFutureDate(MAX_DUE_DATE_DAYS)
+    const start = allDay ? rawStart : randomTimeOfDay(rawStart)
+    const end = allDay ? rawStart : randomEventEnd(start)
     const hasTravelDetails = faker.datatype.boolean(0.3)
 
     const event = await prisma.event.create({
