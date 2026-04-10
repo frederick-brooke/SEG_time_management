@@ -11,6 +11,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import PusherClient from "pusher-js";
+import StarBackground from "@/components/StarBackground";
 
 import { GroupHeader } from "@/components/messaging/GroupHeader";
 import { MembersPanel } from "@/components/messaging/MembersPanel";
@@ -109,22 +110,18 @@ export default function ConversationPage() {
 
 	useEffect(() => {
 		if (!conversationId) return;
-		fetchMessages().then((data) => {
-			if (data) setMessages(data);
-		});
-		fetchDetails();
-	}, [conversationId, fetchMessages, fetchDetails]);
-
-	useEffect(() => {
-		if (!conversationId) return;
-		fetch(`/api/conversations/${conversationId}`, {
-			method: "PATCH",
-		}).catch(() => {});
-	}, [conversationId]);
-
-	useEffect(() => {
+		// Parallelize all initial fetches for faster load
+		Promise.all([
+			fetchMessages(),
+			fetchDetails(),
+			fetch(`/api/conversations/${conversationId}`, { method: "PATCH" }),
+		])
+			.then(([data]) => {
+				if (data) setMessages(data);
+			})
+			.catch(() => {});
 		initialLoadDone.current = false;
-	}, [conversationId]);
+	}, [conversationId, fetchMessages, fetchDetails]);
 
 	useEffect(() => {
 		if (messages.length > 0 && !initialLoadDone.current) {
@@ -388,105 +385,108 @@ export default function ConversationPage() {
 	});
 
 	return (
-		<div className="chat-bg relative flex flex-col h-full bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]">
-			{convDetails?.isGroup && (
-				<GroupHeader
-					name={convDetails.name}
-					participantCount={convDetails.participants.length}
-					onToggleMembers={() => setShowMembers((v) => !v)}
-					onLeave={handleLeave}
-				/>
-			)}
+		<>
+			<StarBackground />
+			<div className="chat-bg relative flex flex-col h-full bg-[linear-gradient(160deg,#080c14_0%,#0a0f1e_50%,#06080f_100%)]">
+				{convDetails?.isGroup && (
+					<GroupHeader
+						name={convDetails.name}
+						participantCount={convDetails.participants.length}
+						onToggleMembers={() => setShowMembers((v) => !v)}
+						onLeave={handleLeave}
+					/>
+				)}
 
-			{convDetails?.isGroup && showMembers && (
-				<MembersPanel
-					conversationId={conversationId as string}
-					participants={convDetails.participants}
-					currentUserId={session?.user?.id ?? ""}
-					isAdmin={!!isAdmin}
-					onAddMember={() => setShowAddMember(true)}
-					onRemove={handleRemove}
-					onPromote={handlePromote}
-				/>
-			)}
+				{convDetails?.isGroup && showMembers && (
+					<MembersPanel
+						conversationId={conversationId as string}
+						participants={convDetails.participants}
+						currentUserId={session?.user?.id ?? ""}
+						isAdmin={!!isAdmin}
+						onAddMember={() => setShowAddMember(true)}
+						onRemove={handleRemove}
+						onPromote={handlePromote}
+					/>
+				)}
 
-			<div
-				ref={scrollContainerRef}
-				className="flex-1 overflow-y-auto px-4 py-2"
-			>
-				<div ref={topRef} className="flex justify-center py-3">
-					{loadingMore && (
-						<div className="flex gap-1 items-center">
-							<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:0ms]" />
-							<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:150ms]" />
-							<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:300ms]" />
+				<div
+					ref={scrollContainerRef}
+					className="flex-1 overflow-y-auto px-4 py-2"
+				>
+					<div ref={topRef} className="flex justify-center py-3">
+						{loadingMore && (
+							<div className="flex gap-1 items-center">
+								<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:0ms]" />
+								<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:150ms]" />
+								<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.4)] [animation-delay:300ms]" />
+							</div>
+						)}
+						{!hasMore && messages.length > 0 && (
+							<span className="text-xs text-[rgba(148,163,255,0.35)]">
+								Beginning of conversation
+							</span>
+						)}
+					</div>
+
+					{grouped.map(
+						({
+							msg,
+							showDateDivider,
+							dateDividerLabel,
+							isFirst,
+							isLast,
+						}) => (
+							<MessageBubble
+								key={msg.id}
+								msg={msg}
+								isMe={msg.sender.id === session?.user?.id}
+								isFirst={isFirst}
+								isLast={isLast}
+								showDateDivider={showDateDivider}
+								dateDividerLabel={dateDividerLabel}
+								isHovered={hoveredId === msg.id}
+								onMouseEnter={() => setHoveredId(msg.id)}
+								onMouseLeave={() => setHoveredId(null)}
+								onAvatarClick={(username) =>
+									router.push(`/profile/${username}`)
+								}
+							/>
+						),
+					)}
+
+					{typingUser && (
+						<div className="flex items-end gap-2 mt-2">
+							<div className="w-7" />
+							<div className="rounded-2xl px-4 py-3 flex gap-1 items-center bg-white/[0.04] border border-white/[0.08] backdrop-blur-[12px]">
+								<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:0ms]" />
+								<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:150ms]" />
+								<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:300ms]" />
+							</div>
 						</div>
 					)}
-					{!hasMore && messages.length > 0 && (
-						<span className="text-xs text-[rgba(148,163,255,0.35)]">
-							Beginning of conversation
-						</span>
-					)}
+
+					<div ref={bottomRef} />
 				</div>
 
-				{grouped.map(
-					({
-						msg,
-						showDateDivider,
-						dateDividerLabel,
-						isFirst,
-						isLast,
-					}) => (
-						<MessageBubble
-							key={msg.id}
-							msg={msg}
-							isMe={msg.sender.id === session?.user?.id}
-							isFirst={isFirst}
-							isLast={isLast}
-							showDateDivider={showDateDivider}
-							dateDividerLabel={dateDividerLabel}
-							isHovered={hoveredId === msg.id}
-							onMouseEnter={() => setHoveredId(msg.id)}
-							onMouseLeave={() => setHoveredId(null)}
-							onAvatarClick={(username) =>
-								router.push(`/profile/${username}`)
-							}
-						/>
-					),
-				)}
-
-				{typingUser && (
-					<div className="flex items-end gap-2 mt-2">
-						<div className="w-7" />
-						<div className="rounded-2xl px-4 py-3 flex gap-1 items-center bg-white/[0.04] border border-white/[0.08] backdrop-blur-[12px]">
-							<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:0ms]" />
-							<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:150ms]" />
-							<span className="w-1.5 h-1.5 rounded-full animate-bounce bg-[rgba(148,163,255,0.6)] [animation-delay:300ms]" />
-						</div>
-					</div>
-				)}
-
-				<div ref={bottomRef} />
-			</div>
-
-			<MessageInput
-				value={input}
-				sending={sending}
-				onChange={handleInputChange}
-				onKeyDown={handleKeyDown}
-				onSend={sendMessage}
-			/>
-
-			{showAddMember && convDetails && (
-				<AddMemberModal
-					conversationId={conversationId as string}
-					existingMemberIds={convDetails.participants.map(
-						(p) => p.userId,
-					)}
-					onClose={() => setShowAddMember(false)}
-					onAdded={fetchDetails}
+				<MessageInput
+					value={input}
+					sending={sending}
+					onChange={handleInputChange}
+					onKeyDown={handleKeyDown}
+					onSend={sendMessage}
 				/>
-			)}
-		</div>
+
+				{showAddMember && convDetails && (
+					<AddMemberModal
+						conversationId={conversationId as string}
+						existingMemberIds={convDetails.participants.map(
+							(p) => p.userId,
+						)}
+						onClose={() => setShowAddMember(false)}
+						onAdded={fetchDetails}
+					/>
+				)}
+			</div>
+		</>
 	);
 }
