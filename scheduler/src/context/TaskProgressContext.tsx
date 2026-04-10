@@ -8,38 +8,41 @@
  */
 
 import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
+	createContext,
+	useContext,
+	useState,
+	useCallback,
+	useEffect,
+	useRef,
 } from "react";
 
 interface Task {
-  id: string;
-  status?: string;
-  isCompleted?: boolean;
+	id: string;
+	status?: string;
+	isCompleted?: boolean;
 }
 
 interface ProgressCache {
-  progressPercentage: number;
-  tasks: Task[];
-  lastUpdatedAt: number | null;
+	progressPercentage: number;
+	tasks: Task[];
+	lastUpdatedAt: number | null;
 }
 
 interface TaskProgressContextType {
-  progressPercentage: number;
-  tasks: Task[];
-  isLoading: boolean;
-  lastUpdatedAt: number | null;
-  refreshProgress: (userId: string | undefined) => Promise<void>;
-  triggerProgressUpdate: () => void;
+	progressPercentage: number;
+	tasks: Task[];
+	isLoading: boolean;
+	lastUpdatedAt: number | null;
+	refreshProgress: (userId: string | undefined) => Promise<void>;
+	triggerProgressUpdate: () => void;
 }
 
 const PROGRESS_SYNC_EVENT = "task-progress-updated";
 const PROGRESS_STORAGE_KEY = "task-progress-cache";
 
-const TaskProgressContext = createContext<TaskProgressContextType | undefined>(undefined);
+const TaskProgressContext = createContext<TaskProgressContextType | undefined>(
+	undefined,
+);
 
 /**
  * Reads and parses the progress cache from localStorage.
@@ -48,14 +51,14 @@ const TaskProgressContext = createContext<TaskProgressContextType | undefined>(u
  * @returns {ProgressCache | null} The cached progress data, or null on failure
  */
 function readProgressCache(): ProgressCache | null {
-  const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as ProgressCache;
-  } catch {
-    console.error("Failed to parse progress cache from localStorage");
-    return null;
-  }
+	const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+	if (!raw) return null;
+	try {
+		return JSON.parse(raw) as ProgressCache;
+	} catch {
+		console.error("Failed to parse progress cache from localStorage");
+		return null;
+	}
 }
 
 /**
@@ -65,7 +68,7 @@ function readProgressCache(): ProgressCache | null {
  * @returns {void}
  */
 function writeProgressCache(cache: ProgressCache): void {
-  localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(cache));
+	localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(cache));
 }
 
 /**
@@ -75,11 +78,11 @@ function writeProgressCache(cache: ProgressCache): void {
  * @returns {number} A value between 0 and 100 inclusive
  */
 function calculateProgress(tasks: Task[]): number {
-  if (tasks.length === 0) return 0;
-  const completed = tasks.filter(
-    (t) => t.status === "completed" || t.isCompleted === true
-  ).length;
-  return Math.floor((completed / tasks.length) * 100);
+	if (tasks.length === 0) return 0;
+	const completed = tasks.filter(
+		(t) => t.status === "completed" || t.isCompleted === true,
+	).length;
+	return Math.floor((completed / tasks.length) * 100);
 }
 
 /**
@@ -90,26 +93,29 @@ function calculateProgress(tasks: Task[]): number {
  * @returns {Promise<Task[] | null>} The array of tasks, or null on failure
  */
 async function fetchTasks(userId: string): Promise<Task[] | null> {
-  const res = await fetch(`/api/tasks?userId=${userId}`);
+	const res = await fetch(`/api/tasks?userId=${userId}`);
 
-  if (!res.ok) {
-    console.warn(`API /api/tasks responded with status ${res.status}`);
-    return null;
-  }
+	if (!res.ok) {
+		console.warn(`API /api/tasks responded with status ${res.status}`);
+		return null;
+	}
 
-  const text = await res.text();
-  if (!text) {
-    console.warn("Empty response body from /api/tasks");
-    return null;
-  }
+	const text = await res.text();
+	if (!text) {
+		console.warn("Empty response body from /api/tasks");
+		return null;
+	}
 
-  try {
-    const data = JSON.parse(text);
-    return Array.isArray(data) ? data : (data.tasks ?? []);
-  } catch (e) {
-    console.error("Failed to parse JSON response from /api/tasks", e as SyntaxError);
-    return null;
-  }
+	try {
+		const data = JSON.parse(text);
+		return Array.isArray(data) ? data : (data.tasks ?? []);
+	} catch (e) {
+		console.error(
+			"Failed to parse JSON response from /api/tasks",
+			e as SyntaxError,
+		);
+		return null;
+	}
 }
 
 /**
@@ -118,7 +124,7 @@ async function fetchTasks(userId: string): Promise<Task[] | null> {
  * @returns {void}
  */
 function broadcastProgressUpdate(): void {
-  window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
+	window.dispatchEvent(new Event(PROGRESS_SYNC_EVENT));
 }
 
 /**
@@ -128,59 +134,109 @@ function broadcastProgressUpdate(): void {
  * @param {{ children: React.ReactNode }} props - Child components to wrap
  * @returns {JSX.Element} The context provider wrapping its children
  */
-export function TaskProgressProvider({ children }: { children: React.ReactNode }) {
-  const [progressPercentage, setProgressPercentage] = useState(0);
-  const [tasks, setTasks]                           = useState<Task[]>([]);
-  const [isLoading, setIsLoading]                   = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt]           = useState<number | null>(null);
+export function TaskProgressProvider({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
+	const [progressPercentage, setProgressPercentage] = useState(0);
+	const [tasks, setTasks] = useState<Task[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
 
-  const applyCache = useCallback((cache: ProgressCache): void => {
-    setProgressPercentage(cache.progressPercentage);
-    setTasks(cache.tasks);
-    setLastUpdatedAt(cache.lastUpdatedAt);
-  }, []);
+	// Debounce pending writes to localStorage
+	const cacheWriteTimeout = useRef<NodeJS.Timeout | null>(null);
+	const pendingCache = useRef<ProgressCache | null>(null);
 
-  useEffect(() => {
-    const cache = readProgressCache();
-    if (cache) applyCache(cache);
-  }, [applyCache]);
+	const applyCache = useCallback((cache: ProgressCache): void => {
+		setProgressPercentage(cache.progressPercentage);
+		setTasks(cache.tasks);
+		setLastUpdatedAt(cache.lastUpdatedAt);
+	}, []);
 
-  useEffect(() => {
-    const handleProgressUpdate = () => {
-      const cache = readProgressCache();
-      if (cache) applyCache(cache);
-    };
+	// Flush pending cache writes to localStorage (debounced)
+	const flushCacheWrite = useCallback((): void => {
+		if (pendingCache.current) {
+			writeProgressCache(pendingCache.current);
+			broadcastProgressUpdate();
+			pendingCache.current = null;
+		}
+		cacheWriteTimeout.current = null;
+	}, []);
 
-    window.addEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
-    return () => window.removeEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
-  }, [applyCache]);
+	// Queue a cache write with debouncing (1000ms)
+	const queueCacheWrite = useCallback(
+		(cache: ProgressCache): void => {
+			pendingCache.current = cache;
+			if (cacheWriteTimeout.current) {
+				clearTimeout(cacheWriteTimeout.current);
+			}
+			cacheWriteTimeout.current = setTimeout(flushCacheWrite, 1000);
+		},
+		[flushCacheWrite],
+	);
 
-  const refreshProgress = useCallback(async (userId: string | undefined): Promise<void> => {
-    if (!userId) return;
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			if (cacheWriteTimeout.current) {
+				clearTimeout(cacheWriteTimeout.current);
+				flushCacheWrite();
+			}
+		};
+	}, [flushCacheWrite]);
 
-    setIsLoading(true);
-    try {
-      const fetched = await fetchTasks(userId);
-      if (!fetched) return;
+	useEffect(() => {
+		const cache = readProgressCache();
+		if (cache) applyCache(cache);
+	}, [applyCache]);
 
-      const progress    = calculateProgress(fetched);
-      const updatedAt   = Date.now();
+	useEffect(() => {
+		const handleProgressUpdate = () => {
+			const cache = readProgressCache();
+			if (cache) applyCache(cache);
+		};
 
-      setTasks(fetched);
-      setProgressPercentage(progress);
-      setLastUpdatedAt(updatedAt);
-      writeProgressCache({ progressPercentage: progress, tasks: fetched, lastUpdatedAt: updatedAt });
-      broadcastProgressUpdate();
-    } catch (error) {
-      console.error("Failed to refresh progress:", error as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+		window.addEventListener(PROGRESS_SYNC_EVENT, handleProgressUpdate);
+		return () =>
+			window.removeEventListener(
+				PROGRESS_SYNC_EVENT,
+				handleProgressUpdate,
+			);
+	}, [applyCache]);
 
-  const triggerProgressUpdate = useCallback((): void => {
-    broadcastProgressUpdate();
-  }, []);
+	const refreshProgress = useCallback(
+		async (userId: string | undefined): Promise<void> => {
+			if (!userId) return;
+
+			setIsLoading(true);
+			try {
+				const fetched = await fetchTasks(userId);
+				if (!fetched) return;
+
+				const progress = calculateProgress(fetched);
+				const updatedAt = Date.now();
+
+				setTasks(fetched);
+				setProgressPercentage(progress);
+				setLastUpdatedAt(updatedAt);
+				queueCacheWrite({
+					progressPercentage: progress,
+					tasks: fetched,
+					lastUpdatedAt: updatedAt,
+				});
+			} catch (error) {
+				console.error("Failed to refresh progress:", error as Error);
+			} finally {
+				setIsLoading(false);
+			}
+		},
+		[queueCacheWrite],
+	);
+
+	const triggerProgressUpdate = useCallback((): void => {
+		broadcastProgressUpdate();
+	}, []);
 
 	const value: TaskProgressContextType = {
 		progressPercentage,
@@ -206,9 +262,11 @@ export function TaskProgressProvider({ children }: { children: React.ReactNode }
  * @throws {Error} If called outside of a TaskProgressProvider
  */
 export function useTaskProgress(): TaskProgressContextType {
-  const context = useContext(TaskProgressContext);
-  if (context === undefined) {
-    throw new Error("useTaskProgress must be used within TaskProgressProvider");
-  }
-  return context;
+	const context = useContext(TaskProgressContext);
+	if (context === undefined) {
+		throw new Error(
+			"useTaskProgress must be used within TaskProgressProvider",
+		);
+	}
+	return context;
 }

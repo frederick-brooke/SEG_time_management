@@ -4,17 +4,18 @@
  * Handles missing image data by gracefully degrading to user initials.
  */
 import { User } from "lucide-react";
+import { memo } from "react";
 import { resolveAvatarSrc } from "@/lib/avatar";
 
 /**
  * Props for the UserAvatar component.
  */
 interface UserAvatarProps {
-  pfp?: string | null;
-  username: string;
-  fname?: string | null;
-  lname?: string | null;
-  className?: string;
+	pfp?: string | null;
+	username: string;
+	fname?: string | null;
+	lname?: string | null;
+	className?: string;
 }
 
 /**
@@ -25,11 +26,15 @@ interface UserAvatarProps {
  * @param {string | null} [lname] - The user's last name.
  * @returns {string} The computed initials or a fallback character.
  */
-function getInitials(username: string, fname?: string | null, lname?: string | null): string {
-  if (fname && lname) return `${fname[0]}${lname[0]}`.toUpperCase();
-  if (fname) return fname.slice(0, 2).toUpperCase();
-  if (username) return username.slice(0, 2).toUpperCase();
-  return "?";
+function getInitials(
+	username: string,
+	fname?: string | null,
+	lname?: string | null,
+): string {
+	if (fname && lname) return `${fname[0]}${lname[0]}`.toUpperCase();
+	if (fname) return fname.slice(0, 2).toUpperCase();
+	if (username) return username.slice(0, 2).toUpperCase();
+	return "?";
 }
 
 /**
@@ -38,19 +43,34 @@ function getInitials(username: string, fname?: string | null, lname?: string | n
  * @param {UserAvatarProps} props - Component props.
  * @returns {JSX.Element} The avatar UI element.
  */
-export default function UserAvatar({ pfp, username, fname, lname, className = "" }: UserAvatarProps) {
-  const avatarSrc = resolveAvatarSrc(pfp);
-  const initials = getInitials(username, fname, lname);
+function UserAvatarComponent({
+	pfp,
+	username,
+	fname,
+	lname,
+	className = "",
+}: UserAvatarProps) {
+	const avatarSrc = resolveAvatarSrc(pfp);
+	const initials = getInitials(username, fname, lname);
 
-  return (
-    <div className={`relative flex items-center justify-center bg-blue-900 text-white rounded-full overflow-hidden ${className}`}>
-      {avatarSrc ? (
-        <img src={avatarSrc} alt={username} className="w-full h-full object-cover" />
-      ) : initials !== "?" ? (
-        <span className="font-bold tracking-widest">{initials}</span>
-      ) : (
-        <User size={24} className="text-white/50" />
-      )}
-    </div>
-  );
+	return (
+		<div
+			className={`relative flex items-center justify-center bg-blue-900 text-white rounded-full overflow-hidden ${className}`}
+		>
+			{avatarSrc ? (
+				<img
+					src={avatarSrc}
+					alt={username}
+					className="w-full h-full object-cover"
+					loading="lazy"
+				/>
+			) : initials !== "?" ? (
+				<span className="font-bold tracking-widest">{initials}</span>
+			) : (
+				<User size={24} className="text-white/50" />
+			)}
+		</div>
+	);
 }
+
+export default memo(UserAvatarComponent);
