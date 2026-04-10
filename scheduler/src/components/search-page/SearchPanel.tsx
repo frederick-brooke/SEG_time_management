@@ -8,7 +8,6 @@ import UserFilter from "@/components/admin/UserFilterPanel";
 import { useUsers } from "@/hooks/useUsers";
 
 //UI components
-import GlassCard from "@/components/ui/GlassCard";
 import LunarDrawer from "../layout/LunarDrawer";
 
 /**
@@ -29,49 +28,100 @@ import LunarDrawer from "../layout/LunarDrawer";
  * @returns {JSX.Element} Search panel UI
  */
 export default function SearchPanel({ open, onClose }) {
-	const defaultUserFilters = { search: "", sortBy: "username", order: "desc", startDate: "", endDate: "", categories: [], page: 1, limit: 6,};
+	const defaultUserFilters = {
+		search: "",
+		sortBy: "username",
+		order: "desc",
+		startDate: "",
+		endDate: "",
+		categories: [],
+		page: 1,
+		limit: 6,
+	};
 
-	const [appliedUserFilters, setAppliedUserFilters] = useState(defaultUserFilters);
-	const [draftUserFilters, setDraftUserFilters] = useState(defaultUserFilters);
+	const [appliedUserFilters, setAppliedUserFilters] =
+		useState(defaultUserFilters);
+	const [draftUserFilters, setDraftUserFilters] =
+		useState(defaultUserFilters);
 	const [isUserFilterOpen, setIsUserFilterOpen] = useState(false);
 
 	useDebouncedSearch(draftUserFilters.search, setAppliedUserFilters);
 
 	const { users, totalUserPages, totalUsers } = useUsers(
 		appliedUserFilters,
-		"/api/users/search"
+		"/api/users/search",
 	);
 
 	return (
 		<>
-			<LunarDrawer open={open} onClose={onClose} side="left" title="Search Panel" width="w-full sm:w-[420px]">
+			<LunarDrawer
+				open={open}
+				onClose={onClose}
+				side="left"
+				title="Search"
+				width="w-full sm:w-[420px]"
+			>
 				<div className="p-4 flex-shrink-0">
-					<GlassCard className="p-3">
-						<SearchControls
-							filters={appliedUserFilters}
-							setFilters={setAppliedUserFilters}
-							placeholder="Search users..."
-							onOpenFilter={() => setIsUserFilterOpen(true)}
-							resetFilters={() => resetUserFilters(setDraftUserFilters, setAppliedUserFilters, defaultUserFilters)}
-						/>
-					</GlassCard>
+					<SearchControls
+						filters={appliedUserFilters}
+						setFilters={setAppliedUserFilters}
+						placeholder="Search users..."
+						onOpenFilter={() => setIsUserFilterOpen(true)}
+						resetFilters={() =>
+							resetUserFilters(
+								setDraftUserFilters,
+								setAppliedUserFilters,
+								defaultUserFilters,
+							)
+						}
+					/>
 				</div>
 
 				<div className="flex flex-1 flex-col p-4 min-h-0">
-					<SearchUsers users={users} totalUsers={totalUsers} totalUserPages={totalUserPages} setIsUserFilterOpen={setIsUserFilterOpen} filters={appliedUserFilters} setFilters={setAppliedUserFilters} selectedUser={null} setSelectedUser={() => {}} resetFilters={() => resetUserFilters(setDraftUserFilters, setAppliedUserFilters, defaultUserFilters)}/>
+					<SearchUsers
+						users={users}
+						totalUsers={totalUsers}
+						totalUserPages={totalUserPages}
+						setIsUserFilterOpen={setIsUserFilterOpen}
+						filters={appliedUserFilters}
+						setFilters={setAppliedUserFilters}
+						selectedUser={null}
+						setSelectedUser={() => {}}
+						resetFilters={() =>
+							resetUserFilters(
+								setDraftUserFilters,
+								setAppliedUserFilters,
+								defaultUserFilters,
+							)
+						}
+					/>
 				</div>
 			</LunarDrawer>
 
-			<LunarDrawer open={isUserFilterOpen} onClose={() => setIsUserFilterOpen(false)} side="right" title="User Filters" width="400px">
+			<LunarDrawer
+				open={isUserFilterOpen}
+				onClose={() => setIsUserFilterOpen(false)}
+				side="right"
+				title="User Filters"
+				width="400px"
+			>
 				<UserFilter
 					filters={draftUserFilters}
 					setFilters={setDraftUserFilters}
 					onClose={() => setIsUserFilterOpen(false)}
 					applyFilters={() =>
-						applyFilters(draftUserFilters, setAppliedUserFilters, setIsUserFilterOpen)
+						applyFilters(
+							draftUserFilters,
+							setAppliedUserFilters,
+							setIsUserFilterOpen,
+						)
 					}
 					resetFilters={() =>
-						resetUserFilters(setDraftUserFilters, setAppliedUserFilters, defaultUserFilters)
+						resetUserFilters(
+							setDraftUserFilters,
+							setAppliedUserFilters,
+							defaultUserFilters,
+						)
 					}
 					type="admin"
 				/>
@@ -81,10 +131,10 @@ export default function SearchPanel({ open, onClose }) {
 }
 
 /**
-*Custom hook that debounces search input to prevent excessive filter updates.
-*@param {string} search - The search input value.
-*@param {Function} setFilters - State setter function for filters.
-*/
+ *Custom hook that debounces search input to prevent excessive filter updates.
+ *@param {string} search - The search input value.
+ *@param {Function} setFilters - State setter function for filters.
+ */
 function useDebouncedSearch(search, setFilters) {
 	useEffect(() => {
 		const delay = setTimeout(() => {
@@ -100,11 +150,11 @@ function useDebouncedSearch(search, setFilters) {
 }
 
 /**
-*Applies draft filters to the applied state and closes the filter modal.
-*@param {Object} draftFilters - The draft filter values to apply.
-*@param {Function} setAppliedFilters - State setter for applied filters.
-*@param {Function} setOpen - State setter to close the filter modal.
-*/
+ *Applies draft filters to the applied state and closes the filter modal.
+ *@param {Object} draftFilters - The draft filter values to apply.
+ *@param {Function} setAppliedFilters - State setter for applied filters.
+ *@param {Function} setOpen - State setter to close the filter modal.
+ */
 function applyFilters(draftFilters, setAppliedFilters, setOpen) {
 	setAppliedFilters((prev) => ({
 		...draftFilters,
@@ -114,11 +164,11 @@ function applyFilters(draftFilters, setAppliedFilters, setOpen) {
 }
 
 /**
-*Resets both draft and applied filters to their default values.
-*@param {Function} setDraft - State setter for draft filters.
-*@param {Function} setApplied - State setter for applied filters.
-*@param {Object} defaults - The default filter values.
-*/
+ *Resets both draft and applied filters to their default values.
+ *@param {Function} setDraft - State setter for draft filters.
+ *@param {Function} setApplied - State setter for applied filters.
+ *@param {Object} defaults - The default filter values.
+ */
 function resetUserFilters(setDraft, setApplied, defaults) {
 	setDraft(defaults);
 	setApplied(defaults);

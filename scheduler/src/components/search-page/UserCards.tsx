@@ -62,7 +62,7 @@ export default function UserCard({
 					)}
 				</div>
 
-				<button className="ml-auto flex-shrink-0 text-xs px-3 py-0.5 rounded-full bg-blue-400 text-white hover:bg-blue-500 transition">
+				<button className="ml-auto flex-shrink-0 text-xs px-3 py-0.5 rounded-full bg-blue-300 text-gray-950 font-medium hover:shadow-[0_0_15px_rgba(90,150,255,0.35)] transition">
 					View
 				</button>
 				{onRemove && (
