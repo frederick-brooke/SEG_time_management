@@ -240,9 +240,9 @@ export function TaskCard({
 								{task.title}
 							</span>
 						</div>
-						<div className="flex items-center gap-1.5 flex-wrap mt-0.5 text-[10px]">
+						<div className="flex items-center gap-2 flex-wrap mt-1.5 text-[10px]">
 							<span
-								className={`text-[12px] px-2 gap-2 py-0.5 rounded font-black uppercase tracking-tighter ${getPriorityStyle(task.priority)}`}
+								className={`text-xs font-bold px-2 py-0.5 border ${getPriorityStyle(task.priority)}`}
 							>
 								{task.priority}
 							</span>

@@ -3,14 +3,14 @@
  */
 
 export const getPriorityStyle = (priority: string): string => {
-    switch (priority) {
-      case "High":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200";
-      case "Medium":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200";
-      case "Low":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-  };
+	switch (priority) {
+		case "High":
+			return "bg-red-500/15 text-red-400 border-red-500/25 rounded-full";
+		case "Medium":
+			return "bg-orange-400/15 text-orange-400 border-orange-400/25 rounded-full";
+		case "Low":
+			return "bg-green-400/10 text-green-400 border-green-400/20 rounded-full";
+		default:
+			return "bg-slate-500/10 text-slate-400 border-slate-500/20 rounded-full";
+	}
+};

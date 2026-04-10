@@ -64,7 +64,7 @@ export default function QuickScheduleModal({
 			onClick={onClose}
 		>
 			<div
-				className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-sm relative shadow-[0_0_0_1px_rgba(255,255,255,0.05),_0_32px_64px_rgba(0,0,0,0.6)]"
+				className="bg-white/[0.03] border border-white/[0.08] p-8 rounded-2xl w-full max-w-sm relative backdrop-blur-md"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<Button
@@ -87,7 +87,7 @@ export default function QuickScheduleModal({
 						type="date"
 						id="quick-schedule-date"
 						defaultValue={format(new Date(), "yyyy-MM-dd")}
-						className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+						className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-blue-300 transition-colors"
 					/>
 				</div>
 				<div className="mb-6">
@@ -98,12 +98,12 @@ export default function QuickScheduleModal({
 						type="time"
 						id="quick-schedule-time"
 						defaultValue={format(new Date(), "HH:mm")}
-						className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+						className="w-full bg-white/5 border border-white/10 text-white p-2 rounded-xl mt-1 text-sm focus:outline-none focus:border-blue-300 transition-colors"
 					/>
 				</div>
 				<Button
 					onClick={handleSchedule}
-					className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all"
+					className="w-full bg-blue-300 text-gray-950 py-4 rounded-2xl font-bold font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_40px_rgba(90,150,255,0.35)] transition-all"
 				>
 					Schedule Task
 				</Button>

@@ -39,9 +39,9 @@ export default function ExamFormDialog(props) {
 			</Button>
 
 			{isOpen && (
-				<div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-					<div className="lunar-glass p-8 w-full max-w-lg">
-						<h2 className="text-2xl font-black uppercase tracking-tight text-white mb-6">
+				<div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+					<div className="lunar-glass p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+						<h2 className="text-2xl font-bold uppercase tracking-tight text-white mb-6">
 							{props.editingExam ? "Edit Exam" : "Setup New Exam"}
 						</h2>
 

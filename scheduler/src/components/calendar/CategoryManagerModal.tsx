@@ -42,7 +42,7 @@ function CategoryRow({
 					<input
 						value={name}
 						onChange={(e) => setName(e.target.value)}
-						className="flex-1 bg-white/5 border border-white/10 text-white p-1 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+						className="flex-1 bg-white/5 border border-white/10 text-white p-1 rounded-lg text-sm focus:outline-none focus:border-blue-300 transition-colors"
 						autoFocus
 					/>
 				) : (
@@ -124,7 +124,7 @@ function AddCategoryForm({ onAdd, existingCategories }: any) {
 					placeholder="Category name"
 					value={name}
 					onChange={(e) => setName(e.target.value)}
-					className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+					className="flex-1 bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-blue-300 transition-colors"
 				/>
 				<Button
 					onClick={() => {
@@ -187,7 +187,7 @@ export default function CategoryManagerModal({
 			onClick={onClose}
 		>
 			<div
-				className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
+				className="bg-white/[0.03] border border-white/[0.08] p-8 rounded-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto backdrop-blur-md"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<Button

@@ -95,14 +95,13 @@ function hexToRgb(hex: string): string {
 
 /**
  * Looks up the color for an event by matching its category name against
- * the user's dynamic categories list. Falls back to indigo if not found.
+ * the user's dynamic categories list. Falls back to blue if not found.
  */
 function getCategoryColor(
 	categoryName: string | undefined,
 	categories: { name: string; color: string }[],
-	fallback = "#6366f1",
-): string {
-	if (!categoryName) return fallback;
+	fallback = "#93c5fd",
+) {
 	return categories.find((c) => c.name === categoryName)?.color ?? fallback;
 }
 
@@ -120,7 +119,7 @@ function makeEventPropGetter(
 			const color = getCategoryColor(
 				event._eventCategory,
 				categories,
-				"#818cf8",
+				"#93c5fd",
 			);
 			const rgb = hexToRgb(color);
 			return {
@@ -140,11 +139,11 @@ function makeEventPropGetter(
 		}
 
 		if (event._type === "task") {
-			// Task color: use linked event's category if available, else gray
+			// Task color: use linked event's category if available, else blue
 			const linked = events.find((e) => e.id === event.eventId);
 			const color = linked
-				? getCategoryColor(linked.category, categories, "#6b7280")
-				: "#6b7280";
+				? getCategoryColor(linked.category, categories, "#93c5fd")
+				: "#93c5fd";
 			return {
 				className: styles.taskEventWrapper,
 				style: { backgroundColor: color },
@@ -152,7 +151,7 @@ function makeEventPropGetter(
 		}
 
 		// Regular calendar event — match by category name
-		const color = getCategoryColor(event.category, categories, "#6366f1");
+		const color = getCategoryColor(event.category, categories, "#93c5fd");
 		return {
 			className: styles.calendarEventWrapper,
 			style: { backgroundColor: color },
@@ -218,88 +217,145 @@ export default function CalendarBody({
 		(e) => e._type !== "_travel",
 	);
 
-  return (
-    <div className={styles.wrapper}>
-      <div className={styles.outerPanel}>
-        {/* Search / undo bar */}
-        <div className={searchStyles.searchBar}>
-          {showUndo ? (
-            <div className={searchStyles.undoBar}>
-              <div className={searchStyles.undoLabel}>
-                <span className={searchStyles.undoIcon}>!</span>
-                <p className={searchStyles.undoText}>Event deleted</p>
-              </div>
-              <div className={searchStyles.undoActions}>
-                <Button onClick={onUndo} className={searchStyles.undoButton}>
-                  <span className={searchStyles.undoArrow}>↺</span> Undo
-                </Button>
-                <Button onClick={onUndoDismiss} className={searchStyles.undoDismiss}>
-                  ✕
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className={searchStyles.searchContainer} ref={searchRef}>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                onFocus={onSearchFocus}
-                placeholder="Search events..."
-                className={searchStyles.searchInput}
-              />
-              <div className={searchStyles.searchIcon}>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
-                  <line x1="9.5" y1="9.5" x2="13" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </div>
-              {searchQuery && (
-                <Button onClick={onSearchClear} className={searchStyles.searchClear}>
-                  ✕
-                </Button>
-              )}
-              {showSearchResults && (
-                <div className={searchStyles.searchDropdown}>
-                  {realSearchResults.length > 0 ? (
-                    realSearchResults.map((ev) => (
-                      <Button
-                        key={ev.occurrenceId || ev.id}
-                        onClick={() => onSearchResultClick(ev)}
-                        className={searchStyles.searchResultItem}
-                      >
-                        <div
-                          className={searchStyles.searchResultDot}
-                          style={{
-                            backgroundColor:
-                              getCategoryColor(ev.category, categories, "#6366f1"),
-                          }}
-                        />
-                        <div>
-                          <div className={searchStyles.searchResultTitle}>
-                            {ev.title}
-                          </div>
-                          <div className={searchStyles.searchResultMeta}>
-                            {format(ev.start, "PPP")}
-                            {ev.isRecurring && " · Recurring"}
-                          </div>
-                        </div>
-                      </Button>
-                    ))
-                  ) : (
-                    <div className={searchStyles.searchEmpty}>No matching events</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+	return (
+		<div className={styles.wrapper}>
+			<div className={styles.outerPanel}>
+				{/* Search / undo bar */}
+				<div className={searchStyles.searchBar}>
+					{showUndo ? (
+						<div className={searchStyles.undoBar}>
+							<div className={searchStyles.undoLabel}>
+								<span className={searchStyles.undoIcon}>!</span>
+								<p className={searchStyles.undoText}>
+									Event deleted
+								</p>
+							</div>
+							<div className={searchStyles.undoActions}>
+								<Button
+									onClick={onUndo}
+									className={searchStyles.undoButton}
+								>
+									<span className={searchStyles.undoArrow}>
+										↺
+									</span>{" "}
+									Undo
+								</Button>
+								<Button
+									onClick={onUndoDismiss}
+									className={searchStyles.undoDismiss}
+								>
+									✕
+								</Button>
+							</div>
+						</div>
+					) : (
+						<div
+							className={searchStyles.searchContainer}
+							ref={searchRef}
+						>
+							<input
+								type="text"
+								value={searchQuery}
+								onChange={(e) => onSearchChange(e.target.value)}
+								onFocus={onSearchFocus}
+								placeholder="Search events..."
+								className={searchStyles.searchInput}
+							/>
+							<div className={searchStyles.searchIcon}>
+								<svg
+									width="14"
+									height="14"
+									viewBox="0 0 14 14"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<circle
+										cx="6"
+										cy="6"
+										r="4.5"
+										stroke="currentColor"
+										strokeWidth="1.5"
+									/>
+									<line
+										x1="9.5"
+										y1="9.5"
+										x2="13"
+										y2="13"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+									/>
+								</svg>
+							</div>
+							{searchQuery && (
+								<Button
+									onClick={onSearchClear}
+									className={searchStyles.searchClear}
+								>
+									✕
+								</Button>
+							)}
+							{showSearchResults && (
+								<div className={searchStyles.searchDropdown}>
+									{realSearchResults.length > 0 ? (
+										realSearchResults.map((ev) => (
+											<Button
+												key={ev.occurrenceId || ev.id}
+												onClick={() =>
+													onSearchResultClick(ev)
+												}
+												className={
+													searchStyles.searchResultItem
+												}
+											>
+												<div
+													className={
+														searchStyles.searchResultDot
+													}
+													style={{
+														backgroundColor:
+															getCategoryColor(
+																ev.category,
+																categories,
+																"#93c5fd",
+															),
+													}}
+												/>
+												<div>
+													<div
+														className={
+															searchStyles.searchResultTitle
+														}
+													>
+														{ev.title}
+													</div>
+													<div
+														className={
+															searchStyles.searchResultMeta
+														}
+													>
+														{format(
+															ev.start,
+															"PPP",
+														)}
+														{ev.isRecurring &&
+															" · Recurring"}
+													</div>
+												</div>
+											</Button>
+										))
+									) : (
+										<div
+											className={searchStyles.searchEmpty}
+										>
+											No matching events
+										</div>
+									)}
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 
 				{/* Calendar grid */}
 				<div className={styles.calendarCard}>

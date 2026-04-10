@@ -97,16 +97,16 @@ export default function ExamPlannerPage() {
 									className="lunar-card group relative p-8 flex flex-col gap-6"
 								>
 									{/* Exam Title and Tasks */}
-									<div className="flex justify-between items-start">
+									<div className="flex justify-between items-start gap-4">
 										<Link
 											href={`/exam-planner/${exam.id}`}
-											className="text-2xl font-black uppercase tracking-tighter text-white group-hover:text-blue-400 transition-colors"
+											className="flex-1 group"
 										>
-											<h2 className="text-xl font-bold">
+											<h2 className="text-xl font-bold text-white group-hover:text-blue-300 transition-colors">
 												{exam.title}
 											</h2>
 										</Link>
-										<span className="text-[10px] font-bold bg-blue-500/10 text-blue-400 px-2 py-1 rounded-md border border-blue-500/20 uppercase">
+										<span className="text-[10px] font-bold bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20 uppercase whitespace-nowrap">
 											{totalTasks}{" "}
 											{totalTasks === 1
 												? "Task"
@@ -133,7 +133,7 @@ export default function ExamPlannerPage() {
 										</div>
 										<div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
 											<div
-												className="h-full bg-indigo-500 transition-all duration-500 ease-in-out"
+												className="h-full bg-blue-500 transition-all duration-500 ease-in-out"
 												style={{
 													width: `${progress}%`,
 												}}
@@ -142,7 +142,7 @@ export default function ExamPlannerPage() {
 									</div>
 
 									{/* Action Footer */}
-									<div className="flex justify-end mt-4">
+									<div className="flex gap-2">
 										<ExamFormDialog
 											editingExam={exam}
 											onExamUpdated={(updated: Exam) => {
@@ -159,7 +159,7 @@ export default function ExamPlannerPage() {
 											onClick={() =>
 												handleDelete(exam.id)
 											}
-											className="text-xs font-bold text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-500/10"
+											className="lunar-button-ghost"
 										>
 											Delete Exam
 										</Button>

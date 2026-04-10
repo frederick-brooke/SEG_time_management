@@ -14,11 +14,11 @@ import { useUI } from "@/context/UIContext";
 
 // Colour maps for the category/priority indicator stripe at the top of the modal.
 const CATEGORY_COLORS: Record<string, string> = {
-	Lecture: "#818cf8",
+	Lecture: "#93c5fd",
 	"Individual Study": "#34d399",
 	Exam: "#f87171",
 	Personal: "#fbbf24",
-	Lab: "#a78bfa",
+	Lab: "#93c5fd",
 	Google: "#60a5fa",
 };
 
@@ -99,7 +99,7 @@ export default function EventDetailModal({
 			onClick={onClose}
 		>
 			<div
-				className="bg-[#111118] border border-white/[0.07] p-8 rounded-[32px] w-full max-w-md relative max-h-[90vh] overflow-y-auto shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_32px_64px_rgba(0,0,0,0.6)]"
+				className="bg-white/[0.03] border border-white/[0.08] p-8 rounded-2xl w-full max-w-md relative max-h-[90vh] overflow-y-auto backdrop-blur-md"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<Button
@@ -132,7 +132,7 @@ export default function EventDetailModal({
 								</span>
 							)}
 							{isModule && (
-								<span className="text-xs bg-purple-500/15 text-purple-400 px-2 py-1 rounded-full font-bold border border-purple-500/20 tracking-wider">
+								<span className="text-xs bg-blue-500/15 text-blue-400 px-2 py-1 rounded-full font-bold border border-blue-500/20 tracking-wider">
 									MODULE
 								</span>
 							)}
@@ -175,7 +175,7 @@ export default function EventDetailModal({
 									</span>
 								</div>
 								{selectedEvent.scheduledRelativeTo && (
-									<div className="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-xs text-indigo-300 font-medium flex items-center gap-2">
+									<div className="px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs text-blue-300 font-medium flex items-center gap-2">
 										<span>🔗</span>
 										<span>
 											Linked to event ·{" "}
@@ -190,7 +190,7 @@ export default function EventDetailModal({
 									</div>
 								)}
 								{selectedEvent.isRecurring && (
-									<div className="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-xs text-indigo-300 font-medium flex items-center gap-2">
+									<div className="px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-lg text-xs text-blue-300 font-medium flex items-center gap-2">
 										<span>🔁</span>
 										<span>
 											Recurring ·{" "}
@@ -245,7 +245,7 @@ export default function EventDetailModal({
 									<>
 										<Button
 											onClick={() => onSetEditing(true)}
-											className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold hover:bg-white/90 transition-all mt-2"
+											className="w-full bg-blue-300 text-gray-950 py-4 rounded-2xl font-bold hover:bg-blue-400 transition-all mt-2"
 										>
 											Edit Event
 										</Button>

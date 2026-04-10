@@ -174,19 +174,19 @@ export default function ExamForm({
 					className="lunar-input"
 				/>
 			</div>
-			<div className="flex justify-end gap-3 pt-4">
+			<div className="flex justify-between gap-3 pt-4">
 				<Button
 					type="button"
 					onClick={onSuccess}
 					disabled={isPending}
-					className="text-[11px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+					className="lunar-button-ghost"
 				>
 					Cancel
 				</Button>
 				<Button
 					type="submit"
 					disabled={isPending}
-					className="px-6 py-3 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition w-full disabled:opacity-50"
+					className="lunar-button-primary flex-1"
 				>
 					{isPending
 						? "Saving..."

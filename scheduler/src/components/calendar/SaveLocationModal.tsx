@@ -90,7 +90,7 @@ export default function SaveLocationModal({
 				placeholder="Label (e.g. Home, Gym...)"
 				value={label}
 				onChange={(e) => setLabel(e.target.value)}
-				className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+				className="w-full bg-white/5 border border-white/10 text-white placeholder-white/20 p-2 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition-colors"
 				autoFocus
 			/>
 
@@ -102,8 +102,8 @@ export default function SaveLocationModal({
 						onClick={() => setType(t)}
 						className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-all ${
 							type === t
-								? "bg-indigo-600 text-white border-indigo-600"
-								: "bg-white/5 text-white/50 border-white/10 hover:border-indigo-500/50"
+								? "bg-blue-600 text-white border-blue-600"
+								: "bg-white/5 text-white/50 border-white/10 hover:border-blue-500/50"
 						}`}
 					>
 						{TYPE_ICONS[t]} {TYPE_LABELS[t]}
@@ -115,7 +115,7 @@ export default function SaveLocationModal({
 				type="button"
 				onClick={handleSave}
 				disabled={saving || !label.trim()}
-				className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-indigo-500 disabled:opacity-40 transition-all"
+				className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-blue-500 disabled:opacity-40 transition-all"
 			>
 				{saving ? "Saving…" : "Save"}
 			</Button>

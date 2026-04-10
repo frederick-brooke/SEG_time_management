@@ -108,7 +108,7 @@ function MemberRow({ member, isOwner, isRemoving, onRemove }: MemberRowProps) {
 
 			<div className="flex items-center gap-3 shrink-0">
 				{member.role === "OWNER" && (
-					<span className="flex items-center gap-1 text-[10px] px-2 py-1 bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/30 font-black uppercase tracking-wider shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+					<span className="flex items-center gap-1 text-[10px] px-2 py-1 bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/30 font-black uppercase tracking-wider shadow-[0_0_10px_rgba(147,197,253,0.2)]">
 						<Crown size={10} /> Owner
 					</span>
 				)}
