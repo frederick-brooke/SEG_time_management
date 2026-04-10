@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Groups page client component.
@@ -18,18 +18,24 @@ import { Button } from "@/components/ui/Button";
  * Global constants for pagination and sorting logic.
  */
 const PAGE_SIZE = 8;
-type SortKey = "newest" | "oldest" | "name-asc" | "name-desc" | "members-desc" | "members-asc";
+type SortKey =
+	| "newest"
+	| "oldest"
+	| "name-asc"
+	| "name-desc"
+	| "members-desc"
+	| "members-asc";
 
 /**
  * Dropdown configuration for group sorting.
  */
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: "newest",       label: "Newest first"   },
-  { value: "oldest",       label: "Oldest first"   },
-  { value: "name-asc",     label: "Name A → Z"     },
-  { value: "name-desc",    label: "Name Z → A"     },
-  { value: "members-desc", label: "Most members"   },
-  { value: "members-asc",  label: "Fewest members" },
+	{ value: "newest", label: "Newest first" },
+	{ value: "oldest", label: "Oldest first" },
+	{ value: "name-asc", label: "Name A → Z" },
+	{ value: "name-desc", label: "Name Z → A" },
+	{ value: "members-desc", label: "Most members" },
+	{ value: "members-asc", label: "Fewest members" },
 ];
 
 /**
@@ -39,16 +45,28 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
  * @returns {any[]} A new, sorted array of groups.
  */
 function sortGroups(groups: any[], key: SortKey): any[] {
-  const copy = [...groups];
-  switch (key) {
-    case "name-asc":     return copy.sort((a, b) => a.name.localeCompare(b.name));
-    case "name-desc":    return copy.sort((a, b) => b.name.localeCompare(a.name));
-    case "members-desc": return copy.sort((a, b) => b.memberCount - a.memberCount);
-    case "members-asc":  return copy.sort((a, b) => a.memberCount - b.memberCount);
-    case "oldest":       return copy.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  }
-  // Default fallback (handles "newest" and any unexpected values)
-  return copy.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+	const copy = [...groups];
+	switch (key) {
+		case "name-asc":
+			return copy.sort((a, b) => a.name.localeCompare(b.name));
+		case "name-desc":
+			return copy.sort((a, b) => b.name.localeCompare(a.name));
+		case "members-desc":
+			return copy.sort((a, b) => b.memberCount - a.memberCount);
+		case "members-asc":
+			return copy.sort((a, b) => a.memberCount - b.memberCount);
+		case "oldest":
+			return copy.sort(
+				(a, b) =>
+					new Date(a.createdAt).getTime() -
+					new Date(b.createdAt).getTime(),
+			);
+	}
+	// Default fallback (handles "newest" and any unexpected values)
+	return copy.sort(
+		(a, b) =>
+			new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+	);
 }
 
 /**
@@ -59,42 +77,50 @@ function sortGroups(groups: any[], key: SortKey): any[] {
  * @param {function} props.onPageChange - Callback to update the active page.
  * @returns {JSX.Element} The pagination navigation bar.
  */
-function Pagination({ page, total, onPageChange }: { page: number; total: number; onPageChange: (p: number) => void }) {
-  const safeTotal = Math.max(total, 1);
-  
-  return (
-    <div className="flex items-center justify-center gap-2 mt-8 py-4 border-t border-white/5">
-      <Button 
-        onClick={() => onPageChange(page - 1)} 
-        disabled={page === 1} 
-        className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
-      >
-        <ChevronLeft size={16} />
-      </Button>
-      
-      {Array.from({ length: safeTotal }, (_, i) => i + 1).map((p) => (
-        <Button 
-          key={p} 
-          onClick={() => onPageChange(p)} 
-          className={`w-10 h-10 rounded-xl text-[12px] font-bold transition-all border ${
-            p === page
-              ? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
-              : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          {p}
-        </Button>
-      ))}
-      
-      <Button 
-        onClick={() => onPageChange(page + 1)} 
-        disabled={page === safeTotal} 
-        className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
-      >
-        <ChevronRight size={16} />
-      </Button>
-    </div>
-  );
+function Pagination({
+	page,
+	total,
+	onPageChange,
+}: {
+	page: number;
+	total: number;
+	onPageChange: (p: number) => void;
+}) {
+	const safeTotal = Math.max(total, 1);
+
+	return (
+		<div className="flex items-center justify-center gap-2 mt-8 py-4 border-t border-white/5">
+			<Button
+				onClick={() => onPageChange(page - 1)}
+				disabled={page === 1}
+				className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
+			>
+				<ChevronLeft size={16} />
+			</Button>
+
+			{Array.from({ length: safeTotal }, (_, i) => i + 1).map((p) => (
+				<Button
+					key={p}
+					onClick={() => onPageChange(p)}
+					className={`w-10 h-10 rounded-xl text-[12px] font-bold transition-all border ${
+						p === page
+							? "bg-white/10 text-white border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+							: "bg-white/5 text-white/40 border-white/10 hover:bg-white/10 hover:text-white"
+					}`}
+				>
+					{p}
+				</Button>
+			))}
+
+			<Button
+				onClick={() => onPageChange(page + 1)}
+				disabled={page === safeTotal}
+				className="lunar-button-ghost px-3 disabled:opacity-10 transition-colors"
+			>
+				<ChevronRight size={16} />
+			</Button>
+		</div>
+	);
 }
 
 /**
@@ -103,105 +129,126 @@ function Pagination({ page, total, onPageChange }: { page: number; total: number
  * @param {any[]} props.groups - Initial group data passed from the server.
  * @returns {JSX.Element} The functional groups page UI.
  */
-export default function GroupsPageClient({ groups: initialGroups }: { groups: any[] }) {
-  const router = useRouter();
-  const [showCreate, setShowCreate] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("newest");
-  const [page, setPage] = useState(1);
-  const [showSortMenu, setShowSortMenu] = useState(false);
+export default function GroupsPageClient({
+	groups: initialGroups,
+}: {
+	groups: any[];
+}) {
+	const router = useRouter();
+	const [showCreate, setShowCreate] = useState(false);
+	const [sortKey, setSortKey] = useState<SortKey>("newest");
+	const [page, setPage] = useState(1);
+	const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Derives sorted and paginated data subsets
-  const sorted = useMemo(() => sortGroups(initialGroups, sortKey), [initialGroups, sortKey]);
-  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
-  const startIndex = (page - 1) * PAGE_SIZE;
-  const paginated = sorted.slice(startIndex, startIndex + PAGE_SIZE);
+	// Derives sorted and paginated data subsets
+	const sorted = useMemo(
+		() => sortGroups(initialGroups, sortKey),
+		[initialGroups, sortKey],
+	);
+	const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+	const startIndex = (page - 1) * PAGE_SIZE;
+	const paginated = sorted.slice(startIndex, startIndex + PAGE_SIZE);
 
-  // Metadata labels for UX consistency
-  const currentCount = paginated.length;
-  const totalCount = sorted.length;
-  const rangeLabel = totalCount > 0 
-    ? `Showing ${startIndex + 1}-${startIndex + currentCount} of ${totalCount}` 
-    : "No groups found";
-  const pageLabel = `Page ${page}/${Math.max(totalPages, 1)}`;
+	// Metadata labels for UX consistency
+	const currentCount = paginated.length;
+	const totalCount = sorted.length;
+	const rangeLabel =
+		totalCount > 0
+			? `Showing ${startIndex + 1}-${startIndex + currentCount} of ${totalCount}`
+			: "No groups found";
+	const pageLabel = `Page ${page}/${Math.max(totalPages, 1)}`;
 
-  return (
-    <LunarThemeWrapper>
-      
-      <div className="lunar-page w-full px-4 sm:px-6 lg:px-8 pt-8 pb-12">
-        
-        {/* Header Section */}
-        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-          <div>
-            <h1 className="lunar-page-title">My Groups</h1>
-            <p className="lunar-page-subtitle">Collaborate with friends on shared tasks</p>
-          </div>
-          <Button
-            onClick={() => setShowCreate(true)}
-            className="lunar-button-primary !text-white !bg-white/10 !border-white/20 hover:!bg-white/20 flex items-center gap-2"
-          >
-            <Plus size={18} />
-            <span>Create Group</span>
-          </Button>
-        </div>
+	return (
+		<LunarThemeWrapper>
+			<div className="lunar-page w-full px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+				{/* Header Section */}
+				<div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+					<div>
+						<h1 className="lunar-page-title">My Groups</h1>
+						<p className="lunar-page-subtitle">
+							Collaborate with friends on shared tasks
+						</p>
+					</div>
+					<Button
+						onClick={() => setShowCreate(true)}
+						className="px-6 py-2 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition flex items-center gap-2"
+					>
+						<Plus size={18} />
+						<span>Create Group</span>
+					</Button>
+				</div>
 
-        {/* Status and Sort Control Bar */}
-        <div className="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-xl border border-white/10">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <span className="lunar-label !text-white">{rangeLabel}</span>
-            <span className="hidden sm:block text-white/20">|</span>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">{pageLabel}</span>
-          </div>
+				{/* Status and Sort Control Bar */}
+				<div className="flex justify-between items-center mb-6 bg-white/5 p-4 rounded-xl border border-white/10">
+					<div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+						<span className="lunar-label !text-white">
+							{rangeLabel}
+						</span>
+						<span className="hidden sm:block text-white/20">|</span>
+						<span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+							{pageLabel}
+						</span>
+					</div>
 
-          <div className="relative z-20">
-            <Button
-              onClick={() => setShowSortMenu(!showSortMenu)}
-              className="lunar-button-ghost flex items-center gap-2"
-            >
-              <ArrowUpDown size={14} />
-              {SORT_OPTIONS.find((o) => o.value === sortKey)?.label ?? "Sort"}
-            </Button>
-            {showSortMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-[#0d1117] border border-white/10 rounded-xl z-20 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                {SORT_OPTIONS.map((option) => (
-                  <Button
-                    key={option.value}
-                    onClick={() => { setSortKey(option.value); setPage(1); setShowSortMenu(false); }}
-                    className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                      sortKey === option.value
-                        ? "bg-white/10 text-white"
-                        : "text-white/60 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+					<div className="relative z-20">
+						<Button
+							onClick={() => setShowSortMenu(!showSortMenu)}
+							className="px-6 py-2 rounded-2xl bg-white/5 ring-1 ring-white/10 text-white/80 font-medium hover:bg-white/10 transition flex items-center gap-2"
+						>
+							<ArrowUpDown size={14} />
+							{SORT_OPTIONS.find((o) => o.value === sortKey)
+								?.label ?? "Sort"}
+						</Button>
+						{showSortMenu && (
+							<div className="absolute right-0 mt-2 w-48 bg-[#0d1117] border border-white/10 rounded-xl z-20 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+								{SORT_OPTIONS.map((option) => (
+									<Button
+										key={option.value}
+										onClick={() => {
+											setSortKey(option.value);
+											setPage(1);
+											setShowSortMenu(false);
+										}}
+										className={`w-full text-left px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+											sortKey === option.value
+												? "bg-white/10 text-white"
+												: "text-white/60 hover:bg-white/5 hover:text-white"
+										}`}
+									>
+										{option.label}
+									</Button>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
 
-        {/* Groups List Display */}
-        <div className="space-y-4 min-h-[400px]">
-          {paginated.map((group) => (
-            <GroupCard key={group.id} group={group} />
-          ))}
-          {totalCount === 0 && (
-            <div className="h-64 flex flex-col items-center justify-center opacity-40 italic">
-              <p>No groups found. Try creating one!</p>
-            </div>
-          )}
-        </div>
+				{/* Groups List Display */}
+				<div className="space-y-4 min-h-[400px]">
+					{paginated.map((group) => (
+						<GroupCard key={group.id} group={group} />
+					))}
+					{totalCount === 0 && (
+						<div className="h-64 flex flex-col items-center justify-center opacity-40 italic">
+							<p>No groups found. Try creating one!</p>
+						</div>
+					)}
+				</div>
 
-        {/* Standardized Pagination Footer */}
-        <Pagination page={page} total={totalPages} onPageChange={setPage} />
-      </div>
+				{/* Standardized Pagination Footer */}
+				<Pagination
+					page={page}
+					total={totalPages}
+					onPageChange={setPage}
+				/>
+			</div>
 
-      {showCreate && (
-        <CreateGroup
-          onClose={() => setShowCreate(false)}
-          onSuccess={() => router.refresh()}
-        />
-      )}
-    </LunarThemeWrapper>
-  );
+			{showCreate && (
+				<CreateGroup
+					onClose={() => setShowCreate(false)}
+					onSuccess={() => router.refresh()}
+				/>
+			)}
+		</LunarThemeWrapper>
+	);
 }
