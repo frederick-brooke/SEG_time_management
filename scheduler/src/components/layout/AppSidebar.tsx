@@ -38,13 +38,13 @@ import {
 
 import { GraduationCap, Map } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
 } from "@/components/ui/Sidebar";
 
 import Link from "next/link";
@@ -129,8 +129,17 @@ function NavItem({
 		</span>
 	);
 
-  if (onClick) return <Button onClick={onClick} className="w-full text-left">{inner}</Button>;
-  return <Link href={item.url} className="w-full">{inner}</Link>;
+	if (onClick)
+		return (
+			<Button onClick={onClick} className="w-full text-left">
+				{inner}
+			</Button>
+		);
+	return (
+		<Link href={item.url} className="w-full">
+			{inner}
+		</Link>
+	);
 }
 
 /**
@@ -139,13 +148,21 @@ function NavItem({
  * @param {{ label: string; children: React.ReactNode }} props
  * @returns {JSX.Element} A nav section with a heading and slotted items
  */
-function NavSection({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-5">
-      <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">{label}</p>
-      <div className="space-y-0.5">{children}</div>
-    </div>
-  );
+function NavSection({
+	label,
+	children,
+}: {
+	label: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<div className="mb-5">
+			<p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">
+				{label}
+			</p>
+			<div className="space-y-0.5">{children}</div>
+		</div>
+	);
 }
 
 /**
@@ -197,6 +214,7 @@ function UserFooter({ session, status }: { session: any; status: string }) {
 									src={pfp}
 									alt={name}
 									className="w-full h-full object-cover"
+									loading="lazy"
 								/>
 							) : (
 								initial
@@ -212,53 +230,71 @@ function UserFooter({ session, status }: { session: any; status: string }) {
 						</div>
 					</div>
 
-          <div className="p-1.5 space-y-0.5">
-            <Button
-              onClick={() => { router.push("/profile"); setOpen(false); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white/90 hover:bg-white/[0.06] transition-colors"
-            >
-              <IconUser size={15} className="text-white/40" />
-              Profile
-            </Button>
-            <Button
-              onClick={() => { router.push("/settings"); setOpen(false); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white/90 hover:bg-white/[0.06] transition-colors"
-            >
-              <IconSettings size={15} className="text-white/40" />
-              Settings
-            </Button>
-            <div className="border-t border-white/[0.08] my-1" />
-            <Button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-400/80 hover:text-red-300 hover:bg-red-500/[0.08] transition-colors"
-            >
-              <IconLogout size={15} className="text-red-400/60" />
-              Log out
-            </Button>
-          </div>
-        </div>
-      )}
+					<div className="p-1.5 space-y-0.5">
+						<Button
+							onClick={() => {
+								router.push("/profile");
+								setOpen(false);
+							}}
+							className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white/90 hover:bg-white/[0.06] transition-colors"
+						>
+							<IconUser size={15} className="text-white/40" />
+							Profile
+						</Button>
+						<Button
+							onClick={() => {
+								router.push("/settings");
+								setOpen(false);
+							}}
+							className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white/90 hover:bg-white/[0.06] transition-colors"
+						>
+							<IconSettings size={15} className="text-white/40" />
+							Settings
+						</Button>
+						<div className="border-t border-white/[0.08] my-1" />
+						<Button
+							onClick={() => signOut({ callbackUrl: "/login" })}
+							className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-400/80 hover:text-red-300 hover:bg-red-500/[0.08] transition-colors"
+						>
+							<IconLogout size={15} className="text-red-400/60" />
+							Log out
+						</Button>
+					</div>
+				</div>
+			)}
 
-      <div
-        onClick={() => router.push("/profile")}
-        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group cursor-pointer"
-      >
-        <div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-bold flex-shrink-0 overflow-hidden">
-          {pfp ? <img src={pfp} alt={name} className="w-full h-full object-cover" /> : initial}
-        </div>
-        <span className="flex-1 text-[13.3px] font-semibold text-white/70 truncate group-hover:text-white/90 transition-colors">
-          {name}
-        </span>
-        <Button
-          data-testid="user-menu-button"
-          onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/90 hover:bg-white/10 transition-all duration-150 flex-shrink-0 opacity-80 group-hover:opacity-100"
-        >
-          <IconDotsVertical size={14} />
-        </Button>
-      </div>
-    </div>
-  );
+			<div
+				onClick={() => router.push("/profile")}
+				className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.06] transition-colors group cursor-pointer"
+			>
+				<div className="w-7 h-7 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-300 text-xs font-bold flex-shrink-0 overflow-hidden">
+					{pfp ? (
+						<img
+							src={pfp}
+							alt={name}
+							className="w-full h-full object-cover"
+							loading="lazy"
+						/>
+					) : (
+						initial
+					)}
+				</div>
+				<span className="flex-1 text-[13.3px] font-semibold text-white/70 truncate group-hover:text-white/90 transition-colors">
+					{name}
+				</span>
+				<Button
+					data-testid="user-menu-button"
+					onClick={(e) => {
+						e.stopPropagation();
+						setOpen(!open);
+					}}
+					className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white/90 hover:bg-white/10 transition-all duration-150 flex-shrink-0 opacity-80 group-hover:opacity-100"
+				>
+					<IconDotsVertical size={14} />
+				</Button>
+			</div>
+		</div>
+	);
 }
 
 /**
@@ -267,21 +303,27 @@ function UserFooter({ session, status }: { session: any; status: string }) {
  * @param {{ count: number; onClick: () => void }} props
  * @returns {JSX.Element} The bell button element
  */
-function NotificationBell({ count, onClick }: { count: number; onClick: () => void }) {
-  return (
-    <Button
-      data-testid="bell-button"
-      onClick={onClick}
-      className="relative w-8 h-8 flex items-center justify-center rounded-xl text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
-    >
-      <IconBell size={19} />
-      {count > 0 && (
-        <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
-          {count > 99 ? "99+" : count}
-        </span>
-      )}
-    </Button>
-  );
+function NotificationBell({
+	count,
+	onClick,
+}: {
+	count: number;
+	onClick: () => void;
+}) {
+	return (
+		<Button
+			data-testid="bell-button"
+			onClick={onClick}
+			className="relative w-8 h-8 flex items-center justify-center rounded-xl text-white/40 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
+		>
+			<IconBell size={19} />
+			{count > 0 && (
+				<span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+					{count > 99 ? "99+" : count}
+				</span>
+			)}
+		</Button>
+	);
 }
 
 /**
@@ -450,15 +492,17 @@ export function AppSidebar({ onSearchClick, ...props }: any) {
 						</SidebarMenu>
 					</SidebarHeader>
 
-          <SidebarContent className="lunar-scroll px-2 flex-1 overflow-y-auto">
-            <Button
-              onClick={() => setSearchOpen(true)}
-              className="w-full flex items-center gap-2.5 px-3 py-2 mb-5 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/40 hover:text-white/70 transition-all text-[11px] font-semibold uppercase tracking-widest"
-            >
-              <IconSearch size={14} />
-              <span>Search</span>
-              <span className="ml-auto text-[10px] border border-white/10 rounded px-1.5 py-0.5 text-white/25">⌘K</span>
-            </Button>
+					<SidebarContent className="lunar-scroll px-2 flex-1 overflow-y-auto">
+						<Button
+							onClick={() => setSearchOpen(true)}
+							className="w-full flex items-center gap-2.5 px-3 py-2 mb-5 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/40 hover:text-white/70 transition-all text-[11px] font-semibold uppercase tracking-widest"
+						>
+							<IconSearch size={14} />
+							<span>Search</span>
+							<span className="ml-auto text-[10px] border border-white/10 rounded px-1.5 py-0.5 text-white/25">
+								⌘K
+							</span>
+						</Button>
 
 						{/* ── Nav sections ── */}
 						{NAV_SECTIONS.map((section) => (

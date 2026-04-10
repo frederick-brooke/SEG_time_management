@@ -2,6 +2,7 @@
  * @file LunarThemeWrapper.tsx
  * @description Global theme wrapper component.
  */
+import StarBackground from "@/components/StarBackground";
 
 /**
  * Wraps the application content in the standard Lunar visual theme.
@@ -16,6 +17,7 @@ export default function LunarThemeWrapper({
 }) {
 	return (
 		<div className="relative min-h-screen bg-[#030712] text-white/90 overflow-x-hidden selection:bg-blue-500/30 z-10">
+			<StarBackground />
 			{/* The Background Layer */}
 			<div className="fixed inset-0 pointer-events-none z-0">
 				{/* Nebula Glow */}
