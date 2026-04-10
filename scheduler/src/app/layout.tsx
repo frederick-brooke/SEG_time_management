@@ -24,6 +24,14 @@ const geistMono = GeistMono({
 	subsets: ["latin"],
 });
 
+export const metadata = {
+	title: "Lunar - Time Management",
+	description: "Your comprehensive time management and scheduling platform",
+	icons: {
+		icon: "/favicon.svg",
+	},
+};
+
 export default function RootLayout({ children }) {
 	return (
 		<html
