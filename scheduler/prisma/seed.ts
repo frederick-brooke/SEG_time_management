@@ -28,11 +28,31 @@ const EVENT_CATEGORIES = ['Work', 'Personal', 'Health', 'Social', 'Other']
 const EVENT_DURATION_OPTIONS = [15, 30, 45, 60, 90, 120]
 const MAX_TIME_PER_DAY_OPTIONS = [60, 90, 120, 180]
 
-// Task field values — plain strings to match schema defaults
+// Task field values
 const TASK_STATUSES = ['todo', 'in_progress', 'done']
 const TASK_PRIORITIES = ['Low', 'Medium', 'High']
 
 // Helpers
+
+async function clearAll(): Promise<void> {
+  await prisma.userInventory.deleteMany()
+  await prisma.shopItem.deleteMany()
+  await prisma.friendRequest.deleteMany()
+  await prisma.task.deleteMany()
+  await prisma.revisionMaterial.deleteMany()
+  await prisma.exam.deleteMany()
+  await prisma.event.deleteMany()
+  await prisma.pointTransaction.deleteMany()
+  await prisma.userProgress.deleteMany()
+  await prisma.userPreferences.deleteMany()
+  await prisma.notification.deleteMany()
+  await prisma.checkIn.deleteMany()
+  await prisma.scheduleLog.deleteMany()
+  await prisma.category.deleteMany()
+  await prisma.savedLocation.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.user.deleteMany()
+}
 
 function randomFutureDate(maxDays: number): Date {
   const date = new Date()
@@ -107,6 +127,7 @@ async function seedTasksForUser(userId: string): Promise<void> {
   for (let i = 0; i < SEED_TASKS_PER_USER; i++) {
     const status = faker.helpers.arrayElement(TASK_STATUSES)
     const completedAt = status === 'done' ? faker.date.recent({ days: 7 }) : null
+    const completed = status === 'done'
 
     const subtasks = faker.datatype.boolean(0.5)
       ? Array.from(
@@ -124,6 +145,7 @@ async function seedTasksForUser(userId: string): Promise<void> {
         description: faker.datatype.boolean(0.6) ? faker.lorem.sentence() : null,
         dueDate: randomFutureDate(MAX_DUE_DATE_DAYS),
         status,
+        completed,
         completedAt,
         durationMins: String(durationMins),
         priority: faker.helpers.arrayElement(TASK_PRIORITIES),
@@ -197,17 +219,12 @@ async function seedFriendships(users: { id: string }[]): Promise<void> {
   }
 }
 
-async function clearInventory(): Promise<void> {
-  await prisma.userInventory.deleteMany()
-  await prisma.shopItem.deleteMany()
-}
-
 // Main
 
 async function main(): Promise<void> {
   console.log('Starting seeding...')
 
-  await clearInventory()
+  await clearAll()
   await seedShopItems()
 
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10)
