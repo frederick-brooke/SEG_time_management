@@ -161,7 +161,6 @@ async function geocode(
 
 /**
  * Updates the current user's profile fields including optional geocoding of city and country.
- * V.3.2: Maintains a single level of abstraction by utilizing helper functions.
  * @param {FormData} formData - Form data containing fname, lname, bio, city, and country fields.
  * @return {Promise<void>}
  */

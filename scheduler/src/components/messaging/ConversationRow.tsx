@@ -126,6 +126,7 @@ function ConversationMenu({
   return (
     <div className="relative" ref={menuRef}>
       <Button
+        variant="ghost"
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         className="p-1 rounded-lg transition-colors text-[rgba(148,163,255,0.4)] hover:text-[rgba(148,163,255,0.8)]"
         title="More options"
@@ -190,6 +191,7 @@ export function ConversationRow({ convo, isActive, currentUserId, onNavigate, on
       }`}
     >
       <Button
+        variant="ghost"
         onClick={() => onNavigate(convo.id)}
         className="flex items-center gap-3 flex-1 min-w-0 text-left"
       >

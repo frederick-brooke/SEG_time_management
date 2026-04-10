@@ -42,7 +42,6 @@ interface ToggleProps {
 export function Toggle({ on, onToggle, label }: ToggleProps) {
   return (
     <div className="flex items-center gap-2 select-none">
-      {/* V.4.2 Polish: Semantic button with ARIA attributes instead of a clickable div */}
       <Button
         type="button"
         role="switch"

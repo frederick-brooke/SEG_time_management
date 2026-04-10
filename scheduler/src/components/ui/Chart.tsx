@@ -4,7 +4,7 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "lib/utils"
 
-// 1. Define the Config types to fix "Property does not exist on type unknown"
+// Define the Config types
 export type ChartConfig = {
   [key: string]: {
     label?: React.ReactNode
