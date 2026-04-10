@@ -75,12 +75,13 @@ export function BaseMap({
   className = "",
 }: BaseMapProps) {
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height, width: "100%" }}
-      className={`rounded-xl border shadow-sm overflow-hidden ${className}`}
-    >
+    <div style={{ width: "100%", display: "block" }}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        style={{ height, width: "100%" }}
+        className={`rounded-xl border shadow-sm overflow-hidden ${className}`}
+      >
       {/* Base tile layer for OpenStreetMap */}
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -93,5 +94,6 @@ export function BaseMap({
       {/* Render any child layers/components passed into the map */}
       {children}
     </MapContainer>
+    </div>
   );
 }
