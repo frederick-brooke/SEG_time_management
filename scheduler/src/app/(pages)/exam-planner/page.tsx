@@ -31,7 +31,6 @@ export default function ExamPlannerPage() {
 		if (status === "unauthenticated") {
 			router.push("/login");
 		} else if (status === "authenticated" && session?.user?.id) {
-			// Load exams when authenticated
 			async function loadExams() {
 				const data = await getMyExams();
 				setExams(data);
@@ -42,13 +41,13 @@ export default function ExamPlannerPage() {
 
 	/**
 	 * Handler for removing an exam and its associated data.
-	 * @param {string}} id The database ID of the exam.
+	 * @param {string} id The database ID of the exam.
 	 */
 	const handleDelete = async (id: string) => {
 		if (confirm("Are you sure you want to delete this exam entry?")) {
 			try {
 				await deleteExam(id);
-				setExams(exams.filter((exam) => exam.id !== id));
+				setExams((prev) => prev.filter((exam) => exam.id !== id));
 			} catch (error) {
 				console.error("Failed to delete:", error);
 				alert("Could not delete exam");
@@ -70,7 +69,7 @@ export default function ExamPlannerPage() {
 					</div>
 					<ExamFormDialog
 						onExamAdded={(newExam: Exam) =>
-							setExams([...exams, newExam])
+							setExams((prev) => [...prev, newExam])
 						}
 					/>
 				</div>
@@ -146,8 +145,8 @@ export default function ExamPlannerPage() {
 										<ExamFormDialog
 											editingExam={exam}
 											onExamUpdated={(updated: Exam) => {
-												setExams(
-													exams.map((e: Exam) =>
+												setExams((prev) =>
+													prev.map((e: Exam) =>
 														e.id === updated.id
 															? updated
 															: e,

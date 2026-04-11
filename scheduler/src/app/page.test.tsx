@@ -2,7 +2,6 @@
  * Testing for home page.tsx
  */
 import React from "react";
-import { Button } from "@/components/ui/Button";
 import { render, screen } from "@testing-library/react";
 import Home from "../app/page";
 
@@ -11,21 +10,22 @@ jest.mock("@/components/landing/Navbar", () => ({
   __esModule: true,
   default: () => <nav data-testid="mock-navbar">Navbar</nav>,
 }));
-
 jest.mock("components/landing/HeroSection", () => ({
   __esModule: true,
   default: () => <section data-testid="mock-hero-section">HeroSection</section>,
 }));
-
 jest.mock("@/components/landing/FeaturesSection", () => ({
   __esModule: true,
   default: () => (
     <section data-testid="mock-features-section">FeaturesSection</section>
   ),
 }));
+jest.mock("@/components/StarBackground", () => ({
+  __esModule: true,
+  default: () => <div data-testid="mock-star-background" />,
+}));
 
 // Tests
-
 describe("Home (page.tsx)", () => {
   it("renders without crashing", () => {
     render(<Home />);
@@ -58,13 +58,10 @@ describe("Home (page.tsx)", () => {
   it("renders all three sections in the correct order", () => {
     const { container } = render(<Home />);
     const children = container.firstChild?.childNodes;
-    expect(children?.length).toBe(3);
-    expect((children?.[0] as HTMLElement).dataset.testid).toBe("mock-navbar");
-    expect((children?.[1] as HTMLElement).dataset.testid).toBe(
-      "mock-hero-section"
-    );
-    expect((children?.[2] as HTMLElement).dataset.testid).toBe(
-      "mock-features-section"
-    );
+    expect(children?.length).toBe(4);
+    expect((children?.[0] as HTMLElement).dataset.testid).toBe("mock-star-background");
+    expect((children?.[1] as HTMLElement).dataset.testid).toBe("mock-navbar");
+    expect((children?.[2] as HTMLElement).dataset.testid).toBe("mock-hero-section");
+    expect((children?.[3] as HTMLElement).dataset.testid).toBe("mock-features-section");
   });
 });
