@@ -4,6 +4,16 @@ import ExamFormDialog from "../ExamFormDialog";
 import { Button } from "@/components/ui/Button";
 
 // Mocks the underlying form to isolate dialog open/close logic
+jest.mock("@/context/UIContext", () => ({
+    useUI: () => ({
+        setIsModalOpen: jest.fn(),
+    }),
+}));
+
+jest.mock("lucide-react", () => ({
+    X: () => <svg data-testid="x-icon" />,
+}));
+
 jest.mock("../ExamForm", () => {
     const React = require("react");
     return function MockExamForm({ onSuccess }) {

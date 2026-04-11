@@ -56,6 +56,8 @@ export function UpcomingExams({ exams = [] }: { exams?: any[] }) {
 	// useMemo prevents heavy date recalculations on unrelated re-renders
 	const upcoming = useMemo(() => getUpcomingExams(exams), [exams]);
 
+	if (upcoming.length === 0) return null;
+	
 	return (
 		<section className="space-y-6">
 			<h2 className="text-xl font-black tracking-widest text-white uppercase drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">

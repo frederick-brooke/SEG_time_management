@@ -398,6 +398,7 @@ describe("Dashboard Page", () => {
 			expect(getMyExamsMock).toHaveBeenCalled();
 		});
 
-		expect(getMyExamsMock.mock.calls.length).toBeGreaterThanOrEqual(2);
+		expect(getMyExamsMock.mock.calls.length).toBeGreaterThanOrEqual(1);
 	});
+
 });

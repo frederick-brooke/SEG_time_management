@@ -14,7 +14,7 @@ jest.mock("next/link", () => ({
 describe("Navbar", () => {
   test("renders brand name", () => {
     render(<Navbar />);
-    expect(screen.getByText("O Lunar")).toBeInTheDocument();
+    expect(screen.getByText("Lunar")).toBeInTheDocument();
   });
 
   test("renders login link", () => {

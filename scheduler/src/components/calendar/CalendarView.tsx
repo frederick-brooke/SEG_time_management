@@ -282,7 +282,7 @@ export default function CalendarView({
 	};
 
 	return (
-		<div className="w-full flex justify-center px-4 gap-8">
+		<div className="w-full flex justify-center gap-8">
 			{showCheckIn && <CheckInModal onDone={handleCheckInDone} />}
 			{showReschedule &&
 				rescheduleQueue.length > 0 &&
@@ -307,7 +307,7 @@ export default function CalendarView({
 				<FilterSidebar {...filterProps} />
 			</div>
 
-			<div className="flex-1 min-w-0">
+			<div className="flex-1 min-w-0 w-full overflow-hidden">
 				<div className="hidden lg:flex gap-2 mb-4">
 					<Button
 						onClick={() => sched.open("day", calendarDate)}

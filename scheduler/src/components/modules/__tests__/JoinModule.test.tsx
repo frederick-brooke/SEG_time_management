@@ -5,6 +5,12 @@ import "@testing-library/jest-dom";
 import JoinModule from "@/components/modules/JoinModule";
 
 // mocks
+jest.mock("@/context/UIContext", () => ({
+    useUI: () => ({
+        setIsModalOpen: jest.fn(),
+    }),
+}));
+
 jest.mock("@/app/actions/module", () => ({
   joinModule: jest.fn(),
 }));

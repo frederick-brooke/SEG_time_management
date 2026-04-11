@@ -6,6 +6,13 @@ jest.mock("@tabler/icons-react", () => ({
   IconX: () => <svg data-testid="icon-x" />,
 }));
 
+// Mock the useUI context hook to prevent the missing provider error
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 describe("Panel", () => {
   const onClose = jest.fn();
 

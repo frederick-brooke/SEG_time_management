@@ -7,172 +7,185 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import PagesLayout from "../layout";
 
 const mockUseSession = jest.fn();
+const mockUseUI = jest.fn();
 
 jest.mock("next-auth/react", () => ({
-	useSession: () => mockUseSession(),
+    useSession: () => mockUseSession(),
+}));
+
+jest.mock("@/context/UIContext", () => ({
+    useUI: () => mockUseUI(),
 }));
 
 jest.mock("@/components/layout/AppSidebar", () => ({
-	AppSidebar: ({ onSearchClick }: any) => (
-		<button onClick={onSearchClick}>open-sidebar-search</button>
-	),
+    AppSidebar: ({ onSearchClick }: any) => (
+        <button onClick={onSearchClick}>open-sidebar-search</button>
+    ),
 }));
 
 jest.mock("@/components/search-page/SearchPanel", () => ({
-	__esModule: true,
-	default: ({ onClose, open }: any) => (
-		<div>
-			<span>{String(open)}</span>
-			<button onClick={onClose}>close-search</button>
-		</div>
-	),
+    __esModule: true,
+    default: ({ onClose, open }: any) => (
+        <div>
+            <span>{String(open)}</span>
+            <button onClick={onClose}>close-search</button>
+        </div>
+    ),
 }));
 
 jest.mock("@/components/ui/Sidebar", () => ({
-	SidebarProvider: ({ children, open, className, style }: any) => (
-		<div
-			data-testid="sidebar-provider"
-			data-open={String(open)}
-			className={className}
-			style={style}
-		>
-			{children}
-		</div>
-	),
-	SidebarInset: ({ children, className, style }: any) => (
-		<div data-testid="sidebar-inset" className={className} style={style}>
-			{children}
-		</div>
-	),
-	SidebarTrigger: ({ onClick, className }: any) => (
-		<button className={className} onClick={onClick}>
-			toggle-sidebar
-		</button>
-	),
+    SidebarProvider: ({ children, open, className, style }: any) => (
+        <div
+            data-testid="sidebar-provider"
+            data-open={String(open)}
+            className={className}
+            style={style}
+        >
+            {children}
+        </div>
+    ),
+    SidebarInset: ({ children, className, style }: any) => (
+        <div data-testid="sidebar-inset" className={className} style={style}>
+            {children}
+        </div>
+    ),
+    SidebarTrigger: ({ onClick, className }: any) => (
+        <button className={className} onClick={onClick}>
+            toggle-sidebar
+        </button>
+    ),
 }));
 
 describe("PagesLayout", () => {
-	const renderLayout = () =>
-		render(
-			<PagesLayout>
-				<div>page-content</div>
-			</PagesLayout>,
-		);
+    const renderLayout = () =>
+        render(
+            <PagesLayout>
+                <div>page-content</div>
+            </PagesLayout>,
+        );
 
-	beforeEach(() => {
-		jest.clearAllMocks();
-		mockUseSession.mockReturnValue({
-			data: { user: { id: "user-123", name: "Test User" } },
-			status: "authenticated",
-		});
-	});
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseUI.mockReturnValue({ isModalOpen: false });
+        mockUseSession.mockReturnValue({
+            data: { user: { id: "user-123", name: "Test User" } },
+            status: "authenticated",
+        });
+    });
 
-	it("renders children", () => {
-		renderLayout();
-		expect(screen.getByText("page-content")).toBeInTheDocument();
-	});
+    it("renders children", () => {
+        renderLayout();
+        expect(screen.getByText("page-content")).toBeInTheDocument();
+    });
 
-	it("returns null while session is loading", () => {
-		mockUseSession.mockReturnValue({
-			data: null,
-			status: "loading",
-		});
+    it("returns null while session is loading", () => {
+        mockUseSession.mockReturnValue({
+            data: null,
+            status: "loading",
+        });
 
-		const { container } = renderLayout();
-		expect(container.firstChild).toBeNull();
-	});
+        const { container } = renderLayout();
+        expect(container.firstChild).toBeNull();
+    });
 
-	it("renders only children when there is no session", () => {
-		mockUseSession.mockReturnValue({
-			data: null,
-			status: "unauthenticated",
-		});
+    it("renders only children when there is no session", () => {
+        mockUseSession.mockReturnValue({
+            data: null,
+            status: "unauthenticated",
+        });
 
-		renderLayout();
+        renderLayout();
 
-		expect(screen.getByText("page-content")).toBeInTheDocument();
-		expect(
-			screen.queryByText("open-sidebar-search"),
-		).not.toBeInTheDocument();
-		expect(screen.queryByText("toggle-sidebar")).not.toBeInTheDocument();
-	});
+        expect(screen.getByText("page-content")).toBeInTheDocument();
+        expect(
+            screen.queryByText("open-sidebar-search"),
+        ).not.toBeInTheDocument();
+        expect(screen.queryByText("toggle-sidebar")).not.toBeInTheDocument();
+    });
 
-	it("renders sidebar layout when authenticated", () => {
-		renderLayout();
+    it("renders sidebar layout when authenticated", () => {
+        renderLayout();
 
-		expect(screen.getByTestId("sidebar-provider")).toBeInTheDocument();
-		expect(screen.getByTestId("sidebar-inset")).toBeInTheDocument();
-		expect(screen.getByText("open-sidebar-search")).toBeInTheDocument();
-		expect(screen.getByText("toggle-sidebar")).toBeInTheDocument();
-	});
+        expect(screen.getByTestId("sidebar-provider")).toBeInTheDocument();
+        expect(screen.getByTestId("sidebar-inset")).toBeInTheDocument();
+        expect(screen.getByText("open-sidebar-search")).toBeInTheDocument();
+        expect(screen.getByText("toggle-sidebar")).toBeInTheDocument();
+    });
 
-	it("opens search panel", () => {
-		renderLayout();
+    it("opens search panel", () => {
+        renderLayout();
 
-		fireEvent.click(screen.getByText("open-sidebar-search"));
+        fireEvent.click(screen.getByText("open-sidebar-search"));
 
-		expect(screen.getByText("close-search")).toBeInTheDocument();
-		expect(
-			screen.queryByText("open-sidebar-search"),
-		).not.toBeInTheDocument();
-	});
+        expect(screen.getByText("close-search")).toBeInTheDocument();
+        expect(
+            screen.queryByText("open-sidebar-search"),
+        ).not.toBeInTheDocument();
+    });
 
-	it("closes search panel", () => {
-		renderLayout();
+    it("closes search panel", () => {
+        renderLayout();
 
-		fireEvent.click(screen.getByText("open-sidebar-search"));
-		fireEvent.click(screen.getByText("close-search"));
+        fireEvent.click(screen.getByText("open-sidebar-search"));
+        fireEvent.click(screen.getByText("close-search"));
 
-		expect(screen.getByText("open-sidebar-search")).toBeInTheDocument();
-		expect(screen.queryByText("close-search")).not.toBeInTheDocument();
-	});
+        expect(screen.getByText("open-sidebar-search")).toBeInTheDocument();
+        expect(screen.queryByText("close-search")).not.toBeInTheDocument();
+    });
 
-	it("toggles sidebar", () => {
-		renderLayout();
+    it("hides sidebar items when a modal is open", () => {
+        mockUseUI.mockReturnValue({ isModalOpen: true });
+        renderLayout();
+        
+        expect(screen.queryByText("open-sidebar-search")).not.toBeInTheDocument();
+    });
 
-		expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
-			"data-open",
-			"true",
-		);
+    it("toggles sidebar", () => {
+        renderLayout();
 
-		fireEvent.click(screen.getByText("toggle-sidebar"));
-		expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
-			"data-open",
-			"false",
-		);
+        expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+            "data-open",
+            "true",
+        );
 
-		fireEvent.click(screen.getByText("toggle-sidebar"));
-		expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
-			"data-open",
-			"true",
-		);
-	});
+        fireEvent.click(screen.getByText("toggle-sidebar"));
+        expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+            "data-open",
+            "false",
+        );
 
-	it("renders modal root", () => {
-		renderLayout();
-		expect(document.getElementById("modal-root")).toBeInTheDocument();
-	});
+        fireEvent.click(screen.getByText("toggle-sidebar"));
+        expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+            "data-open",
+            "true",
+        );
+    });
 
-	it("applies sidebar provider styles", () => {
-		renderLayout();
+    it("renders modal root", () => {
+        renderLayout();
+        expect(document.getElementById("modal-root")).toBeInTheDocument();
+    });
 
-		const provider = screen.getByTestId("sidebar-provider");
-		expect(provider).toHaveStyle(
-			"--sidebar-width: calc(var(--spacing) * 72)",
-		);
-		expect(provider).toHaveStyle(
-			"--header-height: calc(var(--spacing) * 12)",
-		);
-		expect(provider).toHaveStyle("background: #070b18");
-	});
+    it("applies sidebar provider styles", () => {
+        renderLayout();
 
-	it("updates inset width when sidebar is collapsed", () => {
-		renderLayout();
+        const provider = screen.getByTestId("sidebar-provider");
+        expect(provider).toHaveStyle(
+            "--sidebar-width: calc(var(--spacing) * 72)",
+        );
+        expect(provider).toHaveStyle(
+            "--header-height: calc(var(--spacing) * 12)",
+        );
+        expect(provider).toHaveStyle("background: #070b18");
+    });
 
-		const inset = screen.getByTestId("sidebar-inset");
-		expect(inset.style.width).toBe("");
+    it("updates inset width when sidebar is collapsed", () => {
+        renderLayout();
 
-		fireEvent.click(screen.getByText("toggle-sidebar"));
-		expect(inset.style.width).toBe("100vw");
-	});
+        const inset = screen.getByTestId("sidebar-inset");
+        expect(inset.style.width).toBe("");
+
+        fireEvent.click(screen.getByText("toggle-sidebar"));
+        expect(inset.style.width).toBe("100vw");
+    });
 });

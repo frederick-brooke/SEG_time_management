@@ -1,9 +1,13 @@
 /**
  * Testing for messages page.
  */
-
 import { render, screen } from "@testing-library/react";
 import MessagesPage from "../page";
+
+jest.mock("@/components/StarBackground", () => ({
+  __esModule: true,
+  default: () => <div data-testid="star-background" />,
+}));
 
 describe("MessagesPage", () => {
   it("renders the 'Select a conversation' heading", () => {
@@ -18,7 +22,8 @@ describe("MessagesPage", () => {
 
   it("is centred using flex layout", () => {
     const { container } = render(<MessagesPage />);
-    const wrapper = container.firstChild as HTMLElement;
+    const wrapper = container.querySelector(".flex.items-center.justify-center") as HTMLElement;
+    expect(wrapper).toBeInTheDocument();
     expect(wrapper.className).toContain("flex");
     expect(wrapper.className).toContain("items-center");
     expect(wrapper.className).toContain("justify-center");

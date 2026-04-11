@@ -27,22 +27,18 @@ export default async function CalendarPage() {
 
 	return (
 		<LunarThemeWrapper>
-			<main className="w-full px-6 lg:px-10 pt-8 pb-12 space-y-6 text-white/90">
-				<div className="flex flex-col lg:flex-row justify-between items-start gap-4">
-					<div className="flex-1 space-y-1">
-						<h1 className="lunar-header text-4xl">My Schedule</h1>
-						<p className="lunar-label-subtitle">
-							Plan and manage your events and tasks
-						</p>
+				<main className="w-full px-3 lg:px-10 pt-6 lg:pt-8 pb-12 space-y-4 lg:space-y-6 text-white/90">
+					<div className="flex flex-col lg:flex-row justify-between items-start gap-3 lg:gap-4">
+						<div className="flex-1 space-y-1">
+						<h1 className="lunar-header text-3xl lg:text-4xl">My Schedule</h1>
+						<p className="lunar-label-subtitle">Plan and manage your events and tasks</p>
+						</div>
+						<div className="shrink-0 flex items-center w-full lg:w-auto">
+						<GoogleLinkButton isConnected={session.user.googleConnected ?? false} />
+						</div>
 					</div>
-					<div className="shrink-0 flex items-center">
-						<GoogleLinkButton
-							isConnected={session.user.googleConnected ?? false}
-						/>
-					</div>
-				</div>
 
-				<hr className="border-white/5" />
+					<hr className="border-white/5" />
 
 				{/*
 				 * CalendarView receives empty arrays as initial props.

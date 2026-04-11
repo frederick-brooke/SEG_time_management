@@ -5,6 +5,11 @@ import "@testing-library/jest-dom";
 import GroupSettingsModal from "@/components/groups/GroupSettingsModal";
 
 // Mocks
+jest.mock("@/context/UIContext", () => ({
+    useUI: () => ({
+        setIsModalOpen: jest.fn(),
+    }),
+}));
 
 jest.mock("@/app/actions/groups", () => ({
   updateGroupSettings: jest.fn(),
