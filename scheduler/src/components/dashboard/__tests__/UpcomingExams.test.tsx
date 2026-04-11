@@ -61,7 +61,6 @@ describe("Upcoming Exams Module", () => {
 	];
 
 	describe("getUpcomingExams (Pure Business Logic)", () => {
-		// Validates date boundary calculations for V.5.1
 		it("includes exams occurring exactly today", () => {
 			const results = getUpcomingExams(mockExams);
 			expect(results.some((e) => e.id === "today-exam")).toBe(true);

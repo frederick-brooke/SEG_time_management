@@ -20,7 +20,7 @@ import { User } from "next-auth";
  * and returns a sanitized user object for NextAuth.
  *
  * @param credentials - Login credentials (email/username + password)
- * @param req - Optional request object (unused)
+ * @param req - Optional request object
  * @returns Authenticated user or null if invalid
  */
 export async function authorizeUser(

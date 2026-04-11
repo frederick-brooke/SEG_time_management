@@ -9,8 +9,8 @@ import { useUI } from "@/context/UIContext";
  * @typedef {Object} WellbeingPanelProps
  * @property {boolean} open - Controls whether the panel is visible
  * @property {Function} onClose - Callback to close the panel
- * @property {string} [title] - Optional custom title (currently unused)
- * @property {React.ReactNode} [children] - Optional override content (currently unused)
+ * @property {string} [title] - Optional custom title
+ * @property {React.ReactNode} [children] - Optional override content
  */
 interface WellbeingPanelProps {
 	open: boolean;

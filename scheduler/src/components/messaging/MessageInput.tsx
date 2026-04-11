@@ -44,9 +44,10 @@ export function MessageInput({ value, sending, onChange, onKeyDown, onSend }: Pr
           placeholder="Message..."
           disabled={sending}
           rows={1}
-          className="flex-1 bg-transparent outline-none text-sm resize-none overflow-y-auto max-h-[120px] leading-[1.5] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)]"
+          className="flex-1 bg-transparent outline-none text-base resize-none overflow-y-auto max-h-[120px] leading-[1.5] text-[rgba(210,220,255,0.85)] caret-[rgba(99,111,255,0.8)]"
         />
         <Button
+          variant="ghost"
           onClick={onSend}
           disabled={sending || !value.trim()}
           className={`text-sm font-medium transition-colors disabled:opacity-30 pb-0.5 ${

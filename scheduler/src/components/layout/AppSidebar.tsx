@@ -186,7 +186,6 @@ function UserFooter({ session, status }: { session: any; status: string }) {
 		return () => document.removeEventListener("mousedown", handler);
 	}, []);
 
-	// FIX 2: don't render anything until session is resolved to prevent "User" flash
 	if (status === "loading") {
 		return (
 			<div className="flex items-center gap-3 px-3 py-2.5">

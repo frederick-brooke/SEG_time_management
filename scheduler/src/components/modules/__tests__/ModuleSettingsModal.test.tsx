@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import ModuleSettingsModal from "../ModuleSettingsModal";
 import { updateModuleSettings } from "@/app/actions/module";
 
-// Mock the server action to ensure Low Coupling (V.2.1)
+// Mock the server action
 jest.mock("@/app/actions/module", () => ({
   updateModuleSettings: jest.fn(),
 }));

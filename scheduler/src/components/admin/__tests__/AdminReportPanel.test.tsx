@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ReportPanel from "../AdminReportPanel"; // adjust path if needed
+import ReportPanel from "../AdminReportPanel";
 
 global.fetch = jest.fn() as jest.Mock;
 global.alert = jest.fn();
