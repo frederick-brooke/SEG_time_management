@@ -5,6 +5,12 @@ import "@testing-library/jest-dom";
 import GroupEventModal from "@/components/groups/GroupEventModal";
 
 // mocks
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("@/app/actions/groups", () => ({
   createGroupEvent: jest.fn().mockResolvedValue({ success: true }),
   updateGroupEvent: jest.fn().mockResolvedValue({ success: true }),

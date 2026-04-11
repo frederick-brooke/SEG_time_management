@@ -6,6 +6,7 @@ import { render, screen } from "@testing-library/react";
 import { UpcomingExams, getUpcomingExams } from "../UpcomingExams";
 
 // Mocks Next.js Link to render as a standard anchor tag for straightforward DOM testing
+
 jest.mock("next/link", () => {
 	return ({ children, href, className }) => (
 		<a href={href} className={className}>
