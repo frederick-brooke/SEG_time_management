@@ -9,7 +9,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { validatePassword } from "@/lib/password";
-import { Button } from "@/components/ui/Button";
 import StarBackground from "@/components/StarBackground";
 
 export function FormInput({
@@ -22,11 +21,8 @@ export function FormInput({
 	required,
 }: any) {
 	return (
-		<div className="space-y-1.5">
-			<label
-				htmlFor={name}
-				className="text-xs font-semibold tracking-wide text-white/55 uppercase block"
-			>
+		<div className="space-y-2">
+			<label htmlFor={name} className="lunar-label">
 				{label}
 			</label>
 			<input
@@ -37,7 +33,7 @@ export function FormInput({
 				onChange={onChange}
 				placeholder={placeholder}
 				required={required}
-				className="w-full bg-white/5 border border-white/10 text-white placeholder-white/25 p-3.5 rounded-xl"
+				className="lunar-input w-full"
 			/>
 		</div>
 	);
@@ -104,10 +100,39 @@ export function ResetPasswordContent() {
 		}
 	};
 
+	const handleRedirectToLogin = () => {
+		router.push("/login");
+	};
+
 	if (!token) {
 		return (
-			<div className="p-8 text-center text-red-400">
+			<div className="p-8 text-center lunar-item-error border rounded-xl">
 				Invalid or missing token.
+			</div>
+		);
+	}
+
+	if (status === "success") {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-[#0a0a0f]">
+				<div className="lunar-glass p-8 w-full max-w-md space-y-6 text-center">
+					<h1 className="lunar-header text-3xl mb-6">
+						Password Reset
+					</h1>
+					<div className="lunar-item-success border rounded-xl p-4">
+						{message}
+					</div>
+					<p className="text-white/60 text-sm">
+						Your password has been successfully updated. You can now
+						sign in with your new password.
+					</p>
+					<button
+						onClick={handleRedirectToLogin}
+						className="lunar-button-primary w-full"
+					>
+						Return to Login
+					</button>
+				</div>
 			</div>
 		);
 	}
@@ -116,11 +141,17 @@ export function ResetPasswordContent() {
 		<div className="flex min-h-screen items-center justify-center bg-[#0a0a0f]">
 			<form
 				onSubmit={handleSubmit}
-				className="p-8 rounded-xl bg-white/5 w-full max-w-md"
+				className="lunar-glass p-8 w-full max-w-md space-y-6"
 			>
-				<h1 className="text-white text-2xl mb-4">Reset Password</h1>
+				<h1 className="lunar-header text-3xl mb-6">Reset Password</h1>
 
-				{message && <p className="mb-4 text-sm">{message}</p>}
+				{message && (
+					<div
+						className="border rounded-xl p-4 text-sm lunar-item-error"
+					>
+						{message}
+					</div>
+				)}
 
 				<FormInput
 					label="New Password"
@@ -131,6 +162,13 @@ export function ResetPasswordContent() {
 					required
 				/>
 
+				<ul className="mt-2 text-[11px] text-white/30 list-disc list-inside grid grid-cols-2 gap-1">
+					<li>Min 6 characters</li>
+					<li>1 Uppercase</li>
+					<li>1 Lowercase</li>
+					<li>1 Number/Symbol</li>
+				</ul>
+
 				<FormInput
 					label="Confirm Password"
 					type="password"
@@ -140,9 +178,12 @@ export function ResetPasswordContent() {
 					required
 				/>
 
-				<Button className="mt-4 w-full bg-blue-600 text-white py-2 rounded">
+				<button
+					type="submit"
+					className="lunar-button-primary w-full mt-8"
+				>
 					{status === "sending" ? "Saving..." : "Save Password"}
-				</Button>
+				</button>
 			</form>
 		</div>
 	);
