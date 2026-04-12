@@ -151,7 +151,6 @@ describe("TaskProgressContext", () => {
       fireEvent.click(screen.getByRole("button", { name: /Refresh/i }));
       await flushPromises();
 
-      // Ensure your component uses Math.floor or Math.round as expected by the test
       expect(screen.getByTestId("progress")).toHaveTextContent("66%");
       expect(global.fetch).toHaveBeenCalledWith("/api/tasks?userId=user123");
     });
