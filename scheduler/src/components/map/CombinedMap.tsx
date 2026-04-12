@@ -194,7 +194,7 @@ export function CombinedMap({
   const center = mode === "friends" ? computeFriendsCenter(friends, userLocation) : computeEventsCenter(events);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {/* Mode toggle */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <MapToggle mode={mode} onChange={setMode} friendCount={friends.length} eventCount={events.length} />

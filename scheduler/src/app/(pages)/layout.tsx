@@ -82,7 +82,7 @@ export default function PagesLayout({
 			)}
 
 			<SidebarInset
-				className="z-0"
+				className="z-0 w-full"
 				style={{
 					background: "transparent",
 					minHeight: "100vh",

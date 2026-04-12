@@ -97,7 +97,7 @@ export default async function MapPage() {
 	return (
 		<>
 			<StarBackground />
-			<main className="lunar-page">
+			<main className="lunar-page w-full">
 				<PageHeader count={serialisedEvents.length} />
 				<MapPageClient
 					events={serialisedEvents as any}
