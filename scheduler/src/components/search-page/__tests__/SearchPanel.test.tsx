@@ -87,7 +87,7 @@ describe("SearchPanel", () => {
 	it("renders main drawer when open", () => {
 		render(<SearchPanel open={true} onClose={jest.fn()} />);
 
-		expect(screen.getByTestId("drawer-Search Panel")).toBeInTheDocument();
+		expect(screen.getByTestId("drawer-Search")).toBeInTheDocument();
 		expect(screen.getByTestId("search-controls")).toBeInTheDocument();
 		expect(screen.getByTestId("search-users")).toBeInTheDocument();
 	});
@@ -95,7 +95,7 @@ describe("SearchPanel", () => {
 	it("does not render drawer when closed", () => {
 		render(<SearchPanel open={false} onClose={jest.fn()} />);
 
-		expect(screen.queryByTestId("drawer-Search Panel")).not.toBeInTheDocument();
+		expect(screen.queryByTestId("drawer-Search")).not.toBeInTheDocument();
 	});
 
 	it("opens filter drawer when clicking open filter", async () => {

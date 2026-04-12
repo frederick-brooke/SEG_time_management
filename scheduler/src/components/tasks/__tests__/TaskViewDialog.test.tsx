@@ -6,6 +6,11 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TaskViewDialog } from "../TaskViewDialog";
 
 // Mocks
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
 
 jest.mock("../../ui/Dialog", () => {
   const React = require("react");

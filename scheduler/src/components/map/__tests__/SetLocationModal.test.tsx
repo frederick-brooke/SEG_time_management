@@ -5,6 +5,12 @@ import { useGeolocation, useLocationSearch } from "@/lib/map";
 import { useRouter } from "next/navigation";
 import { updateUserLocation } from "@/app/actions/updateUserLocation";
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("leaflet", () => ({
   divIcon: jest.fn(() => ({ options: {} })),
   marker: jest.fn(() => ({

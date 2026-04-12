@@ -6,6 +6,12 @@ import ModuleEventModal from "@/components/modules/ModuleEventModal";
 
 //mocks
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("@/app/actions/module", () => ({
   createModuleEvent: jest.fn().mockResolvedValue({ success: true }),
   updateModuleEvent: jest.fn().mockResolvedValue({ success: true }),

@@ -3,6 +3,12 @@ import QuickScheduleModal from "../QuickScheduleModal";
 
 // Mocks
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("date-fns", () => ({
   format: (_date: Date, fmt: string) =>
     fmt === "yyyy-MM-dd" ? "2026-03-23" : "09:00",

@@ -2,6 +2,12 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import WellbeingPanel from "../WellbeingPanel";
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("@/components/layout/LunarDrawer", () =>
   jest.fn(({ open, onClose, side, title, children }: {
     open: boolean;

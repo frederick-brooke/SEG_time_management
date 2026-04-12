@@ -5,7 +5,14 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { AddMemberModal } from "../AddMemberModal";
 
-// Mock next/image
+// Mocks
+
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("next/image", () => ({
   __esModule: true,
   default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,
