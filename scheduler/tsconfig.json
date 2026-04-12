@@ -14,15 +14,13 @@
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"jsx": "react-jsx",
-		"ignoreDeprecations": "5.0",
-		"baseUrl": ".",
 		"paths": {
-			"@/*": ["src/*"],
-			"components/*": ["src/components/*"],
-			"ui/*": ["src/components/ui/*"],
-			"hooks/*": ["src/hooks/*"],
-			"lib/*": ["src/lib/*"],
-			"utils/*": ["src/lib/utils/*"]
+			"@/*": ["./src/*"],
+			"components/*": ["./src/components/*"],
+			"ui/*": ["./src/components/ui/*"],
+			"hooks/*": ["./src/hooks/*"],
+			"lib/*": ["./src/lib/*"],
+			"utils/*": ["./src/lib/utils/*"]
 		},
 		"plugins": [
 			{
