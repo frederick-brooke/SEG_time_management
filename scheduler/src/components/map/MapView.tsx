@@ -80,7 +80,7 @@ function MapView({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full w-full">
       {error && <ErrorBanner message={error} />}
 
       <CombinedMapDynamic

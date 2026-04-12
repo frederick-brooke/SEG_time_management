@@ -13,6 +13,44 @@ interface LocationControllerProps {
 }
 
 /**
+ * Container size controller: invalidates map size to recalculate when container changes.
+ * Fixes width shifts when content around the map appears/disappears (e.g., scrollbar toggle).
+ * Uses ResizeObserver to react to container dimension changes after mount.
+ */
+function ContainerSizeController() {
+  const map = useMap();
+
+  useEffect(() => {
+    // Initial invalidation on mount to ensure map calculates correct size
+    map.invalidateSize();
+
+    // Watch for container resize (e.g., when scrollbar appears/disappears on body)
+    const container = map.getContainer();
+    if (!container) return;
+
+    let resizeTimeout: NodeJS.Timeout;
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Add delay to allow browser layout to settle before Leaflet recalculates
+      // This prevents Leaflet from reading stale container dimensions during rapid prop changes
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        map.invalidateSize();
+      }, 50);
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      clearTimeout(resizeTimeout);
+      resizeObserver.disconnect();
+    };
+  }, [map]);
+
+  return null;
+}
+
+/**
  * Dynamically pans the map to a new center whenever the `center` prop changes.
  * Skips the first render to avoid overwriting the initial map view.
  *
@@ -75,17 +113,21 @@ export function BaseMap({
   className = "",
 }: BaseMapProps) {
   return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height, width: "100%" }}
-      className={`rounded-xl border shadow-sm overflow-hidden ${className}`}
-    >
+    <div style={{ width: "100%", display: "block" }}>
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        style={{ height, width: "100%" }}
+        className={`rounded-xl border shadow-sm overflow-hidden ${className}`}
+      >
       {/* Base tile layer for OpenStreetMap */}
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+
+      {/* Handles container size changes */}
+      <ContainerSizeController />
 
       {/* Handles dynamic panning when `center` changes */}
       <LocationController center={center} zoom={zoom}/>
@@ -93,5 +135,6 @@ export function BaseMap({
       {/* Render any child layers/components passed into the map */}
       {children}
     </MapContainer>
+    </div>
   );
 }

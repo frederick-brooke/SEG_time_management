@@ -2,9 +2,11 @@ import React from "react";
 import { Button } from "@/components/ui/Button";
 import { render } from "@testing-library/react";
 
-// Mocks 
+// Mocks
 
 const mockPanTo = jest.fn();
+const mockInvalidateSize = jest.fn();
+const mockGetContainer = jest.fn(() => ({} as HTMLElement));
 const mockUseMap = jest.fn();
 
 jest.mock("react-leaflet", () => ({
@@ -41,6 +43,12 @@ jest.mock("@/lib/map/constants", () => ({
   MAP_HEIGHT: "500px",
 }));
 
+// Mock ResizeObserver
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 // Import after mocks 
 
 import { BaseMap, LocationController } from "../BaseMap";
@@ -54,7 +62,7 @@ const CENTER: [number, number] = [51.505, -0.09];
 describe("LocationController", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMap.mockReturnValue({ panTo: mockPanTo });
+    mockUseMap.mockReturnValue({ panTo: mockPanTo, invalidateSize: mockInvalidateSize, getContainer: mockGetContainer });
   });
 
   it("returns null (renders nothing)", () => {
@@ -103,7 +111,7 @@ describe("LocationController", () => {
 describe("BaseMap", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMap.mockReturnValue({ panTo: mockPanTo });
+    mockUseMap.mockReturnValue({ panTo: mockPanTo, invalidateSize: mockInvalidateSize, getContainer: mockGetContainer });
   });
 
   it("renders MapContainer with correct center and default zoom", () => {
