@@ -6,11 +6,17 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import CategoryManagerModal from "../CategoryManagerModal";
 
-// ── Mocks ─────────
+// Mocks 
+
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
 
 global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
 
-// ── Factory helpers 
+// Factory helpers 
 
 /**
  * Creates a mock category object.
@@ -36,7 +42,7 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests 
+// Tests 
 
 describe("CategoryManagerModal", () => {
   beforeEach(() => {
@@ -47,7 +53,7 @@ describe("CategoryManagerModal", () => {
     });
   });
 
-  // ── Modal rendering ──────
+  // Modal rendering 
 
   describe("modal rendering", () => {
     it("should render the modal title", () => {
@@ -78,7 +84,6 @@ describe("CategoryManagerModal", () => {
         <CategoryManagerModal {...createDefaultProps({ onClose })} />
       );
 
-      // Click the outer backdrop div (first child)
       fireEvent.click(container.firstChild as HTMLElement);
 
       expect(onClose).toHaveBeenCalled();
@@ -97,14 +102,13 @@ describe("CategoryManagerModal", () => {
       const onClose = jest.fn();
       render(<CategoryManagerModal {...createDefaultProps({ onClose })} />);
 
-      // Click inside the modal card — stopPropagation should prevent onClose
       fireEvent.click(screen.getByText("Categories"));
 
       expect(onClose).not.toHaveBeenCalled();
     });
   });
 
-  // ── CategoryRow ──
+  // CategoryRow 
 
   describe("CategoryRow", () => {
     it("should display the category name in read mode", () => {
@@ -116,7 +120,6 @@ describe("CategoryManagerModal", () => {
       render(<CategoryManagerModal {...createDefaultProps()} />);
       fireEvent.click(screen.getByText("Edit"));
 
-      // Input should now be visible with the current name
       expect(screen.getByDisplayValue("Lecture")).toBeInTheDocument();
       expect(screen.getByText("Save")).toBeInTheDocument();
     });
@@ -267,7 +270,7 @@ describe("CategoryManagerModal", () => {
     });
   });
 
-  // ── AddCategoryForm ──────
+  // AddCategoryForm 
 
   describe("AddCategoryForm", () => {
     it("should not call fetch when the name is empty", async () => {
@@ -360,14 +363,12 @@ describe("CategoryManagerModal", () => {
       const categories = [createCategory({ color: "#6366f1" })];
       render(<CategoryManagerModal {...createDefaultProps({ categories })} />);
 
-      // Trigger duplicate colour error
       fireEvent.change(screen.getByPlaceholderText("Category name"), {
         target: { value: "Test" },
       });
       fireEvent.click(screen.getByText("Add"));
       expect(screen.getByText("This colour is already used.")).toBeInTheDocument();
 
-      // Change the colour — error should clear
       const colorInputs = document.querySelectorAll('input[type="color"]');
       fireEvent.change(colorInputs[colorInputs.length - 1], {
         target: { value: "#123456" },

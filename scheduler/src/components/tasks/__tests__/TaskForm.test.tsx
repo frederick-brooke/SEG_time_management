@@ -8,6 +8,12 @@ import { TaskForm } from "../TaskForm";
 
 // Mocks
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("../../ui/Dialog", () => {
   const React = require("react");
 

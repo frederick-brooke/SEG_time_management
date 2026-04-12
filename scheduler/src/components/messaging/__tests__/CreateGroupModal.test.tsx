@@ -7,6 +7,12 @@ import { CreateGroupModal } from "../CreateGroupModal";
 
 // Module mocks
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("next/image", () => ({
   __esModule: true,
   default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,

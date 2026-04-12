@@ -2,12 +2,17 @@
  * Tests for src/components/calendar/SaveLocationModal.tsx
  */
 
-
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SaveLocationModal from "../SaveLocationModal";
 
-// ── Factory helpers 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
+// Factory helpers 
 
 function createDefaultProps(overrides: Record<string, any> = {}) {
   return {
@@ -20,12 +25,12 @@ function createDefaultProps(overrides: Record<string, any> = {}) {
   };
 }
 
-// ── Tests 
+// Tests 
 
 describe("SaveLocationModal", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  // ── Rendering ────
+  // Rendering 
 
   describe("rendering", () => {
     it("should render the Save Location heading", () => {
@@ -70,7 +75,7 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Label input ──
+  // Label input 
 
   describe("label input", () => {
     it("should update the label when the input changes", () => {
@@ -100,38 +105,42 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Type selection ───────
+  // Type selection 
 
   describe("type selection", () => {
     it("should default to FAVOURITE type", () => {
       render(<SaveLocationModal {...createDefaultProps()} />);
       const favButton = screen.getByText(/Favourite/).closest("button")!;
-      expect(favButton.className).toContain("bg-indigo-600");
+      // Changed from bg-indigo-600 to bg-blue-600
+      expect(favButton.className).toContain("bg-blue-600");
     });
 
     it("should activate HOME when the Home button is clicked", () => {
       render(<SaveLocationModal {...createDefaultProps()} />);
       fireEvent.click(screen.getByText(/Home/).closest("button")!);
       const homeButton = screen.getByText(/Home/).closest("button")!;
-      expect(homeButton.className).toContain("bg-indigo-600");
+      // Changed from bg-indigo-600 to bg-blue-600
+      expect(homeButton.className).toContain("bg-blue-600");
     });
 
     it("should activate WORK when the Work button is clicked", () => {
       render(<SaveLocationModal {...createDefaultProps()} />);
       fireEvent.click(screen.getByText(/Work/).closest("button")!);
       const workButton = screen.getByText(/Work/).closest("button")!;
-      expect(workButton.className).toContain("bg-indigo-600");
+      // Changed from bg-indigo-600 to bg-blue-600
+      expect(workButton.className).toContain("bg-blue-600");
     });
 
     it("should deactivate the previously selected type when a new one is clicked", () => {
       render(<SaveLocationModal {...createDefaultProps()} />);
       fireEvent.click(screen.getByText(/Home/).closest("button")!);
       const favButton = screen.getByText(/Favourite/).closest("button")!;
-      expect(favButton.className).not.toContain("bg-indigo-600");
+      // Changed from bg-indigo-600 to bg-blue-600
+      expect(favButton.className).not.toContain("bg-blue-600");
     });
   });
 
-  // ── Save behaviour ───────
+  // Save behaviour
 
   describe("save behaviour", () => {
     it("should call onSave with the trimmed label and selected type", async () => {
@@ -220,7 +229,7 @@ describe("SaveLocationModal", () => {
     });
   });
 
-  // ── Close button ─
+  // Close button 
 
   describe("close button", () => {
     it("should call onClose when ✕ is clicked", () => {

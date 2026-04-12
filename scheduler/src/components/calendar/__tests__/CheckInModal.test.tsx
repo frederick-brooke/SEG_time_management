@@ -1,7 +1,12 @@
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import CheckInModal from "../CheckInModal";
 
-// ── Mocks 
+// Mocks 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
 
 const mockOnDone = jest.fn();
 
@@ -38,7 +43,7 @@ async function renderAndWait(onDone = mockOnDone) {
 
 beforeEach(() => jest.clearAllMocks());
 
-// ── Loading / empty state ──
+// Loading / empty state
 
 describe("CheckInModal — loading and empty state", () => {
   it("renders nothing when tasks array is empty", async () => {
@@ -60,7 +65,7 @@ describe("CheckInModal — loading and empty state", () => {
   });
 });
 
-// ── Header ─────────
+// Header 
 
 describe("CheckInModal — header", () => {
   it("shows the title and subtitle", async () => {
@@ -97,7 +102,7 @@ describe("CheckInModal — header", () => {
   });
 });
 
-// ── Task list ──────
+// Task list 
 
 describe("CheckInModal — task list", () => {
   it("renders all tasks", async () => {
@@ -148,7 +153,7 @@ describe("CheckInModal — task list", () => {
   });
 });
 
-// ── Status buttons ─
+// Status buttons 
 
 describe("CheckInModal — status buttons", () => {
   it("renders Done, Partial, and Missed buttons for each task", async () => {
@@ -193,7 +198,7 @@ describe("CheckInModal — status buttons", () => {
   });
 });
 
-// ── Partial progress slider 
+// Partial progress slider 
 
 describe("CheckInModal — partial progress slider", () => {
   it("shows slider when task is marked partial", async () => {
@@ -242,7 +247,7 @@ describe("CheckInModal — partial progress slider", () => {
   });
 });
 
-// ── Footer ─────────
+// Footer 
 
 describe("CheckInModal — footer", () => {
   it("shows prompt to mark all tasks when not all answered", async () => {

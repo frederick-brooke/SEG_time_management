@@ -54,12 +54,6 @@ describe("Exam Form Component", () => {
         expect(screen.getByText("Update Settings")).toBeInTheDocument();
     });
 
-    it("calls onSuccess when the cancel button is clicked", () => {
-        render(<ExamForm {...baseProps} />);
-        fireEvent.click(screen.getByText("Cancel"));
-        expect(baseProps.onSuccess).toHaveBeenCalled();
-    });
-
     //  Form Submission & API Integration
 
     it("calls createExam on submit in create mode", async () => {

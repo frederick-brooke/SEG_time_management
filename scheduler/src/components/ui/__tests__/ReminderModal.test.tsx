@@ -7,6 +7,12 @@ import ReminderModal from "../ReminderModal";
 
 // Mocks
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("@tabler/icons-react", () => ({
   IconHeartSpark: (props: React.SVGProps<SVGSVGElement>) => (
     <svg data-testid="heart-icon" {...props} />

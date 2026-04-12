@@ -10,6 +10,12 @@ import CalendarBody from "../CalendarBody";
 
 // Mocks
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 jest.mock("../CalendarBody.module.css", () =>
   new Proxy({}, { get: (_, key) => String(key) })
 );
@@ -524,10 +530,10 @@ describe("CalendarBody", () => {
       expect(result.style.color).toBe("#ff0000");
     });
 
-    it("falls back to #818cf8 for travel events with unknown category", () => {
+    it("falls back to #93c5fd for travel events with unknown category", () => {
       const travel = createTravelEvent({ _eventCategory: "unknown" });
       const result = capturedEventPropGetter(travel);
-      expect(result.style.color).toBe("#818cf8");
+      expect(result.style.color).toBe("#93c5fd");
     });
 
     it("returns backgroundColor for task events with a linked event category", () => {
@@ -542,10 +548,10 @@ describe("CalendarBody", () => {
       expect(result.style.backgroundColor).toBe("#ff0000");
     });
 
-    it("falls back to #6b7280 for task events with no linked event", () => {
+    it("falls back to #93c5fd for task events with no linked event", () => {
       const task = createTaskEvent({ eventId: "nonexistent" });
       const result = capturedEventPropGetter(task);
-      expect(result.style.backgroundColor).toBe("#6b7280");
+      expect(result.style.backgroundColor).toBe("#93c5fd");
     });
 
     it("returns backgroundColor for regular calendar events with known category", () => {
@@ -554,10 +560,10 @@ describe("CalendarBody", () => {
       expect(result.style.backgroundColor).toBe("#00ff00");
     });
 
-    it("falls back to #6366f1 for regular events with unknown category", () => {
+    it("falls back to #93c5fd for regular events with unknown category", () => {
       const event = createCalendarEvent({ category: "unknown" });
       const result = capturedEventPropGetter(event);
-      expect(result.style.backgroundColor).toBe("#6366f1");
+      expect(result.style.backgroundColor).toBe("#93c5fd");
     });
   });
 

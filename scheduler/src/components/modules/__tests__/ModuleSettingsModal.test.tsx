@@ -9,6 +9,12 @@ jest.mock("@/app/actions/module", () => ({
   updateModuleSettings: jest.fn(),
 }));
 
+jest.mock("@/context/UIContext", () => ({
+  useUI: () => ({
+    setIsModalOpen: jest.fn(),
+  }),
+}));
+
 // Mock icons to keep the DOM clean
 jest.mock("lucide-react", () => ({
   Settings: () => <svg data-testid="settings-icon" />,
