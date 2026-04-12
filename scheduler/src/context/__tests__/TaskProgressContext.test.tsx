@@ -25,15 +25,13 @@ function mockFetch(response: any, ok = true) {
   return jest.fn().mockResolvedValue({
     ok,
     status: ok ? 200 : 400,
-    json: jest.fn().mockResolvedValue(response), // FIX: Added .json() support
+    json: jest.fn().mockResolvedValue(response), 
     text: jest.fn().mockResolvedValue(JSON.stringify(response)),
   });
 }
 
 /**
  * Flushes all pending promises and microtasks.
- * FIX: Replaced setImmediate with setTimeout(resolve, 0) to be compatible 
- * with JSDOM/Node environments where setImmediate is not globally defined.
  */
 async function flushPromises() {
   await act(async () => {
@@ -87,7 +85,6 @@ describe("TaskProgressContext", () => {
 
       fireEvent.click(screen.getByRole("button", { name: /Refresh/i }));
 
-      // Poll until localStorage is written. waitFor handles the async nature of useEffect.
       await waitFor(() => {
         const cached = localStorage.getItem("task-progress-cache");
         expect(cached).not.toBeNull();
@@ -266,7 +263,6 @@ describe("TaskProgressContext", () => {
         fireEvent.click(screen.getByRole("button", { name: /Refresh/i }));
       });
 
-      // Confirm it's loading
       expect(screen.getByTestId("loading")).toHaveTextContent("loading");
 
       await act(async () => {

@@ -1,25 +1,44 @@
 import React from "react";
-import { Button } from "@/components/ui/Button";
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 
-// Mocks (leaflet is auto-mocked via jest.config moduleNameMapper)
-
+// react-leaflet mock 
 jest.mock("react-leaflet", () => ({
-  Marker: ({
-    children,
-    position,
-  }: {
-    children: React.ReactNode;
-    position: [number, number];
-  }) => (
-    <div data-testid="marker" data-position={JSON.stringify(position)}>
-      {children}
-    </div>
-  ),
-  Popup: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="popup">{children}</div>
-  ),
+  useMap: jest.fn(() => mockMapInstance),
 }));
+
+// leaflet mock 
+const mockMarkerInstance = {
+  addTo: jest.fn().mockReturnThis(),
+  bindPopup: jest.fn().mockReturnThis(),
+  remove: jest.fn(),
+};
+
+const mockPopupInstance = {
+  setContent: jest.fn().mockReturnThis(),
+};
+
+const mockMapInstance = {
+  addLayer: jest.fn(),
+  removeLayer: jest.fn(),
+  hasLayer: jest.fn(() => false),
+  fitBounds: jest.fn(),
+  setView: jest.fn(),
+};
+
+jest.mock("leaflet", () => {
+  const MockIcon = jest.fn().mockImplementation((opts) => ({ opts }));
+  return {
+    __esModule: true,
+    default: {
+      marker: jest.fn(() => mockMarkerInstance),
+      popup: jest.fn(() => mockPopupInstance),
+      Icon: MockIcon,
+    },
+    Icon: MockIcon,
+    marker: jest.fn(() => mockMarkerInstance),
+    popup: jest.fn(() => mockPopupInstance),
+  };
+});
 
 jest.mock("@/lib/map", () => ({
   USER_ICON_URL: "/user-icon.png",
@@ -34,13 +53,13 @@ jest.mock("@/lib/shop-catalogue", () => ({
   },
 }));
 
+jest.mock("@/lib/auth", () => ({ authOptions: {} }));
+
 import { FriendLayer } from "../FriendLayer";
-import * as leaflet from "leaflet";
+import * as L from "leaflet";
+import { useMap } from "react-leaflet";
 
-// Get the mock Icon constructor from the leaflet mock
-const mockIconConstructor = leaflet.Icon as unknown as jest.Mock;
-
-//  Fixtures
+// helpers 
 const USER_LOCATION = { lat: 51.505, lng: -0.09 };
 
 const makeFriend = (
@@ -52,7 +71,7 @@ const makeFriend = (
     city: string | null;
     country: string | null;
     location: { lat: number; lng: number } | null;
-    equippedAvatar?: string;
+    equippedAvatar: string | undefined;
   }> = {}
 ) => ({
   id,
@@ -65,208 +84,231 @@ const makeFriend = (
   ...opts,
 });
 
+const flushLeafletImport = () => Promise.resolve().then(() => Promise.resolve());
+
+// tests 
 describe("FriendLayer", () => {
-  // User marker
-  it("renders a marker for userLocation when provided", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useMap as jest.Mock).mockReturnValue(mockMapInstance);
+    mockMarkerInstance.addTo.mockReturnThis();
+    mockMarkerInstance.bindPopup.mockReturnThis();
+    mockPopupInstance.setContent.mockReturnThis();
+  });
+
+  // user marker 
+
+  it("creates a marker at userLocation when provided", async () => {
     render(<FriendLayer friends={[]} userLocation={USER_LOCATION} />);
-    const markers = screen.getAllByTestId("marker");
-    expect(markers).toHaveLength(1);
-    expect(JSON.parse(markers[0].getAttribute("data-position")!)).toEqual([USER_LOCATION.lat, USER_LOCATION.lng]);
+    await flushLeafletImport();
+    expect(L.marker).toHaveBeenCalledWith(
+      [USER_LOCATION.lat, USER_LOCATION.lng],
+      expect.objectContaining({ icon: expect.anything() })
+    );
   });
 
-  it("shows 'You are here!' popup for the user marker", () => {
+  it("binds a popup containing 'You are here!' for the user marker", async () => {
     render(<FriendLayer friends={[]} userLocation={USER_LOCATION} />);
-    expect(screen.getByText("You are here!")).toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockPopupInstance.setContent.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain("You are here!");
   });
 
-  it("renders nothing when userLocation is null and no friends", () => {
-    const { container } = render(<FriendLayer friends={[]} userLocation={null} />);
-    expect(screen.queryByTestId("marker")).not.toBeInTheDocument();
+  it("does not create any markers when userLocation is null and no friends", async () => {
+    render(<FriendLayer friends={[]} userLocation={null} />);
+    await flushLeafletImport();
+    expect(L.marker).not.toHaveBeenCalled();
   });
 
-  // Friend markers
-  it("renders a marker for each friend that has a location", () => {
+  // friend markers
+
+  it("creates a marker for each friend that has a location", async () => {
     const friends = [makeFriend("1"), makeFriend("2"), makeFriend("3")];
     render(<FriendLayer friends={friends} userLocation={null} />);
-    expect(screen.getAllByTestId("marker")).toHaveLength(3);
+    await flushLeafletImport();
+    expect(L.marker).toHaveBeenCalledTimes(3);
   });
 
-  it("does not render a marker for friends without a location", () => {
-    const friends = [
-      makeFriend("1"),
-      makeFriend("2", { location: null }),
-    ];
+  it("does not create a marker for friends without a location", async () => {
+    const friends = [makeFriend("1"), makeFriend("2", { location: null })];
     render(<FriendLayer friends={friends} userLocation={null} />);
-    expect(screen.getAllByTestId("marker")).toHaveLength(1);
+    await flushLeafletImport();
+    expect(L.marker).toHaveBeenCalledTimes(1);
   });
 
-  it("positions friend markers at the correct lat/lng", () => {
+  it("positions a friend marker at the correct lat/lng", async () => {
     const friend = makeFriend("1", { location: { lat: 48.8566, lng: 2.3522 } });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    const marker = screen.getByTestId("marker");
-    expect(JSON.parse(marker.getAttribute("data-position")!)).toEqual([48.8566, 2.3522]);
+    await flushLeafletImport();
+    expect(L.marker).toHaveBeenCalledWith(
+      [48.8566, 2.3522],
+      expect.objectContaining({ icon: expect.anything() })
+    );
   });
 
-  // Friend popup content
-  it("shows friend name in popup", () => {
+  // friend popup content
+
+  it("includes the friend's name in the popup", async () => {
     const friend = makeFriend("1", { name: "Alice" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    expect(screen.getByText("Alice")).toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain("Alice");
   });
 
-  it("shows city and country in popup when both are present", () => {
+  it("shows city and country when both are present", async () => {
     const friend = makeFriend("1", { city: "Paris", country: "France" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    expect(screen.getByText("Paris, France")).toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain("Paris, France");
   });
 
-  it("shows username when city or country is missing", () => {
-    const friend = makeFriend("1", {
-      city: null,
-      country: null,
-      username: "alice_99",
-    });
+  it("shows username when both city and country are null", async () => {
+    const friend = makeFriend("1", { city: null, country: null, username: "alice_99" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    expect(screen.getByText("alice_99")).toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain("alice_99");
   });
 
-  it("shows username when city is present but country is null", () => {
+  it("shows username when city is present but country is null", async () => {
     const friend = makeFriend("1", { city: "London", country: null, username: "londonuser" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    expect(screen.getByText("londonuser")).toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain("londonuser");
   });
 
-  it("shows username when country is present but city is null", () => {
+  it("shows username when country is present but city is null", async () => {
     const friend = makeFriend("1", { city: null, country: "UK", username: "ukuser" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    expect(screen.getByText("ukuser")).toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain("ukuser");
   });
 
-  it("renders profile picture img when pfp is provided", () => {
+  it("includes an img tag with the pfp src and name alt when pfp is provided", async () => {
     const friend = makeFriend("1", { pfp: "/avatar.jpg", name: "Bob" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    const img = screen.getByRole("img");
-    expect(img).toHaveAttribute("src", "/avatar.jpg");
-    expect(img).toHaveAttribute("alt", "Bob");
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).toContain('src="/avatar.jpg"');
+    expect(popupContent).toContain('alt="Bob"');
   });
 
-  it("does not render img when pfp is null", () => {
+  it("does not include an img tag when pfp is null", async () => {
     const friend = makeFriend("1", { pfp: null });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    await flushLeafletImport();
+    const popupContent = mockMarkerInstance.bindPopup.mock.calls[0]?.[0] ?? "";
+    expect(popupContent).not.toContain("<img");
   });
 
-  // Combined: user + friends
-  it("renders user marker plus friend markers when both are present", () => {
+  // combined
+
+  it("creates user marker plus one marker per located friend", async () => {
     const friends = [makeFriend("1"), makeFriend("2")];
     render(<FriendLayer friends={friends} userLocation={USER_LOCATION} />);
-    // 1 user + 2 friends = 3 markers
-    expect(screen.getAllByTestId("marker")).toHaveLength(3);
+    await flushLeafletImport();
+    expect(L.marker).toHaveBeenCalledTimes(3);
   });
 
-  it("renders all popups for every marker", () => {
+  it("binds a popup to every created marker", async () => {
     const friends = [makeFriend("1"), makeFriend("2")];
     render(<FriendLayer friends={friends} userLocation={USER_LOCATION} />);
-    // 1 user popup + 2 friend popups
-    expect(screen.getAllByTestId("popup")).toHaveLength(3);
+    await flushLeafletImport();
+    expect(mockMarkerInstance.bindPopup).toHaveBeenCalledTimes(3);
   });
 
-  // Edge cases
-  it("handles an empty friends array without throwing", () => {
-    expect(() =>
-      render(<FriendLayer friends={[]} userLocation={USER_LOCATION} />)
-    ).not.toThrow();
+  // edge cases 
+
+  it("handles an empty friends array without throwing", async () => {
+    await expect(async () => {
+      render(<FriendLayer friends={[]} userLocation={USER_LOCATION} />);
+      await flushLeafletImport();
+    }).not.toThrow();
   });
 
-  it("handles all friends missing location without rendering any friend markers", () => {
+  it("renders only the user marker when all friends lack a location", async () => {
     const friends = [
       makeFriend("1", { location: null }),
       makeFriend("2", { location: null }),
     ];
     render(<FriendLayer friends={friends} userLocation={USER_LOCATION} />);
-    // Only the user marker
-    expect(screen.getAllByTestId("marker")).toHaveLength(1);
+    await flushLeafletImport();
+    expect(L.marker).toHaveBeenCalledTimes(1);
   });
 
-  // Avatar icon tests
-  it("creates an Icon with the correct avatar URL when friend has equippedAvatar", () => {
-    mockIconConstructor.mockClear();
+  // avatar icons 
+
+  const MockIcon = L.Icon as unknown as jest.Mock;
+
+  it("creates an Icon with the correct avatar URL when equippedAvatar matches", async () => {
     const friend = makeFriend("1", { equippedAvatar: "astronaut-pioneer" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
+    await flushLeafletImport();
+    const urls = MockIcon.mock.calls.map((c) => c[0].iconUrl);
+    expect(urls).toContain("/avatars/astronaut-pioneer.svg");
+  });
 
-    // Should create icons for both user marker and friend marker
-    expect(mockIconConstructor).toHaveBeenCalled();
-    const iconCalls = mockIconConstructor.mock.calls;
-
-    // Find the call with the avatar URL (not the user icon)
-    const avatarCall = iconCalls.find(
-      (call) => call[0].iconUrl === "/avatars/astronaut-pioneer.svg"
+  it("uses iconSize [32, 32] for friend icons", async () => {
+    const friend = makeFriend("1", { equippedAvatar: "astronaut-pioneer" });
+    render(<FriendLayer friends={[friend]} userLocation={null} />);
+    await flushLeafletImport();
+    const avatarCall = MockIcon.mock.calls.find(
+      (c) => c[0].iconUrl === "/avatars/astronaut-pioneer.svg"
     );
-    expect(avatarCall).toBeDefined();
     expect(avatarCall?.[0].iconSize).toEqual([32, 32]);
   });
 
-  it("uses fallback FRIEND_ICON_URL when friend has no equippedAvatar", () => {
-    mockIconConstructor.mockClear();
+  it("falls back to FRIEND_ICON_URL when equippedAvatar is undefined", async () => {
     const friend = makeFriend("1", { equippedAvatar: undefined });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-
-    const iconCalls = mockIconConstructor.mock.calls;
-    const fallbackCall = iconCalls.find(
-      (call) => call[0].iconUrl === "/friend-icon.png"
-    );
-    expect(fallbackCall).toBeDefined();
+    await flushLeafletImport();
+    const urls = MockIcon.mock.calls.map((c) => c[0].iconUrl);
+    expect(urls).toContain("/friend-icon.png");
   });
 
-  it("uses fallback icon when equippedAvatar is not in AVATAR_IMAGES", () => {
-    mockIconConstructor.mockClear();
+  it("falls back to FRIEND_ICON_URL when equippedAvatar is not in AVATAR_IMAGES", async () => {
     const friend = makeFriend("1", { equippedAvatar: "non-existent-avatar" });
     render(<FriendLayer friends={[friend]} userLocation={null} />);
-
-    const iconCalls = mockIconConstructor.mock.calls;
-    const fallbackCall = iconCalls.find(
-      (call) => call[0].iconUrl === "/friend-icon.png"
-    );
-    expect(fallbackCall).toBeDefined();
+    await flushLeafletImport();
+    const urls = MockIcon.mock.calls.map((c) => c[0].iconUrl);
+    expect(urls).toContain("/friend-icon.png");
   });
 
-  it("creates different icons for friends with different avatars", () => {
-    mockIconConstructor.mockClear();
+  it("creates distinct avatar icons for friends with different avatars", async () => {
     const friends = [
       makeFriend("1", { equippedAvatar: "astronaut-pioneer" }),
       makeFriend("2", { equippedAvatar: "nebula-witch" }),
       makeFriend("3", { equippedAvatar: "cosmic-explorer" }),
     ];
     render(<FriendLayer friends={friends} userLocation={null} />);
-
-    const iconCalls = mockIconConstructor.mock.calls;
-    const avatarUrls = iconCalls.map((call) => call[0].iconUrl);
-
-    expect(avatarUrls).toContain("/avatars/astronaut-pioneer.svg");
-    expect(avatarUrls).toContain("/avatars/nebula-witch.svg");
-    expect(avatarUrls).toContain("/avatars/cosmic-explorer.svg");
+    await flushLeafletImport();
+    const urls = MockIcon.mock.calls.map((c) => c[0].iconUrl);
+    expect(urls).toContain("/avatars/astronaut-pioneer.svg");
+    expect(urls).toContain("/avatars/nebula-witch.svg");
+    expect(urls).toContain("/avatars/cosmic-explorer.svg");
   });
 
-
-  it("renders multiple friends with mixed avatar presence", () => {
-    mockIconConstructor.mockClear();
+  it("handles mixed avatar presence across multiple friends", async () => {
     const friends = [
       makeFriend("1", { equippedAvatar: "astronaut-pioneer", name: "Alice" }),
       makeFriend("2", { equippedAvatar: undefined, name: "Bob" }),
       makeFriend("3", { equippedAvatar: "nebula-witch", name: "Charlie" }),
     ];
     render(<FriendLayer friends={friends} userLocation={null} />);
+    await flushLeafletImport();
 
-    // Check all friends are rendered
-    expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Bob")).toBeInTheDocument();
-    expect(screen.getByText("Charlie")).toBeInTheDocument();
+    const urls = MockIcon.mock.calls.map((c) => c[0].iconUrl);
+    expect(urls).toContain("/avatars/astronaut-pioneer.svg");
+    expect(urls).toContain("/avatars/nebula-witch.svg");
+    expect(urls).toContain("/friend-icon.png");
 
-    // Check that correct icons were created
-    const iconCalls = mockIconConstructor.mock.calls;
-    const avatarUrls = iconCalls.map((call) => call[0].iconUrl);
-    expect(avatarUrls).toContain("/avatars/astronaut-pioneer.svg");
-    expect(avatarUrls).toContain("/avatars/nebula-witch.svg");
-    expect(avatarUrls).toContain("/friend-icon.png"); // For Bob
+    const popupCalls = mockMarkerInstance.bindPopup.mock.calls.map((c) => c[0] as string);
+    expect(popupCalls.some((html) => html.includes("Alice"))).toBe(true);
+    expect(popupCalls.some((html) => html.includes("Bob"))).toBe(true);
+    expect(popupCalls.some((html) => html.includes("Charlie"))).toBe(true);
   });
 });
