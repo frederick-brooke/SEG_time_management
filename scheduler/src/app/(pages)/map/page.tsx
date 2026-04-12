@@ -6,6 +6,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 // UI components/ map
 import MapPageClient from "./MapPageClient";
@@ -85,7 +86,7 @@ function getEventCountLabel(count: number): string {
 export default async function MapPage() {
 	const session = await getServerSession(authOptions);
 
-	if (!session) throw new Error("Not authenticated");
+	if (!session) redirect("/login?callbackUrl=/map");
 
 	const [events, locationData] = await Promise.all([
 		fetchUserEvents(session.user.id),

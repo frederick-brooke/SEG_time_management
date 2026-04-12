@@ -16,11 +16,25 @@ export function CalendarEvents() {
 				const res = await fetch("/api/calendar/events");
 				const data = await res.json();
 
+				if (!res.ok) {
+					if (res.status !== 401 && res.status !== 403) {
+						console.error("Calendar fetch failed", {
+							status: res.status,
+							statusText: res.statusText,
+							body: data,
+						});
+					}
+					setEvents([]);
+					return;
+				}
+
+				const eventList = Array.isArray(data) ? data : [];
+
 				const now = new Date();
 				const weekOut = new Date();
 				weekOut.setDate(now.getDate() + 7);
 
-				const filtered = data
+				const filtered = eventList
 					.filter(
 						(e: any) =>
 							new Date(e.start) >= now &&

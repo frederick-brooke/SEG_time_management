@@ -47,10 +47,24 @@ export default function QuizPage() {
 	const handleNext = () => currentStep < 4 && setCurrentStep((s) => s + 1);
 	const handleBack = () => currentStep > 1 && setCurrentStep((s) => s - 1);
 
-	const savePreferences = async (data: typeof DEFAULT_FORM_DATA) => {
+	const redirectToLogin = () => {
+		router.push("/login?callbackUrl=/quiz");
+	};
+
+	const savePreferences = async (
+		data: typeof DEFAULT_FORM_DATA,
+	): Promise<boolean> => {
 		const sessionRes = await fetch("/api/auth/session");
+		if (!sessionRes.ok) {
+			redirectToLogin();
+			return false;
+		}
+
 		const session = await sessionRes.json();
-		if (!session?.user?.id) throw new Error("Failed to get user session");
+		if (!session?.user?.id) {
+			redirectToLogin();
+			return false;
+		}
 
 		const res = await fetch("/api/preferences", {
 			method: "POST",
@@ -58,12 +72,15 @@ export default function QuizPage() {
 			body: JSON.stringify({ userID: session.user.id, ...data }),
 		});
 		if (!res.ok) throw new Error("Failed to save preferences");
+
+		return true;
 	};
 
 	const handleSubmit = async () => {
 		setIsLoading(true);
 		try {
-			await savePreferences(formData);
+			const saved = await savePreferences(formData);
+			if (!saved) return;
 			router.push("/dashboard");
 		} catch (error) {
 			console.error(error);
@@ -76,7 +93,8 @@ export default function QuizPage() {
 	const handleSkip = async () => {
 		setIsLoading(true);
 		try {
-			await savePreferences(DEFAULT_FORM_DATA);
+			const saved = await savePreferences(DEFAULT_FORM_DATA);
+			if (!saved) return;
 			router.push("/dashboard");
 		} catch (error) {
 			console.error(error);
