@@ -141,6 +141,22 @@
           ''}";
           meta.description = "Run tests with coverage report generation";
         };
+
+        seed = {
+          type = "app";
+          program = "${pkgs.writeShellScript "seed" ''
+            set -e
+
+            echo "🚀 Running database seed"
+
+            npm run seed
+
+            echo "✅ Database seed complete";
+          ''}";
+
+          meta.description = "Seed the database with mock data";
+        };
+
       };
     };
 }
