@@ -147,14 +147,31 @@
           program = "${pkgs.writeShellScript "seed" ''
             set -e
 
-            echo "🚀 Running database seed"
+            echo "🚀 Seeding connected database"
 
             npm run seed
 
             echo "✅ Database seed complete";
+            echo "To view database tables, run (npx prisma studio)"
           ''}";
 
           meta.description = "Seed the database with mock data";
+        };
+
+        unseed = {
+          type = "app";
+          program = "${pkgs.writeShellScript "unseed" ''
+            set -e
+
+            echo "🚀 Unseeding connected database"
+
+            npm run unseed
+
+            echo "✅ Database successfully unseeded";
+            echo "To view database tables, run (npx prisma studio)"
+          ''}";
+
+          meta.description = "Unseed the database, delete all data";
         };
 
       };
