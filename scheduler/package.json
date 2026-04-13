@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
+    "unseed": "tsx prisma/unseed.ts",
     "test": "jest",
     "test:clean": "jest --silent --verbose=false",
     "test:coverage": "jest --coverage --silent --onlyFailures --testPathPattern",
