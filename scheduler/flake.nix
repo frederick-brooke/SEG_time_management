@@ -125,7 +125,7 @@
           meta.description = "Build and start the application in production mode";
         };
 
-        test = {
+        tests = {
           type = "app";
           program = "${pkgs.writeShellScript "test" ''
             set -e
