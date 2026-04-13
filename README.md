@@ -32,20 +32,34 @@ Our project, Lunar, is deployed to the web: [Click to visit Deployed website](ht
 
 ## Getting Started locally
 
+First - Copy `.env.example` and add relevant api keys (Our .env can be found in `developers-manual.pdf`)
+
+### With Nix Flake
+
+1. Run `nix run .#init` to initialize development environment with Node.js, dependencies, and check env variables are present
+
+2. Run `nix run .#tests` to run the full test suite for the application and generate a coverage report
+
+3. Run `nix run .#run` to build the app and start the app in production node locally
+
+### Using Node and npm
+
 1. **Environment Configuration**:
     - Install packages with `npm install`
     - Create a `.env` file in the project root (./scheduler)
     - Copy environment variables from the `developers-manual.pdf` into `.env`
    
-2. **Test Database connection**
-    - Run `npx prisma db push` to test connection to MongoDB Atlas
+2. **Run Test suites**
+    - Bash: `npm test`
 
-3. **Run the local development server**
-    - Create an instance of the local development server with `npm run dev`
-    - Open [http://localhost:3000](http://localhost:3000) with your browser.
+3. **Create and Run the build**
+    - Create a build of the app using `npm run build`
+    - Start the local instance of the app using `npm run start`
+    - Open [http://localhost:3000](http://localhost:3000) with your browser
 
 ## Access Credentials 
 
+See `developers-manual.pdf` for details on default superuser and normal user
 
 ## Tech Stack
 
