@@ -36,26 +36,27 @@ export async function sendFriendRequest(receiverId: string) {
   await prisma.friendRequest.create({
     data: { senderId: session.user.id, receiverId, status: PrismaFriendStatus.PENDING },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");
 }
 
 /**
  * Accepts a pending friend request from another user.
  *
- * @param {string} senderId - The user ID of the person who sent the request
+ * @param {string} requestId - The user ID of the person who sent the request
  * @returns {Promise<void>}
  */
-export async function acceptFriendRequest(senderId: string) {
+export async function acceptFriendRequest(requestId: string) {
   const session = await requireSession();
+
   await prisma.friendRequest.updateMany({
-    where: { 
-      senderId: senderId, 
+    where: {
+      id: requestId,
       receiverId: session.user.id,
-      status: PrismaFriendStatus.PENDING
+      status: PrismaFriendStatus.PENDING,
     },
     data: { status: PrismaFriendStatus.ACCEPTED },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");  
 }
 
 /**
@@ -64,16 +65,15 @@ export async function acceptFriendRequest(senderId: string) {
  * @param {string} senderId - The user ID of the person who sent the request
  * @returns {Promise<void>}
  */
-export async function declineFriendRequest(senderId: string) {
+export async function declineFriendRequest(requestId: string) {
   const session = await requireSession();
   await prisma.friendRequest.deleteMany({
-    where: { 
-      senderId: senderId, 
-      receiverId: session.user.id,
-      status: PrismaFriendStatus.PENDING
+    where: {
+      id: requestId,
+      status: PrismaFriendStatus.PENDING,
     },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");  
 }
 
 /**
@@ -91,7 +91,7 @@ export async function cancelSentRequest(receiverId: string) {
       status: PrismaFriendStatus.PENDING
     }
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");
 }
 
 /**
@@ -111,5 +111,5 @@ export async function removeFriend(friendId: string) {
       ],
     },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");
 }
