@@ -10,7 +10,7 @@ import { ArrowRight, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getPriorityStyle } from "@/lib/priority";
 import { LunarCard } from "../ui/LunarCard";
-
+import { IconChevronRight } from "@tabler/icons-react";
 /**
  * Renders the checklist of subtasks for a task card.
  * @param {Array} subtasks List of subtasks to display.
@@ -37,16 +37,7 @@ function SubtaskList({
 			<div className="flex flex-col gap-2 max-h-[80px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300">
 				{subtasks.map((sub, i) => (
 					<div key={i} className="flex items-center gap-2 group">
-						<Checkbox
-							checked={checkedList[i] || false}
-							onCheckedChange={(checked) => {
-								const event = {
-									target: { checked },
-								} as React.ChangeEvent<HTMLInputElement>;
-								onSubtaskChange(event, i);
-							}}
-							className="h-4 w-4 bg-transparent border-white/30 data-[state=checked]:bg-blue-300 data-[state=checked]:text-black shrink-0"
-						/>
+						<IconChevronRight className="w-3 h-3 text-white/40 shrink-0 mt-0.5" />
 						<span className="text-sm text-white/60 truncate group-hover:text-white/90">
 							{typeof sub === "string"
 								? sub.trim()

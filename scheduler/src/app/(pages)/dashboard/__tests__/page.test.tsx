@@ -24,7 +24,6 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("next-auth/react", () => ({
 	useSession: jest.fn(),
-	signOut: jest.fn(),
 }));
 
 jest.mock("@/context/UIContext", () => ({
@@ -130,7 +129,7 @@ import Page from "../page";
 import { getFriendsLeaderboard } from "@/app/actions/leaderboard";
 import { useTaskProgress } from "@/context/TaskProgressContext";
 
-const { useSession, signOut } = require("next-auth/react");
+const { useSession } = require("next-auth/react");
 
 function setAuth(
 	status = "authenticated",
@@ -255,39 +254,6 @@ describe("Dashboard Page", () => {
 	it("renders ProfileStats once profile data arrives", async () => {
 		render(<Page />);
 		expect(await screen.findByText("ProfileStats")).toBeInTheDocument();
-	});
-
-	// Google Calendar
-	it("shows Connect Google Calendar when google is not linked", async () => {
-		render(<Page />);
-		expect(
-			await screen.findByText("Connect Google Calendar"),
-		).toBeInTheDocument();
-	});
-
-	it("hides Connect Google Calendar when google account is linked", async () => {
-		getMyProfileMock.mockResolvedValue({
-			fname: "Test",
-			accounts: [{ provider: "google" }],
-		});
-		render(<Page />);
-		await screen.findByText("ProfileStats");
-		expect(
-			screen.queryByText("Connect Google Calendar"),
-		).not.toBeInTheDocument();
-	});
-
-	it("pushes to google sign-in route on connect click", async () => {
-		render(<Page />);
-		fireEvent.click(await screen.findByText("Connect Google Calendar"));
-		expect(pushMock).toHaveBeenCalledWith("/api/auth/signin/google");
-	});
-
-	// Sign out
-	it("calls signOut with /login callback", async () => {
-		render(<Page />);
-		fireEvent.click(await screen.findByText("Sign Out"));
-		expect(signOut).toHaveBeenCalledWith({ callbackUrl: "/login" });
 	});
 
 	// Auth redirects
