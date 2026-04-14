@@ -4,8 +4,7 @@
  */
 
 "use client";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { X, CheckCircle2 } from "lucide-react";
 import { LunarCard } from "../ui/LunarCard";
@@ -38,8 +37,6 @@ export function TaskViewDialog({
 	getPriorityStyle,
 	onReward,
 }: TaskViewDialogProps) {
-	const router = useRouter();
-	const [loading, setLoading] = useState(false);
 	const { setIsModalOpen } = useUI();
 
 	useEffect(() => {
@@ -49,31 +46,6 @@ export function TaskViewDialog({
 
 	// Return early if dialog shouldn't be open or task is missing
 	if (!isOpen || !task) return null;
-
-	const handleCompleteTask = async () => {
-		setLoading(true);
-		try {
-			const res = await fetch(`/api/tasks/${task.id}`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					status: "completed",
-					completed: true,
-				}),
-			});
-
-			if (res.ok) {
-				const data = await res.json();
-				router.refresh();
-				onClose();
-				if (data.rewards && onReward) onReward(data.rewards);
-			}
-		} catch (error) {
-			console.error("Failed to update task:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	return (
 		/* Background Overlay */
@@ -219,16 +191,6 @@ export function TaskViewDialog({
 					>
 						Close
 					</Button>
-					{task.status !== "completed" && (
-						<Button
-							onClick={handleCompleteTask}
-							disabled={loading}
-							className="flex-1 bg-blue-300 hover:bg-blue-400 text-gray-950 gap-2 shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] font-bold"
-						>
-							<CheckCircle2 className="h-5 w-5" />
-							{loading ? "Completing..." : "Mark as Done"}
-						</Button>
-					)}
 				</div>
 			</LunarCard>
 		</div>
