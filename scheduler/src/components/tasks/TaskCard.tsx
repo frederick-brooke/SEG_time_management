@@ -68,6 +68,7 @@ function TaskCardFooter({
 	onDelete,
 	isDashboard,
 	router,
+	isOverdue,
 }) {
 	return (
 		<div className="flex justify-between items-center pt-3 border-t border-white/10 w-full mt-2">
@@ -85,7 +86,7 @@ function TaskCardFooter({
 				/>
 
 				{/* Arrows */}
-				{(task.status === "todo" || task.status === "in-progress") && (
+				{!isOverdue && (task.status === "todo" || task.status === "in-progress") && (
 					<Button
 						variant="ghost"
 						size="icon"
@@ -202,6 +203,13 @@ export function TaskCard({
 		}
 	};
 
+	const isOverdue = React.useMemo(() => {
+		if (!task.dueDate || task.status === "completed") return false;
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return new Date(task.dueDate) < today;
+		}, [task.dueDate, task.status]);
+
 	return (
 		<div
 			className="block w-full"
@@ -292,6 +300,7 @@ export function TaskCard({
 							onDelete={onDelete}
 							isDashboard={isDashboard}
 							router={router}
+							isOverdue={isOverdue}
 						/>
 					)}
 				</div>
