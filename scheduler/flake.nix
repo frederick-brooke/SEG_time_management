@@ -14,6 +14,7 @@
         name = "node-runtime";
         paths = [
           pkgs.nodejs_25
+          pkgs.typescript
         ];
       };
 
