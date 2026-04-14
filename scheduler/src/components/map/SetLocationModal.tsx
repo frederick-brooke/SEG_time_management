@@ -230,37 +230,41 @@ export default function SetLocationModal({
 
 				{/* Content */}
 				<div className="p-6 space-y-4">
-					{/* Search input */}
-					<input
-						ref={inputRef}
-						value={searchQuery}
-						onChange={(e) => handleLocationSearch(e.target.value)}
-						placeholder="Search for a location..."
-						className="w-full p-3 rounded-lg"
-					/>
+					{/* Search and location section */}
+					<div className="flex flex-col items-center gap-4">
+						{/* Search input */}
+						<input
+							ref={inputRef}
+							value={searchQuery}
+							onChange={(e) => handleLocationSearch(e.target.value)}
+							placeholder="Search for a location..."
+							className="lunar-input w-full max-w-lg"
+						/>
+
+						{/* My Location button */}
+						<Button onClick={handleUseMyLocation}>
+							📍 My Location
+						</Button>
+					</div>
 
 					{/* Suggestions dropdown */}
 					{suggestions.length > 0 && dropdownStyle && (
 						<div
 							style={dropdownStyle}
-							className="fixed bg-[#1a1a24] rounded-xl"
+							className="fixed bg-[#1a1a24] rounded-xl z-[9999]"
 						>
 							{suggestions.map((s: any, i: number) => (
-								<Button
+								<div
 									key={i}
 									data-testid={`suggestion-${i}`}
 									onClick={() => handleSelectSuggestion(s)}
+									className="px-4 py-3 text-white cursor-pointer hover:bg-white/10 transition"
 								>
 									{s.properties.display ?? s.properties.name}
-								</Button>
+								</div>
 							))}
 						</div>
 					)}
-
-					{/* My Location button */}
-					<Button onClick={handleUseMyLocation}>
-						📍 My Location
-					</Button>
 
 					{/* Map */}
 					<MapContainer
