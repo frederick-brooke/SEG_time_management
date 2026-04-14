@@ -8,13 +8,14 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import { useTransition, memo } from "react";
 import { Check, X } from "lucide-react";
+import { useTransition, memo, useState } from "react";
 import {
 	acceptFriendRequest,
 	declineFriendRequest,
 } from "@/app/actions/profile/friends";
 import { resolveAvatarSrc } from "@/lib/avatar";
+import { useRouter } from "next/dist/client/components/navigation";
 /**
  * Represents the user who sent the friend request.
  */
@@ -171,18 +172,24 @@ export default function PendingRequests({
 	requests = [],
 }: PendingRequestsProps) {
 	const [isPending, startTransition] = useTransition();
+	const [localRequests, setLocalRequests] = useState(requests); 
+	const router = useRouter(); 
 
 	if (requests.length === 0) return null;
 
-	const handleAccept = (requestId: string) => {
+	const handleAccept = (senderId: string) => {
 		startTransition(async () => {
-			await acceptFriendRequest(requestId);
+			await acceptFriendRequest(senderId);
+			setLocalRequests((prev) => prev.filter((r) => r.sender.id !== senderId));
+            router.refresh();
 		});
 	};
 
-	const handleReject = (requestId: string) => {
+	const handleReject = (senderId: string) => {
 		startTransition(async () => {
-			await declineFriendRequest(requestId);
+			await declineFriendRequest(senderId);
+	        setLocalRequests((prev) => prev.filter((r) => r.sender.id !== senderId));
+            router.refresh();
 		});
 	};
 
@@ -191,12 +198,12 @@ export default function PendingRequests({
 			<h2 className="lunar-label mb-4 flex items-center gap-2">
 				Pending Friend Requests
 				<span className="lunar-item-error px-2 py-0.5 rounded-full border text-[10px]">
-					{requests.length}
+					{localRequests.length}
 				</span>
 			</h2>
 
 			<div className="space-y-3">
-				{requests.map((req) => (
+				{localRequests.map((req) => (
 					<RequestRow
 						key={req.id}
 						request={req}

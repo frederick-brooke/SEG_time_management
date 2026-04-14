@@ -36,7 +36,7 @@ export async function sendFriendRequest(receiverId: string) {
   await prisma.friendRequest.create({
     data: { senderId: session.user.id, receiverId, status: PrismaFriendStatus.PENDING },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");  
 }
 
 /**
@@ -55,7 +55,7 @@ export async function acceptFriendRequest(senderId: string) {
     },
     data: { status: PrismaFriendStatus.ACCEPTED },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");  
 }
 
 /**
@@ -73,7 +73,7 @@ export async function declineFriendRequest(senderId: string) {
       status: PrismaFriendStatus.PENDING
     },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");  
 }
 
 /**
