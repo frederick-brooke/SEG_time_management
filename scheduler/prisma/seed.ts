@@ -15,10 +15,10 @@ const prisma = new PrismaClient()
 // Constants
 
 const SEED_USER_COUNT = 300
-const SEED_TASKS_PER_USER = 12
-const SEED_EVENTS_PER_USER = 20
+const SEED_TASKS_PER_USER = 5
+const SEED_EVENTS_PER_USER = 5
 const SEED_EXAMS_PER_USER = 4
-const SEED_FRIENDS_PER_USER = 15
+const SEED_FRIENDS_PER_USER = 5
 const SEED_PASSWORD = 'Password123!'
 const MAX_EVENT_DURATION_HOURS = 3
 const MAX_DUE_DATE_DAYS = 20
@@ -117,6 +117,19 @@ async function seedDefaultUsers(passwordHash: string): Promise<{ id: string }[]>
       bio: null,
       pfp: null,
       passwordHash,
+      location: {
+        lat: faker.location.nearbyGPSCoordinate({
+          origin: [51.5072, -0.1276],
+          radius: 15,
+          isMetric: false,
+        })[0],
+        lng: faker.location.nearbyGPSCoordinate({
+          origin: [51.5072, -0.1276],
+          radius: 15,
+          isMetric: false,
+        })[1],
+      },
+      locationHidden: true,
     },
   })
   defaultUsers.push(johnDoe)
@@ -131,6 +144,19 @@ async function seedDefaultUsers(passwordHash: string): Promise<{ id: string }[]>
       pfp: null,
       passwordHash,
       role: 'SUPERUSER',
+      location: {
+        lat: faker.location.nearbyGPSCoordinate({
+          origin: [51.5072, -0.1276],
+          radius: 15,
+          isMetric: false,
+        })[0],
+        lng: faker.location.nearbyGPSCoordinate({
+          origin: [51.5072, -0.1276],
+          radius: 15,
+          isMetric: false,
+        })[1],
+      },
+      locationHidden: true,
     },
   })
   defaultUsers.push(janeDoe)
@@ -154,6 +180,19 @@ async function seedUsers(passwordHash: string): Promise<{ id: string }[]> {
         bio: faker.datatype.boolean(0.7) ? faker.lorem.sentence() : null,
         pfp: faker.datatype.boolean(0.6) ? faker.image.avatar() : null,
         passwordHash,
+        location: {
+          lat: faker.location.nearbyGPSCoordinate({
+            origin: [51.5072, -0.1276],
+            radius: 15,
+            isMetric: false,
+          })[0],
+          lng: faker.location.nearbyGPSCoordinate({
+            origin: [51.5072, -0.1276],
+            radius: 15,
+            isMetric: false,
+          })[1],
+        },
+        locationHidden: true,
       },
     })
     users.push(user)

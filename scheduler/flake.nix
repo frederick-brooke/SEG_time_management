@@ -128,6 +128,19 @@
           meta.description = "Build and start the application in production mode";
         };
 
+        dev = {
+          type = "app";
+          program = "${pkgs.writeShellScript "run" ''
+            set -e
+
+            export PATH=${nodeEnv}/bin:$PATH
+
+            echo "🔨 Starting Dev server..."
+            npm run dev
+          ''}";
+          meta.description = "Start the dev server";
+        };
+
         tests = {
           type = "app";
           program = "${pkgs.writeShellScript "test" ''

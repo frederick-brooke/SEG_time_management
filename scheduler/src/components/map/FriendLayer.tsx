@@ -71,7 +71,7 @@ export function FriendLayer({ friends, userLocation }: FriendLayerProps) {
         const popupContent = `
           <div class="text-center">
             ${friend.pfp ? `<img src="${friend.pfp}" alt="${friend.name}" class="w-12 h-12 rounded-full mx-auto mb-2 border-2 border-white shadow" />` : ""}
-            <strong>${friend.name}</strong>
+       
             <br />
             <span class="text-sm text-gray-600">
               ${friend.city && friend.country ? `${friend.city}, ${friend.country}` : friend.username}
