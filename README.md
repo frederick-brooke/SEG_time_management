@@ -59,7 +59,7 @@ First - Copy `.env.example` and add relevant api keys (Our .env can be found in 
 
 ## Access Credentials 
 
-See `developers-manual.pdf` for details on default superuser and normal user
+See `developers-manual.pdf` for details on default superuser and normal user.
 
 ## Tech Stack
 

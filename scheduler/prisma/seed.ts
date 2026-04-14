@@ -123,7 +123,7 @@ async function seedDefaultUsers(passwordHash: string): Promise<{ id: string }[]>
 
   const janeDoe = await prisma.user.create({
     data: {
-      email: 'example@mail.com',
+      email: 'example2@mail.com',
       username: 'jane-doe',
       fname: 'Jane',
       lname: 'Doe',
