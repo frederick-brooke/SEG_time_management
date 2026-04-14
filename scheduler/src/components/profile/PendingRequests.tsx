@@ -8,14 +8,13 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { useTransition, memo } from "react";
 import { Check, X } from "lucide-react";
-import { useTransition, memo, useState } from "react";
 import {
 	acceptFriendRequest,
 	declineFriendRequest,
 } from "@/app/actions/profile/friends";
 import { resolveAvatarSrc } from "@/lib/avatar";
-import { useRouter } from "next/dist/client/components/navigation";
 /**
  * Represents the user who sent the friend request.
  */
@@ -45,8 +44,8 @@ interface PendingRequestsProps {
 interface RequestRowProps {
 	request: FriendRequest;
 	isPending: boolean;
-	onAccept: (requestId: string) => void;
-	onReject: (requestId: string) => void;
+	onAccept: (senderId: string) => void;
+	onReject: (senderId: string) => void;
 }
 
 /**
@@ -82,16 +81,16 @@ const SenderAvatar = memo(SenderAvatarComponent);
 /**
  * Renders the accept and decline buttons for a single friend request.
  *
- * @param {{ requestId: string; isPending: boolean; onAccept: RequestRowProps['onAccept']; onReject: RequestRowProps['onReject'] }} props - Component props.
+ * @param {{ senderId: string; isPending: boolean; onAccept: RequestRowProps['onAccept']; onReject: RequestRowProps['onReject'] }} props - Component props.
  * @returns {JSX.Element} The action button pair.
  */
 function RequestActionsComponent({
-	requestId,
+	senderId,
 	isPending,
 	onAccept,
 	onReject,
 }: {
-	requestId: string;
+	senderId: string;
 	isPending: boolean;
 	onAccept: RequestRowProps["onAccept"];
 	onReject: RequestRowProps["onReject"];
@@ -101,7 +100,7 @@ function RequestActionsComponent({
 	return (
 		<div className="flex gap-2">
 			<Button
-				onClick={() => onAccept(requestId)}
+				onClick={() => onAccept(senderId)}
 				disabled={isPending}
 				className={`lunar-item-success flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-colors ${disabledClass} ${!isPending ? "hover:bg-emerald-500/20" : ""}`}
 			>
@@ -110,7 +109,7 @@ function RequestActionsComponent({
 			</Button>
 
 			<Button
-				onClick={() => onReject(requestId)}
+				onClick={() => onReject(senderId)}
 				disabled={isPending}
 				className={`lunar-item-error flex items-center justify-center px-3 py-2 rounded-lg border transition-colors ${disabledClass} ${!isPending ? "hover:bg-red-500/20" : ""}`}
 			>
@@ -150,7 +149,7 @@ function RequestRowComponent({
 				</div>
 			</div>
 			<RequestActions
-				requestId={request.id}
+				senderId={sender.id}
 				isPending={isPending}
 				onAccept={onAccept}
 				onReject={onReject}
@@ -172,21 +171,19 @@ export default function PendingRequests({
 	requests = [],
 }: PendingRequestsProps) {
 	const [isPending, startTransition] = useTransition();
-	const [localRequests, setLocalRequests] = useState(requests); 
-	const router = useRouter(); 
 
 	if (requests.length === 0) return null;
 
 	const handleAccept = (requestId: string) => {
-	startTransition(async () => {
-		await acceptFriendRequest(requestId);
-	});
+		startTransition(async () => {
+			await acceptFriendRequest(requestId);
+		});
 	};
 
 	const handleReject = (requestId: string) => {
-	startTransition(async () => {
-		await declineFriendRequest(requestId);
-	});
+		startTransition(async () => {
+			await declineFriendRequest(requestId);
+		});
 	};
 
 	return (
@@ -194,12 +191,12 @@ export default function PendingRequests({
 			<h2 className="lunar-label mb-4 flex items-center gap-2">
 				Pending Friend Requests
 				<span className="lunar-item-error px-2 py-0.5 rounded-full border text-[10px]">
-					{localRequests.length}
+					{requests.length}
 				</span>
 			</h2>
 
 			<div className="space-y-3">
-				{localRequests.map((req) => (
+				{requests.map((req) => (
 					<RequestRow
 						key={req.id}
 						request={req}
