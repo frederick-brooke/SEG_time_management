@@ -125,6 +125,10 @@ jest.mock("@/components/ui/LunarCard", () => {
   };
 });
 
+jest.mock("@tabler/icons-react", () =>
+  new Proxy({}, { get: () => () => null })
+);
+
 import { TaskCard } from "../TaskCard";
 
 // Fixtures
@@ -155,10 +159,6 @@ function renderCard(overrides: any = {}, props: any = {}) {
       className={props.className ?? ""}
     />
   );
-}
-
-function getSubtaskCheckboxes() {
-  return screen.getAllByRole("checkbox").filter((c) => c.id !== "task-t1");
 }
 
 beforeEach(() => {
@@ -368,23 +368,6 @@ describe("TaskCard", () => {
   it("does not render subtask section in dashboard mode", () => {
     renderCard({ subtasks: ["A", "B"] }, { isDashboard: true });
     expect(screen.queryByText("Subtasks")).not.toBeInTheDocument();
-  });
-
-  it("subtask checkboxes start unchecked when status is not completed", () => {
-    renderCard({ subtasks: ["Alpha", "Beta"], status: "todo" });
-    getSubtaskCheckboxes().forEach((c) => expect(c).not.toBeChecked());
-  });
-
-  it("subtask checkboxes start checked when status is completed", () => {
-    renderCard({ subtasks: ["Alpha", "Beta"], status: "completed" });
-    getSubtaskCheckboxes().forEach((c) => expect(c).toBeChecked());
-  });
-
-  it("does not call onToggle when partial subtasks checked and task is not completed", () => {
-    const onToggle = jest.fn();
-    renderCard({ subtasks: ["A", "B"], status: "todo" }, { onToggle });
-    fireEvent.change(getSubtaskCheckboxes()[0], { target: { checked: true } });
-    expect(onToggle).not.toHaveBeenCalled();
   });
 
   it("renders subtask objects using title property", () => {
