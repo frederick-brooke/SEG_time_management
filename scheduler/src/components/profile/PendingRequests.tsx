@@ -45,8 +45,8 @@ interface PendingRequestsProps {
 interface RequestRowProps {
 	request: FriendRequest;
 	isPending: boolean;
-	onAccept: (senderId: string) => void;
-	onReject: (senderId: string) => void;
+	onAccept: (requestId: string) => void;
+	onReject: (requestId: string) => void;
 }
 
 /**
@@ -82,16 +82,16 @@ const SenderAvatar = memo(SenderAvatarComponent);
 /**
  * Renders the accept and decline buttons for a single friend request.
  *
- * @param {{ senderId: string; isPending: boolean; onAccept: RequestRowProps['onAccept']; onReject: RequestRowProps['onReject'] }} props - Component props.
+ * @param {{ requestId: string; isPending: boolean; onAccept: RequestRowProps['onAccept']; onReject: RequestRowProps['onReject'] }} props - Component props.
  * @returns {JSX.Element} The action button pair.
  */
 function RequestActionsComponent({
-	senderId,
+	requestId,
 	isPending,
 	onAccept,
 	onReject,
 }: {
-	senderId: string;
+	requestId: string;
 	isPending: boolean;
 	onAccept: RequestRowProps["onAccept"];
 	onReject: RequestRowProps["onReject"];
@@ -101,7 +101,7 @@ function RequestActionsComponent({
 	return (
 		<div className="flex gap-2">
 			<Button
-				onClick={() => onAccept(senderId)}
+				onClick={() => onAccept(requestId)}
 				disabled={isPending}
 				className={`lunar-item-success flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-bold uppercase tracking-wider transition-colors ${disabledClass} ${!isPending ? "hover:bg-emerald-500/20" : ""}`}
 			>
@@ -110,7 +110,7 @@ function RequestActionsComponent({
 			</Button>
 
 			<Button
-				onClick={() => onReject(senderId)}
+				onClick={() => onReject(requestId)}
 				disabled={isPending}
 				className={`lunar-item-error flex items-center justify-center px-3 py-2 rounded-lg border transition-colors ${disabledClass} ${!isPending ? "hover:bg-red-500/20" : ""}`}
 			>
@@ -150,7 +150,7 @@ function RequestRowComponent({
 				</div>
 			</div>
 			<RequestActions
-				senderId={sender.id}
+				requestId={request.id}
 				isPending={isPending}
 				onAccept={onAccept}
 				onReject={onReject}
@@ -177,20 +177,16 @@ export default function PendingRequests({
 
 	if (requests.length === 0) return null;
 
-	const handleAccept = (senderId: string) => {
-		startTransition(async () => {
-			await acceptFriendRequest(senderId);
-			setLocalRequests((prev) => prev.filter((r) => r.sender.id !== senderId));
-            router.refresh();
-		});
+	const handleAccept = (requestId: string) => {
+	startTransition(async () => {
+		await acceptFriendRequest(requestId);
+	});
 	};
 
-	const handleReject = (senderId: string) => {
-		startTransition(async () => {
-			await declineFriendRequest(senderId);
-	        setLocalRequests((prev) => prev.filter((r) => r.sender.id !== senderId));
-            router.refresh();
-		});
+	const handleReject = (requestId: string) => {
+	startTransition(async () => {
+		await declineFriendRequest(requestId);
+	});
 	};
 
 	return (

@@ -76,9 +76,15 @@ export async function fetchUserByEmail(email: string) {
         },
       },
       receivedRequests: {
-        where: { status: PrismaFriendStatus.PENDING },
+        where: {
+          OR: [
+            { status: PrismaFriendStatus.PENDING },
+            { status: PrismaFriendStatus.ACCEPTED },
+          ],
+        },
         select: {
           id: true,
+          status: true,
           sender: { select: FRIEND_USER_SELECT },
         },
       },

@@ -36,7 +36,7 @@ export async function sendFriendRequest(receiverId: string) {
   await prisma.friendRequest.create({
     data: { senderId: session.user.id, receiverId, status: PrismaFriendStatus.PENDING },
   });
-  revalidatePath("/profile", "layout");  
+  revalidatePath("/profile", "layout");
 }
 
 /**
@@ -45,14 +45,10 @@ export async function sendFriendRequest(receiverId: string) {
  * @param {string} senderId - The user ID of the person who sent the request
  * @returns {Promise<void>}
  */
-export async function acceptFriendRequest(senderId: string) {
+export async function acceptFriendRequest(requestId: string) {
   const session = await requireSession();
-  await prisma.friendRequest.updateMany({
-    where: { 
-      senderId: senderId, 
-      receiverId: session.user.id,
-      status: PrismaFriendStatus.PENDING
-    },
+  await prisma.friendRequest.update({
+    where: { id: requestId },
     data: { status: PrismaFriendStatus.ACCEPTED },
   });
   revalidatePath("/profile", "layout");  
@@ -64,14 +60,10 @@ export async function acceptFriendRequest(senderId: string) {
  * @param {string} senderId - The user ID of the person who sent the request
  * @returns {Promise<void>}
  */
-export async function declineFriendRequest(senderId: string) {
+export async function declineFriendRequest(requestId: string) {
   const session = await requireSession();
-  await prisma.friendRequest.deleteMany({
-    where: { 
-      senderId: senderId, 
-      receiverId: session.user.id,
-      status: PrismaFriendStatus.PENDING
-    },
+  await prisma.friendRequest.delete({
+    where: { id: requestId },
   });
   revalidatePath("/profile", "layout");  
 }
@@ -91,7 +83,7 @@ export async function cancelSentRequest(receiverId: string) {
       status: PrismaFriendStatus.PENDING
     }
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");
 }
 
 /**
@@ -111,5 +103,5 @@ export async function removeFriend(friendId: string) {
       ],
     },
   });
-  revalidatePath("/profile");
+  revalidatePath("/profile", "layout");
 }
