@@ -3,7 +3,7 @@
  * User dashboard page displaying exams, tasks, leaderboard, and wellbeing tools.
  * Handles authentication, data fetching, and core dashboard layout.
  */
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { getMyExams } from "@/app/actions/examActions";
@@ -98,14 +98,6 @@ function DashboardContent() {
 		}
 	}, [searchParams, router]);
 
-	const googleConnected = profile?.accounts?.some(
-		(acc: any) => acc.provider === "google",
-	);
-
-	const handleLinkGoogle = () => {
-		router.push("/api/auth/signin/google");
-	};
-
 	return (
 		<>
 			<LunarThemeWrapper>
@@ -123,26 +115,6 @@ function DashboardContent() {
 
 							<div className="w-full max-w-lg">
 								<RocketProgress progress={progressPercentage} />
-							</div>
-
-							<div className="flex items-center gap-3 flex-wrap">
-								{!googleConnected && (
-									<Button
-										onClick={handleLinkGoogle}
-										className="px-6 py-3 rounded-2xl bg-blue-300 text-gray-950 font-semibold shadow-[0_0_30px_rgba(90,150,255,0.25)] hover:shadow-[0_0_50px_rgba(90,150,255,0.45)] transition"
-									>
-										Connect Google Calendar
-									</Button>
-								)}
-
-								<Button
-									onClick={() =>
-										signOut({ callbackUrl: "/login" })
-									}
-									className="px-6 py-3 rounded-2xl bg-white/5 ring-1 ring-white/10 text-white/80 font-medium hover:bg-white/10 transition"
-								>
-									Sign Out
-								</Button>
 							</div>
 						</div>
 
