@@ -216,7 +216,7 @@ export default function SetLocationModal({
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black/50 z-[999] flex items-center justify-center p-4">
+		<div className="fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4">
 			<div className="bg-[#0a0f1d] rounded-xl border border-white/10 w-full max-w-2xl flex flex-col">
 				{/* Header */}
 				<div className="flex justify-between p-6 border-b border-white/10">
