@@ -12,6 +12,7 @@ import { SettingsClient } from "./SettingsClient";
 import { Settings } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import StarBackground from "@/components/StarBackground";
+import "leaflet/dist/leaflet.css";
 
 export default async function SettingsPage() {
 	const session = await getServerSession(authOptions);
