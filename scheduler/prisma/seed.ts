@@ -104,8 +104,43 @@ async function seedShopItems(): Promise<void> {
   }
 }
 
+async function seedDefaultUsers(passwordHash: string): Promise<{ id: string }[]> {
+  console.log('Creating default users...')
+  const defaultUsers = []
+  
+  const johnDoe = await prisma.user.create({
+    data: {
+      email: 'example@mail.com',
+      username: 'john-doe',
+      fname: 'John',
+      lname: 'Doe',
+      bio: null,
+      pfp: null,
+      passwordHash,
+    },
+  })
+  defaultUsers.push(johnDoe)
+
+  const janeDoe = await prisma.user.create({
+    data: {
+      email: 'example@mail.com',
+      username: 'jane-doe',
+      fname: 'Jane',
+      lname: 'Doe',
+      bio: null,
+      pfp: null,
+      passwordHash,
+      role: 'SUPERUSER',
+    },
+  })
+  defaultUsers.push(janeDoe)
+
+  console.log(`Created ${defaultUsers.length} default users.`)
+  return defaultUsers
+}
+
 async function seedUsers(passwordHash: string): Promise<{ id: string }[]> {
-  console.log('Creating users...')
+  console.log('Creating random users...')
   const users = []
   for (let i = 0; i < SEED_USER_COUNT; i++) {
     const firstName = faker.person.firstName()
@@ -123,7 +158,7 @@ async function seedUsers(passwordHash: string): Promise<{ id: string }[]> {
     })
     users.push(user)
   }
-  console.log(`Created ${users.length} users.`)
+  console.log(`Created ${users.length} random users.`)
   return users
 }
 
@@ -294,7 +329,15 @@ async function main(): Promise<void> {
   await seedShopItems()
 
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10)
-  const users = await seedUsers(passwordHash)
+  
+  // Create default users first
+  const defaultUsers = await seedDefaultUsers(passwordHash)
+  
+  // Create random users
+  const randomUsers = await seedUsers(passwordHash)
+  
+  // Combine default and random users
+  const users = [...defaultUsers, ...randomUsers]
 
   console.log('Creating progress, tasks, events, and exams...')
   for (const user of users) {
