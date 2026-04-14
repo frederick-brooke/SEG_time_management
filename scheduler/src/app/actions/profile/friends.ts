@@ -42,13 +42,18 @@ export async function sendFriendRequest(receiverId: string) {
 /**
  * Accepts a pending friend request from another user.
  *
- * @param {string} senderId - The user ID of the person who sent the request
+ * @param {string} requestId - The user ID of the person who sent the request
  * @returns {Promise<void>}
  */
 export async function acceptFriendRequest(requestId: string) {
   const session = await requireSession();
-  await prisma.friendRequest.update({
-    where: { id: requestId },
+
+  await prisma.friendRequest.updateMany({
+    where: {
+      id: requestId,
+      receiverId: session.user.id,
+      status: PrismaFriendStatus.PENDING,
+    },
     data: { status: PrismaFriendStatus.ACCEPTED },
   });
   revalidatePath("/profile", "layout");  
@@ -62,8 +67,11 @@ export async function acceptFriendRequest(requestId: string) {
  */
 export async function declineFriendRequest(requestId: string) {
   const session = await requireSession();
-  await prisma.friendRequest.delete({
-    where: { id: requestId },
+  await prisma.friendRequest.deleteMany({
+    where: {
+      id: requestId,
+      status: PrismaFriendStatus.PENDING,
+    },
   });
   revalidatePath("/profile", "layout");  
 }
