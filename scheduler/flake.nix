@@ -115,6 +115,8 @@
             set -e
             echo "🚀 Building and starting the application..."
 
+            export PATH=${nodeEnv}/bin:$PATH
+
             echo "🔨 Building the application..."
             npm run build
 
@@ -132,6 +134,8 @@
             set -e
             echo "🚀 Running tests with coverage..."
 
+            export PATH=${nodeEnv}/bin:$PATH
+
             echo "🧪 Running jest tests..."
             npm test --coverage
 
@@ -148,6 +152,8 @@
           program = "${pkgs.writeShellScript "seed" ''
             set -e
 
+            export PATH=${nodeEnv}/bin:$PATH
+
             echo "🚀 Seeding connected database"
 
             npm run seed
@@ -163,6 +169,8 @@
           type = "app";
           program = "${pkgs.writeShellScript "unseed" ''
             set -e
+
+            export PATH=${nodeEnv}/bin:$PATH
 
             echo "🚀 Unseeding connected database"
 
