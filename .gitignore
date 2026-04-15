@@ -343,6 +343,10 @@ cookies.txt
 **/*.backup.*
 **/*.back.*
 
+# Sensitive files
+
+developers-manual.pdf
+
 # Design files (optional - uncomment if you don't want to commit these)
 # /psd
 # /thumb
